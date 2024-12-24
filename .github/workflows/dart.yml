@@ -7,9 +7,9 @@ name: Dart
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["main"]
 
 jobs:
   test:
@@ -26,9 +26,9 @@ jobs:
 
       - name: Install dependencies
         run: dart pub get
-      
+
       - run: dart format --output=none --set-exit-if-changed .
-      
+
       - run: dart analyze
 
       - name: Run tests
