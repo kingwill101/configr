@@ -19,7 +19,6 @@ A flexible configuration management tool that helps you manage dotfiles, system 
 - Validation
   - Format validation (JSON, YAML, etc.)
   - Checksum verification
-  - Syntax checking
 
 - Safety Features
   - Automatic backups
