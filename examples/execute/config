@@ -1,0 +1,11 @@
+resource {
+  type "file"
+  source "/path/to/source"
+
+  actions {
+    execute {
+      command "echo 'Hello World'"
+      on_success true
+    }
+  }
+}

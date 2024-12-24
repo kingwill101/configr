@@ -1,0 +1,57 @@
+{
+  "resources": [
+    {
+      "template": null,
+      "source": "myfile.txt",
+      "type": "file",
+      "recursive": false,
+      "destination": ".myconfig/copy/myfile_copied.txt",
+      "actions": [
+        {
+          "type": "copy",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2024-10-21T02:50:30.449103",
+          "sha256": null,
+          "actions": [],
+          "properties": {}
+        }
+      ],
+      "commands": []
+    },
+    {
+      "template": null,
+      "source": "mydir",
+      "type": "directory",
+      "recursive": false,
+      "destination": "",
+      "actions": [
+        {
+          "type": "copy",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2024-10-21T02:50:30.450408",
+          "sha256": null,
+          "actions": [
+            {
+              "type": "backup",
+              "backupPath": null,
+              "status": "completed",
+              "timestamp": "2024-10-21T02:50:30.450010",
+              "sha256": null,
+              "actions": [],
+              "properties": {
+                "recursive": "true",
+                "backup_path": ".myconfig/copy/mydir_copied"
+              }
+            }
+          ],
+          "properties": {}
+        }
+      ],
+      "commands": []
+    }
+  ],
+  "commands": [],
+  "packages": []
+}

@@ -1,0 +1,11 @@
+resource {
+  type "file"
+  source "/path/to/source"
+  destination "/path/to/move/target"
+
+  actions {
+    move {
+      overwrite true
+    }
+  }
+}

@@ -1,0 +1,22 @@
+resource {
+  type "file"
+  source "https://get.docker.com/"
+  destination docker.sh
+
+  actions {
+    download {
+      overwrite true
+    }
+
+    copy {
+        source docker.sh
+        destination docker.copied.sh
+    }
+    delete{
+      source docker.sh
+    }
+    delete{
+      source docker.copied.sh
+    }
+  }
+}

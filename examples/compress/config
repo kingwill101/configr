@@ -1,0 +1,27 @@
+resources {
+  resource {
+  type "directory"
+  source "foo"
+  destination "compressed/foo.zip"
+
+  actions {
+    compress {
+      format "zip"
+      recursive true
+    }
+    }
+  }
+
+  resource {
+  type "file"
+  source "compressed/foo.zip"
+  destination "decompressed/decompressed_foo"
+
+  actions {
+    decompress {
+      format "zip"
+    }
+  }
+}
+
+}

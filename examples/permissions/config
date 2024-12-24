@@ -1,0 +1,13 @@
+resource {
+  type "directory"
+  destination "/path/to/permissions/target"
+
+  actions {
+    permissions {
+      owner "user"
+      group "group"
+      mode "0755"
+      recursive true
+    }
+  }
+}

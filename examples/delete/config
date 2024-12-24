@@ -1,0 +1,12 @@
+resource {
+  type "file"
+  source "/path/to/delete/target"
+
+  actions {
+    delete {
+      backup {
+        backup_path "/path/to/backup"
+      }
+    }
+  }
+}

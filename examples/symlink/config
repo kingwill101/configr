@@ -1,0 +1,7 @@
+  resource {
+    source "myfile.txt"
+    actions {
+      symlink {
+          link_path "~/myconfig/symlink/myfile_linked.txt"
+      }
+}

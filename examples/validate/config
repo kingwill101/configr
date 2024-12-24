@@ -1,0 +1,8 @@
+resource{
+    source config.json
+    actions {
+        validate {
+            format json
+        }
+    }
+}

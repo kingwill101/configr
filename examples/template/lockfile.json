@@ -1,0 +1,30 @@
+{
+  "files": [
+    {
+      "template": {
+        "template": "my_file.template",
+        "vars": {
+          "name": "susan"
+        }
+      },
+      "source": "",
+      "destination": "~/myconfig/template/susan.txt",
+      "actions": [
+        {
+          "type": "copy",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2024-10-20T20:25:11.551405",
+          "sha256": null,
+          "actions": [],
+          "properties": {}
+        }
+      ],
+      "permission": null,
+      "owner": null,
+      "commands": []
+    }
+  ],
+  "commands": [],
+  "packages": []
+}

@@ -1,0 +1,26 @@
+{
+  "files": [
+    {
+      "source": "\"myfile.txt\"",
+      "destination": "",
+      "actions": [
+        {
+          "type": "backup",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2024-10-19T14:56:45.422549",
+          "sha256": null,
+          "actions": [],
+          "properties": {
+            "destination": "~/myconfig/backup/myfile.txt.bak"
+          }
+        }
+      ],
+      "permission": null,
+      "owner": null,
+      "commands": []
+    }
+  ],
+  "commands": [],
+  "packages": []
+}

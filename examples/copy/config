@@ -1,0 +1,25 @@
+resources {
+  resource {
+    source myfile.txt
+    destination .myconfig/copy/myfile_copied.txt
+    actions {
+        copy {
+
+        }
+    }
+  }
+
+   resource {
+    source mydir
+    type directory
+    actions {
+        copy {
+           backup {
+             recursive true
+             backup_path .myconfig/copy/mydir_copied
+           }
+        }
+    }
+  }
+}
+

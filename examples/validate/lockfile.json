@@ -1,0 +1,29 @@
+{
+  "resources": [
+    {
+      "template": null,
+      "source": "config.json",
+      "type": "file",
+      "status": "completed",
+      "recursive": false,
+      "destination": "",
+      "actions": [
+        {
+          "type": "validate",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2024-12-24T13:02:26.155869",
+          "sha256": null,
+          "actions": [],
+          "properties": {
+            "format": "json"
+          }
+        }
+      ],
+      "commands": []
+    }
+  ],
+  "commands": [],
+  "packages": [],
+  "configChecksum": "ca9b0c07c3244c9eb005e955f4fc10ad453f48a2fb738b5815a76fa802d763b8"
+}

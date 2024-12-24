@@ -1,0 +1,10 @@
+resource {
+  type "file"
+  destination "/path/to/touch/target"
+
+  actions {
+    touch {
+      create_if_missing true
+    }
+  }
+}

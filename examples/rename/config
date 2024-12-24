@@ -1,0 +1,11 @@
+resource {
+  type "file"
+  source "/path/to/old_name"
+  destination "/path/to/new_name"
+
+  actions {
+    rename {
+      overwrite false
+    }
+  }
+}
