@@ -69,8 +69,7 @@ class FileDownloadModule extends ResourceModule {
         throw Exception('Failed to download file: ${response.statusCode}');
       }
     } catch (e) {
-      logger.severe('Error downloading file: $e');
-      exit(-1);
+      throw ActionFailedException('Error downloading file: $e');
     }
 
     action.status = 'completed';

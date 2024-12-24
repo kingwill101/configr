@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:configr/exceptions.dart';
 import 'package:configr/extensions/string.dart';
 import 'package:configr/modules/resource/resource_module.dart';
 import 'package:configr/utils/file_utils.dart';
@@ -23,7 +24,7 @@ class FileRenameModule extends ResourceModule {
 
     if (!await FileUtils.fileExists(sourcePath, fileSystem: fileSystem)) {
       logger.severe('Source file $sourcePath does not exist');
-      exit(-1);
+      throw SourceNotFoundException(sourcePath);
     }
 
     await executeModules();
@@ -37,7 +38,7 @@ class FileRenameModule extends ResourceModule {
     if (destinationFileExisted && !overwrite) {
       logger.severe(
           'Destination file $destinationPath already exists and overwrite is not allowed');
-      exit(-1);
+      throw DestinationExistsException(destinationPath);
     }
 
     originalName = path.basename(sourcePath);

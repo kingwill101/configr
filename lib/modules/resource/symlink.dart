@@ -91,8 +91,7 @@ class FileSymlinkModule extends ResourceModule {
         await FileUtils.createSymlink(originalTarget!, symlinkPath,
             fileSystem: fileSystem);
       } catch (e) {
-        logger.severe('Failed to restore original symlink $symlinkPath');
-        exit(-1);
+        throw ActionFailedException('Failed to restore original symlink $symlinkPath');
       }
     }
 

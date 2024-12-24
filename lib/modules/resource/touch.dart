@@ -29,7 +29,7 @@ class FileTouchModule extends ResourceModule {
     if (!fileExists && !createIfMissing) {
       logger.severe(
           'File $destinationPath does not exist and create_if_missing is false');
-      exit(-1);
+      throw SourceNotFoundException(destinationPath);
     }
 
     if (fileExists) {

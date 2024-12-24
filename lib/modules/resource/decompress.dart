@@ -23,7 +23,7 @@ class FileDecompressModule extends ResourceModule {
 
     if (!await FileUtils.fileExists(source, fileSystem: fileSystem)) {
       logger.severe('Source archive $source does not exist');
-      exit(-1);
+      throw SourceNotFoundException(source);
     }
 
     await executeModules();
