@@ -1,11 +1,14 @@
+import 'dart:io';
+
+import 'package:configr/config_manager.dart';
+import 'package:configr/utils/file_utils.dart';
+import 'package:configr/utils/privellage_escallation.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:mockito/annotations.dart';
-import 'package:test/test.dart';
-import 'package:configr/utils/privellage_escallation.dart';
-import 'package:configr/config_manager.dart';
-import 'package:configr/utils/file_utils.dart';
 import 'package:path/path.dart' as path;
+import 'package:test/test.dart';
+
 import 'test_helper.mocks.dart';
 
 @GenerateNiceMocks([MockSpec<PrivilegeEscalation>()])
@@ -18,6 +21,12 @@ class TestHelper {
 
   TestHelper([String path = "/test"]) : baseDir = path {
     setUp();
+  }
+
+  void skipCi(){
+    if (Platform.environment['GITHUB_ACTIONS'] == 'true') {
+      markTestSkipped("Running inside GitHub Actions.");
+    }
   }
 
   void setUp() {

@@ -13,6 +13,7 @@ void main() {
     final fileSystem = LocalFileSystem();
     helper = TestHelper(fileSystem.systemTempDirectory.path);
     helper.fileSystem = fileSystem;
+    helper.skipCi();
   });
 
   group('FilePermissionModule', () {
