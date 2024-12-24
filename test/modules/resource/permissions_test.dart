@@ -9,7 +9,7 @@ import '../../helpers/test_helper.dart';
 
 void main() {
   late TestHelper helper;
-  TestHelper.skipCi();
+
   setUp(() {
     final fileSystem = LocalFileSystem();
     helper = TestHelper(fileSystem.systemTempDirectory.path);
@@ -17,6 +17,7 @@ void main() {
   });
 
   group('FilePermissionModule', () {
+    TestHelper.skipCi();
     late String filePath;
 
     setUp(() {
@@ -28,6 +29,7 @@ void main() {
     });
 
     test('should change all permissions successfully', () async {
+      TestHelper.skipCi();
       await helper.createTestFile(filePath, 'test content');
 
       final resourceModel = ResourceModel(
@@ -60,6 +62,7 @@ void main() {
     });
 
     test('should change only mode when specified', () async {
+      TestHelper.skipCi();
       await helper.createTestFile(filePath, 'test content');
 
       final resourceModel = ResourceModel(
@@ -87,6 +90,7 @@ void main() {
     });
 
     test('should change only ownership when specified', () async {
+      TestHelper.skipCi();
       await helper.createTestFile(filePath, 'test content');
 
       final resourceModel = ResourceModel(
@@ -113,6 +117,7 @@ void main() {
     });
 
     test('should throw when no properties specified', () async {
+      TestHelper.skipCi();
       await helper.createTestFile(filePath, 'test content');
 
       final resourceModel = ResourceModel(
@@ -137,6 +142,7 @@ void main() {
     });
 
     test('should rollback changes on failure', () async {
+      TestHelper.skipCi();
       await helper.createTestFile(filePath, 'test content');
 
       // Get original permissions/ownership
