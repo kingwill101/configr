@@ -3,7 +3,7 @@ resources {
     source "myfile.txt"
     actions {
         backup {
-            destination ~/myconfig/backup/myfile.txt.bak
+            destination .myconfig/backup/myfile.txt.bak
         }
     }
   }

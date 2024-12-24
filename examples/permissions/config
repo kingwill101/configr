@@ -1,7 +1,6 @@
 resource {
   type "directory"
   destination "/path/to/permissions/target"
-
   actions {
     permissions {
       owner "user"
