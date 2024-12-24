@@ -1,0 +1,88 @@
+{"protocolVersion":"0.1.1","runnerVersion":"1.25.14","pid":1107177,"type":"start","time":0}
+{"suite":{"id":0,"platform":"vm","path":"test/config_management_test.dart"},"type":"suite","time":0}
+{"test":{"id":1,"name":"loading test/config_management_test.dart","suiteID":0,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":1}
+{"suite":{"id":2,"platform":"vm","path":"test/config_reader_test.dart"},"type":"suite","time":11}
+{"test":{"id":3,"name":"loading test/config_reader_test.dart","suiteID":2,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":11}
+{"suite":{"id":4,"platform":"vm","path":"test/modules/resource/compress_test.dart"},"type":"suite","time":11}
+{"test":{"id":5,"name":"loading test/modules/resource/compress_test.dart","suiteID":4,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":11}
+{"suite":{"id":6,"platform":"vm","path":"test/modules/resource/template_test.dart"},"type":"suite","time":12}
+{"test":{"id":7,"name":"loading test/modules/resource/template_test.dart","suiteID":6,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":12}
+{"count":24,"time":15,"type":"allSuites"}
+{"testID":1,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":910}
+{"group":{"id":8,"suiteID":0,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":5,"line":null,"column":null,"url":null},"type":"group","time":919}
+{"test":{"id":9,"name":"loadConfig loads configuration correctly","suiteID":0,"groupIDs":[8],"metadata":{"skip":false,"skipReason":null},"line":45,"column":3,"url":"file:///home/kingwill101/code/dart_packages/configr/test/config_management_test.dart"},"type":"testStart","time":920}
+{"testID":3,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":929}
+{"group":{"id":10,"suiteID":2,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":7,"line":null,"column":null,"url":null},"type":"group","time":929}
+{"group":{"id":11,"suiteID":2,"parentID":10,"name":"Config Reader Tests","metadata":{"skip":false,"skipReason":null},"testCount":7,"line":5,"column":3,"url":"file:///home/kingwill101/code/dart_packages/configr/test/config_reader_test.dart"},"type":"group","time":930}
+{"test":{"id":12,"name":"Config Reader Tests parseConfig should correctly parse resources section","suiteID":2,"groupIDs":[10,11],"metadata":{"skip":false,"skipReason":null},"line":68,"column":5,"url":"file:///home/kingwill101/code/dart_packages/configr/test/config_reader_test.dart"},"type":"testStart","time":930}
+{"testID":7,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":931}
+{"group":{"id":13,"suiteID":6,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":1,"line":null,"column":null,"url":null},"type":"group","time":931}
+{"test":{"id":14,"name":"should render template with variables","suiteID":6,"groupIDs":[13],"metadata":{"skip":false,"skipReason":null},"line":15,"column":3,"url":"file:///home/kingwill101/code/dart_packages/configr/test/modules/resource/template_test.dart"},"type":"testStart","time":932}
+{"testID":5,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":941}
+{"group":{"id":15,"suiteID":4,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":2,"line":null,"column":null,"url":null},"type":"group","time":942}
+{"group":{"id":16,"suiteID":4,"parentID":15,"name":"FileCompressModule","metadata":{"skip":false,"skipReason":null},"testCount":2,"line":14,"column":3,"url":"file:///home/kingwill101/code/dart_packages/configr/test/modules/resource/compress_test.dart"},"type":"group","time":942}
+{"test":{"id":17,"name":"FileCompressModule should compress directory successfully","suiteID":4,"groupIDs":[15,16],"metadata":{"skip":false,"skipReason":null},"line":15,"column":5,"url":"file:///home/kingwill101/code/dart_packages/configr/test/modules/resource/compress_test.dart"},"type":"testStart","time":942}
+{"testID":9,"messageType":"print","message":"Config /test/config","type":"print","time":981}
+{"testID":12,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":992}
+{"test":{"id":18,"name":"Config Reader Tests parseConfig should correctly parse commands section","suiteID":2,"groupIDs":[10,11],"metadata":{"skip":false,"skipReason":null},"line":84,"column":5,"url":"file:///home/kingwill101/code/dart_packages/configr/test/config_reader_test.dart"},"type":"testStart","time":994}
+{"testID":18,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1006}
+{"test":{"id":19,"name":"Config Reader Tests parseConfig should correctly parse packages section","suiteID":2,"groupIDs":[10,11],"metadata":{"skip":false,"skipReason":null},"line":99,"column":5,"url":"file:///home/kingwill101/code/dart_packages/configr/test/config_reader_test.dart"},"type":"testStart","time":1008}
+{"testID":19,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1014}
+{"test":{"id":20,"name":"Config Reader Tests parseConfig should handle empty config","suiteID":2,"groupIDs":[10,11],"metadata":{"skip":false,"skipReason":null},"line":118,"column":5,"url":"file:///home/kingwill101/code/dart_packages/configr/test/config_reader_test.dart"},"type":"testStart","time":1017}
+{"testID":9,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1018}
+{"group":{"id":21,"suiteID":0,"parentID":8,"name":"error handling","metadata":{"skip":false,"skipReason":null},"testCount":2,"line":66,"column":3,"url":"file:///home/kingwill101/code/dart_packages/configr/test/config_management_test.dart"},"type":"group","time":1019}
+{"test":{"id":22,"name":"error handling stops on first error with failFast=true","suiteID":0,"groupIDs":[8,21],"metadata":{"skip":false,"skipReason":null},"line":67,"column":5,"url":"file:///home/kingwill101/code/dart_packages/configr/test/config_management_test.dart"},"type":"testStart","time":1019}
+{"testID":20,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1023}
+{"test":{"id":23,"name":"Config Reader Tests parseConfig should handle config with only resources","suiteID":2,"groupIDs":[10,11],"metadata":{"skip":false,"skipReason":null},"line":127,"column":5,"url":"file:///home/kingwill101/code/dart_packages/configr/test/config_reader_test.dart"},"type":"testStart","time":1023}
+{"testID":22,"messageType":"print","message":"Config /test/config","type":"print","time":1030}
+{"testID":23,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1031}
+{"test":{"id":24,"name":"Config Reader Tests parseConfig should handle file without actions","suiteID":2,"groupIDs":[10,11],"metadata":{"skip":false,"skipReason":null},"line":143,"column":5,"url":"file:///home/kingwill101/code/dart_packages/configr/test/config_reader_test.dart"},"type":"testStart","time":1032}
+{"testID":24,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1035}
+{"test":{"id":25,"name":"Config Reader Tests parseConfig should handle command without parameters","suiteID":2,"groupIDs":[10,11],"metadata":{"skip":false,"skipReason":null},"line":158,"column":5,"url":"file:///home/kingwill101/code/dart_packages/configr/test/config_reader_test.dart"},"type":"testStart","time":1035}
+{"testID":25,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1039}
+{"suite":{"id":26,"platform":"vm","path":"test/modules/resource/validate_test.dart"},"type":"suite","time":1052}
+{"test":{"id":27,"name":"loading test/modules/resource/validate_test.dart","suiteID":26,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":1053}
+{"testID":17,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1072}
+{"test":{"id":28,"name":"FileCompressModule should handle decompression correctly","suiteID":4,"groupIDs":[15,16],"metadata":{"skip":false,"skipReason":null},"line":54,"column":5,"url":"file:///home/kingwill101/code/dart_packages/configr/test/modules/resource/compress_test.dart"},"type":"testStart","time":1073}
+{"testID":28,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1079}
+{"suite":{"id":29,"platform":"vm","path":"test/modules/resource/move_test.dart"},"type":"suite","time":1081}
+{"test":{"id":30,"name":"loading test/modules/resource/move_test.dart","suiteID":29,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":1082}
+{"testID":22,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1114}
+{"test":{"id":31,"name":"error handling collects all errors with failFast=false","suiteID":0,"groupIDs":[8,21],"metadata":{"skip":false,"skipReason":null},"line":106,"column":5,"url":"file:///home/kingwill101/code/dart_packages/configr/test/config_management_test.dart"},"type":"testStart","time":1114}
+{"testID":31,"messageType":"print","message":"Config /test/config","type":"print","time":1118}
+{"testID":31,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1123}
+{"test":{"id":32,"name":"applyConfig processes resources correctly","suiteID":0,"groupIDs":[8],"metadata":{"skip":false,"skipReason":null},"line":147,"column":3,"url":"file:///home/kingwill101/code/dart_packages/configr/test/config_management_test.dart"},"type":"testStart","time":1123}
+{"testID":32,"messageType":"print","message":"Config /test/config","type":"print","time":1129}
+{"testID":32,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1138}
+{"test":{"id":33,"name":"handles missing source file correctly","suiteID":0,"groupIDs":[8],"metadata":{"skip":false,"skipReason":null},"line":175,"column":3,"url":"file:///home/kingwill101/code/dart_packages/configr/test/config_management_test.dart"},"type":"testStart","time":1139}
+{"testID":33,"messageType":"print","message":"Config /test/config","type":"print","time":1142}
+{"testID":33,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1149}
+{"suite":{"id":34,"platform":"vm","path":"test/modules/resource/rename_test.dart"},"type":"suite","time":1150}
+{"test":{"id":35,"name":"loading test/modules/resource/rename_test.dart","suiteID":34,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":1150}
+{"testID":14,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1158}
+{"suite":{"id":36,"platform":"vm","path":"test/modules/resource/backup_test.dart"},"type":"suite","time":1160}
+{"test":{"id":37,"name":"loading test/modules/resource/backup_test.dart","suiteID":36,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":1160}
+{"testID":27,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":1284}
+{"group":{"id":38,"suiteID":26,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":2,"line":null,"column":null,"url":null},"type":"group","time":1285}
+{"test":{"id":39,"name":"should validate JSON format successfully","suiteID":26,"groupIDs":[38],"metadata":{"skip":false,"skipReason":null},"line":14,"column":3,"url":"file:///home/kingwill101/code/dart_packages/configr/test/modules/resource/validate_test.dart"},"type":"testStart","time":1285}
+{"testID":30,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":1345}
+{"group":{"id":40,"suiteID":29,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":2,"line":null,"column":null,"url":null},"type":"group","time":1346}
+{"test":{"id":41,"name":"should move file successfully","suiteID":29,"groupIDs":[40],"metadata":{"skip":false,"skipReason":null},"line":14,"column":3,"url":"file:///home/kingwill101/code/dart_packages/configr/test/modules/resource/move_test.dart"},"type":"testStart","time":1346}
+{"testID":39,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1384}
+{"test":{"id":42,"name":"should fail on invalid JSON format","suiteID":26,"groupIDs":[38],"metadata":{"skip":false,"skipReason":null},"line":34,"column":3,"url":"file:///home/kingwill101/code/dart_packages/configr/test/modules/resource/validate_test.dart"},"type":"testStart","time":1385}
+{"testID":42,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1398}
+{"suite":{"id":43,"platform":"vm","path":"test/modules/resource/copy_test.dart"},"type":"suite","time":1401}
+{"test":{"id":44,"name":"loading test/modules/resource/copy_test.dart","suiteID":43,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":1401}
+{"testID":41,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1458}
+{"test":{"id":45,"name":"should handle rollback correctly","suiteID":29,"groupIDs":[40],"metadata":{"skip":false,"skipReason":null},"line":43,"column":3,"url":"file:///home/kingwill101/code/dart_packages/configr/test/modules/resource/move_test.dart"},"type":"testStart","time":1459}
+{"testID":35,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":1462}
+{"group":{"id":46,"suiteID":34,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":2,"line":null,"column":null,"url":null},"type":"group","time":1463}
+{"test":{"id":47,"name":"should rename file successfully","suiteID":34,"groupIDs":[46],"metadata":{"skip":false,"skipReason":null},"line":14,"column":3,"url":"file:///home/kingwill101/code/dart_packages/configr/test/modules/resource/rename_test.dart"},"type":"testStart","time":1463}
+{"testID":37,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":1473}
+{"group":{"id":48,"suiteID":36,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":4,"line":null,"column":null,"url":null},"type":"group","time":1474}
+{"test":{"id":49,"name":"should backup file to specified location","suiteID":36,"groupIDs":[48],"metadata":{"skip":false,"skipReason":null},"line":15,"column":3,"url":"file:///home/kingwill101/code/dart_packages/configr/test/modules/resource/backup_test.dart"},"type":"testStart","time":1474}
+{"testID":45,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1476}
+{"suite":{"id":50,"platform":"vm","path":"test/modules/resource/symlink_test.dart"},"type":"suite","time":1479}
+{"test":{"id":51,"name":"loading test/modules/resource/symlink_test.dart","suiteID":50,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":1479}
+{"testID":47,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":1546}
+{"test":{"id":52,"name":"should fail when destination exists and overwrite is false","suiteID":34,"groupIDs":[46],"metadata":{"skip":false,"skipReason":null},"line":43,"column":3,"url":"file:///home/kingwill101/code/dart_packages/configr/test/modules/resource/rename_test.dart"},"type":"testStart","time":1547}

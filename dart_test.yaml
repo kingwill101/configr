@@ -1,0 +1,33 @@
+timeout: 120s
+
+coverage_presets:
+  all:
+    include:
+      - lib/**
+    exclude:
+      - test/**
+      - lib/**/*.g.dart
+
+# Set concurrency for parallel test execution
+concurrency: 4
+
+# Configure test output formats
+file_reporters:
+  json: coverage/tests.json
+
+# Platform configuration
+platforms:
+  - vm
+
+# Test directory configuration
+filename: "*_test.dart"
+paths:
+  - test
+  - test/modules/resource
+  - test/helpers
+
+# Test ordering
+test_randomize_ordering: true
+
+# Reporter configuration
+reporter: expanded
