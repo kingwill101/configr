@@ -1,19 +1,19 @@
+import 'package:configr/models/action.dart';
+import 'package:configr/models/file_model.dart';
+import 'package:configr/modules/resource/permissions.dart';
 import 'package:configr/utils/file_utils.dart';
 import 'package:file/local.dart';
 import 'package:test/test.dart';
-import 'package:configr/modules/resource/permissions.dart';
-import 'package:configr/models/file_model.dart';
-import 'package:configr/models/action.dart';
+
 import '../../helpers/test_helper.dart';
 
 void main() {
   late TestHelper helper;
-
+  TestHelper.skipCi();
   setUp(() {
     final fileSystem = LocalFileSystem();
     helper = TestHelper(fileSystem.systemTempDirectory.path);
     helper.fileSystem = fileSystem;
-    helper.skipCi();
   });
 
   group('FilePermissionModule', () {
