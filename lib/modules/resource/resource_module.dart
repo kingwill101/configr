@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:configr/exceptions.dart';
 import 'package:configr/extensions/string.dart';
 import 'package:configr/models/action.dart';
@@ -76,7 +74,8 @@ abstract class ResourceModule extends Module {
           (fileSystem ?? fs).file(file.template!.template!.clean());
 
       if (!templateContent.existsSync()) {
-        throw ActionFailedException('Template file ${templateContent.path} does not exist');
+        throw ActionFailedException(
+            'Template file ${templateContent.path} does not exist');
       }
 
       final tContent = liquify.Template.parse(

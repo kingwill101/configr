@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:configr/exceptions.dart';
 import 'package:configr/extensions/map.dart';
 import 'package:configr/extensions/string.dart';
@@ -91,7 +89,8 @@ class FileSymlinkModule extends ResourceModule {
         await FileUtils.createSymlink(originalTarget!, symlinkPath,
             fileSystem: fileSystem);
       } catch (e) {
-        throw ActionFailedException('Failed to restore original symlink $symlinkPath');
+        throw ActionFailedException(
+            'Failed to restore original symlink $symlinkPath');
       }
     }
 

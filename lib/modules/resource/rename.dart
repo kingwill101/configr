@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:configr/exceptions.dart';
 import 'package:configr/extensions/string.dart';
 import 'package:configr/modules/resource/resource_module.dart';

@@ -1,7 +1,6 @@
 import 'package:crypto/crypto.dart';
-import 'dart:io';
-
 import 'package:configr/exceptions.dart';
+// ignore: unnecessary_import
 import 'package:configr/exceptions.dart'
     show DestinationExistsException, ChecksumValidationException;
 import 'package:configr/extensions/string.dart';
