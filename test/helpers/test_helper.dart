@@ -23,10 +23,11 @@ class TestHelper {
     setUp();
   }
 
-  static void skipCi() {
-    if (Platform.environment['GITHUB_ACTIONS'] == 'true') {
-      markTestSkipped("Running inside GitHub Actions.");
+  static bool inCi() {
+    if (Platform.environment['GITHUB_ACTIONS'] != 'true') {
+      return true;
     }
+    return false;
   }
 
   void setUp() {
