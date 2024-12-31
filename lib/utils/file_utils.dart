@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io' as io;
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:configr/utils/privellage_escallation.dart';
 import 'package:configr/utils/fs.dart';
@@ -182,17 +183,64 @@ class FileUtils {
     return completer.future;
   }
 
-  /// Computes SHA-256 hash of a file's contents
-  static Future<String> computeFileHash(String filePath,
-      {FileSystem? fileSystem}) async {
-    Completer<String> completer = Completer();
-    final file = (fileSystem ?? fs).file(filePath);
-    file.readAsBytes().then((contents) {
-      completer.complete(sha256.convert(contents).toString());
-    }).catchError((err, stacktrace) {
-      completer.completeError(err, stacktrace);
-    });
-    return completer.future;
+  /// Computes a SHA-256 hash that represents the state of a filesystem entity
+  /// - For files: hashes the content
+  /// - For directories: hashes the names and hashes of immediate children
+  /// - For symlinks: hashes the target path
+  static Future<String> computeFileHash(String path,
+      {FileSystem? fileSystem, bool recursive = false}) async {
+    final fsToUse = fileSystem ?? fs;
+    final entity = fsToUse.statSync(path);
+
+    if (entity.type == FileSystemEntityType.file) {
+      // For regular files, hash the contents and path
+      final contents = await fsToUse.file(path).readAsBytes();
+
+      return sha256.convert([...utf8.encode(path), ...contents]).toString();
+    } else if (entity.type == FileSystemEntityType.directory) {
+      // For directories, combine hashes of children
+      final dir = fsToUse.directory(path);
+      final childEntities = dir.listSync(recursive: recursive);
+
+      // Sort to ensure consistent ordering
+      childEntities.sort((a, b) => a.path.compareTo(b.path));
+
+      // Start with the directory path
+      var digest = sha256.convert(utf8.encode(path));
+
+      for (final child in childEntities) {
+        // Add the relative path to capture directory structure
+        final relativePath = p.relative(child.path, from: path);
+
+        // Combine current digest with path
+        digest = sha256.convert([
+          ...digest.bytes,
+          ...utf8.encode(relativePath),
+        ]);
+
+        if (!recursive || child is! Directory) {
+          // If not recursive or if it's a file/link, compute its hash
+          final childHash = await computeFileHash(child.path,
+              fileSystem: fsToUse, recursive: false);
+
+          // Combine current digest with child hash
+          digest = sha256.convert([
+            ...digest.bytes,
+            ...utf8.encode(childHash),
+          ]);
+        }
+      }
+
+      return digest.toString();
+    } else if (entity.type == FileSystemEntityType.link) {
+      // For symlinks, hash both the link path and target path
+      final target = await fsToUse.link(path).target();
+
+      return sha256
+          .convert([...utf8.encode(path), ...utf8.encode(target)]).toString();
+    } else {
+      throw FileSystemException('Unsupported file system entity type', path);
+    }
   }
 
   /// Moves a file from source to destination path
