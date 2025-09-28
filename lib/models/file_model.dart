@@ -3,57 +3,42 @@ import 'package:configr/models/action.dart';
 import 'package:configr/models/command.dart';
 import 'package:configr/models/template.dart';
 
-enum ResourceType {
-  file,
-  directory,
+class ResourceType {
+  static const String file = 'file';
+  static const String directory = 'directory';
 }
 
 class ResourceModel {
+  final String id;
   final String source;
   final String destination;
-  final ResourceType type;
-  final bool recursive;
+  final String? type;
   final Template? template;
   final List<Action> actions;
   final List<Command> commands;
-  final String sha256;
+  String? sha256;
   String? status;
 
   ResourceModel(
-      {required this.source,
+      {required this.id,
+      required this.source,
       required this.destination,
       required this.actions,
-      this.type = ResourceType.file,
+      this.type,
       this.status,
       this.template,
       List<Command>? commands,
-      this.recursive = false,
       String? shasum})
       : commands = commands ?? const [],
         sha256 = shasum ?? '';
-
-  @override
-  int get hashCode => Object.hash(
-        source,
-        template,
-        status,
-        destination,
-        type,
-        recursive,
-        Object.hashAll(actions),
-        Object.hashAll(commands),
-      );
-
-  @override
-  String toString() {
-    return 'FileModel(source: $source, destination: $destination, actions: $actions, commands: $commands, status: $status)';
-  }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is ResourceModel &&
           runtimeType == other.runtimeType &&
+          id == other.id &&
+          sha256 == other.sha256 &&
           status == other.status &&
           source == other.source &&
           destination == other.destination &&
@@ -61,41 +46,60 @@ class ResourceModel {
           template == other.template &&
           listEquals(commands, other.commands);
 
+  @override
+  int get hashCode => Object.hash(
+        id,
+        sha256,
+        source,
+        template,
+        status,
+        destination,
+        type,
+        Object.hashAll(actions),
+        Object.hashAll(commands),
+      );
+
   factory ResourceModel.fromJson(Map<String, dynamic> json) {
     return ResourceModel(
-      shasum: json['sha256'],
-      status: json['status'],
-      source: json['source'],
-      destination: json['destination'],
-      template: json['template'],
-      type: ResourceType.values.byName(json['type']),
-      recursive: json['recursive'],
-      actions:
-          (json['actions'] as List).map((a) => Action.fromJson(a)).toList(),
-      commands:
-          (json['commands'] as List).map((a) => Command.fromJson(a)).toList(),
+      id: json['id'] as String,
+      source: json['source'] as String,
+      destination: json['destination'] as String,
+      type: json['type'] as String?,
+      status: json['status'] as String?,
+      template:
+          json['template'] != null ? Template.fromJson(json['template']) : null,
+      actions: (json['actions'] as List?)
+              ?.map((a) => Action.fromJson(a as Map<String, dynamic>))
+              .toList() ??
+          [],
+      commands: (json['commands'] as List?)
+              ?.map((c) => Command.fromJson(c as Map<String, dynamic>))
+              .toList() ??
+          [],
+      shasum: json['sha256'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'template': template?.toJson(),
+        'id': id,
         'source': source,
-        'type': type.name,
-        'status': status,
-        'recursive': recursive,
         'destination': destination,
+        'type': type,
+        'status': status,
+        'template': template?.toJson(),
         'actions': actions.map((a) => a.toJson()).toList(),
-        'commands': commands.map((c) => c.toJson()).toList()
+        'commands': commands.map((c) => c.toJson()).toList(),
+        'sha256': sha256,
       };
 
   String toConfig({String indent = ''}) {
     StringBuffer buffer = StringBuffer();
     buffer.writeln('${indent}file {');
+    buffer.writeln('$indent  id $id');
     buffer.writeln('$indent  source $source');
     buffer.writeln('$indent  destination $destination');
-    buffer.writeln('$indent  recursive $recursive');
     buffer.writeln('$indent  status $status');
-    buffer.writeln('$indent  type ${type.name}');
+    buffer.writeln('$indent  type $type');
     buffer.writeln('$indent  sha256 $sha256');
 
     if (template != null) {

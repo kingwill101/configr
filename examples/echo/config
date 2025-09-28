@@ -1,0 +1,14 @@
+resource {
+    actions{
+        echo {
+            message = "Starting deployment"
+            color = true
+            verbose = true
+            level = "info"
+          }
+          echo {
+            message = "Warning: disk space low"
+            level = "warning"
+          }
+    }
+}

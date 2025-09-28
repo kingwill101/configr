@@ -1,0 +1,82 @@
+# Example: Decompress with Enhanced Rollback Support
+# This example demonstrates the improved rollback behavior of the decompress module
+# which now removes entire destination directories recursively during rollback
+
+# Extract a ZIP archive with rollback support
+resource {
+  type "file"
+  source "archive.zip"
+  destination "extracted_data/"
+
+  actions {
+    decompress {
+      format "zip"
+    }
+    # On rollback: entire "extracted_data/" directory will be removed recursively
+    # This handles large archives with many nested files efficiently
+  }
+}
+
+# Extract TAR.GZ with permissions and rollback
+resource {
+  type "file"
+  source "config_backup.tar.gz"
+  destination "restored_config/"
+
+  actions {
+    decompress {
+      format "tar.gz"
+    }
+    permissions {
+      mode "644"
+      recursive true
+    }
+    # On rollback: "restored_config/" directory removed completely
+    # Original permissions are also restored
+  }
+}
+
+# Multiple archive extraction example
+resource {
+  type "file"
+  source "app_v1.tar.gz"
+  destination "app/"
+
+  actions {
+    decompress {
+      format "tar.gz"
+    }
+  }
+}
+
+resource {
+  type "file"
+  source "app_v2.tar.gz"
+  destination "app/"
+
+  actions {
+    decompress {
+      format "tar.gz"
+    }
+    # Both extractions will be rolled back by removing "app/" directory
+    # State tracking ensures proper cleanup of all created files
+  }
+}
+
+# Large binary archive handling
+resource {
+  type "file"
+  source "binary_data.zip"
+  destination "data/"
+
+  actions {
+    decompress {
+      format "zip"
+    }
+    validate {
+      exists true
+    }
+    # Binary files are now properly handled without UTF-8 conversion errors
+    # Rollback removes entire "data/" directory regardless of content type
+  }
+}

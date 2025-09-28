@@ -1,0 +1,42 @@
+{
+  "resources": [
+    {
+      "id": "resource_1",
+      "source": "test_dir",
+      "destination": "",
+      "type": "file",
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "delete_1",
+          "type": "delete",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-09-28T01:47:07.314942",
+          "sha256": "6cbce4a544f379e487616630084430d15676e140b29b3488b41c67c3f5e7f3ae",
+          "actions": [],
+          "properties": {
+            "recursive": true,
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "backupPath": null,
+            "fileExisted": true,
+            "backupCreated": false,
+            "isDirectory": true,
+            "recursive": true,
+            "deleteCompleted": true
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": ""
+    }
+  ],
+  "commands": [],
+  "packages": [],
+  "configChecksum": "5f9569c8bf9b669b9b5ecae6a5314fae8600d9bce02f8fe9134b555f4e774559"
+}

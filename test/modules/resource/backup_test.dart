@@ -1,8 +1,8 @@
 import 'package:configr/exceptions.dart';
 import 'package:test/test.dart';
 import 'package:configr/modules/resource/backup.dart';
-import 'package:configr/models/file_model.dart';
 import 'package:configr/models/action.dart';
+
 import '../../helpers/test_helper.dart';
 
 void main() {
@@ -20,7 +20,7 @@ void main() {
 
     await helper.createTestFile(sourcePath, content);
 
-    final resourceModel = ResourceModel(
+    final resourceModel = helper.createTestResource(
         source: sourcePath,
         destination: sourcePath, // Same as source since we're backing up
         actions: [
@@ -47,10 +47,9 @@ void main() {
     await helper.createTestFile('$sourceDir/file1.txt', 'content1');
     await helper.createTestFile('$sourceDir/file2.txt', 'content2');
 
-    final resourceModel = ResourceModel(
+    final resourceModel = helper.createTestResource(
         source: sourceDir,
         destination: sourceDir,
-        type: ResourceType.directory,
         actions: [
           Action(
               type: 'backup',
@@ -77,10 +76,12 @@ void main() {
 
     await helper.createTestFile(sourcePath, content);
 
-    final resourceModel =
-        ResourceModel(source: sourcePath, destination: sourcePath, actions: [
-      Action(type: 'backup', properties: {'backup_path': backupPath})
-    ]);
+    final resourceModel = helper.createTestResource(
+        source: sourcePath,
+        destination: sourcePath,
+        actions: [
+          Action(type: 'backup', properties: {'backup_path': backupPath})
+        ]);
 
     final module = FileBackupModule(resourceModel, resourceModel.actions.first,
         fileSystem: helper.fileSystem);
@@ -98,10 +99,12 @@ void main() {
     const sourcePath = 'nonexistent/test.txt';
     const backupPath = 'backups/test.bak';
 
-    final resourceModel =
-        ResourceModel(source: sourcePath, destination: sourcePath, actions: [
-      Action(type: 'backup', properties: {'backup_path': backupPath})
-    ]);
+    final resourceModel = helper.createTestResource(
+        source: sourcePath,
+        destination: sourcePath,
+        actions: [
+          Action(type: 'backup', properties: {'backup_path': backupPath})
+        ]);
 
     final module = FileBackupModule(resourceModel, resourceModel.actions.first,
         fileSystem: helper.fileSystem);

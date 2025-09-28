@@ -1,5 +1,4 @@
 import 'package:configr/models/action.dart';
-import 'package:configr/models/file_model.dart';
 import 'package:configr/modules/resource/permissions.dart';
 import 'package:configr/utils/file_utils.dart';
 import 'package:file/local.dart';
@@ -9,10 +8,6 @@ import '../../helpers/test_helper.dart';
 
 void main() {
   late TestHelper helper;
-
-  if (TestHelper.inCi()) {
-    return;
-  }
 
   setUp(() {
     final fileSystem = LocalFileSystem();
@@ -32,22 +27,19 @@ void main() {
     });
 
     test('should change all permissions successfully', () async {
+      if (TestHelper.inCi()) {
+        return;
+      }
       await helper.createTestFile(filePath, 'test content');
 
-      final resourceModel = ResourceModel(
-        source: filePath,
-        destination: '',
-        actions: [
-          Action(
-            type: 'permissions',
-            properties: {
-              'mode': '644',
-              'owner': 'testuser',
-              'group': 'testgroup'
-            },
-          ),
-        ],
-      );
+      final resourceModel = helper
+          .createTestResource(source: filePath, destination: '', actions: [
+        Action(type: 'permissions', properties: {
+          'mode': '644',
+          'owner': 'testuser',
+          'group': 'testgroup'
+        })
+      ]);
 
       final module = FilePermissionModule(
         resourceModel,
@@ -64,20 +56,22 @@ void main() {
     });
 
     test('should change only mode when specified', () async {
+      if (TestHelper.inCi()) {
+        return;
+      }
       await helper.createTestFile(filePath, 'test content');
 
-      final resourceModel = ResourceModel(
-        source: filePath,
-        destination: '',
-        actions: [
-          Action(
-            type: 'permissions',
-            properties: {
-              'mode': '644',
-            },
-          ),
-        ],
-      );
+      final resourceModel = helper
+          .createTestResource(source: filePath, destination: '', actions: [
+        Action(
+          type: 'permissions',
+          properties: {
+            'mode': '644',
+            'owner': 'testuser',
+            'group': 'testgroup'
+          },
+        ),
+      ]);
 
       final module = FilePermissionModule(
         resourceModel,
@@ -91,18 +85,18 @@ void main() {
     });
 
     test('should change only ownership when specified', () async {
+      if (TestHelper.inCi()) {
+        return;
+      }
       await helper.createTestFile(filePath, 'test content');
 
-      final resourceModel = ResourceModel(
-        source: filePath,
-        destination: '',
-        actions: [
-          Action(
-            type: 'permissions',
-            properties: {'owner': 'testuser', 'group': 'testgroup'},
-          ),
-        ],
-      );
+      final resourceModel = helper
+          .createTestResource(source: filePath, destination: '', actions: [
+        Action(
+          type: 'permissions',
+          properties: {'owner': 'testuser', 'group': 'testgroup'},
+        ),
+      ]);
 
       final module = FilePermissionModule(
         resourceModel,
@@ -117,50 +111,49 @@ void main() {
     });
 
     test('should throw when no properties specified', () async {
+      if (TestHelper.inCi()) {
+        return;
+      }
       await helper.createTestFile(filePath, 'test content');
 
-      final resourceModel = ResourceModel(
-        source: filePath,
-        destination: '',
-        actions: [
-          Action(
-            type: 'permissions',
-            properties: {},
-          ),
-        ],
-      );
+      final resourceModel = helper
+          .createTestResource(source: filePath, destination: '', actions: [
+        Action(
+          type: 'permissions',
+          properties: {},
+        ),
+      ]);
 
       expect(
-        () => FilePermissionModule(
-          resourceModel,
-          resourceModel.actions.first,
-          fileSystem: helper.fileSystem,
-        ),
-        throwsArgumentError,
-      );
+          () => FilePermissionModule(
+                resourceModel,
+                resourceModel.actions.first,
+                fileSystem: helper.fileSystem,
+              ),
+          throwsArgumentError);
     });
 
     test('should rollback changes on failure', () async {
+      if (TestHelper.inCi()) {
+        return;
+      }
       await helper.createTestFile(filePath, 'test content');
 
       // Get original permissions/ownership
       final originalMode = await FileUtils.getPermissions(filePath);
       final originalOwnership = await FileUtils.getOwnership(filePath);
 
-      final resourceModel = ResourceModel(
-        source: filePath,
-        destination: '',
-        actions: [
-          Action(
-            type: 'permissions',
-            properties: {
-              'mode': '000', // Invalid permissions that should fail
-              'owner': 'testuser',
-              'group': 'testgroup'
-            },
-          ),
-        ],
-      );
+      final resourceModel = helper
+          .createTestResource(source: filePath, destination: '', actions: [
+        Action(
+          type: 'permissions',
+          properties: {
+            'mode': '000', // Invalid permissions that should fail
+            'owner': 'testuser',
+            'group': 'testgroup'
+          },
+        ),
+      ]);
 
       final module = FilePermissionModule(
         resourceModel,

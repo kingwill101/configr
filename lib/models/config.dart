@@ -20,11 +20,13 @@ class ConfigOptions {
     bool? failFast,
     bool? interactive,
     bool? dryRun,
+    bool? force,
   }) {
     return ConfigOptions(
       failFast: failFast ?? this.failFast,
       interactive: interactive ?? this.interactive,
       dryRun: dryRun ?? this.dryRun,
+      force: force ?? this.force,
     );
   }
 }

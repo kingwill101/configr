@@ -1,6 +1,5 @@
 import 'package:test/test.dart';
 import 'package:configr/modules/resource/copy.dart';
-import 'package:configr/models/file_model.dart';
 import 'package:configr/models/action.dart';
 import 'package:configr/utils/file_utils.dart';
 import '../../helpers/test_helper.dart';
@@ -25,7 +24,7 @@ void main() {
     await FileUtils.writeFile(sourceFile, content,
         fileSystem: helper.fileSystem);
 
-    final resourceModel = ResourceModel(
+    final resourceModel = helper.createTestResource(
         source: sourceFile,
         destination: destinationFile,
         actions: [Action(type: 'copy')]);
@@ -58,13 +57,10 @@ void main() {
     await FileUtils.writeFile('$sourceDir/file2.txt', 'content2',
         fileSystem: helper.fileSystem);
 
-    final resourceModel = ResourceModel(
-        source: sourceDir,
-        destination: destDir,
-        type: ResourceType.directory,
-        actions: [
-          Action(type: 'copy', properties: {'recursive': 'true'})
-        ]);
+    final resourceModel = helper
+        .createTestResource(source: sourceDir, destination: destDir, actions: [
+      Action(type: 'copy', properties: {'recursive': 'true'})
+    ]);
 
     final module = FileCopyModule(resourceModel, resourceModel.actions.first,
         fileSystem: helper.fileSystem);
@@ -97,7 +93,7 @@ void main() {
     await FileUtils.writeFile(sourceFile, 'content1',
         fileSystem: helper.fileSystem);
 
-    final resourceModel = ResourceModel(
+    final resourceModel = helper.createTestResource(
         source: sourceFile,
         destination: destinationFile,
         actions: [Action(type: 'copy')]);
@@ -121,7 +117,7 @@ void main() {
     const sourcePath = '/nonexistent/file.txt';
     const destPath = '/dest/file.txt';
 
-    final resourceModel = ResourceModel(
+    final resourceModel = helper.createTestResource(
         source: sourcePath,
         destination: destPath,
         actions: [Action(type: 'copy')]);

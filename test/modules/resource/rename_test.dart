@@ -1,8 +1,8 @@
 import 'package:test/test.dart';
 import 'package:configr/modules/resource/rename.dart';
-import 'package:configr/models/file_model.dart';
 import 'package:configr/models/action.dart';
 import '../../helpers/test_helper.dart';
+
 
 void main() {
   late TestHelper helper;
@@ -19,7 +19,7 @@ void main() {
 
     await helper.createTestFile(sourcePath, content);
 
-    final resourceModel = ResourceModel(
+    final resourceModel = helper.createTestResource(
         source: sourcePath,
         destination: destPath,
         actions: [Action(type: 'rename')]);
@@ -44,10 +44,12 @@ void main() {
     await helper.createTestFile(sourcePath, 'source content');
     await helper.createTestFile(destPath, 'destination content');
 
-    final resourceModel =
-        ResourceModel(source: sourcePath, destination: destPath, actions: [
-      Action(type: 'rename', properties: {'overwrite': 'false'})
-    ]);
+    final resourceModel = helper.createTestResource(
+        source: sourcePath,
+        destination: destPath,
+        actions: [
+          Action(type: 'rename', properties: {'overwrite': 'false'})
+        ]);
 
     final module = FileRenameModule(resourceModel, resourceModel.actions.first,
         fileSystem: helper.fileSystem);

@@ -1,13 +1,15 @@
+
 import 'package:configr/commands/command.dart';
 
 class ApplyCommand extends Command {
-  ApplyCommand(super.configManager);
+  final bool force;
+
+  ApplyCommand(super.configManager, {this.force = false});
 
   @override
   Future<void> execute() async {
-    print("applying config ${configManager.localPath}");
     await configManager.load();
+    configManager.options = configManager.options.copyWith(force: force);
     await configManager.applyConfig();
-    print('Configuration applied successfully.');
   }
 }

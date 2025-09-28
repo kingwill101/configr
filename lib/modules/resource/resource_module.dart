@@ -1,28 +1,47 @@
+import 'dart:convert';
+
+import 'package:configr/events/module_events.dart';
 import 'package:configr/exceptions.dart';
 import 'package:configr/extensions/string.dart';
 import 'package:configr/models/action.dart';
 import 'package:configr/models/file_model.dart';
+import 'package:configr/modules/module.dart';
 import 'package:configr/modules/resource/backup.dart';
 import 'package:configr/modules/resource/compress.dart';
 import 'package:configr/modules/resource/copy.dart';
 import 'package:configr/modules/resource/decompress.dart';
 import 'package:configr/modules/resource/delete.dart';
 import 'package:configr/modules/resource/download.dart';
+import 'package:configr/modules/resource/echo.dart';
 import 'package:configr/modules/resource/execute.dart';
 import 'package:configr/modules/resource/permissions.dart';
 import 'package:configr/modules/resource/rename.dart';
 import 'package:configr/modules/resource/symlink.dart';
-import 'package:configr/modules/module.dart';
 import 'package:configr/modules/resource/touch.dart';
 import 'package:configr/modules/resource/validate.dart';
+import 'package:configr/utils/event_bus.dart';
 import 'package:configr/utils/fs.dart';
 import 'package:configr/utils/logging.dart';
 import 'package:configr/utils/privellage_escallation.dart';
+import 'package:crypto/crypto.dart';
 import 'package:file/file.dart';
 import 'package:liquify/liquify.dart' as liquify;
 import 'package:path/path.dart';
 
 abstract class ResourceModule extends Module {
+  static const beforeHookType = 'before';
+  static const afterHookType = 'after';
+
+  final Map<String, dynamic> _moduleState = {};
+  final List<ResourceModule> _beforeHooks = [];
+  final List<ResourceModule> _afterHooks = [];
+
+  Map<String, dynamic> get state => _moduleState;
+
+  void updateState(Map<String, dynamic> newState) {
+    _moduleState.addAll(newState);
+  }
+
   final ResourceModel file;
   final Action action;
   final FileSystem? fileSystem;
@@ -43,45 +62,68 @@ abstract class ResourceModule extends Module {
     String? fileTemplate,
   }) {
     loadTemplate();
-    resolveModules();
+    loadModules();
+
+    // Restore state from action after subclass initialization (needed for rollback)
+    if (action.state.isNotEmpty) {
+      updateState(action.state);
+    }
   }
 
-  bool get isDir => file.type == ResourceType.directory;
-  String get source {
-    //check if the source attribute is present before using the file.source property
-    final path = (action.properties["source"] as String? ?? file.source)
-        .clean()
-        .normalizePath();
+  void loadModules() {
+    for (final action in action.actions) {
+      if (action.type == beforeHookType) {
+        _beforeHooks.add(getModuleForAction(file, action, fileSystem));
+      } else if (action.type == afterHookType) {
+        _afterHooks.add(getModuleForAction(file, action, fileSystem));
+      } else if (allowedActions.contains(action.type)) {
+        childModules.add(getModuleForAction(file, action, fileSystem));
+      }
+    }
+  }
 
+  Future<void> rollbackChildren() async {
+    for (final module in childModules.reversed) {
+      await module.rollback();
+    }
+  }
+
+  String get source {
+    final path = (action.properties["source"] as String? ?? file.source)
+        .normalizePath();
     if (path.startsWith("http")) {
       return file.source;
     }
-
     return templateFile != null
-        ? templateFile!.path
-        : join((fileSystem ?? fs).currentDirectory.path, path);
+        ? resolvePath(templateFile!.path)
+        : resolvePath(path);
   }
 
-  String get destination => join(
-      (fileSystem ?? fs).currentDirectory.path,
-      (action.properties["destination"] as String? ?? file.destination)
-          .clean()
-          .normalizePath());
+  String resolvePath(String path) {
+    if (isRelative(path)) {
+      return join((fileSystem ?? fs).currentDirectory.path, path);
+    }
+    return path;
+  }
 
-  loadTemplate() {
+  String get destination => resolvePath(
+    action.properties['destination'] as String? ?? file.destination,
+  ).normalizePath();
+
+  void loadTemplate() {
     if (file.template != null && file.template!.template != null) {
-      final templateContent =
-          (fileSystem ?? fs).file(file.template!.template!.clean());
+      final templateContent = (fileSystem ?? fs).file(file.template!.template!);
 
       if (!templateContent.existsSync()) {
         throw ActionFailedException(
-            'Template file ${templateContent.path} does not exist');
+          'Template file ${templateContent.path} does not exist',
+        );
       }
 
       final tContent = liquify.Template.parse(
-              templateContent.readAsStringSync(),
-              data: file.template!.vars ?? {})
-          .render();
+        templateContent.readAsStringSync(),
+        data: file.template!.vars ?? {},
+      ).render();
       var cacheDir = (fileSystem ?? fs).directory(appDirs.cache);
 
       if (!cacheDir.existsSync()) {
@@ -93,26 +135,96 @@ abstract class ResourceModule extends Module {
       }
 
       String templateFilePath = join(cacheDir.path, file.template!.template!);
-
       templateFile = (fileSystem ?? fs).file(templateFilePath);
       templateFile?.createSync(recursive: true);
       templateFile?.writeAsStringSync(tContent);
     }
   }
 
-  Future<void> call();
+  Future<String?> computeInitialStateHash() async {
+    try {
+      final baseState = await _getBaseState();
 
-  Future<void> rollback();
-
-  resolveModules() async {
-    for (final action in action.actions) {
-      if (allowedActions.contains(action.type)) {
-        childModules.add(await _getModuleForAction(action));
+      if (baseState == null && _moduleState.isEmpty) {
+        return null;
       }
+
+      final state = {...?baseState, 'moduleState': _moduleState};
+
+      return sha256.convert(utf8.encode(json.encode(state))).toString();
+    } catch (e, st) {
+      logger.warning(
+        'Failed to compute initial state hash for ${action.type}',
+        e,
+        st,
+      );
+      return null;
     }
   }
 
-  executeModules() async {
+  Future<Map<String, dynamic>?> _getBaseState() async {
+    return {
+      'id': file.id,
+      'source': source,
+      'destination': destination,
+      'type': file.type,
+      'action': {
+        'id': action.id,
+        'type': action.type,
+        'properties': action.properties,
+      },
+      'moduleState': state,
+    };
+  }
+
+  Future<Map<String, dynamic>?> getAdditionalState() async => null;
+
+  Future<void> call() async {
+    emitEvent(
+      StartedEvent(moduleId: action.id, message: 'Starting ${action.type}'),
+    );
+
+    try {
+      await execute();
+      emitEvent(
+        CompletedEvent(
+          moduleId: action.id,
+          message: 'Completed ${action.type}',
+        ),
+      );
+    } catch (e) {
+      emitEvent(
+        FailedEvent(
+          moduleId: action.id,
+          message: 'Failed ${action.type}: ${e.toString()}',
+        ),
+      );
+      rethrow;
+    }
+  }
+
+  // Abstract method for module-specific logic
+  Future<void> execute();
+
+  Future<void> rollback() async {
+    // Rollback in reverse order
+    for (final hook in _afterHooks.reversed) {
+      await hook.rollback();
+    }
+
+    await rollbackChildren();
+
+    for (final hook in _beforeHooks.reversed) {
+      await hook.rollback();
+    }
+  }
+
+  Future<void> saveState() async {
+    action.state = state;
+  }
+
+  Future<void> executeModules() async {
+    logger.info('Executing modules');
     for (final module in childModules) {
       if (!isRollingBack) {
         try {
@@ -128,15 +240,16 @@ abstract class ResourceModule extends Module {
         await module.rollback();
       }
     }
-  }
-
-  Future<ResourceModule> _getModuleForAction(Action action) async {
-    return await getModuleForAction(file, action, fileSystem);
+    logger.info('Modules executed');
   }
 }
 
-Future<ResourceModule> getModuleForAction(ResourceModel file, Action action,
-    [FileSystem? fs]) async {
+/// Factory method to create appropriate module instance
+ResourceModule getModuleForAction(
+  ResourceModel file,
+  Action action, [
+  FileSystem? fs,
+]) {
   switch (action.type) {
     case 'backup':
       return FileBackupModule(file, action, fileSystem: fs);
@@ -162,6 +275,8 @@ Future<ResourceModule> getModuleForAction(ResourceModel file, Action action,
       return FileExecuteModule(file, action, fileSystem: fs);
     case 'touch':
       return FileTouchModule(file, action, fileSystem: fs);
+    case 'echo':
+      return FileEchoModule(file, action, fileSystem: fs);
     default:
       throw Exception('Unknown action type: ${action.type}');
   }

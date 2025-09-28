@@ -1,4 +1,5 @@
 class Package {
+  final String id;
   final String name;
   final String manager;
   final String? version;
@@ -8,6 +9,7 @@ class Package {
   late String? sha256;
 
   Package({
+    required this.id,
     required this.name,
     required this.manager,
     this.version,
@@ -22,6 +24,7 @@ class Package {
       identical(this, other) ||
       other is Package &&
           runtimeType == other.runtimeType &&
+          id == other.id &&
           name == other.name &&
           manager == other.manager &&
           version == other.version &&
@@ -32,6 +35,7 @@ class Package {
 
   @override
   int get hashCode => Object.hash(
+        id,
         name,
         manager,
         version,
@@ -43,11 +47,12 @@ class Package {
 
   @override
   String toString() {
-    return 'Package(name: $name, manager: $manager, version: $version, scope: $scope, status: $status, timestamp: $timestamp, sha256: $sha256)';
+    return 'Package(id: $id, name: $name, manager: $manager, version: $version, scope: $scope, status: $status, timestamp: $timestamp, sha256: $sha256)';
   }
 
   factory Package.fromJson(Map<String, dynamic> json) {
     return Package(
+      id: json['id'],
       name: json['name'],
       manager: json['manager'],
       version: json['version'],
@@ -59,6 +64,7 @@ class Package {
   }
 
   Map<String, dynamic> toJson() => {
+        'id': id,
         'name': name,
         'manager': manager,
         'version': version,
@@ -71,6 +77,7 @@ class Package {
   String toConfig({String indent = ''}) {
     StringBuffer buffer = StringBuffer();
     buffer.writeln('${indent}package {');
+    buffer.writeln('$indent  id "$id"');
     buffer.writeln('$indent  name "$name"');
     buffer.writeln('$indent  manager "$manager"');
     if (version != null) buffer.writeln('$indent  version "$version"');

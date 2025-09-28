@@ -7,8 +7,8 @@ Modules are the core building blocks of configr that handle specific file operat
 - [Backup](backup.md) - Creates backup copies of files/directories before modifications
 - [Copy](copy.md) - Copies files/directories to new locations
 - [Compress](compress.md) - Compresses files/directories into archives
-- [Decompress](decompress.md) - Extracts files from archives
-- [Delete](delete.md) - Safely deletes files with optional backup
+- [Decompress](decompress.md) - Extracts files from archives with improved rollback support
+- [Delete](delete.md) - Safely deletes files and directories with recursive support
 - [Download](download.md) - Downloads files from remote URLs
 - [Execute](execute.md) - Executes shell commands on files
 - [Move](move.md) - Moves/renames files and directories
@@ -17,7 +17,12 @@ Modules are the core building blocks of configr that handle specific file operat
 - [Symlink](symlink.md) - Creates/manages symbolic links
 - [Template](template.md) - Renders template files with variables
 - [Touch](touch.md) - Updates file timestamps or creates empty files
-- [Validate](validate.md) - Validates file contents and formats## Core Modules
+- [Validate](validate.md) - Validates file contents and formats
+
+## Commands
+
+- [Rollback](rollback.md) - Undo configuration changes and restore previous state
+- [Tutorial](tutorial.md) - Getting started guide with common usage patterns
 
 ## Using Modules
 

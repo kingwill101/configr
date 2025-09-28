@@ -1,16 +1,30 @@
+import 'package:configr/events/module_events.dart';
+import 'package:configr/utils/event_bus.dart';
+import 'package:file/file.dart';
 import 'package:logging/logging.dart';
+import 'package:configr/utils/fs.dart';
 
 final logger = Logger('configr');
 
 void initLogging() {
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((record) {
-    print('${record.level.name}: ${record.time}: ${record.message}');
+    final level = switch (record.level) {
+      Level() => StatusEvent.info,
+    };
+    emitEvent(StatusUpdateEvent(
+        level: level, message: record.message, moduleId: "logger"));
+
+    final logFile = fs.file('app.log');
+    final StringBuffer logBuffer = StringBuffer();
+    logBuffer
+        .writeln('\n${record.level.name}: ${record.time}: ${record.message}');
     if (record.error != null) {
-      print('Error: ${record.error}');
+      logBuffer.writeln('\nError: ${record.error}');
     }
     if (record.stackTrace != null) {
-      print('StackTrace: ${record.stackTrace}');
+      logBuffer.writeln('\nStackTrace: ${record.stackTrace}');
     }
+    logFile.writeAsStringSync(logBuffer.toString(), mode: FileMode.append);
   });
 }

@@ -1,0 +1,199 @@
+{
+  "resources": [
+    {
+      "template": null,
+      "source": "folder1",
+      "type": null,
+      "status": "completed",
+      "destination": ".group/folder1",
+      "actions": [
+        {
+          "type": "copy",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2024-12-26T09:00:02.289844",
+          "sha256": "d1a9dcf162cc09ee7c8fb855ad10e016faea2a2232c79daa7863e0351e52528b",
+          "actions": [],
+          "properties": {
+            "destination": ".group/folder1",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          }
+        }
+      ],
+      "commands": []
+    },
+    {
+      "template": null,
+      "source": "folder2",
+      "type": null,
+      "status": "completed",
+      "destination": ".group/folder2",
+      "actions": [
+        {
+          "type": "copy",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2024-12-26T09:00:02.292634",
+          "sha256": "366b35b1f200d8264d01e6937a613b3d75cca505f0767f92aec051bf7c39244b",
+          "actions": [],
+          "properties": {
+            "destination": ".group/folder2",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          }
+        }
+      ],
+      "commands": []
+    },
+    {
+      "template": null,
+      "source": "file1.txt",
+      "type": null,
+      "status": "completed",
+      "destination": ".group/file1.txt",
+      "actions": [
+        {
+          "type": "copy",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2024-12-26T09:00:02.295659",
+          "sha256": "ae07005f7c495b5c223c1d7455b39a6f7e0737097117ae363b8864c9f0cd8f89",
+          "actions": [],
+          "properties": {
+            "destination": ".group/file1.txt",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          }
+        }
+      ],
+      "commands": []
+    },
+    {
+      "template": null,
+      "source": "file2.txt",
+      "type": null,
+      "status": "completed",
+      "destination": ".group/file2.txt",
+      "actions": [
+        {
+          "type": "copy",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2024-12-26T09:00:02.297605",
+          "sha256": "a0ded98464bb97a6181802236bdea16154c59b734a1248fc05a126e3bb6be2e7",
+          "actions": [],
+          "properties": {
+            "destination": ".group/file2.txt",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          }
+        }
+      ],
+      "commands": []
+    },
+    {
+      "template": null,
+      "source": "folder1",
+      "type": null,
+      "status": "failed",
+      "destination": ".group/folder1",
+      "actions": [
+        {
+          "type": "symlink",
+          "backupPath": null,
+          "status": null,
+          "timestamp": null,
+          "sha256": null,
+          "actions": [],
+          "properties": {
+            "destination": ".group/folder1",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          }
+        }
+      ],
+      "commands": []
+    },
+    {
+      "template": null,
+      "source": "folder2",
+      "type": null,
+      "status": null,
+      "destination": ".group/folder2",
+      "actions": [
+        {
+          "type": "symlink",
+          "backupPath": null,
+          "status": null,
+          "timestamp": null,
+          "sha256": null,
+          "actions": [],
+          "properties": {
+            "destination": ".group/folder2",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          }
+        }
+      ],
+      "commands": []
+    },
+    {
+      "template": null,
+      "source": "file1.txt",
+      "type": null,
+      "status": null,
+      "destination": ".group/file1.txt",
+      "actions": [
+        {
+          "type": "symlink",
+          "backupPath": null,
+          "status": null,
+          "timestamp": null,
+          "sha256": null,
+          "actions": [],
+          "properties": {
+            "destination": ".group/file1.txt",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          }
+        }
+      ],
+      "commands": []
+    },
+    {
+      "template": null,
+      "source": "file2.txt",
+      "type": null,
+      "status": null,
+      "destination": ".group/file2.txt",
+      "actions": [
+        {
+          "type": "symlink",
+          "backupPath": null,
+          "status": null,
+          "timestamp": null,
+          "sha256": null,
+          "actions": [],
+          "properties": {
+            "destination": ".group/file2.txt",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          }
+        }
+      ],
+      "commands": []
+    }
+  ],
+  "commands": [],
+  "packages": [],
+  "configChecksum": "e90a7fb5f79bd7d046d488796054ed4efd0455663cfe729b690bf272ee771667"
+}

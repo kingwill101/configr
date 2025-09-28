@@ -1,0 +1,28 @@
+group {
+  type package
+  manager apt
+  items += build-essential=12.3
+  items += curl=7.83.1
+  items += git
+}
+
+group {
+  type resource
+  destination "~/.config"
+
+  # Any default actions or properties for this group:
+  actions {
+    symlink {
+      # We’ll assume the parser or code uses this as a "prefix"
+      # so each item becomes ~/.config/<item>.
+      link_prefix "~/.config"
+    }
+  }
+
+  items += atuin
+  items += btop
+  items += i3status
+  items += nvim
+  items += sway
+  items += wofi
+}

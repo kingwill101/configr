@@ -2,6 +2,7 @@ import 'package:configr/extensions/list.dart';
 
 class Command {
   final String name;
+  final String? id;
   final String? command;
   final List<String> parameters;
   late String? status;
@@ -10,6 +11,7 @@ class Command {
 
   Command({
     required this.name,
+    this.id,
     this.command,
     List<String>? parameters = const [],
     this.status,
@@ -23,6 +25,7 @@ class Command {
       other is Command &&
           runtimeType == other.runtimeType &&
           name == other.name &&
+          id == other.id &&
           command == other.command &&
           listEquals(parameters, other.parameters) &&
           status == other.status &&
@@ -32,6 +35,7 @@ class Command {
   @override
   int get hashCode => Object.hash(
         name,
+        id,
         command,
         Object.hashAll(parameters),
         status,
@@ -41,12 +45,13 @@ class Command {
 
   @override
   String toString() {
-    return 'Command(name: $name, command: $command, parameters: $parameters, status: $status, timestamp: $timestamp, sha256: $sha256)';
+    return 'Command(name: $name, id: $id, command: $command, parameters: $parameters, status: $status, timestamp: $timestamp, sha256: $sha256)';
   }
 
   factory Command.fromJson(Map<String, dynamic> json) {
     return Command(
       name: json['name'],
+      id: json['id'],
       command: json['command'],
       parameters: List<String>.from(json['parameters'] ?? []),
       status: json['status'],
@@ -57,6 +62,7 @@ class Command {
 
   Map<String, dynamic> toJson() => {
         'name': name,
+        'id': id,
         'command': command,
         'parameters': parameters,
         'status': status,
@@ -67,6 +73,7 @@ class Command {
   String toConfig({String indent = ''}) {
     StringBuffer buffer = StringBuffer();
     buffer.writeln('$indent$name {');
+    if (id != null) buffer.writeln('$indent  id "$id"');
     if (command != null) buffer.writeln('$indent  command "$command"');
     if (parameters.isNotEmpty) {
       buffer.writeln('$indent  parameters "${parameters.join(' ')}"');

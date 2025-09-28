@@ -1,0 +1,5 @@
+
+INFO: 2025-09-27 22:37:58.024471: Usage: dart bin/main.dart <command> [arguments]
+
+INFO: 2025-09-27 22:37:58.097263: -c, --config    Path to the configuration file
+-h, --help      Print this usage information.

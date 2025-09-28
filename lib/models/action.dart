@@ -1,6 +1,10 @@
 import 'package:configr/extensions/string.dart';
 
+import 'dart:convert';
+import 'package:crypto/crypto.dart' as crypto;
+
 class Action {
+  final String id;
   final String type;
   final String? backupPath;
   late String? status;
@@ -8,8 +12,10 @@ class Action {
   String? sha256;
   List<Action> actions;
   Map<String, dynamic> properties;
+  Map<String, dynamic> state;
 
   Action({
+    String? id,
     required this.type,
     this.backupPath,
     this.status,
@@ -17,14 +23,32 @@ class Action {
     this.sha256,
     List<Action>? actions,
     Map<String, dynamic>? properties,
-  })  : actions = actions ?? const [],
-        properties = properties ?? {};
+    Map<String, dynamic>? state,
+  })  : id = id ?? _generateId(type, properties ?? {}),
+        actions = actions ?? const [],
+        properties = properties ?? {},
+        state = state ?? {};
+
+  static String _generateId(String type, Map<String, dynamic> properties) {
+    final data = {
+      'type': type,
+      'properties': Map.from(properties)
+        ..remove('status')
+        ..remove('timestamp')
+    };
+    final jsonStr = json.encode(data);
+    return crypto.sha256
+        .convert(utf8.encode(jsonStr))
+        .toString()
+        .substring(0, 8);
+  }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is Action &&
           runtimeType == other.runtimeType &&
+          id == other.id &&
           type == other.type &&
           backupPath == other.backupPath &&
           status == other.status &&
@@ -33,6 +57,7 @@ class Action {
 
   @override
   int get hashCode => Object.hash(
+        id,
         type,
         backupPath,
         status,
@@ -40,13 +65,21 @@ class Action {
         sha256,
       );
 
-  @override
-  String toString() {
-    return 'Action(type: $type, backupPath: $backupPath, status: $status, timestamp: $timestamp, sha256: $sha256)';
-  }
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'type': type,
+        'backupPath': backupPath,
+        'status': status,
+        'timestamp': timestamp,
+        'sha256': sha256,
+        'actions': actions.map((a) => a.toJson()).toList(),
+        'properties': properties,
+        'state': state,
+      };
 
   factory Action.fromJson(Map<String, dynamic> json) {
     return Action(
+      id: json['id'],
       type: json['type'],
       backupPath: json['backupPath'],
       status: json['status'],
@@ -61,18 +94,9 @@ class Action {
         }
         return MapEntry(key, value);
       }),
+      state: Map<String, dynamic>.from(json['state'] ?? {}),
     );
   }
-
-  Map<String, dynamic> toJson() => {
-        'type': type,
-        'backupPath': backupPath,
-        'status': status,
-        'timestamp': timestamp,
-        'sha256': sha256,
-        'actions': actions.map((a) => a.toJson()).toList(),
-        'properties': properties,
-      };
 
   String toConfig({String indent = ''}) {
     StringBuffer buffer = StringBuffer();
@@ -82,6 +106,7 @@ class Action {
       return buffer.toString();
     }
     buffer.writeln('$indent$type {');
+    buffer.writeln('$indent  id $id');
     if (backupPath != null) buffer.writeln('$indent  backupPath $backupPath');
     if (status != null) buffer.writeln('$indent  status $status');
     if (timestamp != null) buffer.writeln('$indent  timestamp $timestamp');

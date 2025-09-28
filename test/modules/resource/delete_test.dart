@@ -1,6 +1,5 @@
 import 'package:test/test.dart';
 import 'package:configr/modules/resource/delete.dart';
-import 'package:configr/models/file_model.dart';
 import 'package:configr/models/action.dart';
 import '../../helpers/test_helper.dart';
 
@@ -17,7 +16,7 @@ void main() {
     const content = 'test content';
     await helper.createTestFile(filePath, content);
 
-    final resourceModel = ResourceModel(
+    final resourceModel = helper.createTestResource(
         source: filePath, destination: '', actions: [Action(type: 'delete')]);
 
     final module = FileDeleteModule(resourceModel, resourceModel.actions.first,
@@ -38,7 +37,7 @@ void main() {
     await helper.createTestFile(filePath, content);
 
     final resourceModel =
-        ResourceModel(source: filePath, destination: '', actions: [
+        helper.createTestResource(source: filePath, destination: '', actions: [
       Action(type: 'delete', properties: {
         'backup': {'backup_path': backupPath}
       })

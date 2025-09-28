@@ -1,0 +1,93 @@
+{
+  "resources": [
+    {
+      "id": "resource_1",
+      "source": "https://github.com/zed-industries/zed/archive/refs/tags/v0.168.2.zip",
+      "destination": "",
+      "type": "file",
+      "status": "rolledback",
+      "template": null,
+      "actions": [
+        {
+          "id": "download.github",
+          "type": "download",
+          "backupPath": null,
+          "status": "rolledback",
+          "timestamp": "2025-09-28T01:46:08.052758",
+          "sha256": "446286f9351e129b98f3282a3c645b93862b7714151893d27b9a0af7f68075c9",
+          "actions": [],
+          "properties": {
+            "overwrite": true,
+            "destination": "zed.zip",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "destinationFileExisted": false,
+            "originalContent": null,
+            "sourceUrl": "",
+            "overwrite": false,
+            "receivedBytes": 0,
+            "totalBytes": -1,
+            "actualChecksum": "fc35690899a88bac14898426c274353924935743f58cee61aa0c86eb5dc00c54",
+            "downloadCompleted": true,
+            "rollbackCompleted": true
+          }
+        },
+        {
+          "id": "decompress.decompress_zed",
+          "type": "decompress",
+          "backupPath": null,
+          "status": "rolledback",
+          "timestamp": "2025-09-28T01:46:08.045433",
+          "sha256": "d404fb9fefd8fa930e0aca75f06652c2f74232db502692816f18c2624640f32a",
+          "actions": [],
+          "properties": {
+            "source": "zed.zip",
+            "destination": "zed_test",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "createdFiles": [],
+            "sourceExists": false,
+            "format": "zip",
+            "decompressionCompleted": true,
+            "rollbackCompleted": true
+          }
+        },
+        {
+          "id": "delete.delete_zed_dir",
+          "type": "delete",
+          "backupPath": null,
+          "status": "rolledback",
+          "timestamp": "2025-09-28T01:46:08.032734",
+          "sha256": "dbe511891dde097e4ba834971585e66f00e6ea6c9da9466ed6765ec41f20b3e2",
+          "actions": [],
+          "properties": {
+            "source": "zed_test",
+            "recursive": true,
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "backupPath": null,
+            "fileExisted": false,
+            "backupCreated": false,
+            "isDirectory": false,
+            "recursive": false,
+            "deleteCompleted": true
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": ""
+    }
+  ],
+  "commands": [],
+  "packages": [],
+  "configChecksum": "63edc16521e110edfdb894e9b33584c8715d9649b261e55854b0ac25a7e55b42"
+}

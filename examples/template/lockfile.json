@@ -1,0 +1,32 @@
+{
+  "resources": [
+    {
+      "template": {
+        "template": "my_file.template",
+        "vars": {
+          "name": "susan"
+        }
+      },
+      "source": "",
+      "type": "file",
+      "status": "completed",
+      "recursive": false,
+      "destination": ".myconfig/template/susan.txt",
+      "actions": [
+        {
+          "type": "copy",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2024-12-24T19:43:54.058740",
+          "sha256": "908b132b3cd9856232c51df8082077689de8126955df4c2cf8125ea4698b2070",
+          "actions": [],
+          "properties": {}
+        }
+      ],
+      "commands": []
+    }
+  ],
+  "commands": [],
+  "packages": [],
+  "configChecksum": "1757aa41651c9a3b3740bd9ac266a8eb8b95a897f50539fe6911cd6382f021bc"
+}

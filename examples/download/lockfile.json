@@ -1,0 +1,138 @@
+{
+  "resources": [
+    {
+      "id": "resource_1",
+      "source": "https://get.docker.com/",
+      "destination": "docker.sh",
+      "type": "file",
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "download_1",
+          "type": "download",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-02-22T07:45:14.493221",
+          "sha256": "ea3e15513a24a77b7129e7a21ecb82716a5aa3959fe31538a96d7d33158335b3",
+          "actions": [],
+          "properties": {
+            "overwrite": true,
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "destinationFileExisted": false,
+            "originalContent": null,
+            "sourceUrl": "https://get.docker.com/",
+            "overwrite": true,
+            "receivedBytes": 22592,
+            "totalBytes": 22592,
+            "actualChecksum": "ffd60ddd8eb1cc4e7b254e37dc5cc00d05e85115c23048b2090726db3fa8c627",
+            "downloadCompleted": true
+          }
+        },
+        {
+          "id": "download_2",
+          "type": "download",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-02-22T07:45:14.822471",
+          "sha256": "9d7f0497a3eb6119372d03221eb9f045d5b6902db8b0dd8e2bc3e7784a63ddf8",
+          "actions": [],
+          "properties": {
+            "overwrite": true,
+            "destination": "docker2.sh",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "destinationFileExisted": true,
+            "originalContent": null,
+            "sourceUrl": "https://get.docker.com/",
+            "overwrite": true,
+            "receivedBytes": 22592,
+            "totalBytes": 22592,
+            "actualChecksum": "ffd60ddd8eb1cc4e7b254e37dc5cc00d05e85115c23048b2090726db3fa8c627",
+            "downloadCompleted": true
+          }
+        },
+        {
+          "id": "copy_1",
+          "type": "copy",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-02-22T07:45:14.841966",
+          "sha256": "263bc098594f1ef1761eb700b197da2f5c9d5bc6642db0ecc4ad01847d50faf7",
+          "actions": [],
+          "properties": {
+            "source": "docker.sh",
+            "destination": "docker.copied.sh",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "hadToCreateDstDir": false,
+            "destinationFileExisted": false,
+            "originalContent": null,
+            "sourceHash": "a896997571af13928d81ffbe3b5dbf1b13300b8e6dbea02afe41061f594fc23c",
+            "destinationDir": "/home/kingwill101/code/dart_packages/configr/examples/download",
+            "isDirectory": false,
+            "recursive": false,
+            "copyCompleted": true
+          }
+        },
+        {
+          "id": "delete_1",
+          "type": "delete",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-02-22T07:45:14.845081",
+          "sha256": "d251814a0c81d30eb6c30054d88d27e67bca6fa745679acc67255892c7bc1f42",
+          "actions": [],
+          "properties": {
+            "source": "docker.sh",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "backupPath": null,
+            "fileExisted": true,
+            "backupCreated": false,
+            "deleteCompleted": true
+          }
+        },
+        {
+          "id": "delete_2",
+          "type": "delete",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-02-22T07:45:14.846785",
+          "sha256": "c35edf3da0e34f76134ddf93e64c052c6c9d73e292513fe078bca1d9cae12df4",
+          "actions": [],
+          "properties": {
+            "source": "docker.copied.sh",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "backupPath": null,
+            "fileExisted": true,
+            "backupCreated": false,
+            "deleteCompleted": true
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": ""
+    }
+  ],
+  "commands": [],
+  "packages": [],
+  "configChecksum": "6dc04465a9850159da2920ce5a79f9546363abd9ec2e122335665b7348badf88"
+}

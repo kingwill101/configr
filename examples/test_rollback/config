@@ -1,0 +1,11 @@
+resource {
+  type "file"
+  source "test_file.txt"
+  destination "test_file_copy.txt"
+
+  actions {
+    copy {
+      overwrite true
+    }
+  }
+}

@@ -1,5 +1,4 @@
-files {
-  file {
+  resource {
     source 
     destination .myconfig/template/susan.txt
     template {
@@ -13,6 +12,4 @@ files {
       }
     }
   }
-
-}
 

@@ -1,6 +1,5 @@
 import 'package:test/test.dart';
 import 'package:configr/modules/resource/compress.dart';
-import 'package:configr/models/file_model.dart';
 import 'package:configr/models/action.dart';
 import '../../helpers/test_helper.dart';
 
@@ -21,10 +20,9 @@ void main() {
       await helper.createTestFile('$sourcePath/file1.txt', 'content1');
       await helper.createTestFile('$sourcePath/file2.txt', 'content2');
 
-      final resourceModel = ResourceModel(
+      final resourceModel = helper.createTestResource(
           source: sourcePath,
           destination: destPath,
-          type: ResourceType.directory,
           actions: [
             Action(
                 type: 'compress',

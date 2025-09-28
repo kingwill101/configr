@@ -1,6 +1,5 @@
 import 'package:test/test.dart';
 import 'package:configr/modules/resource/validate.dart';
-import 'package:configr/models/file_model.dart';
 import 'package:configr/models/action.dart';
 import '../../helpers/test_helper.dart';
 
@@ -19,7 +18,7 @@ void main() {
     await helper.createTestFile(filePath, jsonContent);
 
     final resourceModel =
-        ResourceModel(source: filePath, destination: '', actions: [
+        helper.createTestResource(source: filePath, destination: '', actions: [
       Action(type: 'validate', properties: {'format': 'json'})
     ]);
 
@@ -39,7 +38,7 @@ void main() {
     await helper.createTestFile(filePath, invalidJson);
 
     final resourceModel =
-        ResourceModel(source: filePath, destination: '', actions: [
+        helper.createTestResource(source: filePath, destination: '', actions: [
       Action(type: 'validate', properties: {'format': 'json'})
     ]);
 

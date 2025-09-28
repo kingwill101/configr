@@ -16,13 +16,10 @@ class AddCommand extends Command {
     await configManager.load();
     final basename = p.basename(file);
     final newFile = ResourceModel(
-        source: '"$basename"',
-        destination: '"\\{\\{ config_path }}/$basename"',
-        actions: [
-          Action(
-            type: 'copy',
-          )
-        ]);
+        id: 'added_${basename}_${DateTime.now().millisecondsSinceEpoch}',
+        source: basename,
+        destination: r'\{\{ config_path \}\}/' + basename,
+        actions: [Action(type: 'copy')]);
 
     for (final existing in configManager.config.resources) {
       if (existing == newFile) {

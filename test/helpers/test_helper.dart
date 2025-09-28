@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:configr/config_manager.dart';
+import 'package:configr/models/action.dart';
+import 'package:configr/models/file_model.dart';
+import 'package:configr/models/template.dart';
 import 'package:configr/utils/file_utils.dart';
 import 'package:configr/utils/privellage_escallation.dart';
 import 'package:file/file.dart';
@@ -16,6 +19,26 @@ class TestHelper {
   late FileSystem fileSystem;
   late PrivilegeEscalation privilegeEscalation;
   late ConfigManager configManager;
+
+  int _testIdCounter = 0;
+
+  String nextTestId() => 'test_${_testIdCounter++}';
+
+  ResourceModel createTestResource({
+    required String source,
+    required String destination,
+    required List<Action> actions,
+    String? id,
+    Template? template,
+  }) {
+    return ResourceModel(
+      id: id ?? nextTestId(),
+      source: source,
+      destination: destination,
+      actions: actions,
+      template: template,
+    );
+  }
 
   final String baseDir;
 

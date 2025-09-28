@@ -10,6 +10,7 @@ import 'package:configr/commands/diff.dart';
 import 'package:configr/commands/edit.dart';
 import 'package:configr/commands/format.dart';
 import 'package:configr/commands/init.dart';
+import 'package:configr/commands/rollback.dart';
 import 'package:configr/commands/status.dart';
 import 'package:configr/config_manager.dart';
 import 'package:configr/utils/fs.dart';
@@ -23,16 +24,36 @@ void main(List<String> arguments) async {
   // final span = tracer.startSpan('main');
   final parser = ArgParser()
     ..addCommand('init')
-    ..addCommand('apply')
+    ..addCommand(
+      'apply',
+      ArgParser()..addFlag(
+        'force',
+        abbr: 'f',
+        help: 'Force apply all resources regardless of state',
+        defaultsTo: false,
+      ),
+    )
     ..addCommand('diff')
     ..addCommand('format')
     ..addCommand('add')
     ..addCommand('edit')
     ..addCommand('status')
+    ..addCommand(
+      'rollback',
+      ArgParser()..addOption(
+        'count',
+        abbr: 'n',
+        help: 'Number of most recent resources to rollback',
+        valueHelp: 'number',
+      ),
+    )
     ..addOption('config', abbr: 'c', help: 'Path to the configuration file')
-    ..addFlag('help',
-        abbr: 'h', negatable: false, help: 'Print this usage information.');
-
+    ..addFlag(
+      'help',
+      abbr: 'h',
+      negatable: false,
+      help: 'Print this usage information.',
+    );
   ArgResults argResults;
   try {
     argResults = parser.parse(arguments);
@@ -66,7 +87,8 @@ void main(List<String> arguments) async {
         command = InitCommand(configManager);
         break;
       case 'apply':
-        command = ApplyCommand(configManager);
+        final force = argResults.command!['force'] as bool;
+        command = ApplyCommand(configManager, force: force);
         break;
       case 'diff':
         command = DiffCommand(configManager);
@@ -87,6 +109,12 @@ void main(List<String> arguments) async {
       case 'format':
         command = FormatCommand(configManager);
         break;
+      case 'rollback':
+        final count = argResults.command!['count'] != null
+            ? int.tryParse(argResults.command!['count'])
+            : null;
+        command = RollbackCommand(configManager, count: count);
+        break;
       default:
         logger.warning('Unknown command: $commandName');
         printUsage(parser);
@@ -100,6 +128,6 @@ void main(List<String> arguments) async {
 }
 
 void printUsage(ArgParser parser) {
-  logger.info('Usage: dart bin/main.dart <command> [arguments]');
-  logger.info(parser.usage);
+  print('Usage: dart bin/main.dart <command> [arguments]');
+  print(parser.usage);
 }

@@ -89,14 +89,14 @@ resource {
 
 ### Archive Management
 
-Compress/decompress files:
+Compress/decompress files with improved rollback:
 
 ```
 resource {
-  type "directory"
+  type "directory"  
   source "logs/"
   destination "logs.tar.gz"
-
+  
   actions {
     compress {
       format "tar.gz"
@@ -108,10 +108,31 @@ resource {
 resource {
   source "logs.tar.gz"
   destination "extracted/"
-
+  
   actions {
     decompress {
       format "tar.gz"
+    }
+    # On rollback, entire "extracted/" directory will be removed
+  }
+}
+```
+
+### Recursive Directory Operations
+
+Delete entire directory trees safely:
+
+```
+resource {
+  type "directory"
+  source "temp_files/"
+  
+  actions {
+    delete {
+      recursive true
+      backup {
+        backup_path "backups/temp_files.tar.gz"
+      }
     }
   }
 }
@@ -348,6 +369,52 @@ resource {
     }
   }
 }
+```
+
+## Rollback Operations
+
+configr provides powerful rollback capabilities that can undo operations when something goes wrong. The rollback command uses lockfile data to identify and reverse completed actions.
+
+### Basic Rollback
+```bash
+configr rollback
+```
+
+This will rollback all completed resources from the most recent configuration run.
+
+### How Rollback Works
+
+1. **State Tracking**: All modules track their state in the lockfile during execution
+2. **Lockfile Usage**: Rollback reads the lockfile to identify completed resources and their actions
+3. **Reverse Operations**: Each module implements rollback logic to undo its operations
+4. **Cleanup**: Files, directories, and other changes are restored to their previous state
+
+### Module-Specific Rollback Behavior
+
+- **Copy Module**: Removes copied files/directories
+- **Delete Module**: Restores deleted files from backups (if configured)
+- **Decompress Module**: Removes entire destination directory recursively
+- **Permissions Module**: Restores original permissions
+- **Symlink Module**: Removes created symbolic links
+- **Move Module**: Moves files back to original location
+
+### Recursive Directory Cleanup
+
+The improved rollback system now properly handles recursive directory operations:
+
+```
+resource {
+  type "file"
+  source "large_archive.zip"
+  destination "extracted_data/"
+
+  actions {
+    decompress {
+      format "zip"
+    }
+  }
+}
+# On rollback, the entire "extracted_data/" directory is removed recursively
 ```
 
 Each module supports rollback capabilities in case of failures. See individual module docs for complete configuration options.

@@ -1,0 +1,55 @@
+{
+  "resources": [
+    {
+      "id": "r0",
+      "source": "",
+      "destination": "",
+      "type": "file",
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "r0_echo_0",
+          "type": "echo",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-01-07T21:28:34.485856",
+          "sha256": "c98efaee2e47a450d7a24ae0a35e79af35d1f5cc3215f63a1ce77fce1afa79f6",
+          "actions": [],
+          "properties": {
+            "message": "Starting deployment",
+            "color": true,
+            "verbose": true,
+            "level": "info",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {}
+        },
+        {
+          "id": "r0_echo_1",
+          "type": "echo",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-01-07T21:28:34.487708",
+          "sha256": "a2bf2ff9d7bc9cae98953be7279074654010e4c8ec13e4354db026df129d618c",
+          "actions": [],
+          "properties": {
+            "message": "Warning: disk space low",
+            "level": "warning",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {}
+        }
+      ],
+      "commands": [],
+      "sha256": ""
+    }
+  ],
+  "commands": [],
+  "packages": [],
+  "configChecksum": "d1d4c973994c77d8aa0e2f89cc911acfd92d90a10f56e882378cfba99db43ea2"
+}

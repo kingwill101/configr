@@ -1,0 +1,50 @@
+
+INFO: 2025-09-27 23:40:00.508377: No valid lockfile found, will apply all resources
+
+INFO: 2025-09-27 23:40:00.521635: StartResource(test_file.txt): copy
+
+INFO: 2025-09-27 23:40:00.530011: Executing modules
+
+INFO: 2025-09-27 23:40:00.530164: Modules executed
+
+INFO: 2025-09-27 23:40:00.534479: Executing modules
+
+INFO: 2025-09-27 23:40:00.534644: Modules executed
+
+INFO: 2025-09-27 23:40:00.535108: Copying file from /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/test_rollback/test_file.txt to /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/test_rollback/test_file_copy.txt
+
+INFO: 2025-09-27 23:40:00.535913: File copied successfully
+
+INFO: 2025-09-27 23:40:00.539600: EndResource(test_file.txt): copy
+
+INFO: 2025-09-27 23:40:51.329507: Starting rollback of configuration...
+
+INFO: 2025-09-27 23:40:51.366419: Rolling back resource test_file.txt: copy
+
+INFO: 2025-09-27 23:40:51.374584: File /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/test_rollback/test_file_copy.txt deleted
+
+INFO: 2025-09-27 23:40:51.383959: Configuration rollback completed successfully
+
+INFO: 2025-09-28 00:21:33.551533: StartResource(test_file.txt): copy
+
+INFO: 2025-09-28 00:21:33.574369: Executing modules
+
+INFO: 2025-09-28 00:21:33.574572: Modules executed
+
+INFO: 2025-09-28 00:21:33.580095: Executing modules
+
+INFO: 2025-09-28 00:21:33.580323: Modules executed
+
+INFO: 2025-09-28 00:21:33.580847: Copying file from /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/test_rollback/test_file.txt to /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/test_rollback/test_file_copy.txt
+
+INFO: 2025-09-28 00:21:33.582101: File copied successfully
+
+INFO: 2025-09-28 00:21:33.586813: EndResource(test_file.txt): copy
+
+INFO: 2025-09-28 00:21:45.050385: Starting rollback of configuration...
+
+INFO: 2025-09-28 00:21:45.089839: Rolling back resource test_file.txt: copy
+
+INFO: 2025-09-28 00:21:45.102208: File /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/test_rollback/test_file_copy.txt deleted
+
+INFO: 2025-09-28 00:21:45.114292: Configuration rollback completed successfully

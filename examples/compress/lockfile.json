@@ -1,0 +1,76 @@
+{
+  "resources": [
+    {
+      "id": "r0",
+      "source": "foo",
+      "destination": "compressed/foo.zip",
+      "type": "directory",
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "r0_compress_0",
+          "type": "compress",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-01-08T22:08:30.030255",
+          "sha256": "b522a74ed3ed211bca68f07935ae246f31cf1d07b93aa7cc1625f20ee3c836c0",
+          "actions": [],
+          "properties": {
+            "format": "zip",
+            "recursive": true,
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "format": "zip",
+            "recursive": false,
+            "destinationFileExisted": true,
+            "compressionCompleted": true
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": ""
+    },
+    {
+      "id": "r1",
+      "source": "compressed/foo.zip",
+      "destination": "decompressed/decompressed_foo",
+      "type": "file",
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "r1_decompress_0",
+          "type": "decompress",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-01-08T22:08:30.041411",
+          "sha256": "b0c2525f96146d1c58a8a3aa391dbfdc395163e519ebe0f8efa5e7b0e8ad3094",
+          "actions": [],
+          "properties": {
+            "format": "zip",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "createdFiles": [
+              "/home/kingwill101/code/dart_packages/configr/examples/compress/decompressed/decompressed_foo/bar.text"
+            ],
+            "sourceExists": true,
+            "format": "zip",
+            "decompressionCompleted": true
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": ""
+    }
+  ],
+  "commands": [],
+  "packages": [],
+  "configChecksum": "e3eef0d870c501fb32e92a647d6506eff445e80bbf55cdcefdd7c53d0e092ad7"
+}

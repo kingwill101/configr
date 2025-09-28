@@ -170,4 +170,27 @@ commands {
       expect(result.commands[0].parameters, isEmpty);
     });
   });
+
+  test('parseConfig should handle rollback status', () {
+    final rollbackConfig = '''
+resources {
+  resource {
+    source = "test/file"
+    destination = "~/test/file"
+    actions {
+      copy {
+        status = "rolledback"
+        timestamp = "2024-08-21T12:34:56Z"
+      }
+    }
+  }
+}
+''';
+    final result = parseConfig(rollbackConfig);
+
+    expect(result.resources, hasLength(1));
+    expect(result.resources[0].actions[0].status, equals("rolledback"));
+    expect(result.resources[0].actions[0].timestamp,
+        equals("2024-08-21T12:34:56Z"));
+  });
 }

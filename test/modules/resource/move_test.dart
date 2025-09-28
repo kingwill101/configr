@@ -1,6 +1,5 @@
 import 'package:test/test.dart';
 import 'package:configr/modules/resource/move.dart';
-import 'package:configr/models/file_model.dart';
 import 'package:configr/models/action.dart';
 import '../../helpers/test_helper.dart';
 
@@ -19,7 +18,7 @@ void main() {
 
     await helper.createTestFile(sourcePath, content);
 
-    final resourceModel = ResourceModel(
+    final resourceModel = helper.createTestResource(
         source: sourcePath,
         destination: destPath,
         actions: [Action(type: 'move')]);
@@ -44,7 +43,7 @@ void main() {
 
     await helper.createTestFile(sourcePath, content);
 
-    final resourceModel = ResourceModel(
+    final resourceModel = helper.createTestResource(
         source: sourcePath,
         destination: destPath,
         actions: [Action(type: 'move')]);

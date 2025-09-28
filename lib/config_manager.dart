@@ -1,12 +1,17 @@
 import 'dart:convert';
+
 import 'package:collection/collection.dart';
 import 'package:configr/exceptions.dart';
-import 'package:configr/extensions/string.dart';
 import 'package:configr/models/lockfile_data.dart';
-import 'package:configr/modules/resource/resource_module.dart';
+import 'package:configr/modules/resource/resource_module.dart'
+    show getModuleForAction;
+import 'package:configr/ui/handlers/base_handler.dart';
+import 'package:configr/ui/handlers/cli_handler.dart';
 import 'package:configr/utils/config.dart';
+import 'package:configr/utils/event_bus.dart';
 import 'package:configr/utils/logging.dart';
 import 'package:configr/utils/privellage_escallation.dart';
+import 'package:configr/utils/template_renderer.dart';
 import 'package:crypto/crypto.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
@@ -16,9 +21,7 @@ import 'models/command.dart';
 import 'models/config.dart';
 import 'models/file_model.dart';
 import 'utils/command_executor.dart';
-import 'utils/file_utils.dart';
 import 'utils/lockfile_manager.dart';
-import 'utils/template_renderer.dart';
 
 class ConfigManager {
   ConfigOptions options;
@@ -32,37 +35,54 @@ class ConfigManager {
   late TemplateRenderer templateRenderer;
   final FileSystem fileSystem;
   late String resolvedConfigPath;
+  final UIHandler uiHandler;
 
-  ConfigManager(
-      {PrivilegeEscalation? privilegeEscalation,
-      FileSystem? fileSystem,
-      this.repoUrl,
-      String? path,
-      ConfigOptions? options,
-      this.configPath})
-      : options = options ?? ConfigOptions(),
-        config = Config(options: options),
-        fileSystem = fileSystem ?? const LocalFileSystem(),
-        localPath = path ?? fileSystem!.currentDirectory.path,
-        privilegeEscalation =
-            privilegeEscalation ?? InteractiveSudoEscalation() {
-    lockfileManager = LockfileManager('$localPath/lockfile.json',
-        fileSystem: this.fileSystem);
+  ConfigManager({
+    PrivilegeEscalation? privilegeEscalation,
+    UIHandler? uiHandler,
+    FileSystem? fileSystem,
+    this.repoUrl,
+    String? path,
+    ConfigOptions? options,
+    this.configPath,
+  }) : options = options ?? ConfigOptions(),
+       uiHandler = uiHandler ?? CLIHandler(),
+       config = Config(options: options),
+       fileSystem = fileSystem ?? const LocalFileSystem(),
+       localPath = path ?? fileSystem!.currentDirectory.path,
+       privilegeEscalation =
+           privilegeEscalation ?? InteractiveSudoEscalation() {
+    lockfileManager = LockfileManager(
+      '$localPath/lockfile.json',
+      fileSystem: this.fileSystem,
+    );
     templateRenderer = TemplateRenderer();
+    EventBus().stream.listen((event) {
+      this.uiHandler.handleEvent(event);
+    });
   }
 
   Future<void> load() async {
-    final configFile = fileSystem.file(
-        configPath ?? path.join(fileSystem.currentDirectory.path, 'config'));
-    print("Config ${configFile.path}");
-    if (!await configFile.exists()) {
-      throw Exception('Config file not found');
-    }
-    resolvedConfigPath = configFile.path;
-    final loaded = await loadConfig(resolvedConfigPath, fileSystem: fileSystem);
-    format = loaded.$2;
+    uiHandler.start();
+    try {
+      final configFile = fileSystem.file(
+        configPath ?? path.join(fileSystem.currentDirectory.path, 'config'),
+      );
+      print("Config ${configFile.path}");
+      if (!await configFile.exists()) {
+        throw Exception('Config file not found');
+      }
+      resolvedConfigPath = configFile.path;
+      final loaded = await loadConfig(
+        resolvedConfigPath,
+        fileSystem: fileSystem,
+      );
+      format = loaded.$2;
 
-    config = loaded.$1.copyWith(options: options);
+      config = loaded.$1.copyWith(options: options);
+    } finally {
+      uiHandler.stop();
+    }
   }
 
   Future<String> computeConfigChecksum() async {
@@ -72,179 +92,248 @@ class ConfigManager {
   }
 
   Future<bool> _shouldApplyResource(
-      ResourceModel resource, LockfileData? lockfileData) {
+    ResourceModel resource,
+    LockfileData? lockfileData,
+  ) async {
     // If no lockfile or force option, always apply
     if (lockfileData == null || options.force) {
-      return Future.value(true);
+      if (options.force) {
+        logger.info('Force option set, will apply resource ${resource.id}');
+      }
+      return true;
     }
 
     // Find matching resource in lockfile
     final lockfileResource = lockfileData.resources.firstWhereOrNull(
-      (r) =>
-          r.source.clean() == resource.source.clean() &&
-          r.destination.clean() == resource.destination.clean(),
+      (r) => r.id == resource.id,
     );
 
-    // If resource not in lockfile, apply it
-    if (lockfileResource == null) {
-      return Future.value(true);
+    // If resource not in lockfile or status not completed, apply it
+    if (lockfileResource == null || lockfileResource.status != 'completed') {
+      return true;
     }
 
-    // Check if all actions were completed successfully
-    if (lockfileResource.status != 'completed') {
-      return Future.value(true);
-    }
-
-    // Check if actions or their properties have changed
-    if (resource.actions.length != lockfileResource.actions.length) {
-      return Future.value(true);
-    }
-
-    // Compare actions and their checksums
-    for (var i = 0; i < resource.actions.length; i++) {
-      final action = resource.actions[i];
-      final lockAction = lockfileResource.actions[i];
-
-      if (action.type != lockAction.type ||
-          !const MapEquality()
-              .equals(action.properties, lockAction.properties) ||
-          lockAction.status != 'completed') {
-        return Future.value(true);
+    try {
+      // Compare the resource's stored hash with lockfile
+      if (resource.sha256 != lockfileResource.sha256) {
+        logger.info('Resource ${resource.id} state changed, will apply');
+        return true;
       }
 
-      // For file operations, verify file hasn't changed
-      if (action.type == 'copy' || action.type == 'template') {
-        return FileUtils.computeFileHash(resource.destination.clean(),
-                fileSystem: fileSystem)
-            .then((currentHash) => currentHash != lockAction.sha256);
+      // Check each action's stored hash
+      for (final action in resource.actions) {
+        final lockAction = lockfileResource.actions.firstWhereOrNull(
+          (a) => a.id == action.id,
+        );
+        try {
+          if (lockAction == null || lockAction.status != 'completed') {
+            logger.info('Action ${action.id} changed or incomplete');
+            return true;
+          }
+        } catch (e, st) {
+          // If we can't compute checksums, err on the side of caution and apply
+          logger.warning('Error checking resource state, will apply', e, st);
+          return true;
+        }
       }
-    }
 
-    logger.info('Skipping already applied resource: ${resource.source}');
-    return Future.value(false);
+      logger.info('Resource ${resource.id} unchanged, skipping');
+      return false;
+    } catch (e, st) {
+      // If we can't compute checksums, err on the side of caution and apply
+      logger.warning('Error checking resource state, will apply', e, st);
+      return true;
+    }
   }
 
   Future<void> applyConfig() async {
-    List<ModuleException> errors = [];
-    LockfileData? lockfileData;
-    bool madeChanges = false;
-    final currentChecksum = await computeConfigChecksum();
-
-    // Load existing lockfile data
+    uiHandler.start();
     try {
-      lockfileData = await lockfileManager.readLockfile();
+      List<ModuleException> errors = [];
+      LockfileData? lockfileData;
+      bool madeChanges = false;
+      final currentChecksum = await computeConfigChecksum();
 
-      // If config file has changed, ignore lockfile
-      if (lockfileData.configChecksum != currentChecksum) {
-        logger.info('Config file has changed, applying all resources');
-        lockfileData = null;
+      try {
+        lockfileData = await lockfileManager.readLockfile();
+        if (lockfileData.configChecksum != currentChecksum) {
+          logger.info('Config file has changed, applying all resources');
+          lockfileData = null;
+          madeChanges = true;
+        }
+      } catch (e) {
+        logger.info('No valid lockfile found, will apply all resources');
         madeChanges = true;
       }
-    } catch (e) {
-      logger.info('No valid lockfile found, will apply all resources');
-      madeChanges = true;
-    }
 
-    await _runScripts(config.preApplyScripts);
+      for (var script in config.preApplyScripts) {
+        final scriptPath = path.join(localPath!, script);
+        if (await fileSystem.file(scriptPath).exists()) {
+          await CommandExecutor.execute(
+            Command(name: script, command: scriptPath),
+            privilegeEscalation,
+          );
+        } else {
+          print('Warning: Script not found: $scriptPath');
+        }
+      }
 
-    for (var resource in config.resources) {
       try {
-        // Check if we should apply this resource
-        if (!await _shouldApplyResource(resource, lockfileData)) {
-          // If we're not applying the resource, copy its state from lockfile
-          if (lockfileData != null) {
-            final lockResource = lockfileData.resources.firstWhereOrNull((r) =>
-                r.source.clean() == resource.source.clean() &&
-                r.destination.clean() == resource.destination.clean());
-            if (lockResource != null) {
-              resource.status = lockResource.status;
-              for (var i = 0; i < resource.actions.length; i++) {
-                resource.actions[i].status = lockResource.actions[i].status;
-                resource.actions[i].sha256 = lockResource.actions[i].sha256;
-                resource.actions[i].timestamp =
-                    lockResource.actions[i].timestamp;
+        for (var resource in config.resources) {
+          try {
+            if (!(await _shouldApplyResource(resource, lockfileData))) {
+              if (lockfileData != null) {
+                final lockResource = lockfileData.resources.firstWhereOrNull(
+                  (r) => r.id == resource.id,
+                );
+                if (lockResource != null) {
+                  resource.status = lockResource.status;
+                  for (var action in resource.actions) {
+                    final lockAction = lockResource.actions.firstWhereOrNull(
+                      (a) => a.id == action.id,
+                    );
+                    if (lockAction != null) {
+                      action.status = lockAction.status;
+                      action.sha256 = lockAction.sha256;
+                      action.timestamp = lockAction.timestamp;
+                    }
+                  }
+                }
+              }
+              continue;
+            }
+
+            madeChanges = true;
+            for (var action in resource.actions) {
+              final mod = getModuleForAction(resource, action, fileSystem);
+              try {
+                logger.info(
+                  'StartResource(${resource.source}): ${mod.action.type}',
+                );
+                await mod();
+                action.sha256 = await mod.computeInitialStateHash();
+                action.status = 'completed';
+                action.timestamp = DateTime.now().toIso8601String();
+                logger.info(
+                  'EndResource(${resource.source}): ${mod.action.type}',
+                );
+                await mod.saveState();
+              } on ModuleException catch (e, st) {
+                logger.severe(
+                  'Resource failed (${mod.action.type}): ${e.message}',
+                  e.cause,
+                  st,
+                );
+                await mod.rollback();
+                rethrow;
               }
             }
-          }
-          continue;
-        }
-
-        madeChanges = true;
-        await _processFile(resource);
-        resource.status = 'completed';
-
-        // Update checksums for file operations
-        for (var action in resource.actions) {
-          if (action.type == 'copy' || action.type == 'template') {
-            action.sha256 = await FileUtils.computeFileHash(
-                resource.destination.clean(),
-                fileSystem: fileSystem);
-            action.status = 'completed';
-            action.timestamp = DateTime.now().toIso8601String();
+            resource.status = 'completed';
+          } on ModuleException catch (e) {
+            resource.status = 'failed';
+            errors.add(e);
+            if (config.options.failFast) break;
           }
         }
-      } on ModuleException catch (e, stackTrace) {
-        logger.severe('Failed to process file ${resource.source}: ${e.message}',
-            e.cause, stackTrace);
-        resource.status = 'failed';
-        errors.add(e);
-        if (config.options.failFast) {
-          break;
+      } finally {
+        if (madeChanges) {
+          await lockfileManager.writeLockfile(
+            LockfileData(
+              resources: config.resources,
+              commands: config.commands,
+              packages: config.packages,
+              configChecksum: currentChecksum,
+            ),
+          );
         }
       }
-    }
 
-    // Only update lockfile if we made changes
-    if (madeChanges) {
-      final newLockfileData = LockfileData(
-        resources: config.resources,
-        commands: config.commands,
-        packages: config.packages,
-        configChecksum: currentChecksum,
-      );
-      await lockfileManager.writeLockfile(newLockfileData);
-    }
-
-    if (errors.isNotEmpty) {
-      throw ConfigurationFailedException(errors);
+      if (errors.isNotEmpty) {
+        throw ConfigurationFailedException(errors);
+      }
+    } finally {
+      uiHandler.stop();
     }
   }
 
-  Future<void> _processFile(ResourceModel file) async {
-    for (var action in file.actions) {
-      final mod = await getModuleForAction(file, action, fileSystem);
-      try {
-        logger.info('Applying action(${file.source}): ${mod.action.type}');
-        await mod();
-        logger.info('Action completed(${file.source}): ${mod.action.type}');
-      } on ModuleException catch (e, stackTrace) {
-        logger.severe('Action failed (${mod.action.type}): ${e.message}',
-            e.cause, stackTrace);
-        await mod.rollback();
-        rethrow;
-      } catch (e, stackTrace) {
-        logger.severe(
-            'Unexpected error in action (${mod.action.type})', e, stackTrace);
-        await mod.rollback();
-        throw ActionFailedException(
-            'Unexpected error in ${mod.action.type}', e, stackTrace);
-      }
-    }
-  }
+  Future<void> rollbackConfig({int? count}) async {
+    uiHandler.start();
+    try {
+      List<ModuleException> errors = [];
+      final lockfileData = await lockfileManager.readLockfile();
 
-  Future<void> _runScripts(List<String> scripts) async {
-    for (var script in scripts) {
-      final scriptPath = path.join(localPath!, script);
-      if (await fileSystem.file(scriptPath).exists()) {
-        await CommandExecutor.execute(
-            Command(name: script, command: scriptPath), privilegeEscalation);
-      } else {
-        print('Warning: Script not found: $scriptPath');
+      // Get completed resources from lockfile in reverse order
+      final completedResources = lockfileData.resources
+          .where((r) => r.status == 'completed')
+          .toList()
+          .reversed
+          .toList();
+
+      // Limit resources to rollback if count specified
+      final resourcesToRollback = count != null
+          ? completedResources.take(count).toList()
+          : completedResources;
+
+      for (var lockfileResource in resourcesToRollback) {
+        try {
+          // Find corresponding config resource for module creation
+          final configResource = config.resources.firstWhereOrNull(
+            (r) => r.id == lockfileResource.id,
+          );
+
+          if (configResource == null) {
+            logger.warning(
+              'Config resource not found for ${lockfileResource.id}',
+            );
+            continue;
+          }
+
+          for (var lockfileAction in lockfileResource.actions.reversed) {
+            final mod = getModuleForAction(
+              configResource,
+              lockfileAction,
+              fileSystem,
+            );
+            try {
+              logger.info(
+                'Rolling back resource ${lockfileResource.source}: ${lockfileAction.type}',
+              );
+              await mod.rollback();
+              lockfileAction.status = 'rolledback';
+              lockfileAction.timestamp = DateTime.now().toIso8601String();
+            } on ModuleException catch (e, st) {
+              logger.severe(
+                'Rollback failed for ${lockfileAction.type}: ${e.message}',
+                e.cause,
+                st,
+              );
+              errors.add(e);
+              if (config.options.failFast) break;
+            }
+          }
+          lockfileResource.status = 'rolledback';
+        } on ModuleException catch (e) {
+          errors.add(e);
+          if (config.options.failFast) break;
+        }
       }
+
+      await lockfileManager.writeLockfile(lockfileData);
+
+      if (errors.isNotEmpty) {
+        throw ConfigurationFailedException(errors);
+      }
+    } finally {
+      uiHandler.stop();
     }
   }
 
   Future<void> saveConfig() async {
-    await updateConfig(resolvedConfigPath, config);
+    uiHandler.start();
+    try {
+      await updateConfig(resolvedConfigPath, config);
+    } finally {
+      uiHandler.stop();
+    }
   }
 }

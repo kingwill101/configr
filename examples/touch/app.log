@@ -1,0 +1,38 @@
+
+INFO: 2025-09-27 23:39:05.644180: No valid lockfile found, will apply all resources
+
+INFO: 2025-09-27 23:39:05.657961: StartResource(): touch
+
+INFO: 2025-09-27 23:39:05.659456: Executing modules
+
+INFO: 2025-09-27 23:39:05.659606: Modules executed
+
+SEVERE: 2025-09-27 23:39:05.661033: File /path/to/touch/target does not exist and create_if_missing is false
+
+SEVERE: 2025-09-27 23:39:05.661599: Resource failed (touch): Source path not found: /path/to/touch/target
+
+StackTrace: #0      FileTouchModule.execute (package:configr/modules/resource/touch.dart:43:7)
+<asynchronous suspension>
+#1      ResourceModule.call (package:configr/modules/resource/resource_module.dart:173:7)
+<asynchronous suspension>
+#2      ConfigManager.applyConfig (package:configr/config_manager.dart:213:17)
+<asynchronous suspension>
+#3      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#4      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:113:5)
+<asynchronous suspension>
+
+
+SEVERE: 2025-09-27 23:39:05.672801: unable to setup: ModuleException: Multiple configuration errors occurred:
+- Source path not found: /path/to/touch/target
+
+Error: ModuleException: Multiple configuration errors occurred:
+- Source path not found: /path/to/touch/target
+
+StackTrace: #0      ConfigManager.applyConfig (package:configr/config_manager.dart:252:9)
+<asynchronous suspension>
+#1      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#2      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:113:5)
+<asynchronous suspension>
+
