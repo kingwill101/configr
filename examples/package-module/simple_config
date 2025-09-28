@@ -1,0 +1,17 @@
+resources {
+  resource {
+    id "simple-package-test"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["vim"]
+        operation "install"
+        package_manager "auto"
+        update_cache false
+        skip_if_installed true
+      }
+    }
+  }
+}

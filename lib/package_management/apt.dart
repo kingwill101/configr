@@ -1,4 +1,6 @@
 // lib/package_management/apt_package_manager.dart
+import 'dart:io';
+
 import 'package:configr/package_management/package_manger.dart';
 
 class AptPackageManager extends PackageManager with GlobalInstallCapability {
@@ -40,5 +42,15 @@ class AptPackageManager extends PackageManager with GlobalInstallCapability {
   Future<void> installGlobally(String packageName, {String? version}) async {
     // For apt, global installation is the same as regular installation
     await install(packageName, version: version);
+  }
+
+  @override
+  Future<bool> isAvailable() async {
+    try {
+      final result = await Process.run('apt-get', ['--version']);
+      return result.exitCode == 0;
+    } catch (e) {
+      return false;
+    }
   }
 }

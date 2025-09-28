@@ -1,0 +1,95 @@
+resource {
+  type "file"
+  source "/path/to/source"
+
+  actions {
+    systemd {
+      service "myapp"
+      type "service"
+      description "My Application Service"
+      exec_start "/usr/bin/myapp --daemon"
+      user "myapp"
+      group "myapp"
+      working_directory "/opt/myapp"
+      environment ["NODE_ENV=production", "PORT=3000"]
+      dependencies ["network.target", "postgresql.service"]
+      restart_policy "on-failure"
+      restart_sec 5
+      timeout_start_sec 30
+      timeout_stop_sec 30
+      enabled true
+      wanted_by "multi-user.target"
+      
+      # Advanced systemd options (inspired by Chef/Puppet)
+      private_tmp true
+      protect_system true
+      protect_home true
+      no_new_privileges true
+      read_write_paths ["/opt/myapp/data", "/var/log/myapp"]
+      read_only_paths ["/opt/myapp/config"]
+      
+      # Resource limits
+      resource_limits {
+        "NOFILE" "65536"
+        "NPROC" "4096"
+        "MEMLOCK" "infinity"
+      }
+      
+      # Security options
+      security_options {
+        "CapabilityBoundingSet" "CAP_NET_BIND_SERVICE CAP_SYS_TIME"
+        "AmbientCapabilities" "CAP_NET_BIND_SERVICE"
+      }
+      
+      # Logging
+      syslog_identifier "myapp"
+      syslog_facility 3
+      syslog_level "info"
+    }
+  }
+}
+
+# Example of a systemd drop-in file
+resource {
+  type "file"
+  source "/path/to/source"
+
+  actions {
+    systemd {
+      service "myapp"
+      type "service"
+      is_drop_in true
+      drop_in_name "production"
+      description "Production overrides for My Application"
+      
+      # Override only specific settings
+      environment ["NODE_ENV=production", "LOG_LEVEL=warn"]
+      restart_policy "always"
+      restart_sec 10
+      
+      # Additional security for production
+      private_tmp true
+      protect_system true
+      no_new_privileges true
+    }
+  }
+}
+
+# Example of a systemd timer
+resource {
+  type "file"
+  source "/path/to/source"
+
+  actions {
+    systemd {
+      service "backup"
+      type "timer"
+      description "Daily backup timer"
+      
+      # Timer configuration
+      on_calendar "daily"
+      persistent true
+      randomized_delay_sec 300
+    }
+  }
+}

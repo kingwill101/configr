@@ -1,0 +1,565 @@
+
+SEVERE: 2025-09-28 05:09:22.269494: unable to setup: type 'int' is not a subtype of type 'String?'
+
+Error: type 'int' is not a subtype of type 'String?'
+
+StackTrace: #0      readAction (package:configr/utils/config_reader.dart:54:28)
+#1      readAction.<anonymous closure> (package:configr/utils/config_reader.dart:61:23)
+#2      MappedIterator.moveNext (dart:_internal/iterable.dart:420:20)
+#3      new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#4      new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#5      new List.of (dart:core-patch/array_patch.dart:39:18)
+#6      Iterable.toList (dart:core/iterable.dart:517:7)
+#7      readAction (package:configr/utils/config_reader.dart:65:12)
+#8      readAction.<anonymous closure> (package:configr/utils/config_reader.dart:61:23)
+#9      MappedIterator.moveNext (dart:_internal/iterable.dart:420:20)
+#10     new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#11     new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#12     new List.of (dart:core-patch/array_patch.dart:39:18)
+#13     Iterable.toList (dart:core/iterable.dart:517:7)
+#14     readAction (package:configr/utils/config_reader.dart:65:12)
+#15     readAction.<anonymous closure> (package:configr/utils/config_reader.dart:61:23)
+#16     MappedIterator.moveNext (dart:_internal/iterable.dart:420:20)
+#17     new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#18     new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#19     new List.of (dart:core-patch/array_patch.dart:39:18)
+#20     Iterable.toList (dart:core/iterable.dart:517:7)
+#21     readAction (package:configr/utils/config_reader.dart:65:12)
+#22     readresourceModel.<anonymous closure> (package:configr/utils/config_reader.dart:101:31)
+#23     IterableExtension.mapIndexed (package:collection/src/iterable_extensions.dart:183:20)
+#24     _SyncStarIterator.moveNext (dart:async-patch/async_patch.dart:597:13)
+#25     new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#26     new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#27     new List.of (dart:core-patch/array_patch.dart:39:18)
+#28     Iterable.toList (dart:core/iterable.dart:517:7)
+#29     readresourceModel (package:configr/utils/config_reader.dart:102:10)
+#30     parseConfig (package:configr/utils/config_reader.dart:296:32)
+#31     loadConfig (package:configr/utils/config.dart:31:24)
+<asynchronous suspension>
+#32     ConfigManager.load (package:configr/config_manager.dart:76:22)
+<asynchronous suspension>
+#33     ApplyCommand.execute (package:configr/commands/apply.dart:11:5)
+<asynchronous suspension>
+#34     main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+SEVERE: 2025-09-28 05:10:07.975058: unable to setup: type 'int' is not a subtype of type 'String?'
+
+Error: type 'int' is not a subtype of type 'String?'
+
+StackTrace: #0      readAction (package:configr/utils/config_reader.dart:54:28)
+#1      readAction.<anonymous closure> (package:configr/utils/config_reader.dart:61:23)
+#2      MappedIterator.moveNext (dart:_internal/iterable.dart:420:20)
+#3      new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#4      new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#5      new List.of (dart:core-patch/array_patch.dart:39:18)
+#6      Iterable.toList (dart:core/iterable.dart:517:7)
+#7      readAction (package:configr/utils/config_reader.dart:65:12)
+#8      readAction.<anonymous closure> (package:configr/utils/config_reader.dart:61:23)
+#9      MappedIterator.moveNext (dart:_internal/iterable.dart:420:20)
+#10     new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#11     new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#12     new List.of (dart:core-patch/array_patch.dart:39:18)
+#13     Iterable.toList (dart:core/iterable.dart:517:7)
+#14     readAction (package:configr/utils/config_reader.dart:65:12)
+#15     readAction.<anonymous closure> (package:configr/utils/config_reader.dart:61:23)
+#16     MappedIterator.moveNext (dart:_internal/iterable.dart:420:20)
+#17     new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#18     new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#19     new List.of (dart:core-patch/array_patch.dart:39:18)
+#20     Iterable.toList (dart:core/iterable.dart:517:7)
+#21     readAction (package:configr/utils/config_reader.dart:65:12)
+#22     readresourceModel.<anonymous closure> (package:configr/utils/config_reader.dart:101:31)
+#23     IterableExtension.mapIndexed (package:collection/src/iterable_extensions.dart:183:20)
+#24     _SyncStarIterator.moveNext (dart:async-patch/async_patch.dart:597:13)
+#25     new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#26     new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#27     new List.of (dart:core-patch/array_patch.dart:39:18)
+#28     Iterable.toList (dart:core/iterable.dart:517:7)
+#29     readresourceModel (package:configr/utils/config_reader.dart:102:10)
+#30     parseConfig (package:configr/utils/config_reader.dart:296:32)
+#31     loadConfig (package:configr/utils/config.dart:31:24)
+<asynchronous suspension>
+#32     ConfigManager.load (package:configr/config_manager.dart:76:22)
+<asynchronous suspension>
+#33     ApplyCommand.execute (package:configr/commands/apply.dart:11:5)
+<asynchronous suspension>
+#34     main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 05:14:19.993868: No valid lockfile found, will apply all resources
+
+INFO: 2025-09-28 05:14:20.044174: StartResource(app_config.template): template
+
+SEVERE: 2025-09-28 05:14:20.092329: Template processing failed
+
+Error: type '_Map<dynamic, dynamic>' is not a subtype of type 'Map<String, dynamic>?' in type cast
+
+StackTrace: #0      FileTemplateModule.templateVars (package:configr/modules/resource/template.dart:25:66)
+#1      FileTemplateModule._processTemplate (package:configr/modules/resource/template.dart:152:68)
+<asynchronous suspension>
+#2      FileTemplateModule.execute (package:configr/modules/resource/template.dart:107:7)
+<asynchronous suspension>
+#3      ResourceModule.call (package:configr/modules/resource/resource_module.dart:189:7)
+<asynchronous suspension>
+#4      ConfigManager.applyConfig (package:configr/config_manager.dart:213:17)
+<asynchronous suspension>
+#5      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#6      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+SEVERE: 2025-09-28 05:14:20.149138: unable to setup: type '_Map<dynamic, dynamic>' is not a subtype of type 'Map<String, dynamic>?' in type cast
+
+Error: type '_Map<dynamic, dynamic>' is not a subtype of type 'Map<String, dynamic>?' in type cast
+
+StackTrace: #0      FileTemplateModule.templateVars (package:configr/modules/resource/template.dart:25:66)
+#1      FileTemplateModule._processTemplate (package:configr/modules/resource/template.dart:152:68)
+<asynchronous suspension>
+#2      FileTemplateModule.execute (package:configr/modules/resource/template.dart:107:7)
+<asynchronous suspension>
+#3      ResourceModule.call (package:configr/modules/resource/resource_module.dart:189:7)
+<asynchronous suspension>
+#4      ConfigManager.applyConfig (package:configr/config_manager.dart:213:17)
+<asynchronous suspension>
+#5      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#6      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 05:14:50.954794: StartResource(app_config.template): template
+
+SEVERE: 2025-09-28 05:14:51.002417: Template processing failed
+
+Error: type '_Map<dynamic, dynamic>' is not a subtype of type 'Map<String, dynamic>?' in type cast
+
+StackTrace: #0      FileTemplateModule.templateVars (package:configr/modules/resource/template.dart:25:66)
+#1      FileTemplateModule._processTemplate (package:configr/modules/resource/template.dart:153:68)
+<asynchronous suspension>
+#2      FileTemplateModule.execute (package:configr/modules/resource/template.dart:108:7)
+<asynchronous suspension>
+#3      ResourceModule.call (package:configr/modules/resource/resource_module.dart:189:7)
+<asynchronous suspension>
+#4      ConfigManager.applyConfig (package:configr/config_manager.dart:213:17)
+<asynchronous suspension>
+#5      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#6      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+SEVERE: 2025-09-28 05:14:51.027577: unable to setup: type '_Map<dynamic, dynamic>' is not a subtype of type 'Map<String, dynamic>?' in type cast
+
+Error: type '_Map<dynamic, dynamic>' is not a subtype of type 'Map<String, dynamic>?' in type cast
+
+StackTrace: #0      FileTemplateModule.templateVars (package:configr/modules/resource/template.dart:25:66)
+#1      FileTemplateModule._processTemplate (package:configr/modules/resource/template.dart:153:68)
+<asynchronous suspension>
+#2      FileTemplateModule.execute (package:configr/modules/resource/template.dart:108:7)
+<asynchronous suspension>
+#3      ResourceModule.call (package:configr/modules/resource/resource_module.dart:189:7)
+<asynchronous suspension>
+#4      ConfigManager.applyConfig (package:configr/config_manager.dart:213:17)
+<asynchronous suspension>
+#5      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#6      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 05:15:26.809470: StartResource(app_config.template): template
+
+SEVERE: 2025-09-28 05:15:26.873109: Template processing failed
+
+Error: type '_Map<dynamic, dynamic>' is not a subtype of type 'Map<String, dynamic>?' in type cast
+
+StackTrace: #0      FileTemplateModule.templateVars (package:configr/modules/resource/template.dart:25:66)
+#1      FileTemplateModule._processTemplate (package:configr/modules/resource/template.dart:153:94)
+<asynchronous suspension>
+#2      FileTemplateModule.execute (package:configr/modules/resource/template.dart:108:7)
+<asynchronous suspension>
+#3      ResourceModule.call (package:configr/modules/resource/resource_module.dart:189:7)
+<asynchronous suspension>
+#4      ConfigManager.applyConfig (package:configr/config_manager.dart:213:17)
+<asynchronous suspension>
+#5      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#6      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+SEVERE: 2025-09-28 05:15:26.916196: unable to setup: type '_Map<dynamic, dynamic>' is not a subtype of type 'Map<String, dynamic>?' in type cast
+
+Error: type '_Map<dynamic, dynamic>' is not a subtype of type 'Map<String, dynamic>?' in type cast
+
+StackTrace: #0      FileTemplateModule.templateVars (package:configr/modules/resource/template.dart:25:66)
+#1      FileTemplateModule._processTemplate (package:configr/modules/resource/template.dart:153:94)
+<asynchronous suspension>
+#2      FileTemplateModule.execute (package:configr/modules/resource/template.dart:108:7)
+<asynchronous suspension>
+#3      ResourceModule.call (package:configr/modules/resource/resource_module.dart:189:7)
+<asynchronous suspension>
+#4      ConfigManager.applyConfig (package:configr/config_manager.dart:213:17)
+<asynchronous suspension>
+#5      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#6      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 05:16:18.308202: StartResource(app_config.template): template
+
+SEVERE: 2025-09-28 05:16:18.359745: Template processing failed
+
+Error: type '_Map<dynamic, dynamic>' is not a subtype of type 'Map<String, dynamic>?' in type cast
+
+StackTrace: #0      FileTemplateModule.templateVars (package:configr/modules/resource/template.dart:25:66)
+#1      FileTemplateModule._processTemplate (package:configr/modules/resource/template.dart:183:68)
+<asynchronous suspension>
+#2      FileTemplateModule.execute (package:configr/modules/resource/template.dart:138:7)
+<asynchronous suspension>
+#3      ResourceModule.call (package:configr/modules/resource/resource_module.dart:189:7)
+<asynchronous suspension>
+#4      ConfigManager.applyConfig (package:configr/config_manager.dart:213:17)
+<asynchronous suspension>
+#5      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#6      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+SEVERE: 2025-09-28 05:16:18.397599: unable to setup: type '_Map<dynamic, dynamic>' is not a subtype of type 'Map<String, dynamic>?' in type cast
+
+Error: type '_Map<dynamic, dynamic>' is not a subtype of type 'Map<String, dynamic>?' in type cast
+
+StackTrace: #0      FileTemplateModule.templateVars (package:configr/modules/resource/template.dart:25:66)
+#1      FileTemplateModule._processTemplate (package:configr/modules/resource/template.dart:183:68)
+<asynchronous suspension>
+#2      FileTemplateModule.execute (package:configr/modules/resource/template.dart:138:7)
+<asynchronous suspension>
+#3      ResourceModule.call (package:configr/modules/resource/resource_module.dart:189:7)
+<asynchronous suspension>
+#4      ConfigManager.applyConfig (package:configr/config_manager.dart:213:17)
+<asynchronous suspension>
+#5      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#6      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 05:16:53.300128: StartResource(app_config.template): template
+
+SEVERE: 2025-09-28 05:16:53.357944: Template processing failed
+
+Error: type '_Map<dynamic, dynamic>' is not a subtype of type 'Map<String, dynamic>?' in type cast
+
+StackTrace: #0      FileTemplateModule.templateVars (package:configr/modules/resource/template.dart:25:66)
+#1      FileTemplateModule._processTemplate (package:configr/modules/resource/template.dart:183:68)
+<asynchronous suspension>
+#2      FileTemplateModule.execute (package:configr/modules/resource/template.dart:138:7)
+<asynchronous suspension>
+#3      ResourceModule.call (package:configr/modules/resource/resource_module.dart:189:7)
+<asynchronous suspension>
+#4      ConfigManager.applyConfig (package:configr/config_manager.dart:213:17)
+<asynchronous suspension>
+#5      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#6      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+SEVERE: 2025-09-28 05:16:53.395439: unable to setup: type '_Map<dynamic, dynamic>' is not a subtype of type 'Map<String, dynamic>?' in type cast
+
+Error: type '_Map<dynamic, dynamic>' is not a subtype of type 'Map<String, dynamic>?' in type cast
+
+StackTrace: #0      FileTemplateModule.templateVars (package:configr/modules/resource/template.dart:25:66)
+#1      FileTemplateModule._processTemplate (package:configr/modules/resource/template.dart:183:68)
+<asynchronous suspension>
+#2      FileTemplateModule.execute (package:configr/modules/resource/template.dart:138:7)
+<asynchronous suspension>
+#3      ResourceModule.call (package:configr/modules/resource/resource_module.dart:189:7)
+<asynchronous suspension>
+#4      ConfigManager.applyConfig (package:configr/config_manager.dart:213:17)
+<asynchronous suspension>
+#5      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#6      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 05:17:39.859280: StartResource(app_config.template): template
+
+INFO: 2025-09-28 05:17:40.160001: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/app_config.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/test_output.conf
+
+INFO: 2025-09-28 05:17:40.172783: EndResource(app_config.template): template
+
+INFO: 2025-09-28 05:18:30.998468: Config file has changed, applying all resources
+
+INFO: 2025-09-28 05:18:31.025456: StartResource(simple_test.template): template
+
+INFO: 2025-09-28 05:18:31.189757: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/simple_test.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/simple_output.txt
+
+INFO: 2025-09-28 05:18:31.202820: EndResource(simple_test.template): template
+
+INFO: 2025-09-28 05:19:12.348210: Resource resource_1 unchanged, skipping
+
+INFO: 2025-09-28 05:19:37.344328: No valid lockfile found, will apply all resources
+
+INFO: 2025-09-28 05:19:37.374376: StartResource(simple_test.template): template
+
+INFO: 2025-09-28 05:19:37.397428: Template variables: {}
+
+INFO: 2025-09-28 05:19:37.547256: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/simple_test.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/simple_output.txt
+
+INFO: 2025-09-28 05:19:37.559023: EndResource(simple_test.template): template
+
+INFO: 2025-09-28 05:20:49.910395: No valid lockfile found, will apply all resources
+
+INFO: 2025-09-28 05:20:49.949032: StartResource(simple_test.template): template
+
+INFO: 2025-09-28 05:20:50.149693: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/simple_test.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/simple_output.txt
+
+INFO: 2025-09-28 05:20:50.165763: EndResource(simple_test.template): template
+
+INFO: 2025-09-28 05:21:22.123911: No valid lockfile found, will apply all resources
+
+INFO: 2025-09-28 05:21:22.164815: StartResource(simple_test.template): template
+
+INFO: 2025-09-28 05:21:22.348783: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/simple_test.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/simple_output.txt
+
+INFO: 2025-09-28 05:21:22.636039: EndResource(simple_test.template): template
+
+INFO: 2025-09-28 05:22:59.420720: No valid lockfile found, will apply all resources
+
+INFO: 2025-09-28 05:22:59.465354: StartResource(simple_test.template): template
+
+INFO: 2025-09-28 05:22:59.669578: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/simple_test.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/simple_output.txt
+
+INFO: 2025-09-28 05:22:59.681556: EndResource(simple_test.template): template
+
+INFO: 2025-09-28 05:23:50.946986: No valid lockfile found, will apply all resources
+
+INFO: 2025-09-28 05:23:50.986264: StartResource(simple_test.template): template
+
+INFO: 2025-09-28 05:23:51.185615: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/simple_test.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/simple_output.txt
+
+INFO: 2025-09-28 05:23:51.199468: EndResource(simple_test.template): template
+
+SEVERE: 2025-09-28 05:24:15.738317: unable to setup: type 'int' is not a subtype of type 'String?'
+
+Error: type 'int' is not a subtype of type 'String?'
+
+StackTrace: #0      readAction (package:configr/utils/config_reader.dart:54:28)
+#1      readAction.<anonymous closure> (package:configr/utils/config_reader.dart:61:23)
+#2      MappedIterator.moveNext (dart:_internal/iterable.dart:420:20)
+#3      new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#4      new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#5      new List.of (dart:core-patch/array_patch.dart:39:18)
+#6      Iterable.toList (dart:core/iterable.dart:517:7)
+#7      readAction (package:configr/utils/config_reader.dart:65:12)
+#8      readAction.<anonymous closure> (package:configr/utils/config_reader.dart:61:23)
+#9      MappedIterator.moveNext (dart:_internal/iterable.dart:420:20)
+#10     new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#11     new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#12     new List.of (dart:core-patch/array_patch.dart:39:18)
+#13     Iterable.toList (dart:core/iterable.dart:517:7)
+#14     readAction (package:configr/utils/config_reader.dart:65:12)
+#15     readAction.<anonymous closure> (package:configr/utils/config_reader.dart:61:23)
+#16     MappedIterator.moveNext (dart:_internal/iterable.dart:420:20)
+#17     new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#18     new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#19     new List.of (dart:core-patch/array_patch.dart:39:18)
+#20     Iterable.toList (dart:core/iterable.dart:517:7)
+#21     readAction (package:configr/utils/config_reader.dart:65:12)
+#22     readresourceModel.<anonymous closure> (package:configr/utils/config_reader.dart:101:31)
+#23     IterableExtension.mapIndexed (package:collection/src/iterable_extensions.dart:183:20)
+#24     _SyncStarIterator.moveNext (dart:async-patch/async_patch.dart:597:13)
+#25     new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#26     new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#27     new List.of (dart:core-patch/array_patch.dart:39:18)
+#28     Iterable.toList (dart:core/iterable.dart:517:7)
+#29     readresourceModel (package:configr/utils/config_reader.dart:102:10)
+#30     parseConfig (package:configr/utils/config_reader.dart:292:34)
+#31     loadConfig (package:configr/utils/config.dart:31:24)
+<asynchronous suspension>
+#32     ConfigManager.load (package:configr/config_manager.dart:76:22)
+<asynchronous suspension>
+#33     ApplyCommand.execute (package:configr/commands/apply.dart:11:5)
+<asynchronous suspension>
+#34     main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+SEVERE: 2025-09-28 05:25:37.111230: unable to setup: type 'int' is not a subtype of type 'String?'
+
+Error: type 'int' is not a subtype of type 'String?'
+
+StackTrace: #0      readAction (package:configr/utils/config_reader.dart:54:28)
+#1      readAction.<anonymous closure> (package:configr/utils/config_reader.dart:61:23)
+#2      MappedIterator.moveNext (dart:_internal/iterable.dart:420:20)
+#3      new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#4      new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#5      new List.of (dart:core-patch/array_patch.dart:39:18)
+#6      Iterable.toList (dart:core/iterable.dart:517:7)
+#7      readAction (package:configr/utils/config_reader.dart:65:12)
+#8      readAction.<anonymous closure> (package:configr/utils/config_reader.dart:61:23)
+#9      MappedIterator.moveNext (dart:_internal/iterable.dart:420:20)
+#10     new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#11     new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#12     new List.of (dart:core-patch/array_patch.dart:39:18)
+#13     Iterable.toList (dart:core/iterable.dart:517:7)
+#14     readAction (package:configr/utils/config_reader.dart:65:12)
+#15     readresourceModel.<anonymous closure> (package:configr/utils/config_reader.dart:101:31)
+#16     IterableExtension.mapIndexed (package:collection/src/iterable_extensions.dart:183:20)
+#17     _SyncStarIterator.moveNext (dart:async-patch/async_patch.dart:597:13)
+#18     new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#19     new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#20     new List.of (dart:core-patch/array_patch.dart:39:18)
+#21     Iterable.toList (dart:core/iterable.dart:517:7)
+#22     readresourceModel (package:configr/utils/config_reader.dart:102:10)
+#23     parseConfig (package:configr/utils/config_reader.dart:292:34)
+#24     loadConfig (package:configr/utils/config.dart:31:24)
+<asynchronous suspension>
+#25     ConfigManager.load (package:configr/config_manager.dart:76:22)
+<asynchronous suspension>
+#26     ApplyCommand.execute (package:configr/commands/apply.dart:11:5)
+<asynchronous suspension>
+#27     main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 05:26:07.981079: No valid lockfile found, will apply all resources
+
+INFO: 2025-09-28 05:26:08.021829: StartResource(app_config.template): template
+
+INFO: 2025-09-28 05:26:08.326959: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/app_config.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/minimal_output.conf
+
+INFO: 2025-09-28 05:26:08.341598: EndResource(app_config.template): template
+
+SEVERE: 2025-09-28 05:26:38.026420: unable to setup: type 'int' is not a subtype of type 'String?'
+
+Error: type 'int' is not a subtype of type 'String?'
+
+StackTrace: #0      readAction (package:configr/utils/config_reader.dart:54:28)
+#1      readAction.<anonymous closure> (package:configr/utils/config_reader.dart:61:23)
+#2      MappedIterator.moveNext (dart:_internal/iterable.dart:420:20)
+#3      new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#4      new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#5      new List.of (dart:core-patch/array_patch.dart:39:18)
+#6      Iterable.toList (dart:core/iterable.dart:517:7)
+#7      readAction (package:configr/utils/config_reader.dart:65:12)
+#8      readAction.<anonymous closure> (package:configr/utils/config_reader.dart:61:23)
+#9      MappedIterator.moveNext (dart:_internal/iterable.dart:420:20)
+#10     new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#11     new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#12     new List.of (dart:core-patch/array_patch.dart:39:18)
+#13     Iterable.toList (dart:core/iterable.dart:517:7)
+#14     readAction (package:configr/utils/config_reader.dart:65:12)
+#15     readresourceModel.<anonymous closure> (package:configr/utils/config_reader.dart:101:31)
+#16     IterableExtension.mapIndexed (package:collection/src/iterable_extensions.dart:183:20)
+#17     _SyncStarIterator.moveNext (dart:async-patch/async_patch.dart:597:13)
+#18     new _GrowableList._ofOther (dart:core-patch/growable_array.dart:207:26)
+#19     new _GrowableList.of (dart:core-patch/growable_array.dart:156:26)
+#20     new List.of (dart:core-patch/array_patch.dart:39:18)
+#21     Iterable.toList (dart:core/iterable.dart:517:7)
+#22     readresourceModel (package:configr/utils/config_reader.dart:102:10)
+#23     parseConfig (package:configr/utils/config_reader.dart:292:34)
+#24     loadConfig (package:configr/utils/config.dart:31:24)
+<asynchronous suspension>
+#25     ConfigManager.load (package:configr/config_manager.dart:76:22)
+<asynchronous suspension>
+#26     ApplyCommand.execute (package:configr/commands/apply.dart:11:5)
+<asynchronous suspension>
+#27     main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 05:27:07.696741: Config file has changed, applying all resources
+
+INFO: 2025-09-28 05:27:07.730779: StartResource(users_config.template): template
+
+INFO: 2025-09-28 05:27:08.032166: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/users_config.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/users_output.json
+
+INFO: 2025-09-28 05:27:08.044626: EndResource(users_config.template): template
+
+INFO: 2025-09-28 05:27:38.582462: No valid lockfile found, will apply all resources
+
+INFO: 2025-09-28 05:27:38.619754: StartResource(app_config.template): template
+
+INFO: 2025-09-28 05:27:38.901716: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/app_config.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/app_config.conf
+
+INFO: 2025-09-28 05:27:38.913513: EndResource(app_config.template): template
+
+INFO: 2025-09-28 05:27:38.915443: StartResource(nginx_config.template): template
+
+INFO: 2025-09-28 05:27:38.945473: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/nginx_config.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/nginx.conf
+
+INFO: 2025-09-28 05:27:38.947759: EndResource(nginx_config.template): template
+
+INFO: 2025-09-28 05:27:38.948391: StartResource(users_config.template): template
+
+INFO: 2025-09-28 05:27:38.980655: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/users_config.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/users.json
+
+INFO: 2025-09-28 05:27:38.984505: EndResource(users_config.template): template
+
+INFO: 2025-09-28 05:27:38.985419: StartResource(service_config.template): template
+
+INFO: 2025-09-28 05:27:39.004368: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/service_config.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/service.conf
+
+INFO: 2025-09-28 05:27:39.009208: EndResource(service_config.template): template
+
+INFO: 2025-09-28 05:28:32.483557: No valid lockfile found, will apply all resources
+
+INFO: 2025-09-28 05:28:32.538668: StartResource(app_config.template): template
+
+INFO: 2025-09-28 05:28:32.828680: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/app_config.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/app_config.conf
+
+INFO: 2025-09-28 05:28:32.839615: EndResource(app_config.template): template
+
+INFO: 2025-09-28 05:28:32.841580: StartResource(nginx_config.template): template
+
+INFO: 2025-09-28 05:28:32.871436: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/nginx_config.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/nginx.conf
+
+INFO: 2025-09-28 05:28:32.874605: EndResource(nginx_config.template): template
+
+INFO: 2025-09-28 05:28:32.875359: StartResource(users_config.template): template
+
+INFO: 2025-09-28 05:28:32.892104: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/users_config.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/users.json
+
+INFO: 2025-09-28 05:28:32.893966: EndResource(users_config.template): template
+
+INFO: 2025-09-28 05:28:32.894921: StartResource(service_config.template): template
+
+INFO: 2025-09-28 05:28:32.916239: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/service_config.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/service.conf
+
+INFO: 2025-09-28 05:28:32.917818: EndResource(service_config.template): template
+
+INFO: 2025-09-28 05:42:46.336758: No valid lockfile found, will apply all resources
+
+INFO: 2025-09-28 05:42:46.358165: StartResource(app_config.template): template
+
+INFO: 2025-09-28 05:42:46.493083: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/app_config.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/app_config.conf
+
+INFO: 2025-09-28 05:42:46.499180: EndResource(app_config.template): template
+
+INFO: 2025-09-28 05:42:46.500308: StartResource(nginx_config.template): template
+
+INFO: 2025-09-28 05:42:46.514668: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/nginx_config.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/nginx.conf
+
+INFO: 2025-09-28 05:42:46.516005: EndResource(nginx_config.template): template
+
+INFO: 2025-09-28 05:42:46.516415: StartResource(users_config.template): template
+
+INFO: 2025-09-28 05:42:46.523771: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/users_config.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/users.json
+
+INFO: 2025-09-28 05:42:46.525094: EndResource(users_config.template): template
+
+INFO: 2025-09-28 05:42:46.525520: StartResource(service_config.template): template
+
+INFO: 2025-09-28 05:42:46.535122: Template processed successfully: /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/service_config.template -> /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/template-module/generated/service.conf
+
+INFO: 2025-09-28 05:42:46.536129: EndResource(service_config.template): template

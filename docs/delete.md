@@ -1,38 +1,34 @@
 # Delete Module
 
-Safely deletes files and directories with optional backup and recursive deletion support.
+Enhanced file and directory deletion with selective deletion, progress tracking, and safe deletion options.
 
-## Usage
+## Features
+
+- **Selective Deletion**: Include/exclude files using glob patterns
+- **Safe Deletion**: Trash support and confirmation prompts
+- **Progress Tracking**: Real-time progress monitoring with detailed counters
+- **Backup Support**: Optional backup before deletion
+- **Event System**: Comprehensive event emission for monitoring and logging
+- **Rollback Support**: Ability to restore deleted files from backup
+
+## Basic Usage
+
+### Simple File Delete
 
 ```
 resource {
-  source "file-to-delete.txt"
-
+  source "/path/to/file.txt"
   actions {
-    delete {
-      backup {
-        backup_path "backups/file-to-delete.bak"
-      }
-    }
+    delete {}
   }
 }
 ```
 
-## Properties
-
-- `backup` (optional) - Backup configuration before deletion
-  - `backup_path` - Path where backup will be stored
-- `recursive` (optional, boolean) - Enable recursive deletion for directories. Default: `false`
-
-## Recursive Deletion
-
-When `recursive` is set to `true`, the delete module can remove entire directory trees. This is particularly useful for cleaning up extracted archives or temporary directories.
+### Directory Delete
 
 ```
 resource {
-  type "directory"
-  source "temp_extracted_files/"
-  
+  source "/path/to/directory"
   actions {
     delete {
       recursive true
@@ -41,66 +37,154 @@ resource {
 }
 ```
 
-## Rollback Behavior
 
-The delete module supports rollback operations:
-- For files: Restores the original file from backup (if backup was configured)
-- For directories with recursive deletion: Restores the entire directory structure from backup
+### Selective Deletion with Patterns
 
-## Examples
+#### Include Patterns
 
-### Delete Single File with Backup
+Delete only specific file types:
+
 ```
-# Delete with backup
 resource {
-  source "old_config.json"
+  source "/path/to/directory"
+  actions {
+    delete {
+      recursive true
+      include "*.tmp"
+    }
+  }
+}
+```
 
+Delete multiple file types:
+
+```
+resource {
+  source "/path/to/directory"
+  actions {
+    delete {
+      recursive true
+      include "*.tmp,*.log,*.cache"
+    }
+  }
+}
+```
+
+#### Exclude Patterns
+
+Skip specific file types:
+
+```
+resource {
+  source "/path/to/directory"
+  actions {
+    delete {
+      recursive true
+      exclude "*.important"
+    }
+  }
+}
+```
+
+### Safe Deletion Options
+
+#### Use Trash
+
+Move files to trash instead of permanent deletion:
+
+```
+resource {
+  source "/path/to/file.txt"
+  actions {
+    delete {
+      use_trash true
+    }
+  }
+}
+```
+
+#### Require Confirmation
+
+Prompt for confirmation before deletion:
+
+```
+resource {
+  source "/path/to/important/file.txt"
+  actions {
+    delete {
+      require_confirmation true
+    }
+  }
+}
+```
+
+### Backup Before Deletion
+
+```
+resource {
+  source "/path/to/file.txt"
   actions {
     delete {
       backup {
-        backup_path "~/backups/old_config.json.bak"
+        backup_path "/backup/file.txt.bak"
       }
     }
   }
 }
 ```
 
-### Delete Directory Recursively
+## Configuration Properties
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `recursive` | boolean | `false` | Delete directories recursively |
+| `include` | string/array | `[]` | Glob patterns for files to include |
+| `exclude` | string/array | `[]` | Glob patterns for files to exclude |
+| `use_trash` | boolean | `false` | Move to trash instead of permanent deletion |
+| `require_confirmation` | boolean | `false` | Prompt for confirmation before deletion |
+| `backup` | object | `null` | Backup configuration |
+| `backup.backup_path` | string | `null` | Path where backup will be stored |
+
+## Pattern Matching
+
+The delete module uses glob patterns for file selection. Supported patterns include:
+
+- `*` - Matches any characters
+- `?` - Matches any single character
+- `[abc]` - Matches any character in the set
+- `[a-z]` - Matches any character in the range
+- `**` - Matches any number of directories
+
+### Pattern Examples
+
 ```
-# Delete entire directory and all contents
-resource {
-  type "directory"
-  source "logs/old/"
+# Delete all temporary files
+include "*.tmp"
 
-  actions {
-    delete {
-      recursive true
-      backup {
-        backup_path "backups/old_logs.tar.gz"
-      }
-    }
-  }
-}
+# Delete all files starting with 'temp'
+include "temp*"
+
+# Delete all files in subdirectories
+include "**/*.tmp"
+
+# Exclude important files
+exclude "*.important,*.backup"
 ```
 
-### Cleanup Extracted Files
-```
-# Clean up extracted archive contents
-resource {
-  type "directory"
-  source "mydir"
+## State Tracking
 
-  actions {
-    delete {
-      recursive true
-    }
-  }
-}
-```
+The delete module tracks detailed state information:
 
-## Safety Features
+### State Properties
 
-- **Backup Support**: Always create backups before deletion for safety
-- **Rollback Support**: Automatically restore files/directories during rollback operations
-- **Recursive Control**: Explicit `recursive` flag prevents accidental directory deletion
-- **State Tracking**: Tracks all deleted files and directories for proper rollback
+| Property | Type | Description |
+|----------|------|-------------|
+| `deletedFiles` | int | Number of files successfully deleted |
+| `skippedFiles` | int | Number of files skipped (excluded or not included) |
+| `trashedFiles` | int | Number of files moved to trash |
+| `totalFiles` | int | Total number of files processed |
+| `includePatterns` | array | Active include patterns |
+| `excludePatterns` | array | Active exclude patterns |
+| `useTrash` | boolean | Whether trash is being used |
+| `requireConfirmation` | boolean | Whether confirmation is required |
+

@@ -16,12 +16,13 @@ class InteractiveSudoEscalation implements PrivilegeEscalation {
     }
 
     // If passwordless sudo is not available, we need to ask for the password
-    print('Sudo password required to run: $command ${arguments.join(' ')}');
-    stdout.write('Password: ');
+    // Use stderr to avoid conflicts with CLI handler
+    stderr.writeln('Sudo password required to run: $command ${arguments.join(' ')}');
+    stderr.write('Password: ');
     stdin.echoMode = false;
     final password = stdin.readLineSync() ?? '';
     stdin.echoMode = true;
-    print(''); // New line after password input
+    stderr.writeln(''); // New line after password input
 
     // Use a shell to echo the password into sudo
     final fullCommand =
@@ -33,5 +34,29 @@ class InteractiveSudoEscalation implements PrivilegeEscalation {
     }
 
     return result;
+  }
+}
+
+class NonInteractiveSudoEscalation implements PrivilegeEscalation {
+  @override
+  Future<ProcessResult> runWithElevatedPrivileges(
+      String command, List<String> arguments) async {
+    // Try running sudo with -n (non-interactive) to see if we have passwordless sudo
+    var result = await Process.run('sudo', ['-n', command, ...arguments]);
+    if (result.exitCode == 0) {
+      return result;
+    }
+
+    // If passwordless sudo is not available, throw an error instead of prompting
+    throw Exception('Passwordless sudo required but not available. Please configure passwordless sudo or run with appropriate privileges.');
+  }
+}
+
+class NoPrivilegeEscalation implements PrivilegeEscalation {
+  @override
+  Future<ProcessResult> runWithElevatedPrivileges(
+      String command, List<String> arguments) async {
+    // Run command directly without any privilege escalation
+    return await Process.run(command, arguments);
   }
 }

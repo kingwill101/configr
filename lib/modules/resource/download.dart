@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:configr/events/module_events.dart';
 import 'package:configr/exceptions.dart';
 import 'package:configr/extensions/string.dart';
@@ -7,6 +9,15 @@ import 'package:configr/utils/file_utils.dart';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 
+/// Enhanced file download module with resume capability, authentication, and integrity verification.
+/// 
+/// Features:
+/// - Resume interrupted downloads from last position
+/// - HTTP authentication (Basic, Bearer, API keys)
+/// - Multiple checksum algorithms (SHA-256, MD5, SHA-1)
+/// - Progress tracking with detailed statistics
+/// - Comprehensive event emission
+/// - Rollback support
 class FileDownloadModule extends ResourceModule {
   bool get destinationFileExisted =>
       state['destinationFileExisted'] as bool? ?? false;
@@ -25,6 +36,18 @@ class FileDownloadModule extends ResourceModule {
 
   int get totalBytes => state['totalBytes'] as int? ?? -1;
 
+  // Enhanced features
+  bool get resumeEnabled => state['resumeEnabled'] as bool? ?? false;
+  String? get authType => state['authType'] as String?;
+  String? get authToken => state['authToken'] as String?;
+  String? get username => state['username'] as String?;
+  String? get password => state['password'] as String?;
+  String get checksumAlgorithm => state['checksumAlgorithm'] as String? ?? 'sha256';
+  int get downloadSpeed => state['downloadSpeed'] as int? ?? 0; // bytes per second
+  Duration get downloadDuration => Duration(milliseconds: state['downloadDuration'] as int? ?? 0);
+  bool get isResumed => state['isResumed'] as bool? ?? false;
+  int get resumePosition => state['resumePosition'] as int? ?? 0;
+
   FileDownloadModule(super.file, super.action,
       {super.allowedActions = const ['download'], super.fileSystem}) {
     updateState({
@@ -33,7 +56,17 @@ class FileDownloadModule extends ResourceModule {
       'sourceUrl': '',
       'overwrite': false,
       'receivedBytes': 0,
-      'totalBytes': -1
+      'totalBytes': -1,
+      'resumeEnabled': false,
+      'authType': null,
+      'authToken': null,
+      'username': null,
+      'password': null,
+      'checksumAlgorithm': 'sha256',
+      'downloadSpeed': 0,
+      'downloadDuration': 0,
+      'isResumed': false,
+      'resumePosition': 0,
     });
   }
 
@@ -42,13 +75,31 @@ class FileDownloadModule extends ResourceModule {
     final client = http.Client();
     try {
       final request = http.Request('GET', Uri.parse(url));
+      
+      // Add authentication headers
+      _addAuthenticationHeaders(request);
+      
+      // Add resume headers if enabled
+      int resumePosition = 0;
+      if (resumeEnabled) {
+        final file = fileSystem!.file(destinationPath);
+        if (await file.exists()) {
+          resumePosition = await file.length();
+          request.headers['Range'] = 'bytes=$resumePosition-';
+          updateState({'resumePosition': resumePosition, 'isResumed': true});
+        }
+      }
+      
       final response = await client.send(request);
 
-      if (response.statusCode != 200) {
+      if (response.statusCode != 200 && response.statusCode != 206) {
         emitEvent(FailedEvent(
             message: 'Failed to download file: ${response.statusCode}',
             moduleId: action.id));
-        throw Exception('Failed to download file: ${response.statusCode}');
+        throw ActionFailedException(
+          'Failed to download file: ${response.statusCode}',
+          moduleId: action.id,
+        );
       }
 
       updateState(
@@ -60,7 +111,7 @@ class FileDownloadModule extends ResourceModule {
           message: 'Starting download from $url', moduleId: action.id));
 
       final file = fileSystem!.file(destinationPath);
-      final sink = file.openWrite();
+      final sink = file.openWrite(mode: isResumed ? FileMode.append : FileMode.write);
 
       try {
         await for (final chunk in response.stream) {
@@ -70,14 +121,14 @@ class FileDownloadModule extends ResourceModule {
           emitEvent(DownloadProgressEvent(
               current: receivedBytes,
               total: totalBytes,
-              message: 'Downloading...',
+              message: isResumed ? 'Resuming download...' : 'Downloading...',
               moduleId: action.id));
         }
       } finally {
         await sink.close();
       }
 
-      final hash = sha256.convert(await file.readAsBytes()).toString();
+      final hash = _calculateChecksum(await file.readAsBytes(), checksumAlgorithm);
       updateState({'actualChecksum': hash});
 
       emitEvent(StatusUpdateEvent(
@@ -96,10 +147,11 @@ class FileDownloadModule extends ResourceModule {
     final sourceUrlValue = source.unquote();
     final destinationPath = destination;
 
+    // Parse configuration
+    final config = _parseConfiguration();
     updateState({
       'sourceUrl': sourceUrlValue,
-      'overwrite': action.properties.containsKey('overwrite') &&
-          action.properties['overwrite'] == true
+      ...config,
     });
 
     await executeModules();
@@ -136,7 +188,15 @@ class FileDownloadModule extends ResourceModule {
         moduleId: action.id));
 
     try {
+      final startTime = DateTime.now();
       final checksum = await _downloadWithProgress(sourceUrl, destinationPath);
+      final endTime = DateTime.now();
+      final duration = endTime.difference(startTime);
+      
+      updateState({
+        'downloadDuration': duration.inMilliseconds,
+        'downloadSpeed': duration.inMilliseconds > 0 ? (receivedBytes * 1000 / duration.inMilliseconds).round() : 0,
+      });
 
       if (action.properties['checksum'] != null) {
         updateState({'expectedChecksum': action.properties['checksum']});
@@ -147,13 +207,15 @@ class FileDownloadModule extends ResourceModule {
               message:
                   'Checksum validation failed: Expected $expectedChecksum, got $checksum',
               moduleId: action.id));
-          throw ChecksumValidationException(
-              destinationPath, expectedChecksum!, checksum);
+          throw ActionFailedException(
+            'Checksum validation failed: Expected $expectedChecksum, got $checksum',
+            moduleId: action.id,
+          );
         }
 
         emitEvent(StatusUpdateEvent(
             level: StatusEvent.info,
-            message: 'Checksum verification passed',
+            message: 'Checksum verification passed ($checksumAlgorithm)',
             moduleId: action.id));
       }
 
@@ -199,5 +261,47 @@ class FileDownloadModule extends ResourceModule {
       rethrow;
     }
     await saveState();
+  }
+
+  /// Parse configuration from action properties.
+  /// 
+  /// Extracts authentication settings, resume configuration, checksum algorithm,
+  /// and other configuration options from the action properties.
+  Map<String, dynamic> _parseConfiguration() {
+    return {
+      'overwrite': action.properties.containsKey('overwrite') && action.properties['overwrite'] == true,
+      'resumeEnabled': action.properties['resume'] == 'true',
+      'authType': action.properties['auth_type'],
+      'authToken': action.properties['auth_token'],
+      'username': action.properties['username'],
+      'password': action.properties['password'],
+      'checksumAlgorithm': action.properties['checksum_algorithm'] ?? 'sha256',
+    };
+  }
+
+  /// Add authentication headers to the HTTP request.
+  void _addAuthenticationHeaders(http.Request request) {
+    if (authType == 'basic' && username != null && password != null) {
+      final credentials = base64Encode(utf8.encode('$username:$password'));
+      request.headers['Authorization'] = 'Basic $credentials';
+    } else if (authType == 'bearer' && authToken != null) {
+      request.headers['Authorization'] = 'Bearer $authToken';
+    } else if (authType == 'api_key' && authToken != null) {
+      final headerName = action.properties['api_key_header'] ?? 'X-API-Key';
+      request.headers[headerName] = authToken!;
+    }
+  }
+
+  /// Calculate checksum using the specified algorithm.
+  String _calculateChecksum(List<int> bytes, String algorithm) {
+    switch (algorithm.toLowerCase()) {
+      case 'md5':
+        return md5.convert(bytes).toString();
+      case 'sha1':
+        return sha1.convert(bytes).toString();
+      case 'sha256':
+      default:
+        return sha256.convert(bytes).toString();
+    }
   }
 }

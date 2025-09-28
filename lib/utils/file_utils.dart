@@ -12,6 +12,11 @@ import 'package:path/path.dart' as p;
 
 /// Utility class containing file system related helper methods
 class FileUtils {
+  /// Check if the current platform is Unix-like (Linux, macOS, etc.)
+  static bool get isUnixLike => Platform.isLinux || Platform.isMacOS;
+  
+  /// Check if the current platform is Windows
+  static bool get isWindows => Platform.isWindows;
   /// Copies a file from source path to destination path
   /// Returns the copied File
   static Future<File> copyFile(
@@ -585,5 +590,886 @@ class FileUtils {
       await createDirectory(dir, fileSystem: fileSystem);
     }
     await fsToUse.file(path).writeAsString(content);
+  }
+
+  /// Permission-aware file writing with automatic privilege escalation fallback
+  static Future<void> writeFileWithPermissions(
+    String path,
+    String content, {
+    FileSystem? fileSystem,
+    bool recursive = false,
+    PrivilegeEscalation? privilegeEscalation,
+    bool requireElevation = false,
+  }) async {
+    logger.info('Writing file with permission awareness: $path');
+    
+    try {
+      // Create parent directory if needed
+      final dir = p.dirname(path);
+      final dirExists = await directoryExists(dir, fileSystem: fileSystem);
+      
+      if (!dirExists && recursive) {
+        await createDirectoryWithPermissions(
+          dir,
+          fileSystem: fileSystem,
+          privilegeEscalation: privilegeEscalation,
+          requireElevation: requireElevation,
+        );
+      }
+      
+      // Try direct write first
+      if (!requireElevation) {
+        try {
+          await writeFile(path, content, fileSystem: fileSystem, recursive: false);
+          logger.info('File written successfully: $path');
+          return;
+        } catch (e) {
+          if (_isPermissionException(e)) {
+            logger.warning('Permission denied for direct write, trying with privilege escalation: $path');
+            requireElevation = true;
+          } else {
+            rethrow;
+          }
+        }
+      }
+      
+      // Try with privilege escalation if needed
+      if (requireElevation && privilegeEscalation != null) {
+        try {
+          // Write to temp file first, then move with privilege escalation
+          final tempFile = (fileSystem ?? fs).systemTempDirectory.createTempSync().childFile('configr_temp_${DateTime.now().millisecondsSinceEpoch}');
+          tempFile.writeAsStringSync(content);
+          
+          await privilegeEscalation.runWithElevatedPrivileges('cp', [tempFile.path, path]);
+          await privilegeEscalation.runWithElevatedPrivileges('chmod', ['644', path]);
+          
+          tempFile.deleteSync();
+          logger.info('File written successfully with privilege escalation: $path');
+        } catch (e) {
+          logger.severe('Failed to write file with privilege escalation: $path - $e');
+          throw Exception('Failed to write file with privilege escalation: $e');
+        }
+      } else {
+        throw Exception('Permission denied and no privilege escalation available for: $path');
+      }
+    } catch (e) {
+      logger.severe('Failed to write file: $path - $e');
+      rethrow;
+    }
+  }
+
+  /// Permission-aware directory creation with automatic privilege escalation fallback
+  static Future<void> createDirectoryWithPermissions(
+    String path, {
+    FileSystem? fileSystem,
+    bool recursive = true,
+    PrivilegeEscalation? privilegeEscalation,
+    bool requireElevation = false,
+  }) async {
+    logger.info('Creating directory with permission awareness: $path');
+    
+    // Check if directory already exists
+    final dirExists = await directoryExists(path, fileSystem: fileSystem);
+    if (dirExists) {
+      logger.info('Directory already exists: $path');
+      return;
+    }
+    
+    try {
+      // Try direct creation first
+      if (!requireElevation) {
+        try {
+          await createDirectory(path, fileSystem: fileSystem, recursive: recursive);
+          logger.info('Directory created successfully: $path');
+          return;
+        } catch (e) {
+          if (_isPermissionException(e)) {
+            logger.warning('Permission denied for direct creation, trying with privilege escalation: $path');
+            requireElevation = true;
+          } else {
+            rethrow;
+          }
+        }
+      }
+      
+      // Try with privilege escalation if needed
+      if (requireElevation && privilegeEscalation != null) {
+        try {
+          final args = recursive ? ['-p', path] : [path];
+          await privilegeEscalation.runWithElevatedPrivileges('mkdir', args);
+          logger.info('Directory created successfully with privilege escalation: $path');
+        } catch (e) {
+          logger.severe('Failed to create directory with privilege escalation: $path - $e');
+          throw Exception('Failed to create directory with privilege escalation: $e');
+        }
+      } else {
+        throw Exception('Permission denied and no privilege escalation available for: $path');
+      }
+    } catch (e) {
+      logger.severe('Failed to create directory: $path - $e');
+      rethrow;
+    }
+  }
+
+  /// Permission-aware file deletion with automatic privilege escalation fallback
+  static Future<void> deleteFileWithPermissions(
+    String path, {
+    FileSystem? fileSystem,
+    PrivilegeEscalation? privilegeEscalation,
+    bool requireElevation = false,
+  }) async {
+    logger.info('Deleting file with permission awareness: $path');
+    
+    // Check if file exists
+    final fileExistsCheck = await fileExists(path, fileSystem: fileSystem);
+    if (!fileExistsCheck) {
+      logger.info('File does not exist: $path');
+      return;
+    }
+    
+    try {
+      // Try direct deletion first
+      if (!requireElevation) {
+        try {
+          await deleteFile(path, fileSystem: fileSystem);
+          logger.info('File deleted successfully: $path');
+          return;
+        } catch (e) {
+          if (_isPermissionException(e)) {
+            logger.warning('Permission denied for direct deletion, trying with privilege escalation: $path');
+            requireElevation = true;
+          } else {
+            rethrow;
+          }
+        }
+      }
+      
+      // Try with privilege escalation if needed
+      if (requireElevation && privilegeEscalation != null) {
+        try {
+          await privilegeEscalation.runWithElevatedPrivileges('rm', [path]);
+          logger.info('File deleted successfully with privilege escalation: $path');
+        } catch (e) {
+          logger.severe('Failed to delete file with privilege escalation: $path - $e');
+          throw Exception('Failed to delete file with privilege escalation: $e');
+        }
+      } else {
+        throw Exception('Permission denied and no privilege escalation available for: $path');
+      }
+    } catch (e) {
+      logger.severe('Failed to delete file: $path - $e');
+      rethrow;
+    }
+  }
+
+  /// Check if a file or directory has the required permissions
+  static Future<PermissionCheckResult> checkPermissions(
+    String path, {
+    bool requireRead = false,
+    bool requireWrite = false,
+    bool requireExecute = false,
+    FileSystem? fileSystem,
+  }) async {
+    logger.info('Checking permissions for: $path');
+    
+    try {
+      final fsToUse = fileSystem ?? fs;
+      final file = fsToUse.file(path);
+      final directory = fsToUse.directory(path);
+      
+      // Check if path exists
+      final exists = file.existsSync() || directory.existsSync();
+      if (!exists) {
+        return PermissionCheckResult(
+          path: path,
+          exists: false,
+          canRead: false,
+          canWrite: false,
+          canExecute: false,
+          isDirectory: false,
+        );
+      }
+      
+      final isDir = directory.existsSync();
+      
+      // Check read permission
+      bool canRead = false;
+      if (requireRead) {
+        try {
+          if (isDir) {
+            directory.listSync().length; // Try to list contents
+            canRead = true;
+          } else {
+            file.readAsStringSync();
+            canRead = true;
+          }
+        } catch (e) {
+          canRead = false;
+        }
+      }
+      
+      // Check write permission
+      bool canWrite = false;
+      if (requireWrite) {
+        try {
+          if (isDir) {
+            final testFile = fsToUse.file('$path/.permission_test_${DateTime.now().millisecondsSinceEpoch}');
+            testFile.writeAsStringSync('test');
+            testFile.deleteSync();
+            canWrite = true;
+          } else {
+            final backup = file.existsSync() ? file.readAsStringSync() : null;
+            file.writeAsStringSync('test');
+            if (backup != null) {
+              file.writeAsStringSync(backup);
+            } else {
+              file.deleteSync();
+            }
+            canWrite = true;
+          }
+        } catch (e) {
+          canWrite = false;
+        }
+      }
+      
+      // Check execute permission
+      bool canExecute = false;
+      if (requireExecute) {
+        try {
+          final result = await Process.run('test', ['-x', path]);
+          canExecute = result.exitCode == 0;
+        } catch (e) {
+          canExecute = false;
+        }
+      }
+      
+      final result = PermissionCheckResult(
+        path: path,
+        exists: true,
+        canRead: canRead,
+        canWrite: canWrite,
+        canExecute: canExecute,
+        isDirectory: isDir,
+      );
+      
+      logger.info('Permission check result for $path: read=$canRead, write=$canWrite, execute=$canExecute');
+      return result;
+    } catch (e) {
+      logger.warning('Permission check failed for $path: $e');
+      return PermissionCheckResult(
+        path: path,
+        exists: false,
+        canRead: false,
+        canWrite: false,
+        canExecute: false,
+        isDirectory: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Execute a command with permission awareness and automatic privilege escalation fallback
+  static Future<ProcessResult> executeCommandWithPermissions(
+    String command,
+    List<String> arguments, {
+    bool requireElevation = false,
+    PrivilegeEscalation? privilegeEscalation,
+    String? workingDirectory,
+    Map<String, String>? environment,
+    String? description,
+  }) async {
+    final cmdDesc = description ?? '$command ${arguments.join(' ')}';
+    logger.info('Executing command with permission awareness: $cmdDesc');
+    
+    try {
+      // First, try direct execution
+      if (!requireElevation) {
+        try {
+          final result = await Process.run(
+            command,
+            arguments,
+            workingDirectory: workingDirectory,
+            environment: environment,
+          );
+          
+          if (result.exitCode == 0) {
+            logger.info('Command executed successfully: $cmdDesc');
+            return result;
+          }
+          
+          // Check if it's a permission error
+          if (_isPermissionError(result)) {
+            logger.warning('Permission denied for command: $cmdDesc, trying with privilege escalation');
+            requireElevation = true;
+          } else {
+            logger.warning('Command failed with exit code ${result.exitCode}: $cmdDesc');
+            return result;
+          }
+        } catch (e) {
+          if (_isPermissionException(e)) {
+            logger.warning('Permission exception for command: $cmdDesc, trying with privilege escalation');
+            requireElevation = true;
+          } else {
+            rethrow;
+          }
+        }
+      }
+      
+      // Try with privilege escalation if needed
+      if (requireElevation && privilegeEscalation != null) {
+        try {
+          final result = await privilegeEscalation.runWithElevatedPrivileges(
+            command,
+            arguments,
+          );
+          
+          if (result.exitCode == 0) {
+            logger.info('Command executed successfully with privilege escalation: $cmdDesc');
+            return result;
+          } else {
+            logger.severe('Command failed with privilege escalation (exit code ${result.exitCode}): $cmdDesc');
+            throw Exception(
+              'Command failed with privilege escalation: $cmdDesc\n'
+              'Exit code: ${result.exitCode}\n'
+              'Stderr: ${result.stderr}',
+            );
+          }
+        } catch (e) {
+          logger.severe('Privilege escalation failed for command: $cmdDesc');
+          throw Exception(
+            'Failed to execute command with privilege escalation: $cmdDesc\n'
+            'Error: $e',
+          );
+        }
+      }
+      
+      throw Exception('Unexpected execution path for command: $cmdDesc');
+    } catch (e) {
+      logger.severe('Command execution failed: $cmdDesc - $e');
+      rethrow;
+    }
+  }
+
+  /// Check if a ProcessResult indicates a permission error
+  static bool _isPermissionError(ProcessResult result) {
+    final stderr = result.stderr.toString().toLowerCase();
+    return stderr.contains('permission denied') ||
+           stderr.contains('access denied') ||
+           stderr.contains('operation not permitted') ||
+           result.exitCode == 13; // Permission denied
+  }
+
+  /// Check if an exception is permission-related
+  static bool _isPermissionException(dynamic exception) {
+    if (exception is ProcessException) {
+      return exception.message.toLowerCase().contains('permission denied') ||
+             exception.message.toLowerCase().contains('access denied');
+    }
+    if (exception is FileSystemException) {
+      return exception.osError?.errorCode == 13; // Permission denied
+    }
+    return false;
+  }
+
+  /// Check if an exception is permission-related (public version)
+  static bool isPermissionError(dynamic exception) {
+    return _isPermissionException(exception);
+  }
+
+  /// Cross-platform permission checking that works on all platforms
+  static Future<PermissionCheckResult> checkPermissionsCrossPlatform(
+    String path, {
+    bool requireRead = false,
+    bool requireWrite = false,
+    bool requireExecute = false,
+    FileSystem? fileSystem,
+  }) async {
+    logger.info('Checking permissions (cross-platform) for: $path');
+    
+    try {
+      final fsToUse = fileSystem ?? fs;
+      final file = fsToUse.file(path);
+      final directory = fsToUse.directory(path);
+      
+      // Check if path exists
+      final exists = file.existsSync() || directory.existsSync();
+      if (!exists) {
+        return PermissionCheckResult(
+          path: path,
+          exists: false,
+          canRead: false,
+          canWrite: false,
+          canExecute: false,
+          isDirectory: false,
+        );
+      }
+      
+      final isDir = directory.existsSync();
+      
+      // Check read permission (cross-platform)
+      bool canRead = false;
+      if (requireRead) {
+        try {
+          if (isDir) {
+            directory.listSync().length; // Try to list contents
+            canRead = true;
+          } else {
+            file.readAsStringSync();
+            canRead = true;
+          }
+        } catch (e) {
+          canRead = false;
+        }
+      }
+      
+      // Check write permission (cross-platform)
+      bool canWrite = false;
+      if (requireWrite) {
+        try {
+          if (isDir) {
+            final testFile = fsToUse.file('$path/.permission_test_${DateTime.now().millisecondsSinceEpoch}');
+            testFile.writeAsStringSync('test');
+            testFile.deleteSync();
+            canWrite = true;
+          } else {
+            final backup = file.existsSync() ? file.readAsStringSync() : null;
+            file.writeAsStringSync('test');
+            if (backup != null) {
+              file.writeAsStringSync(backup);
+            } else {
+              file.deleteSync();
+            }
+            canWrite = true;
+          }
+        } catch (e) {
+          canWrite = false;
+        }
+      }
+      
+      // Check execute permission (cross-platform)
+      bool canExecute = false;
+      if (requireExecute) {
+        try {
+          if (isUnixLike) {
+            // Use Unix-specific test command
+            final result = await Process.run('test', ['-x', path]);
+            canExecute = result.exitCode == 0;
+          } else if (isWindows) {
+            // On Windows, check if file has .exe extension or is a directory
+            if (isDir) {
+              canExecute = true; // Directories are "executable" on Windows
+            } else {
+              final extension = p.extension(path).toLowerCase();
+              canExecute = extension == '.exe' || extension == '.bat' || extension == '.cmd';
+            }
+          } else {
+            // Fallback: assume executable if we can read it
+            canExecute = canRead;
+          }
+        } catch (e) {
+          canExecute = false;
+        }
+      }
+      
+      final result = PermissionCheckResult(
+        path: path,
+        exists: true,
+        canRead: canRead,
+        canWrite: canWrite,
+        canExecute: canExecute,
+        isDirectory: isDir,
+      );
+      
+      logger.info('Permission check result for $path: read=$canRead, write=$canWrite, execute=$canExecute');
+      return result;
+    } catch (e) {
+      logger.warning('Permission check failed for $path: $e');
+      return PermissionCheckResult(
+        path: path,
+        exists: false,
+        canRead: false,
+        canWrite: false,
+        canExecute: false,
+        isDirectory: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Cross-platform file writing with permission awareness
+  static Future<void> writeFileWithPermissionsCrossPlatform(
+    String path,
+    String content, {
+    FileSystem? fileSystem,
+    bool recursive = false,
+    PrivilegeEscalation? privilegeEscalation,
+    bool requireElevation = false,
+  }) async {
+    logger.info('Writing file with permission awareness (cross-platform): $path');
+    
+    try {
+      // Create parent directory if needed
+      final dir = p.dirname(path);
+      final dirExists = await directoryExists(dir, fileSystem: fileSystem);
+      
+      if (!dirExists && recursive) {
+        await createDirectoryWithPermissionsCrossPlatform(
+          dir,
+          fileSystem: fileSystem,
+          privilegeEscalation: privilegeEscalation,
+          requireElevation: requireElevation,
+        );
+      }
+      
+      // Try direct write first
+      if (!requireElevation) {
+        try {
+          await writeFile(path, content, fileSystem: fileSystem, recursive: false);
+          logger.info('File written successfully: $path');
+          return;
+        } catch (e) {
+          if (_isPermissionException(e)) {
+            logger.warning('Permission denied for direct write, trying with privilege escalation: $path');
+            requireElevation = true;
+          } else {
+            rethrow;
+          }
+        }
+      }
+      
+      // Try with privilege escalation if needed
+      if (requireElevation && privilegeEscalation != null) {
+        try {
+          if (isUnixLike) {
+            // Unix-specific privilege escalation
+            final tempFile = (fileSystem ?? fs).systemTempDirectory.createTempSync().childFile('configr_temp_${DateTime.now().millisecondsSinceEpoch}');
+            tempFile.writeAsStringSync(content);
+            
+            await privilegeEscalation.runWithElevatedPrivileges('cp', [tempFile.path, path]);
+            await privilegeEscalation.runWithElevatedPrivileges('chmod', ['644', path]);
+            
+            tempFile.deleteSync();
+          } else if (isWindows) {
+            // Windows-specific privilege escalation
+            final tempFile = (fileSystem ?? fs).systemTempDirectory.createTempSync().childFile('configr_temp_${DateTime.now().millisecondsSinceEpoch}');
+            tempFile.writeAsStringSync(content);
+            
+            await privilegeEscalation.runWithElevatedPrivileges('copy', [tempFile.path, path]);
+            
+            tempFile.deleteSync();
+          } else {
+            // Fallback: direct write
+            await writeFile(path, content, fileSystem: fileSystem, recursive: false);
+          }
+          
+          logger.info('File written successfully with privilege escalation: $path');
+        } catch (e) {
+          logger.severe('Failed to write file with privilege escalation: $path - $e');
+          throw Exception('Failed to write file with privilege escalation: $e');
+        }
+      } else {
+        throw Exception('Permission denied and no privilege escalation available for: $path');
+      }
+    } catch (e) {
+      logger.severe('Failed to write file: $path - $e');
+      rethrow;
+    }
+  }
+
+  /// Cross-platform directory creation with permission awareness
+  static Future<void> createDirectoryWithPermissionsCrossPlatform(
+    String path, {
+    FileSystem? fileSystem,
+    bool recursive = true,
+    PrivilegeEscalation? privilegeEscalation,
+    bool requireElevation = false,
+  }) async {
+    logger.info('Creating directory with permission awareness (cross-platform): $path');
+    
+    // Check if directory already exists
+    final dirExists = await directoryExists(path, fileSystem: fileSystem);
+    if (dirExists) {
+      logger.info('Directory already exists: $path');
+      return;
+    }
+    
+    try {
+      // Try direct creation first
+      if (!requireElevation) {
+        try {
+          await createDirectory(path, fileSystem: fileSystem, recursive: recursive);
+          logger.info('Directory created successfully: $path');
+          return;
+        } catch (e) {
+          if (_isPermissionException(e)) {
+            logger.warning('Permission denied for direct creation, trying with privilege escalation: $path');
+            requireElevation = true;
+          } else {
+            rethrow;
+          }
+        }
+      }
+      
+      // Try with privilege escalation if needed
+      if (requireElevation && privilegeEscalation != null) {
+        try {
+          if (isUnixLike) {
+            // Unix-specific directory creation
+            final args = recursive ? ['-p', path] : [path];
+            await privilegeEscalation.runWithElevatedPrivileges('mkdir', args);
+          } else if (isWindows) {
+            // Windows-specific directory creation
+            final args = recursive ? ['/s', path] : [path];
+            await privilegeEscalation.runWithElevatedPrivileges('mkdir', args);
+          } else {
+            // Fallback: direct creation
+            await createDirectory(path, fileSystem: fileSystem, recursive: recursive);
+          }
+          
+          logger.info('Directory created successfully with privilege escalation: $path');
+        } catch (e) {
+          logger.severe('Failed to create directory with privilege escalation: $path - $e');
+          throw Exception('Failed to create directory with privilege escalation: $e');
+        }
+      } else {
+        throw Exception('Permission denied and no privilege escalation available for: $path');
+      }
+    } catch (e) {
+      logger.severe('Failed to create directory: $path - $e');
+      rethrow;
+    }
+  }
+
+  /// Cross-platform file deletion with permission awareness
+  static Future<void> deleteFileWithPermissionsCrossPlatform(
+    String path, {
+    FileSystem? fileSystem,
+    PrivilegeEscalation? privilegeEscalation,
+    bool requireElevation = false,
+  }) async {
+    logger.info('Deleting file with permission awareness (cross-platform): $path');
+    
+    // Check if file exists
+    final fileExistsCheck = await fileExists(path, fileSystem: fileSystem);
+    if (!fileExistsCheck) {
+      logger.info('File does not exist: $path');
+      return;
+    }
+    
+    try {
+      // Try direct deletion first
+      if (!requireElevation) {
+        try {
+          await deleteFile(path, fileSystem: fileSystem);
+          logger.info('File deleted successfully: $path');
+          return;
+        } catch (e) {
+          if (_isPermissionException(e)) {
+            logger.warning('Permission denied for direct deletion, trying with privilege escalation: $path');
+            requireElevation = true;
+          } else {
+            rethrow;
+          }
+        }
+      }
+      
+      // Try with privilege escalation if needed
+      if (requireElevation && privilegeEscalation != null) {
+        try {
+          if (isUnixLike) {
+            // Unix-specific file deletion
+            await privilegeEscalation.runWithElevatedPrivileges('rm', [path]);
+          } else if (isWindows) {
+            // Windows-specific file deletion
+            await privilegeEscalation.runWithElevatedPrivileges('del', ['/f', path]);
+          } else {
+            // Fallback: direct deletion
+            await deleteFile(path, fileSystem: fileSystem);
+          }
+          
+          logger.info('File deleted successfully with privilege escalation: $path');
+        } catch (e) {
+          logger.severe('Failed to delete file with privilege escalation: $path - $e');
+          throw Exception('Failed to delete file with privilege escalation: $e');
+        }
+      } else {
+        throw Exception('Permission denied and no privilege escalation available for: $path');
+      }
+    } catch (e) {
+      logger.severe('Failed to delete file: $path - $e');
+      rethrow;
+    }
+  }
+
+  /// Cross-platform command execution with permission awareness
+  static Future<ProcessResult> executeCommandWithPermissionsCrossPlatform(
+    String command,
+    List<String> arguments, {
+    bool requireElevation = false,
+    PrivilegeEscalation? privilegeEscalation,
+    String? workingDirectory,
+    Map<String, String>? environment,
+    String? description,
+  }) async {
+    final cmdDesc = description ?? '$command ${arguments.join(' ')}';
+    logger.info('Executing command with permission awareness (cross-platform): $cmdDesc');
+    
+    try {
+      // First, try direct execution
+      if (!requireElevation) {
+        try {
+          final result = await Process.run(
+            command,
+            arguments,
+            workingDirectory: workingDirectory,
+            environment: environment,
+          );
+          
+          if (result.exitCode == 0) {
+            logger.info('Command executed successfully: $cmdDesc');
+            return result;
+          }
+          
+          // Check if it's a permission error
+          if (_isPermissionError(result)) {
+            logger.warning('Permission denied for command: $cmdDesc, trying with privilege escalation');
+            requireElevation = true;
+          } else {
+            logger.warning('Command failed with exit code ${result.exitCode}: $cmdDesc');
+            return result;
+          }
+        } catch (e) {
+          if (_isPermissionException(e)) {
+            logger.warning('Permission exception for command: $cmdDesc, trying with privilege escalation');
+            requireElevation = true;
+          } else {
+            rethrow;
+          }
+        }
+      }
+      
+      // Try with privilege escalation if needed
+      if (requireElevation && privilegeEscalation != null) {
+        try {
+          final result = await privilegeEscalation.runWithElevatedPrivileges(
+            command,
+            arguments,
+          );
+          
+          if (result.exitCode == 0) {
+            logger.info('Command executed successfully with privilege escalation: $cmdDesc');
+            return result;
+          } else {
+            logger.severe('Command failed with privilege escalation (exit code ${result.exitCode}): $cmdDesc');
+            throw Exception(
+              'Command failed with privilege escalation: $cmdDesc\n'
+              'Exit code: ${result.exitCode}\n'
+              'Stderr: ${result.stderr}',
+            );
+          }
+        } catch (e) {
+          logger.severe('Privilege escalation failed for command: $cmdDesc');
+          throw Exception(
+            'Failed to execute command with privilege escalation: $cmdDesc\n'
+            'Error: $e',
+          );
+        }
+      }
+      
+      throw Exception('Unexpected execution path for command: $cmdDesc');
+    } catch (e) {
+      logger.severe('Command execution failed: $cmdDesc - $e');
+      rethrow;
+    }
+  }
+
+  /// Cross-platform permission error detection
+  static bool _isPermissionErrorCrossPlatform(ProcessResult result) {
+    final stderr = result.stderr.toString().toLowerCase();
+    final stdout = result.stdout.toString().toLowerCase();
+    
+    // Common permission error messages across platforms
+    final permissionMessages = [
+      'permission denied',
+      'access denied',
+      'operation not permitted',
+      'insufficient privileges',
+      'access is denied',
+      'cannot access',
+    ];
+    
+    // Check stderr and stdout for permission-related messages
+    for (final message in permissionMessages) {
+      if (stderr.contains(message) || stdout.contains(message)) {
+        return true;
+      }
+    }
+    
+    // Platform-specific error codes
+    if (isUnixLike) {
+      return result.exitCode == 13; // Permission denied on Unix
+    } else if (isWindows) {
+      return result.exitCode == 5; // Access denied on Windows
+    }
+    
+    return false;
+  }
+
+  /// Cross-platform permission exception detection
+  static bool _isPermissionExceptionCrossPlatform(dynamic exception) {
+    if (exception is ProcessException) {
+      final message = exception.message.toLowerCase();
+      return message.contains('permission denied') ||
+             message.contains('access denied') ||
+             message.contains('operation not permitted');
+    }
+    if (exception is FileSystemException) {
+      if (isUnixLike) {
+        return exception.osError?.errorCode == 13; // Permission denied on Unix
+      } else if (isWindows) {
+        return exception.osError?.errorCode == 5; // Access denied on Windows
+      }
+    }
+    return false;
+  }
+}
+
+/// Result of a permission check operation
+class PermissionCheckResult {
+  final String path;
+  final bool exists;
+  final bool canRead;
+  final bool canWrite;
+  final bool canExecute;
+  final bool isDirectory;
+  final String? error;
+
+  PermissionCheckResult({
+    required this.path,
+    required this.exists,
+    required this.canRead,
+    required this.canWrite,
+    required this.canExecute,
+    required this.isDirectory,
+    this.error,
+  });
+
+  /// Check if all required permissions are available
+  bool hasPermissions({
+    bool requireRead = false,
+    bool requireWrite = false,
+    bool requireExecute = false,
+  }) {
+    if (requireRead && !canRead) return false;
+    if (requireWrite && !canWrite) return false;
+    if (requireExecute && !canExecute) return false;
+    return true;
+  }
+
+  @override
+  String toString() {
+    return 'PermissionCheckResult(path: $path, exists: $exists, '
+           'read: $canRead, write: $canWrite, execute: $canExecute, '
+           'isDirectory: $isDirectory${error != null ? ', error: $error' : ''})';
   }
 }

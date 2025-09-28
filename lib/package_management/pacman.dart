@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:configr/package_management/package_manger.dart';
 
 class PacmanPackageManager extends PackageManager with GlobalInstallCapability {
@@ -45,5 +46,15 @@ class PacmanPackageManager extends PackageManager with GlobalInstallCapability {
   Future<void> installGlobally(String packageName, {String? version}) async {
     // For pacman, global installation is the same as regular installation
     await install(packageName, version: version);
+  }
+
+  @override
+  Future<bool> isAvailable() async {
+    try {
+      final result = await Process.run('pacman', ['--version']);
+      return result.exitCode == 0;
+    } catch (e) {
+      return false;
+    }
   }
 }

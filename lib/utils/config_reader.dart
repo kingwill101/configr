@@ -174,7 +174,7 @@ Config parseConfig(String contents) {
   try {
     i3Config = i3config.I3ConfigParser(contents).parse();
   } catch (e, s) {
-    throw ActionFailedException('Failed to parse config file', e, s);
+    throw ActionFailedException('Failed to parse config file', cause: e, stackTrace: s);
   }
 
   Config config = Config();

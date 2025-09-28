@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:configr/package_management/package_manger.dart';
 
 class PamacPackageManager extends PackageManager
@@ -54,5 +55,15 @@ class PamacPackageManager extends PackageManager
   Future<void> lockVersion(String packageName, String version) async {
     // Lock package version by adding it to pacman's IgnorePkg
     await runCommand('pamac', ['hold', packageName]);
+  }
+
+  @override
+  Future<bool> isAvailable() async {
+    try {
+      final result = await runCommand('pamac', ['--version']);
+      return result.exitCode == 0;
+    } catch (e) {
+      return false;
+    }
   }
 }

@@ -1,6 +1,5 @@
 import 'package:test/test.dart';
 import 'package:configr/modules/resource/touch.dart';
-import 'package:configr/models/file_model.dart';
 import 'package:configr/models/action.dart';
 import '../../helpers/test_helper.dart';
 
@@ -15,10 +14,10 @@ void main() {
     // Arrange
     const filePath = 'test/newfile.txt';
 
-    final resourceModel =
-        ResourceModel(source: '', destination: filePath, actions: [
-      Action(type: 'touch', properties: {'create_if_missing': 'true'})
-    ]);
+    final resourceModel = helper.createTestResource(
+        source: '',
+        destination: filePath,
+        actions: [Action(type: 'touch', properties: {'create_if_missing': 'true'})]);
 
     final module = FileTouchModule(resourceModel, resourceModel.actions.first,
         fileSystem: helper.fileSystem);
@@ -35,7 +34,7 @@ void main() {
     const filePath = 'test/existing.txt';
     await helper.createTestFile(filePath, 'test content');
 
-    final resourceModel = ResourceModel(
+    final resourceModel = helper.createTestResource(
         source: '', destination: filePath, actions: [Action(type: 'touch')]);
 
     final module = FileTouchModule(resourceModel, resourceModel.actions.first,
@@ -59,10 +58,10 @@ void main() {
     // Arrange
     const filePath = 'test/nonexistent.txt';
 
-    final resourceModel =
-        ResourceModel(source: '', destination: filePath, actions: [
-      Action(type: 'touch', properties: {'create_if_missing': 'false'})
-    ]);
+    final resourceModel = helper.createTestResource(
+        source: '',
+        destination: filePath,
+        actions: [Action(type: 'touch', properties: {'create_if_missing': 'false'})]);
 
     final module = FileTouchModule(resourceModel, resourceModel.actions.first,
         fileSystem: helper.fileSystem);

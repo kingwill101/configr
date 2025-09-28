@@ -1,0 +1,18 @@
+# Minimal template test
+resources {
+  resource {
+    id "test-template"
+    source "app_config.template"
+    destination "generated/test_output.conf"
+    
+    actions {
+      template {
+        app_name "TestApp"
+        version "1.0.0"
+        debug true
+        port 3000
+        host "localhost"
+      }
+    }
+  }
+}

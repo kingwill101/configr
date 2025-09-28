@@ -66,7 +66,7 @@ class FileTouchModule extends ResourceModule {
         'error': e.toString(),
         'stackTrace': st.toString()
       });
-      throw ActionFailedException('Error touching file $destinationPath', e);
+      throw ActionFailedException('Error touching file $destinationPath', moduleId: action.id, cause: e);
     }
 
     emitEvent(CompletedEvent(moduleId: action.id, message: 'Touch operation completed'));

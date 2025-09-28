@@ -1,0 +1,345 @@
+
+INFO: 2025-09-28 06:30:05.779634: No valid lockfile found, will apply all resources
+
+SEVERE: 2025-09-28 06:30:05.819140: unable to setup: type 'String' is not a subtype of type 'List<dynamic>?' in type cast
+
+Error: type 'String' is not a subtype of type 'List<dynamic>?' in type cast
+
+StackTrace: #0      FilePackageModule._loadConfiguration (package:configr/modules/resource/package.dart:82:45)
+#1      new FilePackageModule (package:configr/modules/resource/package.dart:67:5)
+#2      getModuleForAction (package:configr/modules/resource/resource_module.dart:288:14)
+#3      ConfigManager.applyConfig (package:configr/config_manager.dart:208:27)
+<asynchronous suspension>
+#4      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#5      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 06:31:30.610457: StartResource(/tmp): package
+
+INFO: 2025-09-28 06:31:30.760345: Using package manager: pacman
+
+INFO: 2025-09-28 06:31:30.761419: Updating package cache...
+
+SEVERE: 2025-09-28 06:31:30.840470: Failed to process package ["git", "curl", "wget", "vim", "nano", "htop", "tree"]: StdinException: Error setting terminal echo mode, OS Error: Inappropriate ioctl for device, errno = 25
+
+INFO: 2025-09-28 06:31:30.841300: Package operation completed successfully. Packages processed: 0, Skipped: 0
+
+INFO: 2025-09-28 06:31:30.864176: EndResource(/tmp): package
+
+INFO: 2025-09-28 06:31:30.865775: StartResource(/tmp): package
+
+SEVERE: 2025-09-28 06:31:30.889665: Resource failed (package): Package manager apt is not available on this system
+
+StackTrace: #0      FilePackageModule._getPackageManager (package:configr/modules/resource/package.dart:154:9)
+<asynchronous suspension>
+#1      FilePackageModule.execute (package:configr/modules/resource/package.dart:122:23)
+<asynchronous suspension>
+#2      ResourceModule.call (package:configr/modules/resource/resource_module.dart:191:7)
+<asynchronous suspension>
+#3      ConfigManager.applyConfig (package:configr/config_manager.dart:213:17)
+<asynchronous suspension>
+#4      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#5      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 06:31:30.892314: Package rollback: This operation cannot be fully rolled back as original package states are not tracked
+
+INFO: 2025-09-28 06:31:30.899724: Package operation results: {}
+
+SEVERE: 2025-09-28 06:31:30.929501: unable to setup: ModuleException: Multiple configuration errors occurred:
+- Package manager apt is not available on this system
+Error Code: CONFIGURATION_FAILED
+Severity: critical
+Category: configuration
+Operation: configuration_validation
+
+
+Error: ModuleException: Multiple configuration errors occurred:
+- Package manager apt is not available on this system
+Error Code: CONFIGURATION_FAILED
+Severity: critical
+Category: configuration
+Operation: configuration_validation
+
+
+StackTrace: #0      ConfigManager.applyConfig (package:configr/config_manager.dart:252:9)
+<asynchronous suspension>
+#1      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#2      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 06:32:18.952325: Resource resource_1 unchanged, skipping
+
+INFO: 2025-09-28 06:32:19.002044: StartResource(/tmp): package
+
+SEVERE: 2025-09-28 06:32:19.071430: Resource failed (package): Package manager apt is not available on this system
+
+StackTrace: #0      FilePackageModule._getPackageManager (package:configr/modules/resource/package.dart:154:9)
+<asynchronous suspension>
+#1      FilePackageModule.execute (package:configr/modules/resource/package.dart:122:23)
+<asynchronous suspension>
+#2      ResourceModule.call (package:configr/modules/resource/resource_module.dart:191:7)
+<asynchronous suspension>
+#3      ConfigManager.applyConfig (package:configr/config_manager.dart:213:17)
+<asynchronous suspension>
+#4      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#5      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 06:32:19.076592: Package rollback: This operation cannot be fully rolled back as original package states are not tracked
+
+INFO: 2025-09-28 06:32:19.082563: Package operation results: {}
+
+SEVERE: 2025-09-28 06:32:19.129241: unable to setup: ModuleException: Multiple configuration errors occurred:
+- Package manager apt is not available on this system
+Error Code: CONFIGURATION_FAILED
+Severity: critical
+Category: configuration
+Operation: configuration_validation
+
+
+Error: ModuleException: Multiple configuration errors occurred:
+- Package manager apt is not available on this system
+Error Code: CONFIGURATION_FAILED
+Severity: critical
+Category: configuration
+Operation: configuration_validation
+
+
+StackTrace: #0      ConfigManager.applyConfig (package:configr/config_manager.dart:252:9)
+<asynchronous suspension>
+#1      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#2      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 06:32:21.946163: Config file has changed, applying all resources
+
+INFO: 2025-09-28 06:32:21.979219: StartResource(/tmp): package
+
+INFO: 2025-09-28 06:32:22.109764: Using package manager: pacman
+
+SEVERE: 2025-09-28 06:32:22.168104: Failed to process package ["vim"]: StdinException: Error setting terminal echo mode, OS Error: Inappropriate ioctl for device, errno = 25
+
+INFO: 2025-09-28 06:32:22.169797: Package operation completed successfully. Packages processed: 0, Skipped: 0
+
+INFO: 2025-09-28 06:32:22.191745: EndResource(/tmp): package
+
+INFO: 2025-09-28 06:33:57.173019: Config file has changed, applying all resources
+
+INFO: 2025-09-28 06:33:57.207787: StartResource(/tmp): package
+
+INFO: 2025-09-28 06:33:57.476418: Using package manager: npm
+
+SEVERE: 2025-09-28 06:33:57.539737: Failed to process package ["lodash"]: StdinException: Error setting terminal echo mode, OS Error: Inappropriate ioctl for device, errno = 25
+
+INFO: 2025-09-28 06:33:57.540809: Package operation completed successfully. Packages processed: 0, Skipped: 0
+
+INFO: 2025-09-28 06:33:57.561061: EndResource(/tmp): package
+
+INFO: 2025-09-28 06:36:18.666879: Config file has changed, applying all resources
+
+INFO: 2025-09-28 06:36:18.702904: StartResource(/tmp): package
+
+INFO: 2025-09-28 06:36:18.828724: Using package manager: pacman
+
+INFO: 2025-09-28 06:36:18.830126: Updating package cache...
+
+SEVERE: 2025-09-28 06:36:23.098251: Failed to process package ["git", "curl", "wget", "vim", "nano", "htop", "tree"]: Exception: Failed to run command with sudo: [sudo] password for kingwill101: Sorry, try again.
+[sudo] password for kingwill101: 
+sudo: no password was provided
+sudo: 1 incorrect password attempt
+
+
+INFO: 2025-09-28 06:36:23.099223: Package operation completed successfully. Packages processed: 0, Skipped: 0
+
+INFO: 2025-09-28 06:36:23.125765: EndResource(/tmp): package
+
+INFO: 2025-09-28 06:36:23.127454: StartResource(/tmp): package
+
+SEVERE: 2025-09-28 06:36:23.152008: Resource failed (package): Package manager apt is not available on this system
+
+StackTrace: #0      FilePackageModule._getPackageManager (package:configr/modules/resource/package.dart:154:9)
+<asynchronous suspension>
+#1      FilePackageModule.execute (package:configr/modules/resource/package.dart:122:23)
+<asynchronous suspension>
+#2      ResourceModule.call (package:configr/modules/resource/resource_module.dart:191:7)
+<asynchronous suspension>
+#3      ConfigManager.applyConfig (package:configr/config_manager.dart:213:17)
+<asynchronous suspension>
+#4      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#5      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 06:36:23.154522: Package rollback: This operation cannot be fully rolled back as original package states are not tracked
+
+INFO: 2025-09-28 06:36:23.157521: Package operation results: {}
+
+SEVERE: 2025-09-28 06:36:23.191692: unable to setup: ModuleException: Multiple configuration errors occurred:
+- Package manager apt is not available on this system
+Error Code: CONFIGURATION_FAILED
+Severity: critical
+Category: configuration
+Operation: configuration_validation
+
+
+Error: ModuleException: Multiple configuration errors occurred:
+- Package manager apt is not available on this system
+Error Code: CONFIGURATION_FAILED
+Severity: critical
+Category: configuration
+Operation: configuration_validation
+
+
+StackTrace: #0      ConfigManager.applyConfig (package:configr/config_manager.dart:252:9)
+<asynchronous suspension>
+#1      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#2      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 06:37:16.601277: Resource resource_1 unchanged, skipping
+
+INFO: 2025-09-28 06:37:16.656789: StartResource(/tmp): package
+
+SEVERE: 2025-09-28 06:37:16.739174: Resource failed (package): Package manager apt is not available on this system
+
+StackTrace: #0      FilePackageModule._getPackageManager (package:configr/modules/resource/package.dart:154:9)
+<asynchronous suspension>
+#1      FilePackageModule.execute (package:configr/modules/resource/package.dart:122:23)
+<asynchronous suspension>
+#2      ResourceModule.call (package:configr/modules/resource/resource_module.dart:191:7)
+<asynchronous suspension>
+#3      ConfigManager.applyConfig (package:configr/config_manager.dart:213:17)
+<asynchronous suspension>
+#4      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#5      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 06:37:16.744493: Package rollback: This operation cannot be fully rolled back as original package states are not tracked
+
+INFO: 2025-09-28 06:37:16.746691: Package operation results: {}
+
+SEVERE: 2025-09-28 06:37:16.797408: unable to setup: ModuleException: Multiple configuration errors occurred:
+- Package manager apt is not available on this system
+Error Code: CONFIGURATION_FAILED
+Severity: critical
+Category: configuration
+Operation: configuration_validation
+
+
+Error: ModuleException: Multiple configuration errors occurred:
+- Package manager apt is not available on this system
+Error Code: CONFIGURATION_FAILED
+Severity: critical
+Category: configuration
+Operation: configuration_validation
+
+
+StackTrace: #0      ConfigManager.applyConfig (package:configr/config_manager.dart:252:9)
+<asynchronous suspension>
+#1      ApplyCommand.execute (package:configr/commands/apply.dart:13:5)
+<asynchronous suspension>
+#2      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:123:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 06:42:17.461961: Config file has changed, applying all resources
+
+INFO: 2025-09-28 06:42:17.503649: StartResource(/tmp): package
+
+INFO: 2025-09-28 06:42:18.076578: Using package manager: npm
+
+SEVERE: 2025-09-28 06:42:18.292569: Failed to process package ["lodash"]: Exception: Passwordless sudo required but not available. Please configure passwordless sudo or run with appropriate privileges.
+
+INFO: 2025-09-28 06:42:18.299445: Package operation completed successfully. Packages processed: 0, Skipped: 0
+
+INFO: 2025-09-28 06:42:18.364465: EndResource(/tmp): package
+
+INFO: 2025-09-28 06:43:41.526393: Config file has changed, applying all resources
+
+INFO: 2025-09-28 06:43:41.568244: Package module properties: {packages: ["test-package"], operation: install, package_manager: npm, update_cache: false, skip_if_installed: true, status: null, timestamp: null, sha256: null}
+
+INFO: 2025-09-28 06:43:41.568827: Packages property type: String
+
+INFO: 2025-09-28 06:43:41.569400: Packages property value: ["test-package"]
+
+INFO: 2025-09-28 06:43:41.570854: StartResource(/tmp): package
+
+INFO: 2025-09-28 06:43:41.883151: Using package manager: npm
+
+SEVERE: 2025-09-28 06:43:41.950228: Failed to process package ["test-package"]: Exception: Passwordless sudo required but not available. Please configure passwordless sudo or run with appropriate privileges.
+
+INFO: 2025-09-28 06:43:41.951643: Package operation completed successfully. Packages processed: 0, Skipped: 0
+
+INFO: 2025-09-28 06:43:41.972757: EndResource(/tmp): package
+
+INFO: 2025-09-28 06:44:02.752754: Resource resource_1 unchanged, skipping
+
+INFO: 2025-09-28 06:44:34.680869: Resource resource_1 unchanged, skipping
+
+INFO: 2025-09-28 06:45:10.655820: Config file has changed, applying all resources
+
+INFO: 2025-09-28 06:45:10.689404: Package module properties: {packages: ["test-package", "another-package"], operation: install, package_manager: npm, update_cache: false, skip_if_installed: true, status: null, timestamp: null, sha256: null}
+
+INFO: 2025-09-28 06:45:10.690607: Packages property type: String
+
+INFO: 2025-09-28 06:45:10.692667: Packages property value: ["test-package", "another-package"]
+
+INFO: 2025-09-28 06:45:10.697729: StartResource(/tmp): package
+
+INFO: 2025-09-28 06:45:11.022311: Using package manager: npm
+
+SEVERE: 2025-09-28 06:45:11.103375: Failed to process package test-package: Exception: Passwordless sudo required but not available. Please configure passwordless sudo or run with appropriate privileges.
+
+SEVERE: 2025-09-28 06:45:11.177193: Failed to process package another-package: Exception: Passwordless sudo required but not available. Please configure passwordless sudo or run with appropriate privileges.
+
+INFO: 2025-09-28 06:45:11.178682: Package operation completed successfully. Packages processed: 0, Skipped: 0
+
+INFO: 2025-09-28 06:45:11.208708: EndResource(/tmp): package
+
+INFO: 2025-09-28 06:46:07.686177: Resource resource_1 unchanged, skipping
+
+INFO: 2025-09-28 06:48:59.103604: Config file has changed, applying all resources
+
+INFO: 2025-09-28 06:48:59.131249: StartResource(/tmp): package
+
+INFO: 2025-09-28 06:48:59.342973: Using package manager: npm
+
+SEVERE: 2025-09-28 06:48:59.393571: Failed to process package lodash: StdinException: Error setting terminal echo mode, OS Error: Inappropriate ioctl for device, errno = 25
+
+INFO: 2025-09-28 06:48:59.394520: Package operation completed successfully. Packages processed: 0, Skipped: 0
+
+INFO: 2025-09-28 06:48:59.410688: EndResource(/tmp): package
+
+INFO: 2025-09-28 06:49:58.134855: Resource resource_1 unchanged, skipping
+
+INFO: 2025-09-28 06:50:33.130864: Config file has changed, applying all resources
+
+INFO: 2025-09-28 06:50:33.182859: StartResource(/tmp): package
+
+INFO: 2025-09-28 06:50:33.502115: Using package manager: npm
+
+SEVERE: 2025-09-28 06:50:33.563900: Failed to process package lodash: StdinException: Error setting terminal echo mode, OS Error: Inappropriate ioctl for device, errno = 25
+
+SEVERE: 2025-09-28 06:50:33.614865: Failed to process package express: StdinException: Error setting terminal echo mode, OS Error: Inappropriate ioctl for device, errno = 25
+
+INFO: 2025-09-28 06:50:33.616235: Package operation completed successfully. Packages processed: 0, Skipped: 0
+
+INFO: 2025-09-28 06:50:33.639596: EndResource(/tmp): package
+
+INFO: 2025-09-28 06:51:30.434501: Resource resource_1 unchanged, skipping

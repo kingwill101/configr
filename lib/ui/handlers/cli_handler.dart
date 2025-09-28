@@ -37,6 +37,8 @@ class CLIHandler implements UIHandler {
   final Map<String, ModuleLineState> _modules = {};
 
   bool _isActive = false;
+  bool _allowInteractiveInput = false;
+  bool _passwordPromptActive = false;
   int _nextLineIndex = 0;
 
   // Timer to periodically update spinner frames
@@ -115,6 +117,11 @@ class CLIHandler implements UIHandler {
   final Map<String, bool> _visibleModules = {};
 
   void _redraw() {
+    // Don't redraw if we're allowing interactive input (like password prompts)
+    if (_allowInteractiveInput || _passwordPromptActive) {
+      return;
+    }
+
     terminal.startSyncUpdate();
 
     try {
@@ -129,9 +136,13 @@ class CLIHandler implements UIHandler {
 
         if (row >= viewportStart && row < viewportEnd) {
           final state = _modules[moduleId]!;
-          terminal
-            ..writeAt(row, 0, ' ' * terminal.windowWidth)
-            ..writeAt(row, 0, _buildLineText(state));
+          final lineText = _buildLineText(state);
+          // Only clear the line if we have content to write
+          if (lineText.isNotEmpty) {
+            terminal
+              ..writeAt(row, 0, ' ' * terminal.windowWidth)
+              ..writeAt(row, 0, lineText);
+          }
 
           _visibleModules[moduleId] = true;
         } else {
@@ -211,8 +222,9 @@ class CLIHandler implements UIHandler {
   void start() {
     _isActive = true;
 
+    // Don't clear the entire screen - just position cursor
     terminal
-      ..eraseClear()
+      ..writeAt(_initialCursorRow, 0, '')
       ..cursorHide();
 
     // _redrawTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
@@ -238,6 +250,32 @@ class CLIHandler implements UIHandler {
     _nextLineIndex = 0;
   }
 
+  /// Enable interactive input mode (disables screen redrawing)
+  void enableInteractiveMode() {
+    _allowInteractiveInput = true;
+    terminal.cursorShow();
+  }
+
+  /// Disable interactive input mode (re-enables screen redrawing)
+  void disableInteractiveMode() {
+    _allowInteractiveInput = false;
+    terminal.cursorHide();
+    _redraw();
+  }
+
+  /// Enable password prompt mode (disables screen redrawing)
+  void enablePasswordPromptMode() {
+    _passwordPromptActive = true;
+    terminal.cursorShow();
+  }
+
+  /// Disable password prompt mode (re-enables screen redrawing)
+  void disablePasswordPromptMode() {
+    _passwordPromptActive = false;
+    terminal.cursorHide();
+    _redraw();
+  }
+
   @override
   void handleEvent(ModuleEvent event) {
     if (!_isActive) return;
@@ -260,6 +298,21 @@ class CLIHandler implements UIHandler {
 
       case DownloadProgressEvent e:
         _handleProgress(e.moduleId, e.current, e.total, e.message);
+        
+      case ErrorEvent e:
+        _handleFailed(e.moduleId, e.message);
+        
+      case RetryEvent e:
+        _handleStatusUpdate(e.moduleId, StatusEvent.warning, 'Retrying ${e.operation} (${e.attempt}/${e.maxAttempts})');
+        
+      case PerformanceEvent e:
+        _handleStatusUpdate(e.moduleId, StatusEvent.debug, 'Performance: ${e.operation} took ${e.duration.inMilliseconds}ms');
+        
+      case SecurityEvent e:
+        _handleStatusUpdate(e.moduleId, StatusEvent.warning, 'Security: ${e.securityEventType} (${e.severity})');
+        
+      case PluginEvent e:
+        _handleStatusUpdate(e.moduleId, StatusEvent.info, 'Plugin: ${e.pluginName} ${e.action}');
     }
   }
 }

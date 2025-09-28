@@ -118,6 +118,10 @@ class TestHelper {
         fileSystem: fileSystem);
   }
 
+  Future<String> readFile(String relativePath) async {
+    return FileUtils.readFile(resolvePath(relativePath), fileSystem: fileSystem);
+  }
+
   Future<void> createDirectory(String relativePath) async {
     await FileUtils.createDirectory(resolvePath(relativePath),
         fileSystem: fileSystem, recursive: true);

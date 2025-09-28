@@ -1,0 +1,21 @@
+# Users template test
+resources {
+  resource {
+    id "users-test"
+    source "users_config.template"
+    destination "generated/users_output.json"
+    
+    actions {
+      template {
+        user1_id 1
+        user1_name "John Doe"
+        user1_email "john@example.com"
+        user1_role "administrator"
+        user2_id 2
+        user2_name "Jane Smith"
+        user2_email "jane@example.com"
+        user2_role "user"
+      }
+    }
+  }
+}

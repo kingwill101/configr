@@ -1,0 +1,84 @@
+# Template Module Example
+# This example demonstrates the new template module with various features
+
+resources {
+  # Basic template with variable substitution
+  resource {
+  id "basic-template"
+  source "app_config.template"
+  destination "generated/app_config.conf"
+  
+  actions {
+    template {
+      app_name "MyApplication"
+      version "1.0.0"
+      debug false
+      port 8080
+      host "localhost"
+    }
+  }
+}
+
+# Template with conditional logic
+resource {
+  id "conditional-template"
+  source "nginx_config.template"
+  destination "generated/nginx.conf"
+  
+  actions {
+    template {
+      domain "myapp.example.com"
+      ssl_enabled true
+      ssl_cert "/etc/ssl/certs/myapp.crt"
+      ssl_key "/etc/ssl/private/myapp.key"
+      backend_host "127.0.0.1"
+      backend_port 8080
+      enable_logging true
+    }
+  }
+}
+
+# Template with loop constructs
+resource {
+  id "users-template"
+  source "users_config.template"
+  destination "generated/users.json"
+  
+  actions {
+    template {
+      user1_id 1
+      user1_name "John Doe"
+      user1_email "john@example.com"
+      user1_role "administrator"
+      user2_id 2
+      user2_name "Jane Smith"
+      user2_email "jane@example.com"
+      user2_role "user"
+      user3_id 3
+      user3_name "Bob Wilson"
+      user3_email "bob@example.com"
+      user3_role "user"
+    }
+  }
+}
+
+# Template with backup functionality
+resource {
+  id "backup-template"
+  source "service_config.template"
+  destination "generated/service.conf"
+  
+  actions {
+    template {
+      service_name "myapp"
+      service_user "myapp"
+      service_group "myapp"
+      log_level "info"
+      max_connections 100
+      backup_original true
+      backup_suffix ".bak"
+      validate_template true
+    }
+  }
+}
+}

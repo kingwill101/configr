@@ -12,6 +12,7 @@ abstract class PackageManager {
   Future<void> uninstall(String packageName);
   Future<bool> isInstalled(String packageName);
   Future<String?> getInstalledVersion(String packageName);
+  Future<bool> isAvailable();
 
   Future<ProcessResult> runCommand(String command, List<String> args) {
     return privilegeEscalation.runWithElevatedPrivileges(command, args);

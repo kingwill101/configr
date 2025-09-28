@@ -1,0 +1,166 @@
+resources {
+  # Basic development tools installation
+  resource {
+    id "dev-tools"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["git", "curl", "wget", "vim", "nano", "htop", "tree"]
+        operation "install"
+        package_manager "auto"
+        update_cache true
+        skip_if_installed true
+      }
+    }
+  }
+
+  # Web server stack with specific versions
+  resource {
+    id "web-stack"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["nginx", "php-fpm", "mysql-server", "redis-server"]
+        package_versions {
+          nginx "1.18.0"
+          php-fpm "8.1"
+        }
+        operation "install"
+        package_manager "apt"
+        repositories ["ppa:ondrej/php"]
+        update_cache true
+        skip_if_installed false
+      }
+    }
+  }
+
+  # Docker environment setup
+  resource {
+    id "docker-setup"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["docker.io", "docker-compose", "docker-doc"]
+        operation "install"
+        package_manager "apt"
+        repositories ["https://download.docker.com/linux/ubuntu"]
+        update_cache true
+        skip_if_installed true
+      }
+    }
+  }
+
+  # Package upgrades
+  resource {
+    id "upgrade-packages"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["vim", "git", "curl"]
+        package_versions {
+          vim "2.1.0"
+          git "2.40.0"
+        }
+        operation "upgrade"
+        package_manager "auto"
+        skip_if_installed true
+      }
+    }
+  }
+
+  # System cleanup - remove unused packages
+  resource {
+    id "system-cleanup"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["old-package", "unused-tool", "deprecated-app"]
+        operation "uninstall"
+        package_manager "auto"
+        skip_if_installed true
+      }
+    }
+  }
+
+  # Fix corrupted packages by reinstalling
+  resource {
+    id "fix-packages"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["corrupted-package", "broken-tool"]
+        operation "reinstall"
+        package_manager "auto"
+        force true
+        update_cache true
+      }
+    }
+  }
+
+  # Multi-platform package installation
+  resource {
+    id "cross-platform-tools"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["jq", "yq", "kubectl", "helm"]
+        operation "install"
+        package_manager "auto"
+        update_cache true
+        skip_if_installed true
+      }
+    }
+  }
+
+  # Security tools installation
+  resource {
+    id "security-tools"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["fail2ban", "ufw", "clamav", "rkhunter"]
+        operation "install"
+        package_manager "auto"
+        update_cache true
+        skip_if_installed true
+      }
+    }
+  }
+
+  # Node.js development tools
+  resource {
+    id "node-tools"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["typescript", "eslint", "prettier", "nodemon"]
+        package_versions {
+          typescript "5.0.0"
+          eslint "8.0.0"
+        }
+        operation "install"
+        package_manager "npm"
+        update_cache false
+        skip_if_installed true
+      }
+    }
+  }
+}

@@ -19,6 +19,10 @@ import 'package:configr/modules/resource/rename.dart';
 import 'package:configr/modules/resource/symlink.dart';
 import 'package:configr/modules/resource/touch.dart';
 import 'package:configr/modules/resource/validate.dart';
+import 'package:configr/modules/resource/template.dart';
+import 'package:configr/modules/resource/sync.dart';
+import 'package:configr/modules/resource/package.dart';
+import 'package:configr/modules/resource/systemd.dart';
 import 'package:configr/utils/event_bus.dart';
 import 'package:configr/utils/fs.dart';
 import 'package:configr/utils/logging.dart';
@@ -277,6 +281,14 @@ ResourceModule getModuleForAction(
       return FileTouchModule(file, action, fileSystem: fs);
     case 'echo':
       return FileEchoModule(file, action, fileSystem: fs);
+    case 'template':
+      return FileTemplateModule(file, action, fileSystem: fs);
+    case 'sync':
+      return FileSyncModule(file, action, fileSystem: fs);
+    case 'package':
+      return FilePackageModule(file, action, fileSystem: fs);
+    case 'systemd':
+      return FileSystemdModule(file, action, fileSystem: fs);
     default:
       throw Exception('Unknown action type: ${action.type}');
   }

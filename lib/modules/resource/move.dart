@@ -53,8 +53,9 @@ class FileMoveModule extends ResourceModule {
         });
         throw ActionFailedException(
             'Failed to create destination directory $destinationDir',
-            e,
-            stackTrace);
+            moduleId: action.id,
+            cause: e,
+            stackTrace: stackTrace);
       }
     }
 

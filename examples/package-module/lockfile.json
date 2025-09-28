@@ -1,0 +1,56 @@
+{
+  "resources": [
+    {
+      "id": "resource_1",
+      "source": "/tmp",
+      "destination": "/tmp",
+      "type": "file",
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "package_1",
+          "type": "package",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-09-28T06:50:33.639101",
+          "sha256": "3e043eab4ba969e9196c81932e4513b10828e7e9dc237906c702285da795da77",
+          "actions": [],
+          "properties": {
+            "packages": "[\"lodash\", \"express\"]",
+            "operation": "install",
+            "package_manager": "npm",
+            "update_cache": false,
+            "skip_if_installed": true,
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "packageManager": "npm",
+            "packages": [
+              "lodash",
+              "express"
+            ],
+            "packageVersions": {},
+            "repositories": [],
+            "operation": "install",
+            "force": false,
+            "updateCache": false,
+            "skipIfInstalled": true,
+            "packageId": 1759060233186,
+            "operationResults": {},
+            "packagesProcessed": 0,
+            "packagesSkipped": 0,
+            "errorsEncountered": 2
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": ""
+    }
+  ],
+  "commands": [],
+  "packages": [],
+  "configChecksum": "99d6f4c34a5a35cf02d6da192a7388f756df2624b3de4571d6362a06149bc0b7"
+}

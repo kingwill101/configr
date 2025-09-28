@@ -1,0 +1,91 @@
+resources {
+  # Basic bidirectional sync example
+  resource {
+    id "basic-sync"
+    source "source_dir"
+    destination "destination_dir"
+    
+    actions {
+      sync {
+        sync_mode "bidirectional"
+        conflict_resolution "newer"
+        preserve_permissions true
+        preserve_timestamps true
+        delete_orphans false
+      }
+    }
+  }
+
+  # Document backup with filtering
+  resource {
+    id "document-backup"
+    source "documents"
+    destination "backup/documents"
+    
+    actions {
+      sync {
+        sync_mode "source_to_dest"
+        conflict_resolution "newer"
+        exclude_patterns ["*.tmp", "*.swp", ".DS_Store", "Thumbs.db"]
+        preserve_permissions true
+        preserve_timestamps true
+        delete_orphans false
+      }
+    }
+  }
+
+  # Project sync with selective files
+  resource {
+    id "project-sync"
+    source "project"
+    destination "backup/project"
+    
+    actions {
+      sync {
+        sync_mode "source_to_dest"
+        conflict_resolution "source"
+        include_patterns ["*.dart", "*.yaml", "*.md", "pubspec.*", "*.json"]
+        exclude_patterns ["*.log", "build/", ".dart_tool/", "node_modules/"]
+        preserve_permissions true
+        preserve_timestamps true
+        delete_orphans true
+      }
+    }
+  }
+
+  # Config sync with strict source preference
+  resource {
+    id "config-sync"
+    source "configs"
+    destination "backup/configs"
+    
+    actions {
+      sync {
+        sync_mode "source_to_dest"
+        conflict_resolution "source"
+        include_patterns ["*.conf", "*.cfg", "*.ini", "*.json"]
+        preserve_permissions true
+        preserve_timestamps true
+        delete_orphans true
+      }
+    }
+  }
+
+  # Media sync with size-based conflict resolution
+  resource {
+    id "media-sync"
+    source "media"
+    destination "backup/media"
+    
+    actions {
+      sync {
+        sync_mode "source_to_dest"
+        conflict_resolution "larger"
+        include_patterns ["*.jpg", "*.jpeg", "*.png", "*.gif", "*.mp4", "*.mov", "*.avi"]
+        preserve_permissions false
+        preserve_timestamps true
+        delete_orphans false
+      }
+    }
+  }
+}
