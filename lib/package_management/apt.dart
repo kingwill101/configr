@@ -1,7 +1,6 @@
 // lib/package_management/apt_package_manager.dart
-import 'dart:io';
-
 import 'package:configr/package_management/package_manger.dart';
+import 'package:configr/utils/logging.dart';
 
 class AptPackageManager extends PackageManager with GlobalInstallCapability {
   AptPackageManager(super.privilegeEscalation);
@@ -11,17 +10,19 @@ class AptPackageManager extends PackageManager with GlobalInstallCapability {
 
   @override
   Future<void> install(String packageName, {String? version}) async {
-    List<String> command = ['apt-get', 'install', '-y'];
+    List<String> command = ['install', '-y'];
     if (version != null) {
       command.add('$packageName=$version');
     } else {
       command.add(packageName);
     }
+    logger.info('Installing apt package: ${command.join(' ')}');
     await runCommand('apt-get', command);
   }
 
   @override
   Future<void> uninstall(String packageName) async {
+    logger.info('Uninstalling apt package: $packageName');
     await runCommand('apt-get', ['remove', '-y', packageName]);
   }
 
@@ -47,7 +48,7 @@ class AptPackageManager extends PackageManager with GlobalInstallCapability {
   @override
   Future<bool> isAvailable() async {
     try {
-      final result = await Process.run('apt-get', ['--version']);
+      final result = await runCommand('apt-get', ['--version']);
       return result.exitCode == 0;
     } catch (e) {
       return false;

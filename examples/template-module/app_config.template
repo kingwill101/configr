@@ -23,3 +23,4 @@ verbose_logging = true
 [production]
 performance_mode = true
 {% endif %}
+

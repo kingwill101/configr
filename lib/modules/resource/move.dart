@@ -1,7 +1,9 @@
 import 'package:configr/exceptions.dart';
+import 'package:configr/events/module_events.dart';
 import 'package:configr/modules/resource/resource_module.dart';
 import 'package:configr/utils/file_utils.dart';
 import 'package:configr/utils/logging.dart';
+import 'package:configr/utils/event_bus.dart';
 import 'package:path/path.dart';
 
 class FileMoveModule extends ResourceModule {
@@ -90,6 +92,8 @@ class FileMoveModule extends ResourceModule {
 
   @override
   Future<void> rollback() async {
+    emitEvent(StartedEvent(moduleId: action.id, message: 'Rolling back move operation'));
+    
     try {
       if (originalPath != null) {
         logger.info('Moving file back from $destination to $originalPath');
@@ -104,19 +108,21 @@ class FileMoveModule extends ResourceModule {
               recursive: true, fileSystem: fileSystem);
         }
       }
+
+      for (var module in childModules) {
+        await module.rollback();
+      }
+
       updateState({'rollbackCompleted': true});
+      emitEvent(CompletedEvent(moduleId: action.id, message: 'Move rollback completed'));
+      await saveState();
     } catch (e, st) {
       updateState({
         'rollbackError': e.toString(),
         'rollbackStackTrace': st.toString()
       });
+      emitEvent(FailedEvent(moduleId: action.id, message: 'Move rollback failed: ${e.toString()}'));
       rethrow;
     }
-
-    for (var module in childModules) {
-      await module.rollback();
-    }
-    
-    await saveState();
   }
 }

@@ -359,3 +359,49 @@ class ConfigurationFailedException extends ModuleException {
           isRetryable: false,
         );
 }
+
+class LockfileNotFoundException extends ModuleException {
+  LockfileNotFoundException(
+    String message, {
+    dynamic cause,
+    StackTrace? stackTrace,
+    String? moduleId,
+    String? correlationId,
+  }) : super(
+          message,
+          cause: cause,
+          stackTrace: stackTrace,
+          severity: ErrorSeverity.low,
+          category: ErrorCategory.configuration,
+          context: ErrorContext(
+            operation: 'rollback',
+            moduleId: moduleId,
+            correlationId: correlationId,
+          ),
+          errorCode: 'LOCKFILE_NOT_FOUND',
+          isRetryable: false,
+        );
+}
+
+class ConfigFileNotFoundException extends ModuleException {
+  ConfigFileNotFoundException(
+    String message, {
+    dynamic cause,
+    StackTrace? stackTrace,
+    String? moduleId,
+    String? correlationId,
+  }) : super(
+          message,
+          cause: cause,
+          stackTrace: stackTrace,
+          severity: ErrorSeverity.medium,
+          category: ErrorCategory.configuration,
+          context: ErrorContext(
+            operation: 'config_load',
+            moduleId: moduleId,
+            correlationId: correlationId,
+          ),
+          errorCode: 'CONFIG_FILE_NOT_FOUND',
+          isRetryable: false,
+        );
+}

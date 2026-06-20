@@ -23,6 +23,31 @@ mixin GlobalInstallCapability on PackageManager {
   Future<void> installGlobally(String packageName, {String? version});
 }
 
+mixin LocalInstallCapability on PackageManager {
+  Future<void> installLocally(String packageName, {String? version});
+}
+
 mixin VersionLockCapability on PackageManager {
   Future<void> lockVersion(String packageName, String version);
+}
+
+/// Capability for package managers that support separate global/local installation contexts
+mixin GlobalLocalContextCapability on PackageManager {
+  /// Check if a package is installed globally
+  Future<bool> isInstalledGlobally(String packageName);
+  
+  /// Check if a package is installed locally
+  Future<bool> isInstalledLocally(String packageName);
+  
+  /// Get the installed version of a package globally
+  Future<String?> getInstalledVersionGlobally(String packageName);
+  
+  /// Get the installed version of a package locally
+  Future<String?> getInstalledVersionLocally(String packageName);
+  
+  /// Uninstall a package globally
+  Future<void> uninstallGlobally(String packageName);
+  
+  /// Uninstall a package locally
+  Future<void> uninstallLocally(String packageName);
 }

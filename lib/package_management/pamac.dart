@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:configr/package_management/package_manger.dart';
+import 'package:configr/utils/logging.dart';
 
 class PamacPackageManager extends PackageManager
     with GlobalInstallCapability, VersionLockCapability {
@@ -16,11 +16,13 @@ class PamacPackageManager extends PackageManager
     } else {
       command.add(packageName);
     }
+    logger.info('Installing pamac package: ${command.join(' ')}');
     await runCommand('pamac', command);
   }
 
   @override
   Future<void> uninstall(String packageName) async {
+    logger.info('Uninstalling pamac package: $packageName');
     await runCommand('pamac', ['remove', '--no-confirm', packageName]);
   }
 
@@ -54,6 +56,7 @@ class PamacPackageManager extends PackageManager
   @override
   Future<void> lockVersion(String packageName, String version) async {
     // Lock package version by adding it to pacman's IgnorePkg
+    logger.info('Locking pamac package version: $packageName=$version');
     await runCommand('pamac', ['hold', packageName]);
   }
 

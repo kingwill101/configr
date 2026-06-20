@@ -1,0 +1,1 @@
+#!/bin/bashn# Configr Demo Setup Scriptnecho "Setting up demo environment..."necho "Creating directories..."nmkdir -p ~/.config/configrnecho "Setup complete!"

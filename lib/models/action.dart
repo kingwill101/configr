@@ -2,6 +2,7 @@ import 'package:configr/extensions/string.dart';
 
 import 'dart:convert';
 import 'package:crypto/crypto.dart' as crypto;
+import 'package:collection/collection.dart';
 
 class Action {
   final String id;
@@ -13,6 +14,7 @@ class Action {
   List<Action> actions;
   Map<String, dynamic> properties;
   Map<String, dynamic> state;
+  final Map<String, dynamic>? parent;
 
   Action({
     String? id,
@@ -24,6 +26,7 @@ class Action {
     List<Action>? actions,
     Map<String, dynamic>? properties,
     Map<String, dynamic>? state,
+    this.parent,
   })  : id = id ?? _generateId(type, properties ?? {}),
         actions = actions ?? const [],
         properties = properties ?? {},
@@ -53,7 +56,11 @@ class Action {
           backupPath == other.backupPath &&
           status == other.status &&
           timestamp == other.timestamp &&
-          sha256 == other.sha256;
+          sha256 == other.sha256 &&
+          const ListEquality().equals(actions, other.actions) &&
+          const DeepCollectionEquality().equals(properties, other.properties) &&
+          const DeepCollectionEquality().equals(state, other.state) &&
+          const DeepCollectionEquality().equals(parent, other.parent);
 
   @override
   int get hashCode => Object.hash(
@@ -63,6 +70,10 @@ class Action {
         status,
         timestamp,
         sha256,
+        const ListEquality().hash(actions),
+        const DeepCollectionEquality().hash(properties),
+        const DeepCollectionEquality().hash(state),
+        const DeepCollectionEquality().hash(parent),
       );
 
   Map<String, dynamic> toJson() => {
@@ -75,6 +86,7 @@ class Action {
         'actions': actions.map((a) => a.toJson()).toList(),
         'properties': properties,
         'state': state,
+        'parent': parent,
       };
 
   factory Action.fromJson(Map<String, dynamic> json) {
@@ -95,6 +107,7 @@ class Action {
         return MapEntry(key, value);
       }),
       state: Map<String, dynamic>.from(json['state'] ?? {}),
+      parent: json['parent'] != null ? Map<String, dynamic>.from(json['parent']) : null,
     );
   }
 

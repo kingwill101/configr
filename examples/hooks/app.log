@@ -1,0 +1,28 @@
+
+SEVERE: 2025-09-28 16:27:08.274231: Error executing after hook HookExecutionModule: ModuleException: Source path not found: https://httpbin.org/json
+Error Code: SOURCE_NOT_FOUND
+Severity: high
+Category: fileSystem
+Operation: file_access
+
+
+SEVERE: 2025-09-28 16:27:08.279271: Error executing before hook HookExecutionModule: Invalid argument(s): requires the backup_path property
+
+SEVERE: 2025-09-28 16:29:47.148755: Error executing after hook HookExecutionModule: ModuleException: Source path not found: test_downloaded_data.json
+Error Code: SOURCE_NOT_FOUND
+Severity: high
+Category: fileSystem
+Operation: file_access
+
+
+SEVERE: 2025-09-28 16:30:59.308575: Error: FormatException: Could not find an option named "--verbose".
+
+Error: FormatException: Could not find an option named "--verbose".
+
+StackTrace: #0      Parser.parse (package:args/src/parser.dart:74:11)
+#1      ArgParser.parse (package:args/src/arg_parser.dart:362:42)
+#2      ConfigrCommandRunner.run (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:46:34)
+#3      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:73:18)
+#4      _delayEntrypointInvocation.<anonymous closure> (dart:isolate-patch/isolate_patch.dart:312:33)
+#5      _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193:12)
+

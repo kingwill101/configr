@@ -40,7 +40,14 @@ dart compile exe bin/configr.dart -o configr
 
 ## Quick Start
 
-1. Create a config file:
+### 1. Initialize Configuration
+
+```bash
+# Initialize a new configuration repository
+dart bin/main.dart init
+```
+
+### 2. Create a config file:
 
 ```
 resources {
@@ -61,14 +68,106 @@ resources {
 }
 ```
 
-2. Apply your configuration:
+3. Add files to your configuration:
 
 ```bash
-configr apply
+# Add a single file
+dart bin/main.dart add --file ~/.bashrc
+
+# Add multiple files
+dart bin/main.dart add --file ~/.vimrc --file ~/.gitconfig
+```
+
+4. Apply your configuration:
+
+```bash
+# Apply with default settings
+dart bin/main.dart apply
+
+# Force apply all resources
+dart bin/main.dart apply --force
+```
+
+5. Check status and manage your configuration:
+
+```bash
+# View current status
+dart bin/main.dart status
+
+# See what would change
+dart bin/main.dart diff
+
+# Rollback changes if needed
+dart bin/main.dart rollback
+
+# Rollback specific number of operations
+dart bin/main.dart rollback --count 3
+```
+
+## CLI Usage
+
+### Available Commands
+
+```bash
+# Show all available commands
+dart bin/main.dart --help
+
+# Get help for a specific command
+dart bin/main.dart <command> --help
+```
+
+### Global Options
+
+- `-c, --config <path>`: Path to configuration file (defaults to "config")
+- `-h, --help`: Print usage information
+
+### Command Examples
+
+```bash
+# Initialize configuration
+dart bin/main.dart init
+
+# Add files to configuration
+dart bin/main.dart add --file ~/.bashrc --file ~/.vimrc
+
+# Apply configuration
+dart bin/main.dart apply --force
+
+# Check status
+dart bin/main.dart status
+
+# View differences
+dart bin/main.dart diff
+
+# Edit configuration
+dart bin/main.dart edit
+
+# Format configuration
+dart bin/main.dart format
+
+# Rollback changes
+dart bin/main.dart rollback --count 2
+
+# Rollback all changes
+dart bin/main.dart rollback
+```
+
+### Output Format
+
+The CLI provides clean, text-focused output:
+
+```
+[module-id] Starting: Operation description
+[module-id] Progress: 50% - Processing...
+[module-id] Completed: Operation completed successfully
 ```
 
 ## Documentation
 
+- [CLI Usage Guide](docs/cli-usage.md)
+- [Terminal UI System](docs/terminal-ui.md)
+- [Developer Guide](docs/developer/command-creation.md)
+- [Migration Guide](docs/migration-guide.md)
 - [Module Documentation](docs/modules/README.md)
 - [Getting Started Tutorial](docs/modules/tutorial.md)
 - [Configuration Format](docs/basics.md)
@@ -98,6 +197,43 @@ dart test test/config_management_test.dart
 
 MIT License - see [LICENSE](LICENSE) for details
 
+## Stack Drivers
+
+Stack drivers allow you to group multiple channels under a single channel name and apply middleware independently to each underlying channel:
+
+```dart
+// Configure channels for different purposes
+final fileDriver = DailyFileLogDriver('logs/app.log');
+final slackDriver = WebhookLogDriver(slackWebhook);
+
+// Create a stack that sends to both channels
+final stackDriver = StackLogDriver({
+  'file': fileDriver,
+  'slack': slackDriver,
+}, ignoreExceptions: true);
+
+// Add the stack as a channel
+logger.addDriver('notifications', stackDriver);
+
+// Add channel-specific middleware
+logger.addDriverMiddleware('file', FileFormatter());
+logger.addDriverMiddleware('slack', SlackFormatter());
+
+// Log through the stack
+logger.to(['notifications']).error('Critical system failure');
+```
+
+When using a stack driver:
+- Each channel in the stack processes logs independently
+- Channel-specific middleware applies to individual channels
+- Global middleware applies to all channels
+- Errors in one channel won't affect others if ignoreExceptions is true
+
+This makes stack drivers ideal for:
+- Sending critical logs to multiple destinations
+- Applying different formatting to each output channel
+- Creating backup logging channels
+- Setting up monitoring and notification systems
 ## Contributing
 
 1. Fork the repository

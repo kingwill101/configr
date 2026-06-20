@@ -1,0 +1,107 @@
+resources {
+  # Basic development tools installation
+  resource {
+    id "dev-tools"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["git", "curl", "wget", "vim", "nano", "htop", "tree", "build-essential"]
+        operation "install"
+        package_manager "apt"
+        update_cache true
+        skip_if_installed true
+      }
+    }
+  }
+
+  # Web server stack with specific versions
+  resource {
+    id "web-stack"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["nginx", "php-fpm", "mysql-server", "redis-server"]
+        package_versions {
+          nginx "1.18.0"
+          php-fpm "8.1"
+        }
+        operation "install"
+        package_manager "apt"
+        repositories ["ppa:ondrej/php"]
+        update_cache true
+        skip_if_installed false
+      }
+    }
+  }
+
+  # Docker environment setup
+  resource {
+    id "docker-setup"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      before {
+        echo {
+          message "Setting up Docker environment on Debian/Ubuntu"
+          level "info"
+          color true
+        }
+      }
+      
+      package {
+        packages ["docker.io", "docker-compose", "docker-doc"]
+        operation "install"
+        package_manager "apt"
+        repositories ["https://download.docker.com/linux/ubuntu"]
+        update_cache true
+        skip_if_installed true
+      }
+      
+      after {
+        execute {
+          command "systemctl start docker"
+          on_success true
+        }
+      }
+    }
+  }
+
+  # Security tools installation
+  resource {
+    id "security-tools"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["fail2ban", "ufw", "clamav", "rkhunter", "unattended-upgrades"]
+        operation "install"
+        package_manager "apt"
+        update_cache true
+        skip_if_installed true
+      }
+    }
+  }
+
+  # System utilities
+  resource {
+    id "system-utils"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["htop", "iotop", "ncdu", "rsync", "zip", "unzip", "jq", "yq"]
+        operation "install"
+        package_manager "apt"
+        update_cache true
+        skip_if_installed true
+      }
+    }
+  }
+}

@@ -1,0 +1,314 @@
+{
+  "resources": [
+    {
+      "id": "resource_1",
+      "source": "/tmp",
+      "destination": "/tmp",
+      "type": "file",
+      "status": "rolledback",
+      "template": null,
+      "actions": [
+        {
+          "id": "before_1",
+          "type": "before",
+          "backupPath": null,
+          "status": "rolledback",
+          "timestamp": "2025-09-29T14:57:52.948566",
+          "sha256": null,
+          "actions": [
+            {
+              "id": "echo_1",
+              "type": "echo",
+              "backupPath": null,
+              "status": null,
+              "timestamp": null,
+              "sha256": null,
+              "actions": [],
+              "properties": {
+                "message": "Installing packages locally for project dependencies",
+                "level": "info",
+                "color": true,
+                "status": null,
+                "timestamp": null,
+                "sha256": null
+              },
+              "state": {}
+            }
+          ],
+          "properties": {
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {}
+        },
+        {
+          "id": "copy_1",
+          "type": "copy",
+          "backupPath": null,
+          "status": "rolledback",
+          "timestamp": "2025-09-29T14:57:52.948620",
+          "sha256": null,
+          "actions": [],
+          "properties": {
+            "source": "../examples/package.json",
+            "destination": "package.json",
+            "create_directories": true,
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "hadToCreateDstDir": false,
+            "destinationFileExisted": false,
+            "originalContent": null,
+            "sourceHash": null,
+            "destinationDir": null,
+            "isDirectory": false,
+            "recursive": false,
+            "includePatterns": [],
+            "excludePatterns": [],
+            "conflictResolution": "skip",
+            "showProgress": true,
+            "copiedFiles": 0,
+            "totalFiles": 0,
+            "skippedFiles": 0,
+            "overwrittenFiles": 0,
+            "rollbackCompleted": true
+          }
+        },
+        {
+          "id": "package_1",
+          "type": "package",
+          "backupPath": null,
+          "status": "rolledback",
+          "timestamp": "2025-09-29T14:57:52.948635",
+          "sha256": null,
+          "actions": [
+            {
+              "id": "package_versions_1",
+              "type": "package_versions",
+              "backupPath": null,
+              "status": null,
+              "timestamp": null,
+              "sha256": null,
+              "actions": [],
+              "properties": {
+                "express": "4.18.0",
+                "cors": "2.8.5",
+                "status": null,
+                "timestamp": null,
+                "sha256": null
+              },
+              "state": {}
+            }
+          ],
+          "properties": {
+            "packages": "[express, cors, helmet, morgan, dotenv]",
+            "operation": "install",
+            "package_manager": "npm",
+            "install_globally": false,
+            "update_cache": false,
+            "skip_if_installed": true,
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {}
+        },
+        {
+          "id": "after_1",
+          "type": "after",
+          "backupPath": null,
+          "status": "rolledback",
+          "timestamp": "2025-09-29T14:57:52.948642",
+          "sha256": null,
+          "actions": [
+            {
+              "id": "execute_1",
+              "type": "execute",
+              "backupPath": null,
+              "status": null,
+              "timestamp": null,
+              "sha256": null,
+              "actions": [],
+              "properties": {
+                "command": "npm list",
+                "on_success": true,
+                "status": null,
+                "timestamp": null,
+                "sha256": null
+              },
+              "state": {}
+            }
+          ],
+          "properties": {
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {}
+        }
+      ],
+      "commands": [],
+      "sha256": ""
+    },
+    {
+      "id": "resource_2",
+      "source": "/tmp",
+      "destination": "/tmp",
+      "type": "file",
+      "status": "rolledback",
+      "template": null,
+      "actions": [
+        {
+          "id": "package_2",
+          "type": "package",
+          "backupPath": null,
+          "status": "rolledback",
+          "timestamp": "2025-09-29T14:57:52.830159",
+          "sha256": null,
+          "actions": [
+            {
+              "id": "package_versions_2",
+              "type": "package_versions",
+              "backupPath": null,
+              "status": null,
+              "timestamp": null,
+              "sha256": null,
+              "actions": [],
+              "properties": {
+                "typescript": "5.0.0",
+                "eslint": "8.0.0",
+                "status": null,
+                "timestamp": null,
+                "sha256": null
+              },
+              "state": {}
+            }
+          ],
+          "properties": {
+            "packages": "[typescript, eslint, prettier, nodemon, ts-node]",
+            "operation": "install",
+            "package_manager": "npm",
+            "install_globally": false,
+            "update_cache": false,
+            "skip_if_installed": true,
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "packageManager": "npm",
+            "packages": [
+              "typescript",
+              "eslint",
+              "prettier",
+              "nodemon",
+              "ts-node"
+            ],
+            "packageVersions": {},
+            "repositories": [],
+            "operation": "install",
+            "force": false,
+            "updateCache": false,
+            "skipIfInstalled": true,
+            "installGlobally": false,
+            "packageId": 1759175802196,
+            "operationResults": {
+              "typescript": "installed:5.9.2",
+              "eslint": "installed:9.36.0",
+              "prettier": "installed:3.6.2",
+              "nodemon": "installed:3.1.10",
+              "ts-node": "installed:10.9.2"
+            },
+            "packagesProcessed": 5,
+            "packagesSkipped": 0,
+            "errorsEncountered": 0
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": ""
+    },
+    {
+      "id": "resource_3",
+      "source": "/tmp",
+      "destination": "/tmp",
+      "type": "file",
+      "status": "rolledback",
+      "template": null,
+      "actions": [
+        {
+          "id": "package_3",
+          "type": "package",
+          "backupPath": null,
+          "status": "rolledback",
+          "timestamp": "2025-09-29T14:57:48.112394",
+          "sha256": null,
+          "actions": [
+            {
+              "id": "package_versions_3",
+              "type": "package_versions",
+              "backupPath": null,
+              "status": null,
+              "timestamp": null,
+              "sha256": null,
+              "actions": [],
+              "properties": {
+                "jest": "29.0.0",
+                "mocha": "10.0.0",
+                "status": null,
+                "timestamp": null,
+                "sha256": null
+              },
+              "state": {}
+            }
+          ],
+          "properties": {
+            "packages": "[jest, mocha, chai, supertest]",
+            "operation": "install",
+            "package_manager": "npm",
+            "install_globally": false,
+            "update_cache": false,
+            "skip_if_installed": true,
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "packageManager": "npm",
+            "packages": [
+              "jest",
+              "mocha",
+              "chai",
+              "supertest"
+            ],
+            "packageVersions": {},
+            "repositories": [],
+            "operation": "install",
+            "force": false,
+            "updateCache": false,
+            "skipIfInstalled": true,
+            "installGlobally": false,
+            "packageId": 1759175813280,
+            "operationResults": {
+              "jest": "installed:30.2.0",
+              "mocha": "installed:11.7.2",
+              "chai": "installed:6.2.0",
+              "supertest": "installed:7.1.4"
+            },
+            "packagesProcessed": 4,
+            "packagesSkipped": 0,
+            "errorsEncountered": 0
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": ""
+    }
+  ],
+  "commands": [],
+  "packages": [],
+  "configChecksum": "6444ee0d0b521d33f8cd82cc3f0a81175f97caa6563cbeb362b47cfe27987bb9"
+}

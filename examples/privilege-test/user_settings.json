@@ -1,0 +1,24 @@
+{
+  "theme": "dark",
+  "language": "en",
+  "notifications": {
+    "email": true,
+    "push": false,
+    "desktop": true
+  },
+  "privacy": {
+    "analytics": false,
+    "crash_reports": true,
+    "telemetry": false
+  },
+  "ui": {
+    "sidebar_collapsed": false,
+    "auto_save": true,
+    "show_tooltips": true
+  },
+  "advanced": {
+    "debug_mode": false,
+    "experimental_features": false,
+    "custom_plugins": []
+  }
+}

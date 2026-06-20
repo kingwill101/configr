@@ -1,14 +1,19 @@
 import 'dart:io';
 
-import 'package:configr/commands/command.dart';
+import 'package:configr/commands/base_command.dart';
 import 'package:configr/utils/fs.dart';
 import 'package:path/path.dart';
 
-class InitCommand extends Command {
-  InitCommand(super.configManager);
+class InitCommand extends BaseCommand {
 
   @override
-  Future<void> execute() async {
+  String get name => 'init';
+  
+  @override
+  String get description => 'Initialize a new configuration repository';
+
+  @override
+  void executeCommand() async {
     final possibleConfigPaths = [
       join(configManager.localPath!, 'config.json'),
       join(configManager.localPath!, 'config'),

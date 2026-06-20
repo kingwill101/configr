@@ -1,0 +1,126 @@
+resources {
+  # Global CLI tools
+  resource {
+    id "global-cli-tools"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      before {
+        echo {
+          message "Installing global CLI tools"
+          level "info"
+          color true
+        }
+      }
+      
+      package {
+        packages ["typescript", "eslint", "prettier", "nodemon"]
+        package_versions {
+          typescript "5.0.0"
+          eslint "8.0.0"
+        }
+        operation "install"
+        package_manager "npm"
+        install_globally true
+        update_cache false
+        skip_if_installed true
+      }
+      
+      after {
+        execute {
+          command "npm list -g --depth=0"
+          on_success true
+        }
+      }
+    }
+  }
+
+  # Local project dependencies
+  resource {
+    id "local-project-deps"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      before {
+        echo {
+          message "Installing local project dependencies"
+          level "info"
+          color true
+        }
+      }
+      
+      # Create package.json for local installation
+      copy {
+        source "../examples/package.json"
+        destination "package.json"
+        create_directories true
+      }
+      
+      package {
+        packages ["express", "cors", "helmet", "morgan", "dotenv"]
+        package_versions {
+          express "4.18.0"
+          cors "2.8.5"
+        }
+        operation "install"
+        package_manager "npm"
+        install_globally false
+        update_cache false
+        skip_if_installed true
+      }
+      
+      after {
+        execute {
+          command "npm list"
+          on_success true
+        }
+      }
+    }
+  }
+
+  # Local development dependencies
+  resource {
+    id "local-dev-deps"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["jest", "mocha", "chai", "supertest"]
+        package_versions {
+          jest "29.0.0"
+          mocha "10.0.0"
+        }
+        operation "install"
+        package_manager "npm"
+        install_globally false
+        update_cache false
+        skip_if_installed true
+      }
+    }
+  }
+
+  # Global web development tools
+  resource {
+    id "global-web-tools"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["webpack", "vite", "rollup"]
+        package_versions {
+          webpack "5.0.0"
+          vite "4.0.0"
+        }
+        operation "install"
+        package_manager "npm"
+        install_globally true
+        update_cache false
+        skip_if_installed true
+      }
+    }
+  }
+}

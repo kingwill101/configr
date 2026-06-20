@@ -1,0 +1,86 @@
+
+INFO: 2025-09-28 11:05:10.693338: Resource resource_1 unchanged, skipping
+
+INFO: 2025-09-28 11:05:36.484195: Resource resource_1 unchanged, skipping
+
+INFO: 2025-09-28 11:06:03.663152: Config file has changed, applying all resources
+
+INFO: 2025-09-28 11:06:03.690172: StartResource(/dev/null): systemd
+
+INFO: 2025-09-28 11:06:03.700695: Validating destination permissions: /home/kingwill101/.config/systemd/user/test-user-service.service
+
+INFO: 2025-09-28 11:06:03.704065: Checking permissions for: /home/kingwill101/.config/systemd/user
+
+INFO: 2025-09-28 11:06:03.707275: Permission check result for /home/kingwill101/.config/systemd/user: read=false, write=true, execute=false
+
+INFO: 2025-09-28 11:06:03.708182: Checking permissions for: /home/kingwill101/.config/systemd/user/test-user-service.service
+
+INFO: 2025-09-28 11:06:03.709480: Destination validation passed: /home/kingwill101/.config/systemd/user/test-user-service.service
+
+INFO: 2025-09-28 11:06:03.710510: Executing modules
+
+INFO: 2025-09-28 11:06:03.711207: Modules executed
+
+INFO: 2025-09-28 11:06:03.711763: Generating service configuration: test-user-service
+
+INFO: 2025-09-28 11:06:03.712949: Checking permissions for: /home/kingwill101/.config/systemd/user/test-user-service.service
+
+INFO: 2025-09-28 11:06:03.722924: Writing service file to: /home/kingwill101/.config/systemd/user/test-user-service.service
+
+INFO: 2025-09-28 11:06:03.725510: Writing file with permission awareness: /home/kingwill101/.config/systemd/user/test-user-service.service
+
+INFO: 2025-09-28 11:06:03.743715: File written successfully: /home/kingwill101/.config/systemd/user/test-user-service.service
+
+INFO: 2025-09-28 11:06:03.744397: Service file written successfully to /home/kingwill101/.config/systemd/user/test-user-service.service
+
+INFO: 2025-09-28 11:06:03.746888: Executing command with permission awareness: Validate systemd unit file
+
+INFO: 2025-09-28 11:06:03.914225: Command executed successfully: Validate systemd unit file
+
+INFO: 2025-09-28 11:06:03.914859: Service file validation passed
+
+INFO: 2025-09-28 11:06:03.915156: Service configuration generated successfully for test-user-service
+
+INFO: 2025-09-28 11:06:03.929590: EndResource(/dev/null): systemd
+
+INFO: 2025-09-28 11:12:06.712352: Resource resource_1 unchanged, skipping
+
+INFO: 2025-09-28 11:12:45.643213: Config file has changed, applying all resources
+
+INFO: 2025-09-28 11:12:45.669623: StartResource(/dev/null): systemd
+
+INFO: 2025-09-28 11:12:45.678078: Validating destination permissions: /home/kingwill101/.config/systemd/user/test-user-service.service
+
+INFO: 2025-09-28 11:12:45.681742: Checking permissions (cross-platform) for: /home/kingwill101/.config/systemd/user
+
+INFO: 2025-09-28 11:12:45.684618: Permission check result for /home/kingwill101/.config/systemd/user: read=false, write=true, execute=false
+
+INFO: 2025-09-28 11:12:45.685421: Checking permissions (cross-platform) for: /home/kingwill101/.config/systemd/user/test-user-service.service
+
+INFO: 2025-09-28 11:12:45.686106: Destination validation passed: /home/kingwill101/.config/systemd/user/test-user-service.service
+
+INFO: 2025-09-28 11:12:45.687116: Executing modules
+
+INFO: 2025-09-28 11:12:45.687946: Modules executed
+
+INFO: 2025-09-28 11:12:45.688560: Generating service configuration: test-user-service
+
+INFO: 2025-09-28 11:12:45.690089: Checking permissions (cross-platform) for: /home/kingwill101/.config/systemd/user/test-user-service.service
+
+INFO: 2025-09-28 11:12:45.701222: Writing service file to: /home/kingwill101/.config/systemd/user/test-user-service.service
+
+INFO: 2025-09-28 11:12:45.703639: Writing file with permission awareness (cross-platform): /home/kingwill101/.config/systemd/user/test-user-service.service
+
+INFO: 2025-09-28 11:12:45.720517: File written successfully: /home/kingwill101/.config/systemd/user/test-user-service.service
+
+INFO: 2025-09-28 11:12:45.720868: Service file written successfully to /home/kingwill101/.config/systemd/user/test-user-service.service
+
+INFO: 2025-09-28 11:12:45.723645: Executing command with permission awareness (cross-platform): Validate systemd unit file
+
+INFO: 2025-09-28 11:12:45.876649: Command executed successfully: Validate systemd unit file
+
+INFO: 2025-09-28 11:12:45.877344: Service file validation passed
+
+INFO: 2025-09-28 11:12:45.877632: Service configuration generated successfully for test-user-service
+
+INFO: 2025-09-28 11:12:45.892330: EndResource(/dev/null): systemd

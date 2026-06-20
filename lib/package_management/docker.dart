@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:configr/package_management/package_manger.dart';
 import 'package:configr/utils/logging.dart';
 
@@ -53,7 +52,7 @@ class DockerPackageManager extends PackageManager with GlobalInstallCapability {
   @override
   Future<bool> isAvailable() async {
     try {
-      final result = await Process.run('docker', ['--version']);
+      final result = await runCommand('docker', ['--version']);
       return result.exitCode == 0;
     } catch (e) {
       return false;

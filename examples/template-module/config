@@ -62,13 +62,22 @@ resource {
   }
 }
 
-# Template with backup functionality
+# Template with backup functionality and hooks
 resource {
   id "backup-template"
   source "service_config.template"
   destination "generated/service.conf"
   
   actions {
+    # Before hook - log the template processing
+    before {
+      echo {
+        message "Processing service configuration template"
+        level "info"
+        color true
+      }
+    }
+    
     template {
       service_name "myapp"
       service_user "myapp"
@@ -78,6 +87,15 @@ resource {
       backup_original true
       backup_suffix ".bak"
       validate_template true
+    }
+    
+    # After hook - validate the generated configuration
+    after {
+      echo {
+        message "Service configuration template processed successfully"
+        level "success"
+        color true
+      }
     }
   }
 }

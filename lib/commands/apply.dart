@@ -1,13 +1,20 @@
 
-import 'package:configr/commands/command.dart';
+import 'package:configr/commands/base_command.dart';
 
-class ApplyCommand extends Command {
-  final bool force;
-
-  ApplyCommand(super.configManager, {this.force = false});
+class ApplyCommand extends BaseCommand {
+  ApplyCommand() {
+    argParser.addFlag('force', abbr: 'f', help: 'Force apply all resources regardless of state');
+  }
 
   @override
-  Future<void> execute() async {
+  String get name => 'apply';
+  
+  @override
+  String get description => 'Apply configuration changes';
+
+  @override
+  void executeCommand() async {
+    final force = argResults?['force'] as bool? ?? false;
     await configManager.load();
     configManager.options = configManager.options.copyWith(force: force);
     await configManager.applyConfig();

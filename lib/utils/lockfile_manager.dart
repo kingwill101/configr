@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:configr/models/lockfile_data.dart';
+import 'package:configr/exceptions.dart';
 import 'package:file/file.dart';
 
 class LockfileManager {
@@ -21,7 +22,7 @@ class LockfileManager {
   Future<LockfileData> readLockfile() async {
     final lockfile = fileSystem.file(lockfilePath);
     if (!await lockfile.exists()) {
-      throw Exception('Lockfile not found');
+      throw LockfileNotFoundException('No rollback information available. The lockfile at $lockfilePath does not exist. This usually means no configuration has been applied yet.');
     }
 
     final content = await lockfile.readAsString();

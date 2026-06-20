@@ -1,9 +1,6 @@
 resources {
-  # Basic development tools installation
   resource {
     id "dev-tools"
-    source "/tmp"
-    destination "/tmp"
     
     actions {
       package {
@@ -38,13 +35,29 @@ resources {
     }
   }
 
-  # Docker environment setup
+  # Docker environment setup with hooks
   resource {
     id "docker-setup"
     source "/tmp"
     destination "/tmp"
     
     actions {
+      # Before hook - check system requirements
+      before {
+        echo {
+          message "Setting up Docker environment"
+          level "info"
+          color true
+        }
+      }
+      
+      before {
+        execute {
+          command "df -h /"
+          on_success true
+        }
+      }
+      
       package {
         packages ["docker.io", "docker-compose", "docker-doc"]
         operation "install"
@@ -52,6 +65,28 @@ resources {
         repositories ["https://download.docker.com/linux/ubuntu"]
         update_cache true
         skip_if_installed true
+      }
+      
+      # After hook - verify installation and start service
+      after {
+        echo {
+          message "Docker installation completed, starting service"
+          level "info"
+        }
+      }
+      
+      after {
+        execute {
+          command "systemctl start docker"
+          on_success true
+        }
+      }
+      
+      after {
+        execute {
+          command "docker --version"
+          on_success true
+        }
       }
     }
   }

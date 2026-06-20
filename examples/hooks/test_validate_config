@@ -1,0 +1,22 @@
+resource {
+  id "test-validate"
+  source "https://httpbin.org/json"
+  destination "test_downloaded_data.json"
+  
+  actions {
+    # Main action - download the file
+    download {
+      timeout 30
+      retry_count 3
+    }
+    
+    # After hook - validate the downloaded file
+    after {
+      validate {
+        file_path "test_downloaded_data.json"
+        schema_type "json"
+        required_fields ["slideshow", "slides"]
+      }
+    }
+  }
+}

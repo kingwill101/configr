@@ -39,7 +39,7 @@ extension SectionExtension on i3config.Section {
 }
 
 Action readAction(i3config.Section actionSection,
-    {Map<String, dynamic>? propertyOverrides, String? resourceId, int? index}) {
+    {Map<String, dynamic>? propertyOverrides, String? resourceId, int? index, Map<String, dynamic>? parentProperties}) {
   final actions = actionSection.children.whereType<i3config.Section>();
 
   final properties = {
@@ -57,11 +57,13 @@ Action readAction(i3config.Section actionSection,
       timestamp: properties['timestamp'],
       sha256: properties['sha256'],
       properties: {...properties, ...propertyOverrides ?? {}},
+      parent: parentProperties,
       actions: actions
           .map((a) => readAction(a,
               propertyOverrides: propertyOverrides,
               resourceId: resourceId,
-              index: index))
+              index: index,
+              parentProperties: parentProperties))
           .toList());
 }
 
@@ -94,13 +96,6 @@ ResourceModel readresourceModel(i3config.Section resourceSection,
 
   final resourceId =
       id ?? actionsSection?.modId ?? registry.generateId('resource');
-
-  if (actionsSection != null) {
-    actions = actionsSection.children
-        .whereType<i3config.Section>()
-        .mapIndexed((i, e) => readAction(e, resourceId: resourceId, index: i))
-        .toList();
-  }
 
   final subCommandsSection = (resourceSection)
       .children
@@ -139,6 +134,14 @@ ResourceModel readresourceModel(i3config.Section resourceSection,
     ...resourceSection.properties,
   };
 
+  // Re-read actions with parent properties now that properties is defined
+  if (actionsSection != null) {
+    actions = actionsSection.children
+        .whereType<i3config.Section>()
+        .mapIndexed((i, e) => readAction(e, resourceId: resourceId, index: i, parentProperties: properties))
+        .toList();
+  }
+
   return ResourceModel(
       id: resourceSection.modId,
       source: properties['source'] ?? '',
@@ -146,6 +149,7 @@ ResourceModel readresourceModel(i3config.Section resourceSection,
       actions: actions,
       commands: subCommands,
       template: template,
+      properties: properties,
       type:
           (properties.containsKey('type') && properties['type'] == 'directory')
               ? ResourceType.directory
@@ -245,7 +249,8 @@ Config parseConfig(String contents) {
                       ...element.properties.except(["type"]),
                     },
                     resourceId: resourceId,
-                    index: index))
+                    index: index,
+                    parentProperties: element.properties.except(["type"])))
                 .map((a) => a.toJson())
                 .toList();
 

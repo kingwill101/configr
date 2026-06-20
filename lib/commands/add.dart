@@ -1,34 +1,48 @@
 import 'dart:io';
 
-import 'package:configr/commands/command.dart';
+import 'package:configr/commands/base_command.dart';
 import 'package:configr/models/file_model.dart';
 import 'package:configr/models/action.dart';
 import 'package:configr/utils/logging.dart';
 import 'package:path/path.dart' as p;
 
-class AddCommand extends Command {
-  final String file;
-
-  AddCommand(super.configManager, this.file);
+class AddCommand extends BaseCommand {
+  AddCommand() {
+    argParser.addMultiOption('file', help: 'File to add to configuration');
+  }
 
   @override
-  Future<void> execute() async {
-    await configManager.load();
-    final basename = p.basename(file);
-    final newFile = ResourceModel(
-        id: 'added_${basename}_${DateTime.now().millisecondsSinceEpoch}',
-        source: basename,
-        destination: r'\{\{ config_path \}\}/' + basename,
-        actions: [Action(type: 'copy')]);
+  String get name => 'add';
+  
+  @override
+  String get description => 'Add a file to the configuration';
 
-    for (final existing in configManager.config.resources) {
-      if (existing == newFile) {
-        logger.warning('File $file already exists in configuration.');
-        exit(0);
-      }
+  @override
+  void executeCommand() async {
+    final files = argResults?['file'] as List<String>?;
+    if (files == null || files.isEmpty) {
+      logger.severe('Error: Please specify a file to add.');
+      exit(1);
     }
-    configManager.config.resources.add(newFile);
-    configManager.saveConfig();
-    logger.info('Added $file to configuration.');
+    
+    for (final file in files) {
+      await configManager.load();
+      final basename = p.basename(file);
+      final newFile = ResourceModel(
+          id: 'added_${basename}_${DateTime.now().millisecondsSinceEpoch}',
+          source: basename,
+          destination: r'\{\{ config_path \}\}/' + basename,
+          actions: [Action(type: 'copy')]);
+
+      for (final existing in configManager.config.resources) {
+        if (existing == newFile) {
+          logger.warning('File $file already exists in configuration.');
+          exit(0);
+        }
+      }
+      configManager.config.resources.add(newFile);
+      configManager.saveConfig();
+      logger.info('Added $file to configuration.');
+    }
   }
 }

@@ -1,10 +1,15 @@
-import 'package:configr/commands/command.dart';
+import 'package:configr/commands/base_command.dart';
 
-class FormatCommand extends Command {
-  FormatCommand(super.configManager);
+class FormatCommand extends BaseCommand {
 
   @override
-  Future<void> execute() async {
+  String get name => 'format';
+  
+  @override
+  String get description => 'Format configuration file';
+
+  @override
+  void executeCommand() async {
     await configManager.load();
     configManager.saveConfig();
     print('formatted successfully');

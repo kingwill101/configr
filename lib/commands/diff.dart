@@ -1,10 +1,15 @@
-import 'package:configr/commands/command.dart';
+import 'package:configr/commands/base_command.dart';
 
-class DiffCommand extends Command {
-  DiffCommand(super.configManager);
+class DiffCommand extends BaseCommand {
 
   @override
-  Future<void> execute() async {
+  String get name => 'diff';
+  
+  @override
+  String get description => 'Show configuration differences';
+
+  @override
+  void executeCommand() async {
     print("diffing config ${configManager.localPath}");
   }
 }

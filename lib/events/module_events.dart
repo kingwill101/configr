@@ -21,6 +21,14 @@ enum ModuleEventType {
   plugin,
   network,
   fileSystem,
+  resourceStarted,
+  resourceCompleted,
+  resourceRollbackStarted,
+  resourceRollbackCompleted,
+  userInputRequired,
+  userInputReceived,
+  waitForUser,
+  resumeProcessing,
 }
 
 /// Sealed base class (only extendable in this library).
@@ -392,4 +400,251 @@ class PluginEvent extends ModuleEvent {
     data['details'] = details;
     return data;
   }
+}
+
+/// Resource started event for resource-level operations
+class ResourceStartedEvent extends ModuleEvent {
+  final String resourceId;
+  final String resourceType;
+  final String source;
+  final String destination;
+  final int actionCount;
+
+  ResourceStartedEvent({
+    super.moduleId,
+    super.correlationId,
+    super.timestamp,
+    super.metadata,
+    required this.resourceId,
+    required this.resourceType,
+    required this.source,
+    required this.destination,
+    required this.actionCount,
+  });
+
+  @override
+  ModuleEventType get eventType => ModuleEventType.resourceStarted;
+
+  @override
+  Map<String, dynamic> toStructuredData() {
+    final data = super.toStructuredData();
+    data['resourceId'] = resourceId;
+    data['resourceType'] = resourceType;
+    data['source'] = source;
+    data['destination'] = destination;
+    data['actionCount'] = actionCount;
+    return data;
+  }
+}
+
+/// Resource completed event for resource-level operations
+class ResourceCompletedEvent extends ModuleEvent {
+  final String resourceId;
+  final String resourceType;
+  final String source;
+  final String destination;
+  final int completedActions;
+  final int totalActions;
+  final Duration duration;
+
+  ResourceCompletedEvent({
+    super.moduleId,
+    super.correlationId,
+    super.timestamp,
+    super.metadata,
+    required this.resourceId,
+    required this.resourceType,
+    required this.source,
+    required this.destination,
+    required this.completedActions,
+    required this.totalActions,
+    required this.duration,
+  });
+
+  @override
+  ModuleEventType get eventType => ModuleEventType.resourceCompleted;
+
+  @override
+  Map<String, dynamic> toStructuredData() {
+    final data = super.toStructuredData();
+    data['resourceId'] = resourceId;
+    data['resourceType'] = resourceType;
+    data['source'] = source;
+    data['destination'] = destination;
+    data['completedActions'] = completedActions;
+    data['totalActions'] = totalActions;
+    data['duration'] = duration.inMilliseconds;
+    return data;
+  }
+}
+
+/// Resource rollback started event for resource-level rollback operations
+class ResourceRollbackStartedEvent extends ModuleEvent {
+  final String resourceId;
+  final String resourceType;
+  final String source;
+  final String destination;
+  final int actionCount;
+
+  ResourceRollbackStartedEvent({
+    super.moduleId,
+    super.correlationId,
+    super.timestamp,
+    super.metadata,
+    required this.resourceId,
+    required this.resourceType,
+    required this.source,
+    required this.destination,
+    required this.actionCount,
+  });
+
+  @override
+  ModuleEventType get eventType => ModuleEventType.resourceRollbackStarted;
+
+  @override
+  Map<String, dynamic> toStructuredData() {
+    final data = super.toStructuredData();
+    data['resourceId'] = resourceId;
+    data['resourceType'] = resourceType;
+    data['source'] = source;
+    data['destination'] = destination;
+    data['actionCount'] = actionCount;
+    return data;
+  }
+}
+
+/// Resource rollback completed event for resource-level rollback operations
+class ResourceRollbackCompletedEvent extends ModuleEvent {
+  final String resourceId;
+  final String resourceType;
+  final String source;
+  final String destination;
+  final int rolledbackActions;
+  final int totalActions;
+  final Duration duration;
+
+  ResourceRollbackCompletedEvent({
+    super.moduleId,
+    super.correlationId,
+    super.timestamp,
+    super.metadata,
+    required this.resourceId,
+    required this.resourceType,
+    required this.source,
+    required this.destination,
+    required this.rolledbackActions,
+    required this.totalActions,
+    required this.duration,
+  });
+
+  @override
+  ModuleEventType get eventType => ModuleEventType.resourceRollbackCompleted;
+
+  @override
+  Map<String, dynamic> toStructuredData() {
+    final data = super.toStructuredData();
+    data['resourceId'] = resourceId;
+    data['resourceType'] = resourceType;
+    data['source'] = source;
+    data['destination'] = destination;
+    data['rolledbackActions'] = rolledbackActions;
+    data['totalActions'] = totalActions;
+    data['duration'] = duration.inMilliseconds;
+    return data;
+  }
+}
+
+/// User input required event for interactive operations
+class UserInputRequiredEvent extends ModuleEvent {
+  final String prompt;
+  final String inputType; // 'text', 'password', 'confirm', 'select'
+  final List<String>? options;
+  final String? defaultValue;
+  UserInputRequiredEvent({
+    super.moduleId,
+    super.correlationId,
+    super.timestamp,
+    super.metadata,
+    required this.prompt,
+    required this.inputType,
+    this.options,
+    this.defaultValue,
+  });
+
+  @override
+  ModuleEventType get eventType => ModuleEventType.userInputRequired;
+
+  @override
+  Map<String, dynamic> toStructuredData() {
+    final data = super.toStructuredData();
+    data['prompt'] = prompt;
+    data['inputType'] = inputType;
+    data['options'] = options;
+    data['defaultValue'] = defaultValue;
+    return data;
+  }
+}
+
+/// User input received event for interactive operations
+class UserInputReceivedEvent extends ModuleEvent {
+  final String input;
+  final String inputType;
+
+  UserInputReceivedEvent({
+    super.moduleId,
+    super.correlationId,
+    super.timestamp,
+    super.metadata,
+    required this.input,
+    required this.inputType,
+  });
+
+  @override
+  ModuleEventType get eventType => ModuleEventType.userInputReceived;
+
+  @override
+  Map<String, dynamic> toStructuredData() {
+    final data = super.toStructuredData();
+    data['input'] = input;
+    data['inputType'] = inputType;
+    return data;
+  }
+}
+
+/// Wait for user event to pause processing
+class WaitForUserEvent extends ModuleEvent {
+  final String reason;
+
+  WaitForUserEvent({
+    super.moduleId,
+    super.correlationId,
+    super.timestamp,
+    super.metadata,
+    required this.reason,
+  });
+
+  @override
+  ModuleEventType get eventType => ModuleEventType.waitForUser;
+
+  @override
+  Map<String, dynamic> toStructuredData() {
+    final data = super.toStructuredData();
+    data['reason'] = reason;
+    return data;
+  }
+}
+
+/// Resume processing event to continue after user input
+class ResumeProcessingEvent extends ModuleEvent {
+
+  ResumeProcessingEvent({
+    super.moduleId,
+    super.correlationId,
+    super.timestamp,
+    super.metadata,
+  });
+
+  @override
+  ModuleEventType get eventType => ModuleEventType.resumeProcessing;
+
 }

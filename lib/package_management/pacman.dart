@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:configr/package_management/package_manger.dart';
+import 'package:configr/utils/logging.dart';
 
 class PacmanPackageManager extends PackageManager with GlobalInstallCapability {
   PacmanPackageManager(super.privilegeEscalation);
@@ -15,11 +15,13 @@ class PacmanPackageManager extends PackageManager with GlobalInstallCapability {
     } else {
       command.add(packageName);
     }
+    logger.info('Installing pacman package: ${command.join(' ')}');
     await runCommand('pacman', command);
   }
 
   @override
   Future<void> uninstall(String packageName) async {
+    logger.info('Uninstalling pacman package: $packageName');
     await runCommand('pacman', ['-R', '--noconfirm', packageName]);
   }
 
@@ -51,7 +53,7 @@ class PacmanPackageManager extends PackageManager with GlobalInstallCapability {
   @override
   Future<bool> isAvailable() async {
     try {
-      final result = await Process.run('pacman', ['--version']);
+      final result = await runCommand('pacman', ['--version']);
       return result.exitCode == 0;
     } catch (e) {
       return false;

@@ -1,12 +1,17 @@
 import 'dart:io';
 
-import 'package:configr/commands/command.dart';
+import 'package:configr/commands/base_command.dart';
 
-class EditCommand extends Command {
-  EditCommand(super.configManager);
+class EditCommand extends BaseCommand {
 
   @override
-  Future<void> execute() async {
+  String get name => 'edit';
+  
+  @override
+  String get description => 'Edit configuration file';
+
+  @override
+  void executeCommand() async {
     await configManager.load();
     final editor =
         Platform.environment['EDITOR'] ?? Platform.environment['VISUAL'];

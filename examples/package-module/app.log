@@ -343,3 +343,160 @@ INFO: 2025-09-28 06:50:33.616235: Package operation completed successfully. Pack
 INFO: 2025-09-28 06:50:33.639596: EndResource(/tmp): package
 
 INFO: 2025-09-28 06:51:30.434501: Resource resource_1 unchanged, skipping
+
+INFO: 2025-09-28 14:17:39.308602: Config file has changed, applying all resources
+
+INFO: 2025-09-28 14:17:39.321860: StartResource(/tmp): package
+
+INFO: 2025-09-28 14:17:39.386079: Using package manager: pacman
+
+INFO: 2025-09-28 14:17:46.983501: Package vim is already installed, skipping
+
+INFO: 2025-09-28 14:17:46.984117: Package operation completed successfully. Packages processed: 0, Skipped: 1
+
+INFO: 2025-09-28 14:17:46.994411: EndResource(/tmp): package
+
+INFO: 2025-09-28 14:18:30.319811: Resource resource_1 unchanged, skipping
+
+INFO: 2025-09-28 14:27:12.533353: Resource resource_1 unchanged, skipping
+
+INFO: 2025-09-28 14:27:47.437806: Starting rollback of configuration...
+
+INFO: 2025-09-28 14:27:47.480952: Rolling back resource /tmp: package
+
+INFO: 2025-09-28 14:27:47.481957: Package rollback: This operation cannot be fully rolled back as original package states are not tracked
+
+INFO: 2025-09-28 14:27:47.483292: Package operation results: {}
+
+INFO: 2025-09-28 14:27:47.507269: Configuration rollback completed successfully
+
+INFO: 2025-09-28 14:28:10.061616: StartResource(/tmp): package
+
+INFO: 2025-09-28 14:28:10.122381: Using package manager: pacman
+
+SEVERE: 2025-09-28 14:28:13.745252: Failed to process package vim: Exception: Failed to run command with sudo: [sudo] password for kingwill101: Sorry, try again.
+[sudo] password for kingwill101: 
+sudo: no password was provided
+sudo: 1 incorrect password attempt
+
+
+INFO: 2025-09-28 14:28:13.747413: Package operation completed successfully. Packages processed: 0, Skipped: 0
+
+INFO: 2025-09-28 14:28:13.779005: EndResource(/tmp): package
+
+INFO: 2025-09-28 14:31:54.006615: Resource resource_1 unchanged, skipping
+
+INFO: 2025-09-28 14:32:11.001134: Starting rollback of configuration...
+
+INFO: 2025-09-28 14:32:11.047329: Rolling back resource /tmp: package
+
+INFO: 2025-09-28 14:32:11.048494: Package rollback: This operation cannot be fully rolled back as original package states are not tracked
+
+INFO: 2025-09-28 14:32:11.050602: Package operation results: {}
+
+INFO: 2025-09-28 14:32:11.070332: Configuration rollback completed successfully
+
+INFO: 2025-09-28 14:32:25.024246: StartResource(/tmp): package
+
+INFO: 2025-09-28 14:32:25.089770: Using package manager: pacman
+
+INFO: 2025-09-28 14:32:33.533055: Package vim is already installed, skipping
+
+INFO: 2025-09-28 14:32:33.533642: Package operation completed successfully. Packages processed: 0, Skipped: 1
+
+INFO: 2025-09-28 14:32:33.544721: EndResource(/tmp): package
+
+INFO: 2025-09-28 14:33:18.003582: Config file has changed, applying all resources
+
+INFO: 2025-09-28 14:33:18.016658: StartResource(/tmp): package
+
+INFO: 2025-09-28 14:33:18.075558: Using package manager: pacman
+
+INFO: 2025-09-28 14:33:18.076158: Updating package cache...
+
+INFO: 2025-09-28 14:33:18.120507: Package git is already installed, skipping
+
+INFO: 2025-09-28 14:33:18.166563: Package curl is already installed, skipping
+
+INFO: 2025-09-28 14:33:18.212123: Package wget is already installed, skipping
+
+INFO: 2025-09-28 14:33:18.252464: Package vim is already installed, skipping
+
+INFO: 2025-09-28 14:33:18.297016: Package nano is already installed, skipping
+
+INFO: 2025-09-28 14:33:18.335501: Package htop is already installed, skipping
+
+INFO: 2025-09-28 14:33:18.380311: Package tree is already installed, skipping
+
+INFO: 2025-09-28 14:33:18.380833: Package operation completed successfully. Packages processed: 0, Skipped: 7
+
+INFO: 2025-09-28 14:33:18.392218: EndResource(/tmp): package
+
+INFO: 2025-09-28 14:33:18.393349: StartResource(/tmp): package
+
+SEVERE: 2025-09-28 14:33:18.403812: Resource failed (package): Package manager apt is not available on this system
+
+StackTrace: #0      FilePackageModule._getPackageManager (package:configr/modules/resource/package.dart:177:9)
+<asynchronous suspension>
+#1      FilePackageModule.execute (package:configr/modules/resource/package.dart:146:23)
+<asynchronous suspension>
+#2      ResourceModule.call (package:configr/modules/resource/resource_module.dart:192:7)
+<asynchronous suspension>
+#3      ConfigManager.applyConfig (package:configr/config_manager.dart:212:17)
+<asynchronous suspension>
+#4      ApplyCommand.executeCommand (package:configr/commands/apply.dart:20:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 14:33:18.404632: Package rollback: This operation cannot be fully rolled back as original package states are not tracked
+
+INFO: 2025-09-28 14:33:18.405517: Package operation results: {}
+
+SEVERE: 2025-09-29 07:42:07.789048: Error executing module FilePackageModule: ModuleException: Package manager apt is not available on this system
+Error Code: ACTION_FAILED
+Severity: medium
+Category: execution
+Operation: action_execution
+Retryable: Yes
+
+
+SEVERE: 2025-09-29 07:42:07.830744: Error executing module FilePackageModule: ModuleException: Package manager apt is not available on this system
+Error Code: ACTION_FAILED
+Severity: medium
+Category: execution
+Operation: action_execution
+Retryable: Yes
+
+
+SEVERE: 2025-09-29 07:42:19.672491: Failed to process package old-package: Exception: Failed to get password for sudo: Exception: Failed to run command with sudo: error: package 'old-package' was not found
+
+
+SEVERE: 2025-09-29 07:42:23.574629: Failed to process package unused-tool: Exception: Failed to get password for sudo: Exception: Failed to run command with sudo: error: package 'unused-tool' was not found
+
+
+SEVERE: 2025-09-29 07:42:27.705498: Failed to process package deprecated-app: Exception: Failed to get password for sudo: Exception: Failed to run command with sudo: error: package 'deprecated-app' was not found
+
+
+SEVERE: 2025-09-29 07:42:36.712101: Failed to process package corrupted-package: Exception: Failed to get password for sudo: Exception: Failed to run command with sudo: error: package 'corrupted-package' was not found
+
+
+SEVERE: 2025-09-29 07:42:39.566909: Failed to process package broken-tool: Exception: Failed to get password for sudo: Exception: Failed to run command with sudo: error: package 'broken-tool' was not found
+
+
+SEVERE: 2025-09-29 07:42:42.502447: Failed to process package kubectl: Exception: Failed to get password for sudo: Exception: Failed to run command with sudo: error: package 'kubectl' was not found
+
+
+SEVERE: 2025-09-29 07:42:45.344449: Failed to process package helm: Exception: Failed to get password for sudo: Exception: Failed to run command with sudo: error: package 'helm' was not found
+
+
+SEVERE: 2025-09-29 07:42:50.054088: Failed to process package fail2ban: Exception: Failed to get password for sudo: Exception: Failed to run command with sudo: error: package 'fail2ban' was not found
+
+
+SEVERE: 2025-09-29 07:42:52.881102: Failed to process package ufw: Exception: Failed to get password for sudo: Exception: Failed to run command with sudo: error: package 'ufw' was not found
+
+
+SEVERE: 2025-09-29 07:43:00.063331: Failed to process package clamav: Exception: Failed to get password for sudo: Exception: Failed to run command with sudo: error: package 'clamav' was not found
+
+
+SEVERE: 2025-09-29 07:43:02.697924: Failed to process package rkhunter: Exception: Failed to get password for sudo: Exception: Failed to run command with sudo: error: package 'rkhunter' was not found
+

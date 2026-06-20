@@ -234,6 +234,11 @@ class FileDownloadModule extends ResourceModule {
 
   @override
   Future<void> rollback() async {
+    emitEvent(StartedEvent(
+      moduleId: action.id,
+      message: 'Rolling back download operation for $destination',
+    ));
+    
     await super.rollback();
     try {
       if (destinationFileExisted) {
@@ -248,10 +253,16 @@ class FileDownloadModule extends ResourceModule {
       } else {
         emitEvent(StatusUpdateEvent(
             level: StatusEvent.info,
-            message: 'Deleting downloaded file $destination',
+            message: 'Removing downloaded file $destination (rollback)',
             moduleId: action.id));
         await FileUtils.deleteFile(destination, fileSystem: fileSystem);
       }
+      
+      emitEvent(CompletedEvent(
+        moduleId: action.id,
+        message: 'Download rollback completed for $destination',
+      ));
+      
       updateState({'rollbackCompleted': true});
     } catch (e, st) {
       updateState(

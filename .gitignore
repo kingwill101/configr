@@ -4,3 +4,7 @@
 
 # FVM Version Cache
 .fvm/
+.cursor/
+openspec/
+AGENTS.md
+.idea/

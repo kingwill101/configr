@@ -138,6 +138,8 @@ class FileCopyModule extends ResourceModule {
 
   @override
   Future<void> rollback() async {
+    emitEvent(StartedEvent(moduleId: action.id, message: 'Rolling back copy operation'));
+    
     try {
       if (isDirectory) {
         if (await FileUtils.directoryExists(destination, fileSystem: fileSystem)) {
@@ -171,21 +173,22 @@ class FileCopyModule extends ResourceModule {
           }
         }
       }
+
+      for (var module in childModules) {
+        await module.rollback();
+      }
+
       updateState({'rollbackCompleted': true});
+      emitEvent(CompletedEvent(moduleId: action.id, message: 'Copy rollback completed'));
+      await saveState();
     } catch (e, st) {
       updateState({
         'rollbackError': e.toString(),
         'rollbackStackTrace': st.toString()
       });
-      logger.severe('Error during rollback', e, st);
+      emitEvent(FailedEvent(moduleId: action.id, message: 'Copy rollback failed: ${e.toString()}'));
       rethrow;
     }
-
-    for (var module in childModules) {
-      await module.rollback();
-    }
-    
-    await saveState();
   }
 
   /// Parse configuration from action properties.

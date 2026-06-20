@@ -1,0 +1,27 @@
+resource {
+  id "simple-hooks-test"
+  source "source_file.txt"
+  destination "destination_file.txt"
+  
+  actions {
+    before {
+      echo {
+        message "Starting file copy operation"
+        level "info"
+        color true
+      }
+    }
+    
+    copy {
+      overwrite true
+    }
+    
+    after {
+      echo {
+        message "File copy completed successfully"
+        level "info"
+        color true
+      }
+    }
+  }
+}

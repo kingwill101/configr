@@ -65,7 +65,7 @@ class FileExecuteModule extends ResourceModule {
     // Parse configuration
     final config = _parseConfiguration();
     updateState({
-      'command': action.properties['command'] as String,
+      'command': action.properties['command'] as String? ?? '',
       'onSuccess': action.properties['on_success'] == 'true',
       ...config,
     });
@@ -126,14 +126,26 @@ class FileExecuteModule extends ResourceModule {
 
   @override
   Future<void> rollback() async {
-    logger.warning('Cannot rollback executed command');
-    updateState({'rollbackAttempted': true});
-
-    for (var module in childModules) {
-      await module.rollback();
-    }
+    emitEvent(StartedEvent(moduleId: action.id, message: 'Rolling back execute operation'));
     
-    await saveState();
+    try {
+      logger.warning('Cannot rollback executed command');
+      updateState({'rollbackAttempted': true});
+
+      for (var module in childModules) {
+        await module.rollback();
+      }
+
+      emitEvent(CompletedEvent(moduleId: action.id, message: 'Execute rollback completed (no-op)'));
+      await saveState();
+    } catch (e, st) {
+      updateState({
+        'rollbackError': e.toString(),
+        'rollbackStackTrace': st.toString()
+      });
+      emitEvent(FailedEvent(moduleId: action.id, message: 'Execute rollback failed: ${e.toString()}'));
+      rethrow;
+    }
   }
 
   /// Parse configuration from action properties.

@@ -1,49 +1,234 @@
+import 'dart:async';
 import 'dart:io';
+import 'package:configr/ui/handlers/base_handler.dart';
+import 'package:configr/utils/logging.dart';
+import 'package:configr/config_manager.dart';
+
+/// Privilege lock for maintaining elevated privileges across multiple operations
+class PrivilegeLock {
+  static PrivilegeLock? _instance;
+  static PrivilegeLock get instance => _instance ??= PrivilegeLock._();
+  
+  PrivilegeLock._();
+  
+  bool _isActive = false;
+  DateTime? _lastUsed;
+  Timer? _timeoutTimer;
+  static const Duration _timeoutDuration = Duration(minutes: 15);
+  
+  bool get isActive => _isActive;
+  DateTime? get lastUsed => _lastUsed;
+  Duration? get timeUntilTimeout {
+    if (!_isActive || _lastUsed == null) return null;
+    final elapsed = DateTime.now().difference(_lastUsed!);
+    return _timeoutDuration - elapsed;
+  }
+  
+  /// Acquire privilege lock
+  void acquire() {
+    if (_isActive) {
+      _updateLastUsed();
+      return;
+    }
+    
+    _isActive = true;
+    _lastUsed = DateTime.now();
+    _startTimeoutTimer();
+    logger.info('Privilege lock acquired');
+  }
+  
+  /// Release privilege lock
+  void release() {
+    if (!_isActive) return;
+    
+    _isActive = false;
+    _lastUsed = null;
+    _timeoutTimer?.cancel();
+    _timeoutTimer = null;
+    logger.info('Privilege lock released');
+  }
+  
+  /// Update last used timestamp and reset timeout
+  void _updateLastUsed() {
+    _lastUsed = DateTime.now();
+    _timeoutTimer?.cancel();
+    _startTimeoutTimer();
+  }
+  
+  /// Start timeout timer
+  void _startTimeoutTimer() {
+    _timeoutTimer = Timer(_timeoutDuration, () {
+      logger.info('Privilege lock timed out after ${_timeoutDuration.inMinutes} minutes');
+      release();
+    });
+  }
+  
+  /// Force release privilege lock (for cleanup)
+  void forceRelease() {
+    _isActive = false;
+    _lastUsed = null;
+    _timeoutTimer?.cancel();
+    _timeoutTimer = null;
+    logger.warning('Privilege lock force released');
+  }
+  
+  /// Reset singleton instance (for testing)
+  static void reset() {
+    _instance?.forceRelease();
+    _instance = null;
+  }
+}
 
 abstract class PrivilegeEscalation {
   Future<ProcessResult> runWithElevatedPrivileges(
       String command, List<String> arguments);
+  
+  /// Check if privilege lock should be used
+  bool get usePrivilegeLock => false;
 }
 
 class InteractiveSudoEscalation implements PrivilegeEscalation {
+  final UIHandler? uiHandler;
+  
+  InteractiveSudoEscalation({this.uiHandler});
+  
+  @override
+  bool get usePrivilegeLock {
+    try {
+      return ConfigManager.instance.keepPrivilegeLock;
+    } catch (e) {
+      // If ConfigManager is not initialized, default to false
+      return false;
+    }
+  }
+  
   @override
   Future<ProcessResult> runWithElevatedPrivileges(
       String command, List<String> arguments) async {
+    
+    // If privilege lock is enabled and active, try to use it first
+    if (usePrivilegeLock && PrivilegeLock.instance.isActive) {
+      try {
+        var result = await Process.run('sudo', ['-n', command, ...arguments]);
+        if (result.exitCode == 0) {
+          PrivilegeLock.instance._updateLastUsed();
+          return result;
+        }
+      } catch (e) {
+        logger.warning('Failed to use privilege lock, falling back to authentication: $e');
+      }
+    }
+    
     // First, try running sudo with -n (non-interactive) to see if we have passwordless sudo
     var result = await Process.run('sudo', ['-n', command, ...arguments]);
     if (result.exitCode == 0) {
+      if (usePrivilegeLock) {
+        PrivilegeLock.instance.acquire();
+      }
       return result;
     }
 
-    // If passwordless sudo is not available, we need to ask for the password
-    // Use stderr to avoid conflicts with CLI handler
-    stderr.writeln('Sudo password required to run: $command ${arguments.join(' ')}');
-    stderr.write('Password: ');
-    stdin.echoMode = false;
-    final password = stdin.readLineSync() ?? '';
-    stdin.echoMode = true;
-    stderr.writeln(''); // New line after password input
+    // If passwordless sudo is not available, try using the UI handler for password input
+    if (uiHandler != null) {
+      uiHandler!.enablePasswordPromptMode();
+      
+      try {
+        final password = uiHandler!.promptPassword('Sudo password required to run: $command ${arguments.join(' ')}');
+        
+        if (password.isEmpty) {
+          throw Exception('Password required but not provided');
+        }
 
-    // Use a shell to echo the password into sudo
-    final fullCommand =
-        'echo $password | sudo -S $command ${arguments.join(' ')}';
-    result = await Process.run('sh', ['-c', fullCommand]);
+        // Use a shell to echo the password into sudo
+        final fullCommand =
+            'echo "$password" | sudo -S $command ${arguments.join(' ')}';
+        result = await Process.run('sh', ['-c', fullCommand]);
 
-    if (result.exitCode != 0) {
-      throw Exception('Failed to run command with sudo: ${result.stderr}');
+        if (result.exitCode != 0) {
+          throw Exception('Failed to run command with sudo: ${result.stderr}');
+        }
+
+        // Acquire privilege lock after successful authentication
+        if (usePrivilegeLock) {
+          PrivilegeLock.instance.acquire();
+        }
+
+        return result;
+      } finally {
+        uiHandler!.disablePasswordPromptMode();
+      }
+    } else {
+      // Fallback to direct stdin if no UI handler is available
+      try {
+        stderr.writeln('Sudo password required to run: $command ${arguments.join(' ')}');
+        stderr.write('Password: ');
+        stdin.echoMode = false;
+        final password = stdin.readLineSync() ?? '';
+        stdin.echoMode = true;
+        stderr.writeln(''); // New line after password input
+
+        if (password.isEmpty) {
+          throw Exception('Password required but not provided');
+        }
+
+        // Use a shell to echo the password into sudo
+        final fullCommand =
+            'echo "$password" | sudo -S $command ${arguments.join(' ')}';
+        result = await Process.run('sh', ['-c', fullCommand]);
+
+        if (result.exitCode != 0) {
+          throw Exception('Failed to run command with sudo: ${result.stderr}');
+        }
+
+        // Acquire privilege lock after successful authentication
+        if (usePrivilegeLock) {
+          PrivilegeLock.instance.acquire();
+        }
+
+        return result;
+      } catch (e) {
+        throw Exception('Failed to get password for sudo: $e');
+      }
     }
-
-    return result;
   }
 }
 
 class NonInteractiveSudoEscalation implements PrivilegeEscalation {
+  NonInteractiveSudoEscalation();
+  
+  @override
+  bool get usePrivilegeLock {
+    try {
+      return ConfigManager.instance.keepPrivilegeLock;
+    } catch (e) {
+      // If ConfigManager is not initialized, default to false
+      return false;
+    }
+  }
+  
   @override
   Future<ProcessResult> runWithElevatedPrivileges(
       String command, List<String> arguments) async {
+    
+    // If privilege lock is enabled and active, try to use it first
+    if (usePrivilegeLock && PrivilegeLock.instance.isActive) {
+      try {
+        var result = await Process.run('sudo', ['-n', command, ...arguments]);
+        if (result.exitCode == 0) {
+          PrivilegeLock.instance._updateLastUsed();
+          return result;
+        }
+      } catch (e) {
+        logger.warning('Failed to use privilege lock, falling back to passwordless sudo: $e');
+      }
+    }
+    
     // Try running sudo with -n (non-interactive) to see if we have passwordless sudo
     var result = await Process.run('sudo', ['-n', command, ...arguments]);
     if (result.exitCode == 0) {
+      if (usePrivilegeLock) {
+        PrivilegeLock.instance.acquire();
+      }
       return result;
     }
 
@@ -53,6 +238,9 @@ class NonInteractiveSudoEscalation implements PrivilegeEscalation {
 }
 
 class NoPrivilegeEscalation implements PrivilegeEscalation {
+  @override
+  bool get usePrivilegeLock => false;
+  
   @override
   Future<ProcessResult> runWithElevatedPrivileges(
       String command, List<String> arguments) async {

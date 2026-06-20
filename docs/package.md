@@ -4,13 +4,15 @@ The package module provides multi-platform package management capabilities, supp
 
 ## Features
 
-- **Multi-Platform Support**: Automatic detection and support for apt, pacman, pamac, yum, dnf, zypper, brew, choco, winget
+- **Multi-Platform Support**: Automatic detection and support for apt, pacman, pamac, npm, docker
 - **Package Operations**: Install, uninstall, upgrade, and reinstall packages
 - **Version Management**: Specify exact package versions for installation
+- **Global/Local Installation**: Support for both global and local package installation (npm)
 - **Repository Management**: Add custom repositories for package sources
 - **Cache Management**: Automatic package cache updates
 - **Smart Skipping**: Skip already installed packages when appropriate
 - **Comprehensive Statistics**: Track packages processed, skipped, and errors encountered
+- **Enhanced Rollback**: Full rollback support with package uninstallation
 - **Privilege Escalation**: Automatic privilege escalation for system package operations
 
 ## Configuration
@@ -59,6 +61,56 @@ resources {
         force false
         update_cache true
         skip_if_installed false
+      }
+    }
+  }
+}
+```
+
+### Global vs Local Installation (npm)
+
+```configr
+resources {
+  resource {
+    id "global-npm-packages"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["typescript", "eslint", "prettier"]
+        package_versions {
+          typescript "5.0.0"
+          eslint "8.0.0"
+        }
+        operation "install"
+        package_manager "npm"
+        install_globally true
+        update_cache false
+        skip_if_installed true
+      }
+    }
+  }
+}
+
+resources {
+  resource {
+    id "local-npm-packages"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["express", "cors", "helmet"]
+        package_versions {
+          express "4.18.0"
+          cors "2.8.5"
+        }
+        operation "install"
+        package_manager "npm"
+        install_globally false
+        update_cache false
+        skip_if_installed true
       }
     }
   }
@@ -121,12 +173,7 @@ Controls which package manager to use:
 - `pacman`: Use Pacman package manager (Arch Linux)
 - `pamac`: Use Pamac package manager (Manjaro)
 - `npm`: Use npm package manager (Node.js packages)
-- `yum`: Use YUM package manager (RHEL/CentOS)
-- `dnf`: Use DNF package manager (Fedora)
-- `zypper`: Use Zypper package manager (openSUSE)
-- `brew`: Use Homebrew package manager (macOS)
-- `choco`: Use Chocolatey package manager (Windows)
-- `winget`: Use Windows Package Manager (Windows)
+- `docker`: Use Docker for container images
 
 ### Package Operations
 
@@ -143,6 +190,7 @@ Controls which package manager to use:
 - `force`: Force operations even if packages are already in desired state
 - `update_cache`: Update package cache before operations (default: true)
 - `skip_if_installed`: Skip packages that are already installed (default: true)
+- `install_globally`: Install packages globally vs locally (npm only, default: true)
 
 ## Examples
 
@@ -216,6 +264,33 @@ resources {
 }
 ```
 
+### Docker Images
+
+```configr
+resources {
+  resource {
+    id "docker-images"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["nginx", "postgres", "redis"]
+        package_versions {
+          nginx "1.21"
+          postgres "13"
+          redis "6.2"
+        }
+        operation "install"
+        package_manager "docker"
+        update_cache false
+        skip_if_installed true
+      }
+    }
+  }
+}
+```
+
 ### System Cleanup
 
 ```configr
@@ -266,31 +341,19 @@ resources {
 - **Manager**: `apt`
 - **Commands**: `apt-get`, `dpkg`
 - **Features**: Version constraints, repository management, cache updates
+- **Capabilities**: Global installation only (system-wide packages)
 
 #### Arch Linux (Pacman)
 - **Manager**: `pacman`
 - **Commands**: `pacman`
 - **Features**: AUR support, dependency resolution
+- **Capabilities**: Global installation only (system-wide packages)
 
 #### Manjaro (Pamac)
 - **Manager**: `pamac`
 - **Commands**: `pamac`
-- **Features**: AUR integration, GUI support
-
-#### RHEL/CentOS (YUM)
-- **Manager**: `yum`
-- **Commands**: `yum`
-- **Features**: RPM package management, repository support
-
-#### Fedora (DNF)
-- **Manager**: `dnf`
-- **Commands**: `dnf`
-- **Features**: Modern YUM replacement, better dependency resolution
-
-#### openSUSE (Zypper)
-- **Manager**: `zypper`
-- **Commands**: `zypper`
-- **Features**: RPM package management, repository management
+- **Features**: AUR integration, GUI support, version locking
+- **Capabilities**: Global installation, version locking
 
 ### Node.js
 
@@ -298,121 +361,103 @@ resources {
 - **Manager**: `npm`
 - **Commands**: `npm`
 - **Features**: Node.js package management, global/local installation, version management
+- **Capabilities**: Global installation, local installation, global/local context management
+- **Configuration**: Use `install_globally: true/false` to control installation scope
 
-### macOS
+### Containerization
 
-#### Homebrew
-- **Manager**: `brew`
-- **Commands**: `brew`
-- **Features**: Formula management, cask support
+#### Docker
+- **Manager**: `docker`
+- **Commands**: `docker`
+- **Features**: Container image management, version tagging
+- **Capabilities**: Global installation only (images are global)
+- **Note**: Uses `package:version` format for image tags
 
-### Windows
+## Package Manager Capabilities
 
-#### Chocolatey
-- **Manager**: `choco`
-- **Commands**: `choco`
-- **Features**: Windows package management, PowerShell integration
+The package management system uses a capability-based architecture where each package manager declares what operations it supports:
 
-#### Windows Package Manager
-- **Manager**: `winget`
-- **Commands**: `winget`
-- **Features**: Microsoft's official package manager
+### Capability Types
 
-## Error Handling
+#### GlobalInstallCapability
+- **Purpose**: Supports global/system-wide package installation
+- **Supported by**: All package managers (apt, pacman, pamac, npm, docker)
+- **Usage**: Automatically used when `install_globally: true` or for system package managers
 
-The package module provides comprehensive error handling:
+#### LocalInstallCapability  
+- **Purpose**: Supports local/project-scoped package installation
+- **Supported by**: npm only
+- **Usage**: Used when `install_globally: false` for npm packages
 
-- **Missing Packages**: Validates that packages are specified
-- **Unsupported Operations**: Handles invalid operation types
-- **Package Manager Detection**: Gracefully handles unsupported systems
-- **Privilege Issues**: Automatic privilege escalation with proper error handling
-- **Network Issues**: Handles repository and cache update failures
-- **Statistics Tracking**: Tracks errors encountered during operations
+#### GlobalLocalContextCapability
+- **Purpose**: Can distinguish between global and local package contexts
+- **Supported by**: npm only
+- **Usage**: Enables separate checking and management of global vs local packages
 
-## Rollback Considerations
+#### VersionLockCapability
+- **Purpose**: Can lock package versions to prevent updates
+- **Supported by**: pamac only
+- **Usage**: Prevents automatic package updates
 
-**Important**: The package module has limited rollback capabilities because it doesn't track the original state of packages before operations. The rollback operation will:
+### Capability Matrix
 
-- Log the package operation results for manual review
-- Provide information about what was changed
-- Not automatically restore original package states
+| Manager | GlobalInstall | LocalInstall | GlobalLocalContext | VersionLock |
+|---------|---------------|--------------|-------------------|-------------|
+| **apt** | ✅ | ❌ | ❌ | ❌ |
+| **pacman** | ✅ | ❌ | ❌ | ❌ |
+| **pamac** | ✅ | ❌ | ❌ | ✅ |
+| **npm** | ✅ | ✅ | ✅ | ❌ |
+| **docker** | ✅ | ❌ | ❌ | ❌ |
 
-For critical operations, consider:
-- Creating system snapshots before package operations
-- Using version control for configuration files
-- Implementing your own backup strategy
-- Testing package operations in isolated environments
+## npm-Specific Configuration
 
-## Performance Considerations
+npm is the most feature-rich package manager, supporting both global and local installations:
 
-- **Cache Updates**: Updating package caches can be time-consuming
-- **Network Operations**: Package downloads depend on network speed
-- **Privilege Escalation**: May require user interaction for sudo prompts
-- **Large Package Lists**: Processing many packages may take time
-- **Repository Management**: Adding repositories may require additional time
+### Global Installation (Default)
+```configr
+package {
+  packages ["typescript", "eslint", "prettier"]
+  package_manager "npm"
+  install_globally true  # Default value
+}
+```
 
-## Best Practices
+### Local Installation
+```configr
+package {
+  packages ["express", "cors", "helmet"]
+  package_manager "npm"
+  install_globally false
+}
+```
 
-1. **Test First**: Always test package operations in isolated environments
-2. **Use Specific Versions**: Pin package versions for reproducible environments
-3. **Update Caches**: Keep package caches updated for latest package information
-4. **Monitor Results**: Check package operation statistics and logs
-5. **Privilege Management**: Ensure proper sudo/administrator access
-6. **Repository Security**: Only add trusted repositories
-7. **Backup Strategy**: Create system backups before major package operations
+### Mixed Installation
+You can mix global and local installations in the same configuration by using separate resources:
 
-## Security Considerations
-
-- **Privilege Escalation**: Package operations require elevated privileges
-- **Repository Trust**: Only use trusted package repositories
-- **Package Verification**: Verify package signatures when possible
-- **Network Security**: Ensure secure connections for package downloads
-- **System Integrity**: Monitor for unauthorized package installations
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Permission Denied**
-   - Ensure proper sudo/administrator access
-   - Check privilege escalation configuration
-   - Verify user permissions for package operations
-
-2. **Package Manager Not Found**
-   - Verify the system has a supported package manager
-   - Check if package manager commands are in PATH
-   - Consider specifying package manager explicitly
-
-3. **Package Not Found**
-   - Verify package names are correct
-   - Check if repositories are properly configured
-   - Update package cache to refresh package lists
-
-4. **Version Conflicts**
-   - Check for conflicting package versions
-   - Verify repository priorities
-   - Consider using force option for conflicts
-
-5. **Network Issues**
-   - Check internet connectivity
-   - Verify repository URLs are accessible
-   - Consider using local package caches
-
-### Debug Information
-
-The package module provides detailed logging and statistics:
-- Packages processed count
-- Packages skipped count
-- Errors encountered count
-- Package operation results with versions
-- Detailed error messages in logs
-- Package manager detection information
-
-## Limitations
-
-- **Platform Support**: Limited to supported package managers and operating systems
-- **Repository Management**: Basic repository support (advanced features may vary by package manager)
-- **Rollback**: Cannot fully restore original package states
-- **Dependency Resolution**: Relies on package manager's dependency resolution
-- **Network Dependency**: Requires internet connectivity for most operations
-- **Privilege Requirements**: Requires elevated privileges for system package operations
+```configr
+resources {
+  # Global tools
+  resource {
+    id "global-tools"
+    actions {
+      package {
+        packages ["typescript", "eslint", "prettier"]
+        package_manager "npm"
+        install_globally true
+      }
+    }
+  }
+  
+  # Local dependencies
+  resource {
+    id "local-deps"
+    actions {
+      package {
+        packages ["express", "cors", "helmet"]
+        package_manager "npm"
+        install_globally false
+      }
+    }
+  }
+}
+```

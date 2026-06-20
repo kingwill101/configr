@@ -2,6 +2,7 @@ import 'package:configr/extensions/list.dart';
 import 'package:configr/models/action.dart';
 import 'package:configr/models/command.dart';
 import 'package:configr/models/template.dart';
+import 'package:collection/collection.dart';
 
 class ResourceType {
   static const String file = 'file';
@@ -16,6 +17,7 @@ class ResourceModel {
   final Template? template;
   final List<Action> actions;
   final List<Command> commands;
+  final Map<String, dynamic> properties;
   String? sha256;
   String? status;
 
@@ -28,9 +30,11 @@ class ResourceModel {
       this.status,
       this.template,
       List<Command>? commands,
-      String? shasum})
+      String? shasum,
+      Map<String, dynamic>? properties})
       : commands = commands ?? const [],
-        sha256 = shasum ?? '';
+        sha256 = shasum ?? '',
+        properties = properties ?? {};
 
   @override
   bool operator ==(Object other) =>
@@ -44,7 +48,8 @@ class ResourceModel {
           destination == other.destination &&
           listEquals(actions, other.actions) &&
           template == other.template &&
-          listEquals(commands, other.commands);
+          listEquals(commands, other.commands) &&
+          const DeepCollectionEquality().equals(properties, other.properties);
 
   @override
   int get hashCode => Object.hash(
@@ -57,6 +62,7 @@ class ResourceModel {
         type,
         Object.hashAll(actions),
         Object.hashAll(commands),
+        Object.hashAll(properties.entries),
       );
 
   factory ResourceModel.fromJson(Map<String, dynamic> json) {
@@ -77,6 +83,7 @@ class ResourceModel {
               .toList() ??
           [],
       shasum: json['sha256'] as String?,
+      properties: Map<String, dynamic>.from(json['properties'] as Map<String, dynamic>? ?? {}),
     );
   }
 
@@ -90,6 +97,7 @@ class ResourceModel {
         'actions': actions.map((a) => a.toJson()).toList(),
         'commands': commands.map((c) => c.toJson()).toList(),
         'sha256': sha256,
+        'properties': properties,
       };
 
   String toConfig({String indent = ''}) {

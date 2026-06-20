@@ -1,0 +1,29 @@
+app:
+  name: "MyApp"
+  version: "1.0.0"
+  environment: "production"
+
+database:
+  host: "localhost"
+  port: 5432
+  name: "myapp_db"
+  username: "myapp_user"
+
+logging:
+  level: "info"
+  file: "/var/log/myapp/app.log"
+  max_size: "100MB"
+  max_files: 5
+
+security:
+  jwt_secret: "your-secret-key-here"
+  session_timeout: 3600
+  require_https: true
+
+features:
+  enable_api: true
+  enable_web_ui: true
+  enable_metrics: true
+
+
+

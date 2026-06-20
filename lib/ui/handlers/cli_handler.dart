@@ -1,318 +1,325 @@
-import 'dart:async';
-
+import 'dart:io';
 import 'package:configr/events/module_events.dart';
 import 'package:configr/ui/handlers/base_handler.dart';
-import 'package:termlib/termlib.dart';
 
-/// Data structure for each module's UI state (spinner, progress, message, etc.)
-class ModuleLineState {
-  int spinnerIndex;
-  bool hasSpinner;
-  bool inProgress;
-  bool hasProgress;
-  int current;
-  int total;
-  String message;
-
-  ModuleLineState({
-    this.spinnerIndex = 0,
-    this.hasSpinner = false,
-    this.inProgress = false,
-    this.hasProgress = false,
-    this.current = 0,
-    this.total = 100,
-    this.message = '',
-  });
-}
-
-/// A CLI handler that draws multiple modules on multiple lines using termlib.
+/// Simple text-focused CLI handler without fancy terminal features
 class CLIHandler implements UIHandler {
-  final TermLib terminal = TermLib();
-  final int _initialCursorRow = 2;
-
-  // Map from moduleId -> line index
-  final Map<String, int> _moduleLineIndex = {};
-
-  // Map from moduleId -> the data we need to draw
-  final Map<String, ModuleLineState> _modules = {};
-
   bool _isActive = false;
-  bool _allowInteractiveInput = false;
-  bool _passwordPromptActive = false;
-  int _nextLineIndex = 0;
-
-  // Timer to periodically update spinner frames
-  Timer? _redrawTimer;
-
-  // Spinner frames
-  final List<String> _spinnerChars = ['|', '/', '-', '\\'];
-
-  // Where do we start printing modules in the console?
-  // In this example, row 2. (Row 0,1 can hold header messages, etc.)
-  int get _topOffset => _initialCursorRow;
-
-  String _infoPen(String text) => (terminal.style(text)
-        ..fg(Color.white)
-        ..bold())
-      .toString();
-
-  String _successPen(String text) => (terminal.style(text)
-        ..fg(Color.green)
-        ..bold())
-      .toString();
-
-  String _warningPen(String text) => (terminal.style(text)
-        ..fg(Color.yellow)
-        ..bold())
-      .toString();
-
-  String _errorPen(String text) => (terminal.style(text)
-        ..fg(Color.red)
-        ..bold())
-      .toString();
-
-  String _debugPen(String text) => (terminal.style(text)
-        ..fg(Color.white)
-        ..bg(Color.brightBlack)
-        ..bold())
-      .toString();
-
-  void _assignLineIfNeeded(String moduleId) {
-    if (!_modules.containsKey(moduleId)) {
-      _modules[moduleId] = ModuleLineState();
-    }
-    if (!_moduleLineIndex.containsKey(moduleId)) {
-      _moduleLineIndex[moduleId] = _nextLineIndex;
-      _nextLineIndex++;
-    }
-  }
-
-  String _buildLineText(ModuleLineState state) {
-    final sb = StringBuffer();
-
-    // Spinner
-    if (state.hasSpinner && state.inProgress) {
-      final spinIndex = state.spinnerIndex % _spinnerChars.length;
-      sb.write('${_spinnerChars[spinIndex]} ');
-      state.spinnerIndex++;
-    }
-
-    // Progress Bar
-    if (state.hasProgress) {
-      final pct = (state.current / state.total) * 100;
-      const barSize = 20;
-      final filled = ((pct / 100) * barSize).round();
-      final bar = '=' * filled;
-      final blank = ' ' * (barSize - filled);
-      sb.write('[$bar$blank] ${pct.toStringAsFixed(1)}% ');
-    }
-
-    // Message
-    sb.write(state.message);
-
-    return sb.toString();
-  }
-
-  // Add field to track visible area
-  final Map<String, bool> _visibleModules = {};
-
-  void _redraw() {
-    // Don't redraw if we're allowing interactive input (like password prompts)
-    if (_allowInteractiveInput || _passwordPromptActive) {
-      return;
-    }
-
-    terminal.startSyncUpdate();
-
-    try {
-      final viewportHeight = terminal.windowHeight;
-      final viewportStart = _initialCursorRow;
-      final viewportEnd = viewportStart + viewportHeight;
-
-      for (final entry in _moduleLineIndex.entries) {
-        final moduleId = entry.key;
-        final lineIndex = entry.value;
-        final row = _topOffset + lineIndex;
-
-        if (row >= viewportStart && row < viewportEnd) {
-          final state = _modules[moduleId]!;
-          final lineText = _buildLineText(state);
-          // Only clear the line if we have content to write
-          if (lineText.isNotEmpty) {
-            terminal
-              ..writeAt(row, 0, ' ' * terminal.windowWidth)
-              ..writeAt(row, 0, lineText);
-          }
-
-          _visibleModules[moduleId] = true;
-        } else {
-          _visibleModules[moduleId] = false;
-        }
-      }
-    } finally {
-      terminal.endSyncUpdate();
-    }
-  }
-
-  void _handleStarted(String moduleId, String message) {
-    _assignLineIfNeeded(moduleId);
-    final state = _modules[moduleId]!;
-
-    state.hasSpinner = true;
-    state.inProgress = true;
-    state.message = message;
-  }
-
-  void _handleProgress(
-    String moduleId,
-    int current,
-    int total,
-    String message,
-  ) {
-    _assignLineIfNeeded(moduleId);
-    final state = _modules[moduleId]!;
-
-    state.hasProgress = true;
-    state.inProgress = true;
-    state.current = current;
-    state.total = total;
-    state.message = message;
-  }
-
-  void _handleCompleted(String moduleId, String message) {
-    _assignLineIfNeeded(moduleId);
-    final state = _modules[moduleId]!;
-
-    // No more spinner/progress
-    state.hasSpinner = false;
-    state.inProgress = false;
-    state.message = _successPen('✓ $message');
-  }
-
-  void _handleFailed(String moduleId, String message) {
-    _assignLineIfNeeded(moduleId);
-    final state = _modules[moduleId]!;
-
-    state.hasSpinner = false;
-    state.inProgress = false;
-    state.message = _errorPen('✖ $message');
-  }
-
-  void _handleStatusUpdate(String moduleId, StatusEvent level, String message) {
-    _assignLineIfNeeded(moduleId);
-    final state = _modules[moduleId]!;
-
-    switch (level) {
-      case StatusEvent.info:
-        state.message = _infoPen(message);
-        break;
-      case StatusEvent.warning:
-        state.message = _warningPen('⚠ $message');
-        break;
-      case StatusEvent.error:
-        state.message = _errorPen('✖ $message');
-        break;
-      case StatusEvent.debug:
-        state.message = _debugPen('🔍 $message');
-        break;
-    }
-  }
+  bool _interactiveMode = false;
+  bool _passwordPromptMode = false;
+  bool _verboseMode = false;
+  bool _debugMode = false;
 
   @override
   void start() {
     _isActive = true;
-
-    // Don't clear the entire screen - just position cursor
-    terminal
-      ..writeAt(_initialCursorRow, 0, '')
-      ..cursorHide();
-
-    // _redrawTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
-    _redraw();
-    // });
   }
 
   @override
   void stop() {
     _isActive = false;
-
-    _redrawTimer?.cancel();
-    _redrawTimer = null;
-
-    _redraw();
-
-    terminal
-      ..writeAt(_topOffset + _nextLineIndex + 1, 0, '')
-      ..cursorShow();
-
-    _modules.clear();
-    _moduleLineIndex.clear();
-    _nextLineIndex = 0;
   }
 
-  /// Enable interactive input mode (disables screen redrawing)
+  /// Enable interactive input mode
+  @override
   void enableInteractiveMode() {
-    _allowInteractiveInput = true;
-    terminal.cursorShow();
+    _interactiveMode = true;
   }
 
-  /// Disable interactive input mode (re-enables screen redrawing)
+  /// Disable interactive input mode
+  @override
   void disableInteractiveMode() {
-    _allowInteractiveInput = false;
-    terminal.cursorHide();
-    _redraw();
+    _interactiveMode = false;
   }
 
-  /// Enable password prompt mode (disables screen redrawing)
+  /// Enable password prompt mode
+  @override
   void enablePasswordPromptMode() {
-    _passwordPromptActive = true;
-    terminal.cursorShow();
+    _passwordPromptMode = true;
   }
 
-  /// Disable password prompt mode (re-enables screen redrawing)
+  /// Disable password prompt mode
+  @override
   void disablePasswordPromptMode() {
-    _passwordPromptActive = false;
-    terminal.cursorHide();
-    _redraw();
+    _passwordPromptMode = false;
+  }
+
+  /// Enable verbose mode
+  void enableVerboseMode() {
+    _verboseMode = true;
+  }
+
+  /// Disable verbose mode
+  void disableVerboseMode() {
+    _verboseMode = false;
+  }
+
+  /// Enable debug mode
+  void enableDebugMode() {
+    _debugMode = true;
+  }
+
+  /// Disable debug mode
+  void disableDebugMode() {
+    _debugMode = false;
   }
 
   @override
   void handleEvent(ModuleEvent event) {
     if (!_isActive) return;
+    
+    // Don't output events when in interactive or password prompt mode
+    if (_interactiveMode || _passwordPromptMode) return;
 
-    switch (event) {
-      case StartedEvent e:
-        _handleStarted(e.moduleId, e.message);
+    // Skip logger events to avoid duplicate output
+    if (event.moduleId == 'logger') return;
 
-      case ProgressEvent e:
-        _handleProgress(e.moduleId, e.current, e.total, e.message);
+    // Handle debug and verbose filtering
+    if (!_shouldShowEvent(event)) return;
 
-      case CompletedEvent e:
-        _handleCompleted(e.moduleId, e.message);
+    switch (event.eventType) {
+      case ModuleEventType.started:
+        final startedEvent = event as StartedEvent;
+        final debugInfo = _formatEventWithDebug(event);
+        print('🔄 [${event.moduleId}] ${startedEvent.message}$debugInfo');
+        break;
+      case ModuleEventType.progress:
+        final progressEvent = event as ProgressEvent;
+        if (progressEvent.total > 10) {
+          // Use enhanced progress bar for operations with many items
+          showProgressWithETA(
+            progressEvent.current, 
+            progressEvent.total, 
+            '${event.moduleId}: ${progressEvent.message}',
+          );
+        } else {
+          // Use simple progress bar for small operations
+          final percentage = ((progressEvent.current / progressEvent.total) * 100).round();
+          final bar = _generateProgressBar(percentage);
+          print('📊 [${event.moduleId}] $bar $percentage% - ${progressEvent.message}');
+        }
+        break;
+      case ModuleEventType.completed:
+        final completedEvent = event as CompletedEvent;
+        print('✅ [${event.moduleId}] ${completedEvent.message}');
+        break;
+      case ModuleEventType.failed:
+        final failedEvent = event as FailedEvent;
+        print('❌ [${event.moduleId}] ${failedEvent.message}');
+        break;
+      case ModuleEventType.statusUpdate:
+        final statusEvent = event as StatusUpdateEvent;
+        final icon = statusEvent.level == StatusEvent.warning ? '⚠️' : 'ℹ️';
+        print('$icon [${event.moduleId}] ${statusEvent.message}');
+        break;
+      case ModuleEventType.downloadProgress:
+        final downloadEvent = event as DownloadProgressEvent;
+        if (downloadEvent.total > 1024 * 1024) { // Use enhanced progress for files > 1MB
+          showProgressWithETA(
+            downloadEvent.current, 
+            downloadEvent.total, 
+            '${event.moduleId}: ${downloadEvent.message}',
+          );
+        } else {
+          final percentage = ((downloadEvent.current / downloadEvent.total) * 100).round();
+          final bar = _generateProgressBar(percentage);
+          print('⬇️ [${event.moduleId}] $bar $percentage% - ${downloadEvent.message}');
+        }
+        break;
+      case ModuleEventType.error:
+        final errorEvent = event as ErrorEvent;
+        print('💥 [${event.moduleId}] ${errorEvent.message}');
+        break;
+      case ModuleEventType.retry:
+        final retryEvent = event as RetryEvent;
+        print('🔄 [${event.moduleId}] Retrying ${retryEvent.operation} (${retryEvent.attempt}/${retryEvent.maxAttempts})');
+        break;
+      case ModuleEventType.performance:
+        final perfEvent = event as PerformanceEvent;
+        print('⚡ [${event.moduleId}] ${perfEvent.operation} took ${perfEvent.duration.inMilliseconds}ms');
+        break;
+      case ModuleEventType.security:
+        final securityEvent = event as SecurityEvent;
+        print('🔒 [${event.moduleId}] ${securityEvent.securityEventType} (${securityEvent.severity})');
+        break;
+      case ModuleEventType.plugin:
+        final pluginEvent = event as PluginEvent;
+        print('🔌 [${event.moduleId}] ${pluginEvent.pluginName} ${pluginEvent.action}');
+        break;
+      case ModuleEventType.resourceStarted:
+        final resourceEvent = event as ResourceStartedEvent;
+        print('📦 Starting resource: ${resourceEvent.resourceId}');
+        print('   📍 Source: ${resourceEvent.source} → ${resourceEvent.destination}');
+        print('   🔧 Actions: ${resourceEvent.actionCount}');
+        break;
+      case ModuleEventType.resourceCompleted:
+        final resourceEvent = event as ResourceCompletedEvent;
+        final duration = resourceEvent.duration.inMilliseconds;
+        print('✅ Resource completed: ${resourceEvent.resourceId}');
+        print('   ⏱️  Duration: ${duration}ms');
+        print('   📊 Actions: ${resourceEvent.completedActions}/${resourceEvent.totalActions}');
+        print(''); // Add newline between parent resources
+        break;
+      case ModuleEventType.resourceRollbackStarted:
+        final resourceEvent = event as ResourceRollbackStartedEvent;
+        print('🔄 Rolling back resource: ${resourceEvent.resourceId}');
+        print('   📍 Source: ${resourceEvent.source} → ${resourceEvent.destination}');
+        print('   🔧 Actions: ${resourceEvent.actionCount}');
+        break;
+      case ModuleEventType.resourceRollbackCompleted:
+        final resourceEvent = event as ResourceRollbackCompletedEvent;
+        final duration = resourceEvent.duration.inMilliseconds;
+        print('✅ Resource rollback completed: ${resourceEvent.resourceId}');
+        print('   ⏱️  Duration: ${duration}ms');
+        print('   📊 Actions: ${resourceEvent.rolledbackActions}/${resourceEvent.totalActions}');
+        print(''); // Add newline between parent resources
+        break;
+      default:
+        print('❓ [${event.moduleId}] ${event.eventType.name}: ${event.toString()}');
+    }
+  }
 
-      case FailedEvent e:
-        _handleFailed(e.moduleId, e.message);
+  /// Generate a simple text-based progress bar
+  String _generateProgressBar(int percentage) {
+    const barLength = 20;
+    final filled = (percentage / 100 * barLength).round();
+    final empty = barLength - filled;
+    return '[${'=' * filled}${' ' * empty}]';
+  }
 
-      case StatusUpdateEvent e:
-        _handleStatusUpdate(e.moduleId, e.level, e.message);
+  /// Generate an enhanced progress bar with more details
+  String _generateEnhancedProgressBar(int current, int total, String message) {
+    final percentage = total > 0 ? ((current / total) * 100).round() : 0;
+    const barLength = 30;
+    final filled = (percentage / 100 * barLength).round();
+    final empty = barLength - filled;
+    
+    final bar = '[${'█' * filled}${'░' * empty}]';
+    final progressText = '$current/$total';
+    final percentageText = '$percentage%';
+    
+    return '$bar $percentageText ($progressText) - $message';
+  }
 
-      case DownloadProgressEvent e:
-        _handleProgress(e.moduleId, e.current, e.total, e.message);
-        
-      case ErrorEvent e:
-        _handleFailed(e.moduleId, e.message);
-        
-      case RetryEvent e:
-        _handleStatusUpdate(e.moduleId, StatusEvent.warning, 'Retrying ${e.operation} (${e.attempt}/${e.maxAttempts})');
-        
-      case PerformanceEvent e:
-        _handleStatusUpdate(e.moduleId, StatusEvent.debug, 'Performance: ${e.operation} took ${e.duration.inMilliseconds}ms');
-        
-      case SecurityEvent e:
-        _handleStatusUpdate(e.moduleId, StatusEvent.warning, 'Security: ${e.securityEventType} (${e.severity})');
-        
-      case PluginEvent e:
-        _handleStatusUpdate(e.moduleId, StatusEvent.info, 'Plugin: ${e.pluginName} ${e.action}');
+  /// Show progress with estimated time remaining
+  void showProgressWithETA(int current, int total, String message) {
+    if (!_isActive) return;
+    
+    final progressBar = _generateEnhancedProgressBar(current, total, message);
+    
+    // Use carriage return to overwrite the same line
+    stdout.write('\r📊 $progressBar');
+    if (current >= total) {
+      stdout.write('\n'); // New line when complete
+    }
+  }
+
+
+  /// Determine if an event should be shown based on verbose/debug modes
+  bool _shouldShowEvent(ModuleEvent event) {
+    switch (event.eventType) {
+      case ModuleEventType.started:
+      case ModuleEventType.completed:
+      case ModuleEventType.failed:
+      case ModuleEventType.error:
+        // Always show critical events
+        return true;
+      
+      case ModuleEventType.progress:
+      case ModuleEventType.downloadProgress:
+        // Show progress in verbose mode or for important operations
+        return _verboseMode || _debugMode;
+      
+      case ModuleEventType.statusUpdate:
+        // Show status updates in verbose mode
+        return _verboseMode || _debugMode;
+      
+      case ModuleEventType.retry:
+        // Show retry attempts in verbose mode
+        return _verboseMode || _debugMode;
+      
+      case ModuleEventType.performance:
+        // Show performance metrics in debug mode
+        return _debugMode;
+      
+      case ModuleEventType.security:
+        // Always show security events
+        return true;
+      
+      case ModuleEventType.plugin:
+        // Show plugin events in verbose mode
+        return _verboseMode || _debugMode;
+      
+      case ModuleEventType.resourceStarted:
+      case ModuleEventType.resourceCompleted:
+      case ModuleEventType.resourceRollbackStarted:
+      case ModuleEventType.resourceRollbackCompleted:
+        // Show resource events in verbose mode
+        return _verboseMode || _debugMode;
+      
+      default:
+        // Show unknown events in debug mode
+        return _debugMode;
+    }
+  }
+
+  /// Format event with additional debug information
+  String _formatEventWithDebug(ModuleEvent event) {
+    if (!_debugMode) return '';
+    
+    final timestamp = DateTime.now().toIso8601String();
+    return ' [$timestamp]';
+  }
+
+  /// Prompt user for input with a message
+  String prompt(String message, {String? defaultValue}) {
+    // Always return default value to avoid interactive issues
+    return defaultValue ?? '';
+  }
+
+  /// Prompt user for confirmation (yes/no)
+  bool confirm(String message, {bool defaultValue = false}) {
+    // Always return default value to avoid interactive issues
+    return defaultValue;
+  }
+
+  /// Prompt user to select from a list of options
+  T select<T>(String message, List<T> options, {T? defaultValue}) {
+    // Always return default value to avoid interactive issues
+    return defaultValue ?? options.first;
+  }
+
+  /// Prompt user for password (hidden input)
+  String promptPassword(String message) {
+    // Always return empty string to avoid interactive issues
+    return '';
+  }
+
+  /// Show a message in interactive mode
+  void showMessage(String message) {
+    if (_interactiveMode) {
+      print(message);
+    }
+  }
+
+  /// Show a warning message in interactive mode
+  void showWarning(String message) {
+    if (_interactiveMode) {
+      print('⚠️  $message');
+    }
+  }
+
+  /// Show an error message in interactive mode
+  void showError(String message) {
+    if (_interactiveMode) {
+      print('❌ $message');
+    }
+  }
+
+  /// Show a success message in interactive mode
+  void showSuccess(String message) {
+    if (_interactiveMode) {
+      print('✅ $message');
     }
   }
 }

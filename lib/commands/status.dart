@@ -1,10 +1,15 @@
-import 'package:configr/commands/command.dart';
+import 'package:configr/commands/base_command.dart';
 
-class StatusCommand extends Command {
-  StatusCommand(super.configManager);
+class StatusCommand extends BaseCommand {
 
   @override
-  Future<void> execute() async {
+  String get name => 'status';
+  
+  @override
+  String get description => 'Show configuration status';
+
+  @override
+  void executeCommand() async {
     await configManager.load();
     // Implement status logic here
     print('Status functionality not yet implemented.');

@@ -36,7 +36,8 @@ class FileValidateModule extends ResourceModule {
   @override
   Future<void> execute() async {
     emitEvent(StartedEvent(moduleId: action.id, message: 'Starting file validation'));
-    final sourcePath = source;
+    // Use file_path property if specified, otherwise use source
+    final sourcePath = action.properties['file_path'] as String? ?? source;
     final exists =
         await FileUtils.fileExists(sourcePath, fileSystem: fileSystem);
     updateState({'sourceExists': exists});
@@ -331,13 +332,25 @@ class FileValidateModule extends ResourceModule {
 
   @override
   Future<void> rollback() async {
-    // Validation is read-only, just track the rollback attempt
-    updateState({'rollbackAttempted': true});
+    emitEvent(StartedEvent(moduleId: action.id, message: 'Rolling back validation operation'));
+    
+    try {
+      // Validation is read-only, just track the rollback attempt
+      updateState({'rollbackAttempted': true});
 
-    for (var module in childModules) {
-      await module.rollback();
+      for (var module in childModules) {
+        await module.rollback();
+      }
+
+      emitEvent(CompletedEvent(moduleId: action.id, message: 'Validation rollback completed'));
+      await saveState();
+    } catch (e, st) {
+      updateState({
+        'rollbackError': e.toString(),
+        'rollbackStackTrace': st.toString()
+      });
+      emitEvent(FailedEvent(moduleId: action.id, message: 'Validation rollback failed: ${e.toString()}'));
+      rethrow;
     }
-
-    await saveState();
   }
 }

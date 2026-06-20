@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:configr/events/module_events.dart';
 import 'package:configr/exceptions.dart';
 import 'package:configr/modules/resource/resource_module.dart';
@@ -30,6 +29,7 @@ class FilePackageModule extends ResourceModule {
   bool get force => state['force'] as bool? ?? false;
   bool get updateCache => state['updateCache'] as bool? ?? true;
   bool get skipIfInstalled => state['skipIfInstalled'] as bool? ?? true;
+  bool get installGlobally => state['installGlobally'] as bool? ?? true;
   int get packageId => state['packageId'] as int? ?? 0;
   Map<String, String> get operationResults {
     final results = state['operationResults'];
@@ -49,6 +49,7 @@ class FilePackageModule extends ResourceModule {
 
   FilePackageModule(super.file, super.action,
       {super.allowedActions = const ['package'], super.fileSystem}) {
+    // Set default values first
     updateState({
       'packageManager': 'auto',
       'packages': [],
@@ -58,13 +59,21 @@ class FilePackageModule extends ResourceModule {
       'force': false,
       'updateCache': true,
       'skipIfInstalled': true,
+      'installGlobally': true,
       'packageId': 0,
       'operationResults': {},
       'packagesProcessed': 0,
       'packagesSkipped': 0,
       'errorsEncountered': 0,
     });
+    
+    // Load configuration from action properties
     _loadConfiguration();
+    
+    // Restore state from action after configuration loading (for rollback)
+    if (action.state.isNotEmpty) {
+      updateState(action.state);
+    }
   }
 
   void _loadConfiguration() {
@@ -76,6 +85,7 @@ class FilePackageModule extends ResourceModule {
       'force': props['force'] ?? force,
       'updateCache': props['update_cache'] ?? updateCache,
       'skipIfInstalled': props['skip_if_installed'] ?? skipIfInstalled,
+      'installGlobally': props['install_globally'] ?? installGlobally,
     });
 
     if (props.containsKey('packages')) {
@@ -161,6 +171,9 @@ class FilePackageModule extends ResourceModule {
 
       logger.info('Package operation completed successfully. Packages processed: $packagesProcessed, Skipped: $packagesSkipped');
       emitEvent(CompletedEvent(moduleId: action.id, message: 'Package management operation completed successfully'));
+      
+      // Save state after successful execution
+      await saveState();
     } catch (e) {
       updateState({'errorsEncountered': errorsEncountered + 1});
       emitEvent(FailedEvent(moduleId: action.id, message: 'Package operation failed: $e'));
@@ -274,7 +287,16 @@ class FilePackageModule extends ResourceModule {
 
   Future<void> _installPackage(PackageManager manager, String packageName, String? version) async {
     // Check if already installed
-    if (skipIfInstalled && await manager.isInstalled(packageName)) {
+    bool isAlreadyInstalled = false;
+    if (manager is GlobalLocalContextCapability) {
+      isAlreadyInstalled = installGlobally 
+          ? await manager.isInstalledGlobally(packageName)
+          : await manager.isInstalledLocally(packageName);
+    } else {
+      isAlreadyInstalled = await manager.isInstalled(packageName);
+    }
+    
+    if (skipIfInstalled && isAlreadyInstalled) {
       logger.info('Package $packageName is already installed, skipping');
       updateState({'packagesSkipped': packagesSkipped + 1});
       return;
@@ -283,11 +305,29 @@ class FilePackageModule extends ResourceModule {
     logger.info('Installing package: $packageName${version != null ? ' version $version' : ''}');
     emitEvent(ProgressEvent(moduleId: action.id, message: 'Installing package: $packageName'));
 
-    await manager.install(packageName, version: version);
+    // Use appropriate installation method based on configuration and capabilities
+    if (installGlobally && manager is GlobalInstallCapability) {
+      await manager.installGlobally(packageName, version: version);
+    } else if (!installGlobally && manager is LocalInstallCapability) {
+      await manager.installLocally(packageName, version: version);
+    } else {
+      // Fallback to default install method
+      await manager.install(packageName, version: version);
+    }
+    
+    // Get the actual installed version
+    String? installedVersion;
+    if (manager is GlobalLocalContextCapability) {
+      installedVersion = installGlobally 
+          ? await manager.getInstalledVersionGlobally(packageName)
+          : await manager.getInstalledVersionLocally(packageName);
+    } else {
+      installedVersion = await manager.getInstalledVersion(packageName);
+    }
     
     updateState({'packagesProcessed': packagesProcessed + 1});
     final results = Map<String, String>.from(operationResults);
-    results[packageName] = 'installed${version != null ? ':$version' : ''}';
+    results[packageName] = 'installed:${installedVersion ?? 'unknown'}';
     updateState({'operationResults': results});
   }
 
@@ -330,11 +370,22 @@ class FilePackageModule extends ResourceModule {
     emitEvent(ProgressEvent(moduleId: action.id, message: 'Upgrading package: $packageName'));
 
     // For upgrade, we reinstall with the new version
-    await manager.install(packageName, version: version);
+    // Use appropriate installation method based on configuration and capabilities
+    if (installGlobally && manager is GlobalInstallCapability) {
+      await manager.installGlobally(packageName, version: version);
+    } else if (!installGlobally && manager is LocalInstallCapability) {
+      await manager.installLocally(packageName, version: version);
+    } else {
+      // Fallback to default install method
+      await manager.install(packageName, version: version);
+    }
+    
+    // Get the actual installed version after upgrade
+    final installedVersion = await manager.getInstalledVersion(packageName);
     
     updateState({'packagesProcessed': packagesProcessed + 1});
     final results = Map<String, String>.from(operationResults);
-    results[packageName] = 'upgraded${version != null ? ':$version' : ''}';
+    results[packageName] = 'upgraded:${installedVersion ?? 'unknown'}';
     updateState({'operationResults': results});
   }
 
@@ -348,11 +399,22 @@ class FilePackageModule extends ResourceModule {
     }
 
     // Then install
-    await manager.install(packageName, version: version);
+    // Use appropriate installation method based on configuration and capabilities
+    if (installGlobally && manager is GlobalInstallCapability) {
+      await manager.installGlobally(packageName, version: version);
+    } else if (!installGlobally && manager is LocalInstallCapability) {
+      await manager.installLocally(packageName, version: version);
+    } else {
+      // Fallback to default install method
+      await manager.install(packageName, version: version);
+    }
+    
+    // Get the actual installed version after reinstall
+    final installedVersion = await manager.getInstalledVersion(packageName);
     
     updateState({'packagesProcessed': packagesProcessed + 1});
     final results = Map<String, String>.from(operationResults);
-    results[packageName] = 'reinstalled${version != null ? ':$version' : ''}';
+    results[packageName] = 'reinstalled:${installedVersion ?? 'unknown'}';
     updateState({'operationResults': results});
   }
 
@@ -361,15 +423,109 @@ class FilePackageModule extends ResourceModule {
     emitEvent(StartedEvent(moduleId: action.id, message: 'Starting package module rollback'));
     
     try {
-      // For package operations, rollback is complex as we don't track original state
-      // This is a simplified rollback that logs the operation
-      logger.info('Package rollback: This operation cannot be fully rolled back as original package states are not tracked');
-      logger.info('Package operation results: $operationResults');
+      final manager = await _getPackageManager();
       
-      emitEvent(CompletedEvent(moduleId: action.id, message: 'Package module rollback completed (limited rollback capability)'));
+      // Rollback based on operation type and results
+      await _rollbackPackages(manager);
+      
+      emitEvent(CompletedEvent(moduleId: action.id, message: 'Package module rollback completed'));
     } catch (e) {
       emitEvent(FailedEvent(moduleId: action.id, message: 'Failed to rollback package operation: $e'));
       rethrow;
     }
+  }
+
+  Future<void> _rollbackPackages(PackageManager manager) async {
+    final results = operationResults;
+    if (results.isEmpty) {
+      logger.info('No package operations to rollback');
+      emitEvent(ProgressEvent(moduleId: action.id, message: 'No package operations to rollback'));
+      return;
+    }
+
+    logger.info('Rolling back package operations: $results');
+    emitEvent(ProgressEvent(moduleId: action.id, message: 'Rolling back ${results.length} packages'));
+
+    for (final entry in results.entries) {
+      final packageName = entry.key;
+      final result = entry.value;
+      
+      emitEvent(ProgressEvent(moduleId: action.id, message: 'Rolling back package: $packageName'));
+      
+      try {
+        await _rollbackPackage(manager, packageName, result);
+      } catch (e) {
+        logger.warning('Failed to rollback package $packageName: $e');
+        emitEvent(ProgressEvent(moduleId: action.id, message: 'Failed to rollback package: $packageName'));
+        updateState({'errorsEncountered': errorsEncountered + 1});
+      }
+    }
+  }
+
+  Future<void> _rollbackPackage(PackageManager manager, String packageName, String result) async {
+    // Parse the result to understand what was done
+    if (result.startsWith('installed:')) {
+      await _rollbackInstall(manager, packageName);
+    } else if (result.startsWith('upgraded:')) {
+      await _rollbackUpgrade(manager, packageName);
+    } else if (result.startsWith('reinstalled:')) {
+      await _rollbackReinstall(manager, packageName);
+    } else if (result.startsWith('uninstalled:')) {
+      await _rollbackUninstall(manager, packageName);
+    } else {
+      logger.info('Unknown operation result for $packageName: $result, skipping rollback');
+    }
+  }
+
+  Future<void> _rollbackInstall(PackageManager manager, String packageName) async {
+    logger.info('Rolling back installation of $packageName');
+    emitEvent(ProgressEvent(moduleId: action.id, message: 'Uninstalling $packageName'));
+
+    // Check if package is still installed
+    bool isInstalled = false;
+    if (manager is GlobalLocalContextCapability) {
+      isInstalled = installGlobally 
+          ? await manager.isInstalledGlobally(packageName)
+          : await manager.isInstalledLocally(packageName);
+    } else {
+      isInstalled = await manager.isInstalled(packageName);
+    }
+
+    if (isInstalled) {
+      // Use appropriate uninstall method based on installation type
+      if (manager is GlobalLocalContextCapability) {
+        if (installGlobally) {
+          await manager.uninstallGlobally(packageName);
+        } else {
+          await manager.uninstallLocally(packageName);
+        }
+      } else {
+        await manager.uninstall(packageName);
+      }
+      logger.info('Successfully uninstalled $packageName');
+    } else {
+      logger.info('Package $packageName is not installed, skipping uninstall');
+    }
+  }
+
+  Future<void> _rollbackUpgrade(PackageManager manager, String packageName) async {
+    logger.info('Rolling back upgrade of $packageName');
+    // For upgrades, we can't easily rollback to the previous version
+    // without tracking the original version, so we just log this
+    logger.warning('Cannot rollback upgrade of $packageName - original version not tracked');
+  }
+
+  Future<void> _rollbackReinstall(PackageManager manager, String packageName) async {
+    logger.info('Rolling back reinstall of $packageName');
+    // For reinstalls, we can't easily rollback without knowing the original state
+    // so we just log this
+    logger.warning('Cannot rollback reinstall of $packageName - original state not tracked');
+  }
+
+  Future<void> _rollbackUninstall(PackageManager manager, String packageName) async {
+    logger.info('Rolling back uninstall of $packageName');
+    // For uninstalls, we would need to reinstall the package
+    // but we don't track the original version, so we just log this
+    logger.warning('Cannot rollback uninstall of $packageName - original version not tracked');
   }
 }

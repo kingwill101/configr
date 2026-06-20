@@ -156,6 +156,8 @@ class FileDeleteModule extends ResourceModule {
 
   @override
   Future<void> rollback() async {
+    emitEvent(StartedEvent(moduleId: action.id, message: 'Rolling back delete operation'));
+    
     try {
       if (fileExisted && backupPath != null && backupCreated) {
         logger.info('Restoring file from $backupPath to $source');
@@ -163,19 +165,21 @@ class FileDeleteModule extends ResourceModule {
         await FileUtils.deleteFile(backupPath!, fileSystem: fileSystem);
         updateState({'rollbackCompleted': true});
       }
+
+      for (var module in childModules) {
+        await module.rollback();
+      }
+
+      emitEvent(CompletedEvent(moduleId: action.id, message: 'Delete rollback completed'));
+      await saveState();
     } catch (e, st) {
       updateState({
         'rollbackError': e.toString(),
         'rollbackStackTrace': st.toString(),
       });
+      emitEvent(FailedEvent(moduleId: action.id, message: 'Delete rollback failed: ${e.toString()}'));
       rethrow;
     }
-
-    for (var module in childModules) {
-      await module.rollback();
-    }
-
-    await saveState();
   }
 
   /// Parse configuration from action properties.

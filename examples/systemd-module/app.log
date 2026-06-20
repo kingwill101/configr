@@ -1,0 +1,70 @@
+
+INFO: 2025-09-28 14:04:23.207454: Resource resource_1 unchanged, skipping
+
+INFO: 2025-09-28 14:04:23.231578: Resource resource_2 unchanged, skipping
+
+INFO: 2025-09-28 14:04:23.244787: StartResource(/dev/null): systemd
+
+INFO: 2025-09-28 14:04:23.259837: Validating destination permissions: /etc/systemd/system/myapp.service
+
+INFO: 2025-09-28 14:04:23.267918: Checking permissions (cross-platform) for: /etc/systemd/system
+
+INFO: 2025-09-28 14:04:23.277491: Permission check result for /etc/systemd/system: read=false, write=false, execute=false
+
+SEVERE: 2025-09-28 14:04:23.288500: Resource failed (systemd): Cannot write to parent directory: /etc/systemd/system
+Please check permissions or use a different destination.
+
+StackTrace: #0      FileSystemdModule._validateDestination (package:configr/modules/resource/systemd.dart:526:11)
+<asynchronous suspension>
+#1      FileSystemdModule.execute (package:configr/modules/resource/systemd.dart:222:5)
+<asynchronous suspension>
+#2      ResourceModule.call (package:configr/modules/resource/resource_module.dart:192:7)
+<asynchronous suspension>
+#3      ConfigManager.applyConfig (package:configr/config_manager.dart:213:17)
+<asynchronous suspension>
+#4      ApplyCommand.executeCommand (package:configr/commands/apply.dart:20:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 14:04:23.290765: Rolling back service configuration for myapp
+
+INFO: 2025-09-28 14:04:23.292353: Deleting file with permission awareness (cross-platform): 
+
+INFO: 2025-09-28 14:04:23.294828: File does not exist: 
+
+INFO: 2025-09-28 14:04:23.295314: Service configuration file removed for myapp
+
+INFO: 2025-09-28 14:16:47.852387: Resource resource_1 unchanged, skipping
+
+INFO: 2025-09-28 14:16:47.898121: Resource resource_2 unchanged, skipping
+
+INFO: 2025-09-28 14:16:47.925159: StartResource(/dev/null): systemd
+
+INFO: 2025-09-28 14:16:47.956824: Validating destination permissions: /etc/systemd/system/myapp.service
+
+INFO: 2025-09-28 14:16:47.970813: Checking permissions (cross-platform) for: /etc/systemd/system
+
+INFO: 2025-09-28 14:16:47.993674: Permission check result for /etc/systemd/system: read=false, write=false, execute=false
+
+SEVERE: 2025-09-28 14:16:48.012014: Resource failed (systemd): Cannot write to parent directory: /etc/systemd/system
+Please check permissions or use a different destination.
+
+StackTrace: #0      FileSystemdModule._validateDestination (package:configr/modules/resource/systemd.dart:526:11)
+<asynchronous suspension>
+#1      FileSystemdModule.execute (package:configr/modules/resource/systemd.dart:222:5)
+<asynchronous suspension>
+#2      ResourceModule.call (package:configr/modules/resource/resource_module.dart:192:7)
+<asynchronous suspension>
+#3      ConfigManager.applyConfig (package:configr/config_manager.dart:213:17)
+<asynchronous suspension>
+#4      ApplyCommand.executeCommand (package:configr/commands/apply.dart:20:5)
+<asynchronous suspension>
+
+
+INFO: 2025-09-28 14:16:48.020126: Rolling back service configuration for myapp
+
+INFO: 2025-09-28 14:16:48.024804: Deleting file with permission awareness (cross-platform): 
+
+INFO: 2025-09-28 14:16:48.037960: File does not exist: 
+
+INFO: 2025-09-28 14:16:48.041562: Service configuration file removed for myapp

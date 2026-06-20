@@ -16,13 +16,29 @@ resources {
     }
   }
 
-  # Document backup with filtering
+  # Document backup with filtering and hooks
   resource {
     id "document-backup"
     source "documents"
     destination "backup/documents"
     
     actions {
+      # Before hook - create backup directory and log
+      before {
+        echo {
+          message "Starting document backup operation"
+          level "info"
+          color true
+        }
+      }
+      
+      before {
+        execute {
+          command "mkdir -p backup/documents"
+          on_success true
+        }
+      }
+      
       sync {
         sync_mode "source_to_dest"
         conflict_resolution "newer"
@@ -30,6 +46,22 @@ resources {
         preserve_permissions true
         preserve_timestamps true
         delete_orphans false
+      }
+      
+      # After hook - verify backup and show statistics
+      after {
+        echo {
+          message "Document backup completed successfully"
+          level "success"
+          color true
+        }
+      }
+      
+      after {
+        execute {
+          command "du -sh backup/documents"
+          on_success true
+        }
       }
     }
   }
@@ -89,3 +121,4 @@ resources {
     }
   }
 }
+

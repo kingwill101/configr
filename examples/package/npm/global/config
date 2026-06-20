@@ -1,0 +1,101 @@
+resources {
+  # Global development tools installation
+  resource {
+    id "global-dev-tools"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      before {
+        echo {
+          message "Installing Node.js development tools globally"
+          level "info"
+          color true
+        }
+      }
+      
+      package {
+        packages ["typescript", "eslint", "prettier", "nodemon", "ts-node"]
+        package_versions {
+          typescript "5.0.0"
+          eslint "8.0.0"
+          prettier "3.0.0"
+        }
+        operation "install"
+        package_manager "npm"
+        install_globally true
+        update_cache false
+        skip_if_installed true
+      }
+      
+      after {
+        execute {
+          command "npm list -g --depth=0"
+          on_success true
+        }
+      }
+    }
+  }
+
+  # Global web development tools
+  resource {
+    id "global-web-tools"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["webpack", "webpack-cli", "vite", "rollup", "parcel"]
+        package_versions {
+          webpack "5.0.0"
+          vite "4.0.0"
+        }
+        operation "install"
+        package_manager "npm"
+        install_globally true
+        update_cache false
+        skip_if_installed true
+      }
+    }
+  }
+
+  # Global testing frameworks
+  resource {
+    id "global-testing-tools"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["jest", "mocha", "chai", "cypress", "playwright"]
+        package_versions {
+          jest "29.0.0"
+          mocha "10.0.0"
+        }
+        operation "install"
+        package_manager "npm"
+        install_globally true
+        update_cache false
+        skip_if_installed true
+      }
+    }
+  }
+
+  # Global CLI tools
+  resource {
+    id "global-cli-tools"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["pm2", "forever", "concurrently", "cross-env"]
+        operation "install"
+        package_manager "npm"
+        install_globally true
+        update_cache false
+        skip_if_installed true
+      }
+    }
+  }
+}

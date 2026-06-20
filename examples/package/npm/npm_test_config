@@ -1,0 +1,17 @@
+resources {
+  resource {
+    id "npm-test"
+    source "/tmp"
+    destination "/tmp"
+    
+    actions {
+      package {
+        packages ["lodash", "express"]
+        operation "install"
+        package_manager "npm"
+        update_cache false
+        skip_if_installed true
+      }
+    }
+  }
+}

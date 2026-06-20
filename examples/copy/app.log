@@ -1,0 +1,29 @@
+
+WARNING: 2025-10-02 13:10:39.141092: Failed to update state
+
+Error: FileSystemException: Cannot open file, path = '/run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/copy' (OS Error: Is a directory, errno = 21)
+
+StackTrace: #0      _checkForErrorResponse (dart:io/common.dart:58:9)
+#1      _File.open.<anonymous closure> (dart:io/file_impl.dart:442:7)
+<asynchronous suspension>
+#2      _File.readAsBytes.<anonymous closure> (dart:io/file_impl.dart:649:24)
+<asynchronous suspension>
+#3      _File.readAsString (dart:io/file_impl.dart:716:18)
+<asynchronous suspension>
+#4      FileUtils.readFile (package:configr/utils/file_utils.dart:564:12)
+<asynchronous suspension>
+#5      FileCopyModule.execute (package:configr/modules/resource/copy.dart:99:25)
+<asynchronous suspension>
+#6      ResourceModule.call (package:configr/modules/resource/resource_module.dart:197:7)
+<asynchronous suspension>
+#7      ResourceModule.executeModules (package:configr/modules/resource/resource_module.dart:272:11)
+<asynchronous suspension>
+#8      GenericResourceModule.execute (package:configr/modules/resource/resource_module.dart:371:5)
+<asynchronous suspension>
+#9      ResourceModule.call (package:configr/modules/resource/resource_module.dart:197:7)
+<asynchronous suspension>
+#10     ConfigManager.applyConfig (package:configr/config_manager.dart:365:17)
+<asynchronous suspension>
+#11     ApplyCommand.executeCommand (package:configr/commands/apply.dart:20:5)
+<asynchronous suspension>
+
