@@ -58,6 +58,13 @@ class ConfigrCommandRunner extends CommandRunner<void> {
       valueHelp: 'path',
     );
 
+    argParser.addMultiOption(
+      'plugin',
+      help:
+          'Path to a plugin file (.lua) to load (can be specified multiple times)',
+      valueHelp: 'path',
+    );
+
     argParser.addFlag(
       'debug',
       abbr: 'd',
@@ -104,6 +111,7 @@ class ConfigrCommandRunner extends CommandRunner<void> {
     final dryRunMode = _hasFlag(args, '--dry-run');
     final generateCompletion = _hasFlag(args, '--generate-completion');
     final pluginDirs = _multiArgValues(args, '--plugin-dir');
+    final pluginFiles = _multiArgValues(args, '--plugin');
 
     if (generateCompletion) {
       _generateCompletionScript();
@@ -127,6 +135,7 @@ class ConfigrCommandRunner extends CommandRunner<void> {
       interactiveMode: interactiveMode,
       useV2: useV2,
       pluginDirs: pluginDirs,
+      pluginFiles: pluginFiles,
     );
 
     final runtime = ConfigrRuntime(configrConfig);

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart' show sha256;
+import 'package:path/path.dart' as p;
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/blocks/backup_block.dart';
 import 'package:configr/src/blocks/compress_block.dart';
@@ -26,8 +27,11 @@ import 'package:configr/src/blocks/touch_block.dart';
 import 'package:configr/src/blocks/validate_block.dart';
 import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/models/v2_lockfile_data.dart';
+import 'package:configr/src/configr_directories.dart';
 import 'package:configr/src/plugins/configr_plugin.dart';
+import 'package:configr/src/plugins/lua_plugin.dart';
 import 'package:configr/src/reader/handlers/configr_handlers.dart';
+import 'package:configr/src/reader/handlers/plugin_block_handler.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/privilege_escalation.dart'
@@ -155,16 +159,57 @@ Future<void> applyV2(
     processor.context.options['_failFast'] = true;
   }
 
+  final configDir = p.dirname(p.absolute(configPath));
+
+  // Discover .configr/ directory alongside the config file
+  final dotConfigrPath = p.join(configDir, '.configr');
+  final configrDirs = ConfigrDirectories(projectConfigrPath: dotConfigrPath);
+
+  // Auto-add .configr/plugins/ as a plugin directory if it exists
+  if (pluginLoader != null) {
+    final projectPlugins = p.join(dotConfigrPath, 'plugins');
+    if (await fs.directory(projectPlugins).exists()) {
+      if (!pluginLoader.pluginDirectories.contains(projectPlugins)) {
+        pluginLoader.pluginDirectories.add(projectPlugins);
+      }
+    }
+  }
+
+  // Store directory info in processor context so blocks/Lua can access
+  processor.context.options['_configrDirs'] = configrDirs;
+  processor.context.options['_configrCacheDir'] = configrDirs.cacheDir;
+  processor.context.options['_configrBackupDir'] = configrDirs.backupDir;
+
+  // Ensure standard directories exist
+  await configrDirs.ensureAll();
+
   await _registerAllBlocks(
     processor,
     eventBus: eventBus,
     dryRun: dryRun,
     privilegeEscalation: privilegeEscalation,
     pluginLoader: pluginLoader,
+    configDir: configDir,
   );
+
+  // Invoke plugin onConfigLoad hooks
+  if (pluginLoader != null) {
+    final plugins = await pluginLoader.discoverPlugins();
+    for (final plugin in plugins) {
+      await plugin.onConfigLoad(config);
+    }
+  }
 
   // Process — each block executes as it is processed
   await processor.process(config);
+
+  // Invoke plugin onConfigApplied hooks
+  if (pluginLoader != null) {
+    final plugins = await pluginLoader.discoverPlugins();
+    for (final plugin in plugins) {
+      await plugin.onConfigApplied(config);
+    }
+  }
 
   // Execute post-apply scripts after processing
   if (!dryRun) {
@@ -451,6 +496,7 @@ Future<void> _registerAllBlocks(
   bool dryRun = false,
   PrivilegeEscalation? privilegeEscalation,
   ConfigrPluginLoader? pluginLoader,
+  String configDir = '.',
 }) async {
   // -----------------------------------------------------------------------
   // 1. Create ActionBlock instances and inject dependencies
@@ -461,6 +507,10 @@ Future<void> _registerAllBlocks(
     block.fileSystem ??= const LocalFileSystem();
     return block;
   }
+
+  // Store processor reference so handlers (e.g. PluginBlockHandler)
+  // can access it to register additional blocks during config processing.
+  processor.context.options['_processor'] = processor;
 
   final actionBlockMap = <String, ActionBlock>{
     'backup': make(BackupBlock(eventBus: eventBus)),
@@ -534,6 +584,18 @@ Future<void> _registerAllBlocks(
   processor.registerBlockHandler(CommandEntryBlockHandler());
   processor.registerBlockHandler(PackageEntryBlockHandler());
 
+  // Register the plugin block handler so config files can declare plugins
+  // via `plugin { lua = "..." }` blocks.
+  if (pluginLoader != null) {
+    processor.registerBlockHandler(
+      PluginBlockHandler(
+        processor: processor,
+        pluginLoader: pluginLoader,
+        configDir: configDir,
+      ),
+    );
+  }
+
   // -----------------------------------------------------------------------
   // 4. Register all ActionBlocks as global handlers
   // -----------------------------------------------------------------------
@@ -546,6 +608,21 @@ Future<void> _registerAllBlocks(
   // -----------------------------------------------------------------------
   if (pluginLoader != null) {
     await pluginLoader.registerAllPlugins(processor, eventBus: eventBus);
+
+    // Load individual plugin files (e.g. specified via --plugin CLI flag)
+    if (pluginLoader.pluginFiles.isNotEmpty) {
+      for (final filePath in pluginLoader.pluginFiles) {
+        if (filePath.endsWith('.lua')) {
+          final plugin = LuaPlugin(scriptPath: filePath);
+          await plugin.initialize();
+          plugin.registerBlocks(processor, eventBus: eventBus);
+          pluginLoader.registerPlugin(plugin);
+          logger.info('Loaded plugin file: $filePath');
+        } else {
+          logger.warning('Unsupported plugin file type: $filePath');
+        }
+      }
+    }
   }
 }
 
@@ -577,6 +654,7 @@ Future<List<BlockSnapshot>> _parseConfigBlocks(
     eventBus: eventBus,
     dryRun: true,
     pluginLoader: pluginLoader,
+    configDir: p.dirname(configFile.path),
   );
 
   await processor.process(config);

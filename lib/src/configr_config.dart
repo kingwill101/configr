@@ -26,6 +26,7 @@ class ConfigrConfig {
   final bool interactiveMode;
   final bool useV2;
   final List<String> pluginDirs;
+  final List<String> pluginFiles;
   final ConfigrPluginLoader? pluginLoader;
   final FormatService formatService;
 
@@ -50,6 +51,7 @@ class ConfigrConfig {
     this.interactiveMode = false,
     this.useV2 = false,
     this.pluginDirs = const [],
+    this.pluginFiles = const [],
     this.privilegeLockTimeout = const Duration(minutes: 15),
     this.privilegeLockEnabled = false,
     ConfigrPluginLoader? pluginLoader,
@@ -59,7 +61,10 @@ class ConfigrConfig {
        options = options ?? ConfigOptions(),
        eventBus = eventBus ?? EventBus(),
        pluginLoader =
-           pluginLoader ?? ConfigrPluginLoader(pluginDirectories: pluginDirs),
+            pluginLoader ?? ConfigrPluginLoader(
+              pluginDirectories: pluginDirs,
+              pluginFiles: pluginFiles,
+            ),
        privilegeLock =
            privilegeLock ??
            (keepPrivilegeLock

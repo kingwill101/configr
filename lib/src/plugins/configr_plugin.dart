@@ -51,6 +51,9 @@ abstract class ConfigrPlugin {
   /// Plugin version for dependency resolution (semver string).
   String get version => '0.1.0';
 
+  /// Initialize the plugin before registration.
+  Future<void> initialize() async {}
+
   /// Called once during i3 config processor setup.
   ///
   /// Register custom block handlers, scoped command handlers, etc. onto
@@ -123,9 +126,13 @@ class PluginManifest {
 ///   not loaded dynamically (G.5 remains a stretch goal).
 class ConfigrPluginLoader {
   final List<String> pluginDirectories;
+  final List<String> pluginFiles;
   final List<ConfigrPlugin> _programmaticPlugins = [];
 
-  ConfigrPluginLoader({this.pluginDirectories = const []});
+  ConfigrPluginLoader({
+    this.pluginDirectories = const [],
+    this.pluginFiles = const [],
+  });
 
   /// Register a plugin instance programmatically (preferred approach).
   void registerPlugin(ConfigrPlugin plugin) {
@@ -202,6 +209,7 @@ class ConfigrPluginLoader {
   }) async {
     final plugins = await discoverPlugins();
     for (final plugin in plugins) {
+      await plugin.initialize();
       plugin.registerBlocks(processor, eventBus: eventBus);
     }
   }

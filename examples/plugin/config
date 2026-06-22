@@ -1,0 +1,24 @@
+# Example config using the Lua notify plugin
+# Load (either approach):
+#   configr apply --plugin plugin.lua          # CLI flag
+#   configr apply                              # plugin {} block below
+
+plugin {
+  lua = "plugin.lua"
+}
+
+set $target_file "hello.txt"
+
+notify {
+  message = "Starting copy of $target_file"
+}
+
+file {
+  source = "template.txt"
+  destination = $target_file
+}
+
+notify {
+  message = "Finished copy of $target_file"
+  greet "Alice"
+}
