@@ -15,3 +15,7 @@ install:
 
 uninstall:
     dart pub global deactivate configr
+
+docker-test:
+    docker build -f examples/dotfiles-bootstrap/Dockerfile -t configr-test-dotfiles .
+    docker run --rm configr-test-dotfiles

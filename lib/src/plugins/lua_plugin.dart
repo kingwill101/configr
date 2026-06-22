@@ -8,6 +8,7 @@ import 'package:i3config/i3config_v2.dart' as i3;
 import 'package:lualike/lualike.dart';
 import 'configr_plugin.dart';
 import 'package:configr/src/blocks/action_block.dart';
+import 'plugin_context.dart';
 
 class LuaPlugin implements ConfigrPlugin {
   final LuaLike _luaLike = LuaLike();
@@ -103,6 +104,13 @@ class LuaPlugin implements ConfigrPlugin {
       if (args.length < 2) return;
       _fileSystem.file(_stringArg(args, 0)).writeAsStringSync(_stringArg(args, 1));
     });
+    _luaLike.expose('appendFile', (List<Object?> args) {
+      if (args.length < 2) return;
+      _fileSystem.file(_stringArg(args, 0)).writeAsStringSync(
+        _stringArg(args, 1),
+        mode: FileMode.append,
+      );
+    });
 
     // Expose configr directory helpers (read from processor context options)
     _luaLike.expose('configrCacheDir', (List<Object?> args) {
@@ -139,6 +147,14 @@ class LuaPlugin implements ConfigrPlugin {
       _registeredBlocks[_stringArg(args, 0)] = Value.wrap(args[1]);
     });
 
+    // Provide default contextual info for all plugins
+    _luaLike.expose('getContext', (List<Object?> args) {
+      final key = _stringArg(args, 0);
+      return _buildContextMap()[key];
+    });
+
+    _luaLike.setGlobal('context', _buildContextMap());
+
     // Load and run the Lua script to populate globals and trigger registrations
     if (code != null) {
       await _luaLike.execute(code!, scriptPath: scriptPath);
@@ -167,6 +183,10 @@ class LuaPlugin implements ConfigrPlugin {
       );
       processor.registerBlockHandler(block);
     });
+  }
+
+  Map<String, dynamic> _buildContextMap() {
+    return PluginContext.create().toMap();
   }
 
   @override

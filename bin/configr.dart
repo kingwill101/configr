@@ -12,6 +12,8 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 import 'package:artisanal/args.dart';
+import 'package:configr/src/cli/ui/handlers/cli_handler.dart';
+import 'package:configr/src/cli/ui/handlers/interactive_handler.dart';
 import 'package:configr/src/configr_config.dart';
 import 'package:configr/src/configr_runtime.dart';
 import 'package:configr/src/utils/event_bus.dart';
@@ -50,6 +52,8 @@ class ConfigrCommandRunner extends CommandRunner<void> {
       help: 'Use the v2 i3config-based ActionBlock pipeline',
       defaultsTo: false,
     );
+
+
 
     argParser.addMultiOption(
       'plugin-dir',
@@ -123,9 +127,18 @@ class ConfigrCommandRunner extends CommandRunner<void> {
     final debugLevel = _verbosityLevel(args) >= 3;
     final interactiveMode = !_hasFlag(args, '--no-interaction', '-n');
 
+    final eventBus = EventBus();
+    final uiHandler = interactiveMode
+        ? InteractiveHandler(
+            eventBus: eventBus,
+            interactiveMode: true,
+          ) as dynamic
+        : CLIHandler(eventBus: eventBus) as dynamic;
+
     final configrConfig = ConfigrConfig(
       fileSystem: const LocalFileSystem(),
-      eventBus: EventBus(),
+      eventBus: eventBus,
+      uiHandler: uiHandler,
       configPath: configPath,
       keepPrivilegeLock: false,
       localPath: const LocalFileSystem().currentDirectory.path,

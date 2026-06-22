@@ -123354,3 +123354,59 @@ INFO: 2025-09-28 01:46:08.046019: Rolling back resource https://github.com/zed-i
 INFO: 2025-09-28 01:46:08.052278: File /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/zed/zed.zip deleted
 
 INFO: 2025-09-28 01:46:08.070277: Configuration rollback completed successfully
+
+WARNING: 2026-06-22 10:42:41.948589: Path zed.zip does not exist, skipping deletion
+
+SEVERE: 2026-06-22 10:42:42.027388: Apply failed — 2 block(s) encountered errors:
+
+SEVERE: 2026-06-22 10:42:42.027505:   - download: Failed download block: ModuleException: Failed to download from https://github.com/zed-industries/zed/archive/refs/tags/$zed_version.zip
+Error Code: ACTION_FAILED
+Severity: medium
+Category: execution
+Operation: action_execution
+Module: download_0
+Retryable: Yes
+Cause: ModuleException: Failed to download: HTTP 404
+Error Code: ACTION_FAILED
+Severity: medium
+Category: execution
+Operation: action_execution
+Module: download_0
+Retryable: Yes
+
+ (line 9, column 22)
+
+SEVERE: 2026-06-22 10:42:42.027582:   - decompress: Failed decompress block: ModuleException: Source path not found: zed.zip
+Error Code: SOURCE_NOT_FOUND
+Severity: high
+Category: fileSystem
+Operation: file_access
+ (line 14, column 31)
+
+WARNING: 2026-06-22 10:43:29.572314: Path zed.zip does not exist, skipping deletion
+
+SEVERE: 2026-06-22 10:43:29.572818: Apply failed — 2 block(s) encountered errors:
+
+SEVERE: 2026-06-22 10:43:29.572892:   - download: Failed download block: ModuleException: Failed to download from https://github.com/zed-industries/zed/archive/refs/tags/$zed_version.zip
+Error Code: ACTION_FAILED
+Severity: medium
+Category: execution
+Operation: action_execution
+Module: download_0
+Retryable: Yes
+Cause: ModuleException: Failed to download: HTTP 404
+Error Code: ACTION_FAILED
+Severity: medium
+Category: execution
+Operation: action_execution
+Module: download_0
+Retryable: Yes
+
+ (line 9, column 22)
+
+SEVERE: 2026-06-22 10:43:29.572943:   - decompress: Failed decompress block: ModuleException: Source path not found: zed.zip
+Error Code: SOURCE_NOT_FOUND
+Severity: high
+Category: fileSystem
+Operation: file_access
+ (line 14, column 31)

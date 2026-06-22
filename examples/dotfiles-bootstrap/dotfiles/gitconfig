@@ -1,0 +1,15 @@
+[user]
+  name = Developer
+  email = dev@example.com
+[core]
+  editor = nvim
+  excludesfile = ~/.config/git/ignore
+[init]
+  defaultBranch = main
+[push]
+  default = simple
+[alias]
+  st = status
+  ci = commit
+  br = branch
+  lg = log --oneline --graph --all

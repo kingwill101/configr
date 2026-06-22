@@ -115,7 +115,7 @@ class DownloadBlock extends ActionBlock {
   @override
   Future<void> execute() async {
     emitEvent(
-      StartedEvent(moduleId: id, message: 'Starting download from $source'),
+      StartedEvent(moduleId: id, message: 'Downloading from $source'),
     );
 
     // Check destination

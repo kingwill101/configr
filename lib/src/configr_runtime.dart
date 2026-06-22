@@ -1,5 +1,6 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/blocks/v2_apply.dart';
+import 'package:configr/src/cli/ui/handlers/base_handler.dart';
 import 'package:configr/src/configr_config.dart';
 import 'package:configr/src/format/config_source.dart';
 import 'package:configr/src/format/format_service.dart';
@@ -23,6 +24,9 @@ class ConfigrRuntime {
 
   /// The file system from config.
   FileSystem get fileSystem => config.fileSystem;
+
+  /// The UI handler from config.
+  UIHandler? get uiHandler => config.uiHandler as UIHandler?;
 
   /// The event bus from config.
   EventBus get eventBus => config.eventBus;
@@ -67,6 +71,7 @@ class ConfigrRuntime {
     interactive: interactive,
     verbose: verbose,
     debug: debug,
+    uiHandler: uiHandler,
     privilegeEscalation: config.privilegeEscalation,
     pluginLoader: config.pluginLoader,
   );

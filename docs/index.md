@@ -24,12 +24,13 @@ block-specific properties.
 | [Decompress](decompress.md) | Extracts files from archives |
 | [Delete](delete.md) | Safely deletes files and directories |
 | [Download](download.md) | Downloads files from remote URLs |
-| [Echo](execute.md) | Prints messages to the console |
+| [Echo](echo.md) | Prints messages to the console |
 | [Execute](execute.md) | Executes shell commands |
-| [File](copy.md) | Creates/edits files with content |
-| [Git](execute.md) | Git repository operations |
+| [File](file.md) | Creates/edits files with content |
+| [Git](git.md) | Git repository operations |
 | [Move](move.md) | Moves/renames files and directories |
-| [Network](execute.md) | Network connectivity testing |
+| [Network](network.md) | Network connectivity testing |
+| [Systemd](systemd.md) | Manages systemd services |
 | [Package](package.md) | Package management (apt, pacman, etc.) |
 | [Permissions](permissions.md) | Sets file permissions and ownership |
 | [Rename](rename.md) | Renames files and directories |
@@ -45,9 +46,9 @@ block-specific properties.
 - **Rollback** — All operations are reversible via lockfile
 - **Lockfile** — SHA-256 checksums prevent redundant applies
 - **Privilege escalation** — Sudo integration with persistent lock
-- **Plugin system** — Extend with custom block handlers
+- [**Plugin system**](plugin-system.md) — Extend with custom block handlers (Dart + Lua)
 - **Watch mode** — Auto-apply on file changes
-- **Artisanal CLI** — Styled output, progress indicators, interactive prompts
+- [**Terminal UI**](terminal-ui.md) — Task widgets, spinners, styled output, interactive prompts
 
 ## Architecture
 

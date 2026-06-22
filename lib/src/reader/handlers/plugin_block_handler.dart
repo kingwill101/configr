@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:configr/src/plugins/configr_plugin.dart';
 import 'package:configr/src/plugins/lua_plugin.dart';
+import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:file/local.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
@@ -31,11 +32,13 @@ class PluginBlockHandler extends i3.BaseBlockHandler {
   final i3.ConfigProcessor processor;
   final ConfigrPluginLoader pluginLoader;
   final String configDir;
+  final EventBus? eventBus;
 
   PluginBlockHandler({
     required this.processor,
     required this.pluginLoader,
     required this.configDir,
+    this.eventBus,
   });
 
   @override
@@ -57,7 +60,7 @@ class PluginBlockHandler extends i3.BaseBlockHandler {
       if (await file.exists()) {
         final plugin = LuaPlugin(scriptPath: resolvedPath);
         await plugin.initialize();
-        plugin.registerBlocks(processor);
+        plugin.registerBlocks(processor, eventBus: eventBus);
         pluginLoader.registerPlugin(plugin);
         logger.info('Loaded plugin from config: $resolvedPath');
       } else {

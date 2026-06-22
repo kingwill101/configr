@@ -1,3 +1,0 @@
-psql -c "DROP DATABASE zed (FORCE);"
-psql -c "DROP DATABASE zed_llm (FORCE);"
-script/bootstrap

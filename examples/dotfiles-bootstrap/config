@@ -1,0 +1,23 @@
+# Dotfiles bootstrap — semi-realistic configr example
+#
+# Usage:
+#   configr apply
+#
+# Demonstrates:
+#   - include           splitting config into manageable pieces
+#   - plugin {} block   declaring Lua plugins in config
+#   - journal action    custom block type from a Lua plugin
+#   - package {} block  OS package installation
+#   - resource {}       file deployment with copy actions
+
+# Plugin must be declared before any blocks that use it,
+# including blocks in included files.
+plugin {
+  lua = "journal.lua"
+}
+
+# Phase 1: system packages
+include packages.conf
+
+# Phase 2: user dotfiles
+include dotfiles.conf

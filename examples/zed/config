@@ -1,20 +1,23 @@
+set $zed_version v0.168.2
+set $destination zed.zip
+set $extract_name zed
+
 resource {
   type "file"
-  source "https://github.com/zed-industries/zed/archive/refs/tags/v0.168.2.zip"
-
+  source "https://github.com/zed-industries/zed/archive/refs/tags/$zed_version.zip"
   actions {
         download github {
             overwrite true
-            destination zed.zip
+            destination $destination
         }
 
         decompress decompress_zed {
-            source zed.zip
-            destination zed
+            source $destination
+            destination $extract_name
         }
 
         delete delete_zed_zip {
-            source zed.zip
+            source $destination
         }
     }
 }

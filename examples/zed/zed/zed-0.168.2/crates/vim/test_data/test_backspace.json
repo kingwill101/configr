@@ -1,9 +1,0 @@
-{"Put":{"state":"ËThe quick\nbrown"}}
-{"Key":"backspace"}
-{"Get":{"state":"ËThe quick\nbrown","mode":"Normal"}}
-{"Put":{"state":"The qËuick\nbrown"}}
-{"Key":"backspace"}
-{"Get":{"state":"The Ëquick\nbrown","mode":"Normal"}}
-{"Put":{"state":"The quick\nËbrown"}}
-{"Key":"backspace"}
-{"Get":{"state":"The quicËk\nbrown","mode":"Normal"}}

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io' as dart_io;
 
-import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/watch/config_watcher.dart';
 import 'base_command.dart';
 
@@ -65,25 +64,6 @@ class ApplyCommand extends BaseCommand {
       io.info('  [FAIL-FAST] Will stop at the first block error.');
     }
 
-    // Subscribe to block-level events for live progress output.
-    final subscriptions = <StreamSubscription>[];
-    subscriptions.add(
-      runtime.eventBus.stream.listen((event) {
-        switch (event) {
-          case StartedEvent(:final message, :final moduleId):
-            io.line('  ▶ $moduleId: $message');
-          case CompletedEvent(:final message, :final moduleId):
-            io.success('  ✔ $moduleId: $message');
-          case FailedEvent(:final message, :final moduleId):
-            io.error('  ✘ $moduleId: $message');
-          case StatusUpdateEvent(:final message, :final moduleId):
-            io.info('  ℹ $moduleId: $message');
-          default:
-            break;
-        }
-      }),
-    );
-
     try {
       await runtime.apply(
         force: force,
@@ -109,10 +89,6 @@ class ApplyCommand extends BaseCommand {
     } catch (e) {
       io.error('Apply failed: $e');
       dart_io.exit(1);
-    } finally {
-      for (final sub in subscriptions) {
-        await sub.cancel();
-      }
     }
   }
 

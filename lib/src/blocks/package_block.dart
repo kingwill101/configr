@@ -3,7 +3,13 @@ import 'dart:io';
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
+import 'package:configr/src/models/command.dart' as cmd_model;
+import 'package:configr/src/security/input_sanitizer.dart';
+import 'package:configr/src/security/security_manager.dart';
+import 'package:configr/src/utils/command_executor.dart';
 import 'package:configr/src/utils/logging.dart';
+import 'package:configr/src/utils/privilege_escalation.dart'
+    show NoPrivilegeEscalation;
 import 'package:i3config/i3config_v2.dart' as i3;
 
 /// Block handler for the `package` config action.
@@ -497,7 +503,25 @@ class PackageBlock extends ActionBlock {
     final executable = args.first;
     final cmdArgs = args.length > 1 ? args.sublist(1) : <String>[];
 
-    final result = await Process.run(executable, cmdArgs);
+    // Strip privilege escalation prefix — let CommandExecutor /
+    // PrivilegeEscalation handle it through the proper channel.
+    final strippedExecutable =
+        executable == 'sudo' && cmdArgs.isNotEmpty ? cmdArgs.removeAt(0) : executable;
+
+    final command = cmd_model.Command(
+      name: 'package_${operation}_$id',
+      id: id,
+      command: strippedExecutable,
+      parameters: cmdArgs,
+    );
+
+    final escalation = privilegeEscalation ?? NoPrivilegeEscalation();
+    final result = await CommandExecutor.execute(
+      command,
+      escalation,
+      securityManager: SecurityManager(),
+      inputSanitizer: InputSanitizer(),
+    );
 
     if (result.exitCode != 0) {
       throw ActionFailedException(

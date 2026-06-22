@@ -401,6 +401,22 @@ class SecurityManager {
     return path == pattern;
   }
 
+  /// Emit a security event directly (used by external components).
+  void audit(SecurityEvent event) {
+    _auditLog.add(
+      SecurityAuditEvent(
+        eventType: event.securityEventType,
+        operation: event.resource ?? 'unknown',
+        context: SecurityContext(userId: event.userId),
+        success: event.severity != 'critical',
+        reason: event.details?.toString(),
+        details: event.details,
+      ),
+    );
+    _trimAuditLog();
+    _eventBus.emit(event);
+  }
+
   /// Record audit event
   void _auditEvent(
     String eventType,

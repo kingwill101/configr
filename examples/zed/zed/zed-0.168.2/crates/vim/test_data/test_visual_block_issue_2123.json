@@ -1,5 +1,0 @@
-{"Put":{"state":"The Ëquick brown\nfox jumps over\nthe lazy dog\n"}}
-{"Key":"ctrl-v"}
-{"Key":"right"}
-{"Key":"down"}
-{"Get":{"state":"The Â«quËÂ»ick brown\nfox Â«juËÂ»mps over\nthe lazy dog\n","mode":"VisualBlock"}}

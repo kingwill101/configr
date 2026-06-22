@@ -1,6 +1,0 @@
-{"SetOption":{"value":"wrap"}}
-{"SetOption":{"value":"columns=12"}}
-{"Put":{"state":"twelve Ëchar twelve char\ntwelve char"}}
-{"Key":"d"}
-{"Key":"w"}
-{"Get":{"state":"twelve Ëtwelve char\ntwelve char","mode":"Normal"}}

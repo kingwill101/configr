@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart' show sha256;
 import 'package:path/path.dart' as p;
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/blocks/backup_block.dart';
+import 'package:configr/src/cli/ui/handlers/base_handler.dart';
 import 'package:configr/src/blocks/compress_block.dart';
 import 'package:configr/src/blocks/copy_block.dart';
 import 'package:configr/src/blocks/decompress_block.dart';
@@ -67,6 +68,7 @@ Future<void> applyV2(
   bool interactive = false,
   bool verbose = false,
   bool debug = false,
+  UIHandler? uiHandler,
   PrivilegeEscalation? privilegeEscalation,
   ConfigrPluginLoader? pluginLoader,
 }) async {
@@ -113,12 +115,14 @@ Future<void> applyV2(
   final config = i3.Config.parse(contents);
 
   // Interactive mode — prompt user for confirmation before apply
+  // (skipped when --no-interaction/-n is passed)
   if (interactive && !dryRun) {
-    stdout.write(
-      'Apply configuration from ${configPath.split('/').last}? [Y/n] ',
-    );
-    final response = (stdin.readLineSync() ?? 'y').trim().toLowerCase();
-    if (response != 'y' && response != 'yes' && response != '') {
+    final confirmed = uiHandler?.confirm(
+          'Apply configuration from ${configPath.split('/').last}?',
+          defaultValue: true,
+        ) ??
+        true;
+    if (!confirmed) {
       logger.info('Apply cancelled by user.');
       return;
     }
@@ -592,6 +596,7 @@ Future<void> _registerAllBlocks(
         processor: processor,
         pluginLoader: pluginLoader,
         configDir: configDir,
+        eventBus: eventBus,
       ),
     );
   }
