@@ -1,52 +1,49 @@
 {
   "resources": [
     {
-      "id": "resource_1",
+      "id": "resource_7fe6077e",
       "source": "",
       "destination": "",
-      "type": "file",
+      "type": null,
       "status": "completed",
       "template": null,
       "actions": [
         {
-          "id": "echo_1",
+          "id": "60552298",
           "type": "echo",
           "backupPath": null,
           "status": "completed",
-          "timestamp": "2025-09-28T16:11:41.390925",
-          "sha256": "7f8f434ee4aaeec93fb0903dcbeebec6ac1382b4afca5203f01edf5baaf4f525",
+          "timestamp": "2026-06-21T20:24:11.075255",
+          "sha256": null,
           "actions": [],
           "properties": {
             "message": "Starting deployment",
-            "color": true,
-            "verbose": true,
-            "level": "info",
-            "status": null,
-            "timestamp": null,
-            "sha256": null
+            "color": "true",
+            "verbose": "true",
+            "level": "info"
           },
-          "state": {}
+          "state": {},
+          "parent": null
         },
         {
-          "id": "echo_2",
+          "id": "5f334283",
           "type": "echo",
           "backupPath": null,
           "status": "completed",
-          "timestamp": "2025-09-28T16:11:41.395038",
-          "sha256": "87d8e73f542d6e7e4c6004bafd71b9c947c2f473cc713055da03c6f860943f34",
+          "timestamp": "2026-06-21T20:24:11.075267",
+          "sha256": null,
           "actions": [],
           "properties": {
             "message": "Warning: disk space low",
-            "level": "warning",
-            "status": null,
-            "timestamp": null,
-            "sha256": null
+            "level": "warning"
           },
-          "state": {}
+          "state": {},
+          "parent": null
         }
       ],
       "commands": [],
-      "sha256": ""
+      "sha256": "",
+      "properties": {}
     }
   ],
   "commands": [],

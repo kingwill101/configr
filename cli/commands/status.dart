@@ -34,15 +34,15 @@ class StatusCommand extends BaseCommand {
 
       // Group blocks by type for summary
       final byType = <String, List<ActionBlockSummary>>{};
-      for (final block in blocks) {
+      for (final snapshot in blocks) {
         byType
-            .putIfAbsent(block.blockType, () => [])
+            .putIfAbsent(snapshot.blockType, () => [])
             .add(
               ActionBlockSummary(
-                id: block.id.isEmpty ? '(unnamed)' : block.id,
-                source: block.source,
-                destination: block.destination,
-                status: block.status,
+                id: snapshot.id.isEmpty ? '(unnamed)' : snapshot.id,
+                source: snapshot.source,
+                destination: snapshot.destination,
+                status: snapshot.status,
               ),
             );
       }

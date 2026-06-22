@@ -206,21 +206,30 @@ class V2TestHelper {
     );
 
     // -----------------------------------------------------------------------
-    // 3. Register section handlers
+    // 3. Register section handlers with v2-aware resource handlers
     // -----------------------------------------------------------------------
-    processor.registerBlockHandler(ResourcesBlockHandler());
-    processor.registerBlockHandler(
-      ResourceBlockHandler(customActionsHandler: v2ActionsHandler),
+    final v2ResourceHandler = ResourceBlockHandler(
+      customActionsHandler: v2ActionsHandler,
     );
-    processor.registerBlockHandler(
-      InlineResourceTypeHandler('file', customActionsHandler: v2ActionsHandler),
+    final v2FileHandler = InlineResourceTypeHandler(
+      'file',
+      customActionsHandler: v2ActionsHandler,
     );
+    final v2DirectoryHandler = InlineResourceTypeHandler(
+      'directory',
+      customActionsHandler: v2ActionsHandler,
+    );
+
     processor.registerBlockHandler(
-      InlineResourceTypeHandler(
-        'directory',
-        customActionsHandler: v2ActionsHandler,
+      ResourcesBlockHandler(
+        customResourceHandler: v2ResourceHandler,
+        customFileHandler: v2FileHandler,
+        customDirectoryHandler: v2DirectoryHandler,
       ),
     );
+    processor.registerBlockHandler(v2ResourceHandler);
+    processor.registerBlockHandler(v2FileHandler);
+    processor.registerBlockHandler(v2DirectoryHandler);
     processor.registerBlockHandler(v2ActionsHandler);
     processor.registerBlockHandler(CommandsBlockHandler());
     processor.registerBlockHandler(PackagesBlockHandler());

@@ -25,21 +25,21 @@ class DiffCommand extends BaseCommand {
     try {
       final blocks = await runtime.parseAndCollect();
       io.section('Found ${blocks.length} action block(s)');
-      for (final block in blocks) {
-        final status = block.status ?? 'pending';
+      for (final snapshot in blocks) {
+        final status = snapshot.status ?? 'pending';
         final icon = switch (status) {
           'completed' => '✅',
           'failed' => '❌',
           _ => '⏳',
         };
         io.line(
-          '  $icon ${block.blockType}: ${block.id.isEmpty ? '(unnamed)' : block.id}',
+          '  $icon ${snapshot.blockType}: ${snapshot.id.isEmpty ? '(unnamed)' : snapshot.id}',
         );
-        if (block.source.isNotEmpty) {
-          io.line('     source: ${block.source}');
+        if (snapshot.source.isNotEmpty) {
+          io.line('     source: ${snapshot.source}');
         }
-        if (block.destination.isNotEmpty) {
-          io.line('     destination: ${block.destination}');
+        if (snapshot.destination.isNotEmpty) {
+          io.line('     destination: ${snapshot.destination}');
         }
       }
       io.success('Diff complete — ${blocks.length} blocks parsed.');

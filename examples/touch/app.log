@@ -36,3 +36,15 @@ StackTrace: #0      ConfigManager.applyConfig (package:configr/config_manager.da
 #2      main (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/bin/main.dart:113:5)
 <asynchronous suspension>
 
+
+SEVERE: 2026-06-21 20:14:22.911771: Apply failed — 1 block(s) encountered errors:
+
+SEVERE: 2026-06-21 20:14:22.911891:   - touch: Failed touch block: ModuleException: Error touching file /path/to/touch/target
+Error Code: ACTION_FAILED
+Severity: medium
+Category: execution
+Operation: action_execution
+Module: touch_0
+Retryable: Yes
+Cause: PathAccessException: Creation failed, path = '/path' (OS Error: Permission denied, errno = 13)
+ (line 6, column 10)

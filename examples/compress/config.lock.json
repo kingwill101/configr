@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "config_checksum": "e3eef0d870c501fb32e92a647d6506eff445e80bbf55cdcefdd7c53d0e092ad7",
+  "applied_blocks": [
+    {
+      "block_type": "compress",
+      "id": "compress_0",
+      "source": "foo",
+      "destination": "compressed/foo.zip",
+      "applied_at": "2026-06-22T01:14:57.075843Z",
+      "status": "completed"
+    },
+    {
+      "block_type": "decompress",
+      "id": "decompress_0",
+      "source": "compressed/foo.zip",
+      "destination": "decompressed/decompressed_foo",
+      "applied_at": "2026-06-22T01:14:57.078168Z",
+      "status": "completed"
+    }
+  ]
+}

@@ -133,9 +133,9 @@ class ConfigWatcher {
 
   /// Scan parsed blocks for included/sub-config files and add them to
   /// the watched file set.
-  void _discoverIncludedFiles(List<ActionBlock> blocks) {
-    for (final block in blocks) {
-      final source = block.source;
+  void _discoverIncludedFiles(List<BlockSnapshot> blocks) {
+    for (final snapshot in blocks) {
+      final source = snapshot.source;
       if (source.isNotEmpty && !_watchedPaths.contains(source)) {
         final resolved = _resolvePath(source);
         if (resolved != null) {
@@ -144,7 +144,7 @@ class ConfigWatcher {
       }
 
       // Check for explicit include references in properties
-      final includeProps = block.properties['includes'];
+      final includeProps = snapshot.properties['includes'];
       if (includeProps is List) {
         for (final inc in includeProps) {
           final resolved = _resolvePath(inc.toString());

@@ -1,0 +1,9 @@
+
+SEVERE: 2026-06-21 20:14:23.154802: Apply failed — 1 block(s) encountered errors:
+
+SEVERE: 2026-06-21 20:14:23.155046:   - copy: Failed copy block: ModuleException: Source path not found: .myconfig/template/susan.txt
+Error Code: SOURCE_NOT_FOUND
+Severity: high
+Category: fileSystem
+Operation: file_access
+ (line 11, column 12)

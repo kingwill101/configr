@@ -51,23 +51,37 @@ class ConfigrRuntime {
   // ---------------------------------------------------------------------------
 
   /// Apply the config using the v2 ActionBlock pipeline.
-  Future<void> apply({bool force = false}) => applyV2(
+  Future<void> apply({
+    bool force = false,
+    bool dryRun = false,
+    bool failFast = false,
+    bool interactive = false,
+    bool verbose = false,
+    bool debug = false,
+  }) => applyV2(
     resolvedConfigPath,
     eventBus: eventBus,
     force: force,
+    dryRun: dryRun,
+    failFast: failFast,
+    interactive: interactive,
+    verbose: verbose,
+    debug: debug,
+    privilegeEscalation: config.privilegeEscalation,
     pluginLoader: config.pluginLoader,
   );
 
   /// Rollback applied blocks.
-  Future<void> rollback({int? count}) => rollbackV2(
+  Future<void> rollback({int? count, bool dryRun = false}) => rollbackV2(
     resolvedConfigPath,
     eventBus: eventBus,
     count: count,
+    dryRun: dryRun,
     pluginLoader: config.pluginLoader,
   );
 
-  /// Parse and collect blocks without executing them.
-  Future<List<ActionBlock>> parseAndCollect() => parseAndCollectBlocks(
+  /// Parse and collect block snapshots without executing them.
+  Future<List<BlockSnapshot>> parseAndCollect() => parseAndCollectBlocks(
     resolvedConfigPath,
     eventBus: eventBus,
     pluginLoader: config.pluginLoader,

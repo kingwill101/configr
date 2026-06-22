@@ -1,0 +1,8 @@
+# Configr Demo Gitignore
+*.log
+*.tmp
+.DS_Store
+.vscode/
+.idea/
+node_modules/
+*.backup

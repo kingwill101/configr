@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' as dart_io;
 
 import 'package:configr/src/events/module_events.dart';
 import 'base_command.dart';
@@ -36,6 +37,22 @@ class RollbackCommand extends BaseCommand {
 
   Future<void> _executeV2({int? count}) async {
     io.title('Rollback Configuration (v2)');
+
+    final interactive = configrConfig.interactiveMode;
+
+    // Interactive mode — prompt user for confirmation
+    if (interactive) {
+      dart_io.stdout.write(
+        'Rollback from ${runtime.resolvedConfigPath.split('/').last}? [Y/n] ',
+      );
+      final response = (dart_io.stdin.readLineSync() ?? 'y')
+          .trim()
+          .toLowerCase();
+      if (response != 'y' && response != 'yes' && response != '') {
+        io.info('Rollback cancelled by user.');
+        return;
+      }
+    }
 
     // Subscribe to block-level rollback events for live progress.
     final subscriptions = <StreamSubscription>[];

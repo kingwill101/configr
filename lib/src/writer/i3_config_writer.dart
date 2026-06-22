@@ -33,8 +33,17 @@ class I3ConfigWriter {
 
   /// Serialize a [Config] to i3-format text.
   String write(Config config) {
-    final ast = _buildConfig(config);
+    final ast = buildConfigAst(config);
     return _serializeConfig(ast);
+  }
+
+  /// Convert a v1 [Config] domain model into an `i3.Config` AST.
+  ///
+  /// This is the canonical bridge from the v1 domain model to the
+  /// i3config v2 AST.  Used by [write] for serialization, and by
+  /// [FormatService] consumers that need the AST form.
+  i3.Config buildConfigAst(Config config) {
+    return _buildConfig(config);
   }
 
   // ---------------------------------------------------------------------------
@@ -408,6 +417,8 @@ class I3ConfigWriter {
       i3.Quoted q => '"${q.value}"',
       i3.BareArg b => b.value,
       i3.VariableRef v => '\$${v.name}',
+      i3.ArrayValue a =>
+        '[${a.items.map((e) => _valueToString(e)).join(', ')}]',
     };
   }
 }

@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/models/action.dart';
 import 'package:configr/src/models/command.dart';
 import 'package:configr/src/models/template.dart';
 import 'package:configr/src/reader/config_builder.dart';
+import 'package:configr/src/utils/event_bus.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
 // ---------------------------------------------------------------------------
@@ -202,7 +204,27 @@ class _TemplateStrHandler extends i3.BaseCommandHandler<String> {
 /// valid only inside `resources`. The state machine automatically routes
 /// `resource { ... }`, `file { ... }`, and `directory { ... }` entries
 /// to their respective handlers.
+///
+/// The v2 pipeline passes custom handlers (with [ActionsBlockHandler] wired
+/// to ActionBlock subclasses) so that nested resources use real execution
+/// blocks instead of v1-style collector handlers.
 class ResourcesBlockHandler extends i3.BaseBlockHandler {
+  /// Optional custom [ResourceBlockHandler] to register instead of the default.
+  /// When set, the v2 pipeline passes a handler wired to ActionBlock subclasses.
+  final ResourceBlockHandler? customResourceHandler;
+
+  /// Optional custom [InlineResourceTypeHandler] for `file` blocks.
+  final InlineResourceTypeHandler? customFileHandler;
+
+  /// Optional custom [InlineResourceTypeHandler] for `directory` blocks.
+  final InlineResourceTypeHandler? customDirectoryHandler;
+
+  ResourcesBlockHandler({
+    this.customResourceHandler,
+    this.customFileHandler,
+    this.customDirectoryHandler,
+  });
+
   @override
   String get blockType => 'resources';
 
@@ -214,14 +236,17 @@ class ResourcesBlockHandler extends i3.BaseBlockHandler {
 
   @override
   void registerScopedCommands(i3.BlockHandlerRegistry registry) {
-    registry.registerScopedBlockHandler('resource', ResourceBlockHandler());
+    registry.registerScopedBlockHandler(
+      'resource',
+      customResourceHandler ?? ResourceBlockHandler(),
+    );
     registry.registerScopedBlockHandler(
       'file',
-      InlineResourceTypeHandler('file'),
+      customFileHandler ?? InlineResourceTypeHandler('file'),
     );
     registry.registerScopedBlockHandler(
       'directory',
-      InlineResourceTypeHandler('directory'),
+      customDirectoryHandler ?? InlineResourceTypeHandler('directory'),
     );
   }
 }
@@ -240,7 +265,11 @@ class ResourceBlockHandler extends i3.BaseBlockHandler {
   /// The v2 pipeline provides one that registers real [ActionBlock] subclasses.
   final ActionsBlockHandler? customActionsHandler;
 
-  ResourceBlockHandler({this.customActionsHandler});
+  /// Event bus for emitting resource-level lifecycle events.
+  /// When set, [ResourceCompletedEvent] is emitted.
+  final EventBus? eventBus;
+
+  ResourceBlockHandler({this.customActionsHandler, this.eventBus});
 
   @override
   String get blockType => 'resource';
@@ -252,7 +281,6 @@ class ResourceBlockHandler extends i3.BaseBlockHandler {
 
   @override
   void registerScopedCommands(i3.BlockHandlerRegistry registry) {
-    // Scoped sub-blocks
     registry.registerScopedBlockHandler(
       'actions',
       customActionsHandler ??
@@ -265,8 +293,6 @@ class ResourceBlockHandler extends i3.BaseBlockHandler {
       'subcommands',
       SubCommandsBlockHandler(),
     );
-
-    // Scoped property commands
   }
 
   @override
@@ -275,8 +301,6 @@ class ResourceBlockHandler extends i3.BaseBlockHandler {
     i3.Context context,
   ) async {
     final builder = context.options['resourceBuilder'] as ResourceBuilder;
-    final configBuilder =
-        context.globalContext.options['configBuilder'] as ConfigBuilder;
 
     builder.source =
         (context.getVariable('source') as String?) ?? builder.source;
@@ -287,7 +311,28 @@ class ResourceBlockHandler extends i3.BaseBlockHandler {
     builder.status = context.getVariable('status') as String?;
     builder.sha256 = context.getVariable('sha256') as String?;
 
-    configBuilder.resources.add(builder.build());
+    // Emit resource-level events for the v2 pipeline.
+    final resourceId = (builder.id?.isNotEmpty ?? false)
+        ? builder.id!
+        : builder.type ?? 'resource';
+    eventBus?.emit(
+      ResourceCompletedEvent(
+        moduleId: 'config-manager',
+        resourceId: resourceId,
+        resourceType: builder.type ?? 'unknown',
+        source: builder.source ?? '',
+        destination: builder.destination ?? '',
+        completedActions: 0,
+        totalActions: 0,
+        duration: Duration.zero,
+      ),
+    );
+
+    // v1 path: add to ConfigBuilder if present.
+    final configBuilder = context.globalContext.options['configBuilder'];
+    if (configBuilder is ConfigBuilder) {
+      configBuilder.resources.add(builder.build());
+    }
   }
 }
 
@@ -334,8 +379,6 @@ class InlineResourceTypeHandler extends i3.BaseBlockHandler {
     i3.Context context,
   ) async {
     final builder = context.options['resourceBuilder'] as ResourceBuilder;
-    final configBuilder =
-        context.globalContext.options['configBuilder'] as ConfigBuilder;
 
     builder.source =
         (context.getVariable('source') as String?) ?? builder.source;
@@ -345,7 +388,11 @@ class InlineResourceTypeHandler extends i3.BaseBlockHandler {
     builder.status = context.getVariable('status') as String?;
     builder.sha256 = context.getVariable('sha256') as String?;
 
-    configBuilder.resources.add(builder.build());
+    // v1 path: add to ConfigBuilder if present.
+    final configBuilder = context.globalContext.options['configBuilder'];
+    if (configBuilder is ConfigBuilder) {
+      configBuilder.resources.add(builder.build());
+    }
   }
 }
 
@@ -776,5 +823,6 @@ String _expandValue(i3.Value value, i3.Context context) {
     i3.Quoted q => context.expandVariables(q.value),
     i3.VariableRef v => context.getVariable(v.name) ?? '\$${v.name}',
     i3.BareArg b => context.expandVariables(b.value),
+    i3.ArrayValue a => a.items.map((e) => _expandValue(e, context)).join(', '),
   };
 }

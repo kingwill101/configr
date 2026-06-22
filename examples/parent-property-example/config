@@ -1,70 +1,72 @@
-# Global privilege lock setting
+# # Global privilege lock setting
+
 keep_privilege_lock = true
 
-# Example 1: Resource with require_root=true - all actions inherit privileges
+# # Example 1: Resource with require_root=true - all actions inherit privileges
+
 resource {
   type "file"
   source "app_config.yml"
   destination "/etc/myapp/config.yml"
-  require_root = true  # All child actions will run with privileges
-
+  require_root = true
   actions {
     copy {
-      # Inherits require_root = true from parent resource
+      # # Inherits require_root = true from parent resource
     }
     permissions {
       mode "644"
-      # Inherits require_root = true from parent resource
+      # # Inherits require_root = true from parent resource
     }
     backup {
-      # Inherits require_root = true from parent resource
+      # # Inherits require_root = true from parent resource
     }
   }
 }
 
-# Example 2: Resource with mixed privilege requirements
+# # Example 2: Resource with mixed privilege requirements
+
 resource {
   type "file"
   source "user_config.yml"
   destination "/etc/myapp/user_config.yml"
-  require_root = true  # Default: all actions privileged
-
+  require_root = true
   actions {
     copy {
-      # Inherits require_root = true from parent
+      # # Inherits require_root = true from parent
     }
     permissions {
       mode "644"
-      require_root = false  # Override: this action runs without privileges
+      require_root = false
     }
     validate {
-      # Inherits require_root = true from parent
+      # # Inherits require_root = true from parent
     }
   }
 }
 
-# Example 3: Resource without privileges - actions can override
+# # Example 3: Resource without privileges - actions can override
+
 resource {
   type "file"
   source "temp_config.yml"
   destination "/tmp/config.yml"
-  require_root = false  # Default: no privileges needed
-
+  require_root = false
   actions {
     copy {
-      # Inherits require_root = false from parent
+      # # Inherits require_root = false from parent
     }
     permissions {
       mode "644"
-      require_root = true  # Override: this action needs privileges
+      require_root = true
     }
     cleanup {
-      # Inherits require_root = false from parent
+      # # Inherits require_root = false from parent
     }
   }
 }
 
-# Example 4: Complex nested actions with inheritance
+# # Example 4: Complex nested actions with inheritance
+
 resource {
   type "file"
   source "service_config.yml"
@@ -72,22 +74,21 @@ resource {
   require_root = true
   custom_prop = "service_config"
   environment = "production"
-
   actions {
     copy {
-      # Inherits require_root = true, custom_prop, environment from parent
+      # # Inherits require_root = true, custom_prop, environment from parent
     }
     permissions {
       mode "644"
-      # Inherits require_root = true, custom_prop, environment from parent
+      # # Inherits require_root = true, custom_prop, environment from parent
     }
     systemd_reload {
-      require_root = true  # Explicit override (same as parent)
-      # Inherits custom_prop, environment from parent
+      require_root = true
+      # # Inherits custom_prop, environment from parent
     }
     validate {
-      require_root = false  # Override: no privileges needed for validation
-      # Inherits custom_prop, environment from parent
+      require_root = false
+      # # Inherits custom_prop, environment from parent
     }
   }
 }

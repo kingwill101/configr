@@ -1,5 +1,4 @@
 import 'package:configr/src/utils/logging.dart';
-import 'package:configr/src/writer/i3_config_writer_v2.dart';
 import 'base_command.dart';
 
 class FormatCommand extends BaseCommand {
@@ -24,16 +23,23 @@ class FormatCommand extends BaseCommand {
     io.title('Format Configuration (v2)');
 
     try {
-      final blocks = await runtime.parseAndCollect();
+      // Read the full config AST via FormatService (preserves all structure:
+      // resources, commands, packages, scripts, nested blocks, etc.)
+      final config = await runtime.readConfig();
       io.section('Configuration parsed successfully');
 
-      // Use the v2 writer for proper i3-format serialization
-      final writer = I3ConfigWriterV2();
-      final formatted = writer.writeBlocks(blocks);
+      // Serialize through the format boundary — I3FormatWriter handles
+      // proper i3-format output with correct quoting, indentation, etc.
+      // Then write the formatted output back to the file in-place.
+      await runtime.writeConfig(config);
 
-      io.line(formatted);
+      // Count top-level blocks for user feedback
+      final blockCount = config.statements.length;
 
-      io.success('Formatting complete — ${blocks.length} blocks processed.');
+      io.success(
+        'Formatting complete — $blockCount block(s) processed, '
+        'file updated in-place.',
+      );
     } catch (e) {
       io.error('Format failed: $e');
       logger.severe('Format error: $e');

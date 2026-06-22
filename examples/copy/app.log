@@ -27,3 +27,24 @@ StackTrace: #0      _checkForErrorResponse (dart:io/common.dart:58:9)
 #11     ApplyCommand.executeCommand (package:configr/commands/apply.dart:20:5)
 <asynchronous suspension>
 
+
+SEVERE: 2026-06-21 20:14:11.279602: Failed to create directory 
+
+Error: PathNotFoundException: Creation failed, path = '' (OS Error: No such file or directory, errno = 2)
+
+StackTrace: #0      _Directory.createSync (dart:io/directory_impl.dart:136)
+#1      ForwardingDirectory.createSync (package:file/src/forwarding/forwarding_directory.dart:20)
+#2      FileUtils.createDirectory.<anonymous closure> (package:configr/src/utils/file_utils.dart:175)
+#3      Future._propagateToListeners.handleValueCallback (dart:async/future_impl.dart:948)
+#4      Future._propagateToListeners (dart:async/future_impl.dart:977)
+#5      Future._completeWithValue (dart:async/future_impl.dart:720)
+#6      Future._asyncCompleteWithValue.<anonymous closure> (dart:async/future_impl.dart:804)
+#7      _microtaskLoop (dart:async/schedule_microtask.dart:40)
+#8      _startMicrotaskLoop (dart:async/schedule_microtask.dart:49)
+#9      _runPendingImmediateCallback (dart:isolate-patch/isolate_patch.dart:127)
+#10     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193)
+
+
+SEVERE: 2026-06-21 20:14:11.280: Apply failed — 1 block(s) encountered errors:
+
+SEVERE: 2026-06-21 20:14:11.280057:   - copy: Failed copy block: PathNotFoundException: Creation failed, path = '' (OS Error: No such file or directory, errno = 2) (line 16, column 12)

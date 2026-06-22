@@ -18,6 +18,17 @@ class ApplyCommand extends BaseCommand {
       help: 'Watch for file changes and re-apply automatically',
       defaultsTo: false,
     );
+    argParser.addFlag(
+      'dry-run',
+      help:
+          'Show what would be done without making any changes (safe preview mode)',
+      defaultsTo: false,
+    );
+    argParser.addFlag(
+      'fail-fast',
+      help: 'Stop at the first block error instead of continuing',
+      defaultsTo: false,
+    );
   }
 
   @override
@@ -44,6 +55,19 @@ class ApplyCommand extends BaseCommand {
   Future<void> _executeV2({bool force = false}) async {
     io.title('Apply Configuration (v2)');
 
+    final dryRun = argResults?['dry-run'] as bool? ?? false;
+    final failFast = argResults?['fail-fast'] as bool? ?? false;
+    final interactive = configrConfig.interactiveMode;
+    final verbose = configrConfig.verboseMode;
+    final debug = configrConfig.debugMode;
+
+    if (dryRun) {
+      io.info('  [DRY-RUN] Preview mode — no changes will be made.');
+    }
+    if (failFast) {
+      io.info('  [FAIL-FAST] Will stop at the first block error.');
+    }
+
     // Subscribe to block-level events for live progress output.
     final subscriptions = <StreamSubscription>[];
     subscriptions.add(
@@ -64,13 +88,27 @@ class ApplyCommand extends BaseCommand {
     );
 
     try {
-      await runtime.apply(force: force);
+      await runtime.apply(
+        force: force,
+        dryRun: dryRun,
+        failFast: failFast,
+        interactive: interactive,
+        verbose: verbose,
+        debug: debug,
+      );
       io.success('Configuration applied successfully.');
       io.line('');
-      io.info(
-        'Lockfile written to '
-        '${runtime.resolvedConfigPath}.lock.json',
-      );
+      if (dryRun) {
+        io.info(
+          '[DRY-RUN] Would write lockfile to '
+          '${runtime.resolvedConfigPath}.lock.json',
+        );
+      } else {
+        io.info(
+          'Lockfile written to '
+          '${runtime.resolvedConfigPath}.lock.json',
+        );
+      }
     } catch (e) {
       io.error('Apply failed: $e');
       dart_io.exit(1);

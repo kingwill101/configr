@@ -117,6 +117,8 @@ class I3FormatWriter extends ConfigWriter {
       i3.Quoted q => '"${q.value}"',
       i3.BareArg b => b.value,
       i3.VariableRef v => '\$${v.name}',
+      i3.ArrayValue a =>
+        '[${a.items.map((e) => _valueToString(e)).join(', ')}]',
     };
   }
 }

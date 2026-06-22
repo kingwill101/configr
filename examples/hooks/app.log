@@ -26,3 +26,5 @@ StackTrace: #0      Parser.parse (package:args/src/parser.dart:74:11)
 #4      _delayEntrypointInvocation.<anonymous closure> (dart:isolate-patch/isolate_patch.dart:312:33)
 #5      _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193:12)
 
+
+WARNING: 2026-06-21 20:15:01.073416: Cannot rollback executed command: systemctl reload myapp

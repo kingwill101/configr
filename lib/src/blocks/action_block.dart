@@ -1,6 +1,10 @@
+import 'dart:io' as io;
+
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/models/v2_lockfile_data.dart';
 import 'package:configr/src/utils/event_bus.dart';
+import 'package:configr/src/utils/privilege_escalation.dart'
+    show PrivilegeEscalation;
 import 'package:file/file.dart' show FileSystem;
 import 'package:i3config/i3config_v2.dart' as i3;
 
@@ -51,6 +55,11 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
 
   FileSystem? fileSystem;
   final EventBus? eventBus;
+
+  /// Privilege escalation service for elevated operations.
+  /// When set, blocks that require privilege escalation can use this
+  /// to run commands with sudo or equivalent.
+  PrivilegeEscalation? privilegeEscalation;
 
   /// When true, [execute] is skipped during processing.
   /// Used by tests that only want to verify property parsing.
@@ -145,19 +154,46 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
     // ----- 3. Let subclasses read their properties -----
     await readAdditionalProperties(block, context);
 
-    // ----- 4. Register with the collector so tests can inspect parsed
+    // ----- 4. Register with collectors so consumers can inspect parsed
     // properties. Not used by the production pipeline (execution happens
-    // in step 5), but critical for test assertions.
-    final collector =
+    // in step 5), but critical for tests and CLI commands.
+    //
+    // We maintain two parallel collectors:
+    //   _actionBlocks  – mutable references (used by tests, v2 helper)
+    //   _blockSnapshots – immutable snapshots (used by diff/status/watch)
+    //
+    // The snapshot is taken at registration time so it captures this
+    // block's state before the singleton is reused for the next block.
+    final mutableCollector =
         context.globalContext.options['_actionBlocks'] as List<ActionBlock>?;
-    collector?.add(this);
+    mutableCollector?.add(this);
 
-    // ----- 5. Execute (unless dry-run) -----
-    // Blocks emit their own StartedEvent and CompletedEvent with detailed
-    // messages. The base class only emits a generic FailedEvent as a fallback
-    // when execute() throws and the block didn't emit one (e.g. for source
-    // checks that happen before a block's inner try-catch).
-    if (!dryRun) {
+    final snapshotCollector =
+        context.globalContext.options['_blockSnapshots']
+            as List<BlockSnapshot>?;
+    if (snapshotCollector != null) {
+      snapshotCollector.add(BlockSnapshot.fromActionBlock(this));
+    }
+
+    // ----- 5. Check fail-fast before executing -----
+    // If failFast is enabled and a previous block already failed, skip
+    // execution of this block. The error(s) will cause the apply to fail.
+    final failFast = context.globalContext.options['_failFast'] == true;
+    final hasPriorErrors =
+        (context.globalContext.options['_errors'] as List<BlockErrorRecord>?)
+            ?.isNotEmpty ??
+        false;
+    if (failFast && hasPriorErrors) {
+      emitEvent(
+        StatusUpdateEvent(
+          moduleId: id,
+          level: StatusEvent.warning,
+          message:
+              'Skipping $blockType block (fail-fast mode — previous block failed)',
+        ),
+      );
+    } else if (!dryRun) {
+      // ----- 6. Execute (unless dry-run) -----
       try {
         await execute();
         // Record this block in the lockfile collector (if present).
@@ -178,11 +214,20 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
         // rethrow doesn't propagate. By collecting errors here, we can
         // check for failures after processor.process() completes and
         // only write the lockfile / report success if no errors occurred.
+        // Create a BlockErrorRecord with source span info for diagnostics.
         final errors =
-            (context.globalContext.options['_errors'] as List<Object>?) ??
-            <Object>[];
+            (context.globalContext.options['_errors']
+                as List<BlockErrorRecord>?) ??
+            <BlockErrorRecord>[];
         context.globalContext.options['_errors'] = errors;
-        errors.add(e);
+        errors.add(
+          BlockErrorRecord(
+            message: 'Failed $blockType block: $e',
+            blockType: blockType,
+            blockId: id,
+            source: block.span != null ? _formatSpan(block.span!) : null,
+          ),
+        );
       }
     }
   }
@@ -305,4 +350,118 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
   void emitEvent(ModuleEvent event) {
     eventBus?.emit(event);
   }
+
+  // ---------------------------------------------------------------------------
+  // Privilege-aware command execution
+  // ---------------------------------------------------------------------------
+
+  /// Runs [command] with [args], optionally elevating via [privilegeEscalation]
+  /// when [requireElevation] is true.
+  ///
+  /// Returns the [io.ProcessResult] from the execution.
+  /// Throws if the process exits with a non-zero code.
+  Future<io.ProcessResult> runCommand(
+    String command,
+    List<String> args, {
+    bool requireElevation = false,
+    String? workingDirectory,
+    bool checkExitCode = true,
+  }) async {
+    if (requireElevation && privilegeEscalation != null) {
+      final result = await privilegeEscalation!.runWithElevatedPrivileges(
+        command,
+        args,
+      );
+      if (checkExitCode && result.exitCode != 0) {
+        throw Exception(
+          'Command failed with exit code ${result.exitCode}: '
+          '$command ${args.join(' ')}\n${result.stderr}',
+        );
+      }
+      return result;
+    }
+
+    final result = await io.Process.run(
+      command,
+      args,
+      workingDirectory: workingDirectory,
+      runInShell: true,
+    );
+    if (checkExitCode && result.exitCode != 0) {
+      throw Exception(
+        'Command failed with exit code ${result.exitCode}: '
+        '$command ${args.join(' ')}\n${result.stderr}',
+      );
+    }
+    return result;
+  }
+}
+
+/// Immutable snapshot of an ActionBlock's parsed properties.
+///
+/// Used by the collector in afterChildrenProcessed to capture per-block
+/// state without holding a reference to the mutable singleton ActionBlock
+/// instance (which gets reused for every block of the same type).
+class BlockSnapshot {
+  final String blockType;
+  final String id;
+  final String source;
+  final String destination;
+  final String? status;
+  final String? sha256;
+  final Map<String, dynamic> properties;
+
+  const BlockSnapshot({
+    required this.blockType,
+    required this.id,
+    required this.source,
+    required this.destination,
+    this.status,
+    this.sha256,
+    this.properties = const {},
+  });
+
+  factory BlockSnapshot.fromActionBlock(ActionBlock block) {
+    return BlockSnapshot(
+      blockType: block.blockType,
+      id: block.id,
+      source: block.source,
+      destination: block.destination,
+      status: block.status,
+      sha256: block.sha256,
+      properties: block.properties,
+    );
+  }
+}
+
+/// Records a block execution error with its source location for diagnostics.
+class BlockErrorRecord {
+  final String message;
+  final String blockType;
+  final String blockId;
+  final String? source;
+
+  const BlockErrorRecord({
+    required this.message,
+    required this.blockType,
+    required this.blockId,
+    this.source,
+  });
+
+  @override
+  String toString() {
+    if (source != null) {
+      return '$message ($source)';
+    }
+    return message;
+  }
+}
+
+/// Formats a source span (from i3config's SourceSpan) into a human-readable
+/// `line:col` string.
+String _formatSpan(dynamic span) {
+  if (span == null) return '';
+  // source_span's SourceSpan has start.line and start.column (0-based).
+  final start = span.start;
+  return 'line ${start.line + 1}, column ${start.column + 1}';
 }
