@@ -104,13 +104,13 @@ class SystemdBlock extends ActionBlock {
   Map<String, String> get additionalProperties => {
     if (operation != 'enable') 'operation': operation,
     if (serviceType != 'service') 'service_type': serviceType,
-    if (description != null) 'description': description!,
-    if (execStart != null) 'exec_start': execStart!,
-    if (execStartPre != null) 'exec_start_pre': execStartPre!,
-    if (execStop != null) 'exec_stop': execStop!,
-    if (execReload != null) 'exec_reload': execReload!,
-    if (restartPolicy != null) 'restart_policy': restartPolicy!,
-    if (wantedBy != null) 'wanted_by': wantedBy!,
+    'description': ?description,
+    'exec_start': ?execStart,
+    'exec_start_pre': ?execStartPre,
+    'exec_stop': ?execStop,
+    'exec_reload': ?execReload,
+    'restart_policy': ?restartPolicy,
+    'wanted_by': ?wantedBy,
     if (environment.isNotEmpty)
       'environment': environment.entries
           .map((e) => '${e.key}=${e.value}')

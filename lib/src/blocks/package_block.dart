@@ -54,7 +54,7 @@ class PackageBlock extends ActionBlock {
 
   @override
   Map<String, String> get additionalProperties => {
-    if (manager != null) 'package_manager': manager!,
+    'package_manager': ?manager,
     if (packageManager != 'apt') 'package_manager': packageManager,
     if (operation != 'install') 'operation': operation,
     if (packages.isNotEmpty) 'packages': packages,

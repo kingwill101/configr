@@ -41,14 +41,11 @@ class ApplyCommand extends BaseCommand {
   void executeCommand() async {
     final force = argResults?['force'] as bool? ?? false;
     final watch = argResults?['watch'] as bool? ?? false;
-    final useV2 = configrConfig.useV2;
 
-    if (useV2 && watch) {
+    if (watch) {
       await _executeWatch();
-    } else if (useV2) {
-      await _executeV2(force: force);
     } else {
-      await _executeV1(force: force);
+      await _executeV2(force: force);
     }
   }
 
@@ -150,11 +147,5 @@ class ApplyCommand extends BaseCommand {
       await sigintSub.cancel();
       await watcher.stop();
     }
-  }
-
-  Future<void> _executeV1({required bool force}) async {
-    await configManager.load();
-    configManager.options = configManager.options.copyWith(force: force);
-    await configManager.applyConfig();
   }
 }

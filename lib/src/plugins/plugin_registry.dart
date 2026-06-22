@@ -22,11 +22,7 @@ class PluginDependency {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'version': version,
-      'optional': optional,
-    };
+    return {'name': name, 'version': version, 'optional': optional};
   }
 
   @override
@@ -63,11 +59,7 @@ class PluginCapability {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'description': description,
-      'parameters': parameters,
-    };
+    return {'name': name, 'description': description, 'parameters': parameters};
   }
 }
 
@@ -105,12 +97,16 @@ class PluginRegistryEntry {
       version: map['version'] as String,
       description: map['description'] as String,
       author: map['author'] as String,
-      dependencies: (map['dependencies'] as List<dynamic>?)
-          ?.map((d) => PluginDependency.fromMap(d as Map<String, dynamic>))
-          .toList() ?? [],
-      capabilities: (map['capabilities'] as List<dynamic>?)
-          ?.map((c) => PluginCapability.fromMap(c as Map<String, dynamic>))
-          .toList() ?? [],
+      dependencies:
+          (map['dependencies'] as List<dynamic>?)
+              ?.map((d) => PluginDependency.fromMap(d as Map<String, dynamic>))
+              .toList() ??
+          [],
+      capabilities:
+          (map['capabilities'] as List<dynamic>?)
+              ?.map((c) => PluginCapability.fromMap(c as Map<String, dynamic>))
+              .toList() ??
+          [],
       configuration: Map<String, dynamic>.from(map['configuration'] ?? {}),
       entryPoint: map['entryPoint'] as String?,
       sourcePath: map['sourcePath'] as String?,
@@ -297,7 +293,8 @@ class PluginRegistry {
         }
 
         final depEntry = _plugins[dep.name];
-        if (depEntry != null && !_isVersionCompatible(depEntry.version, dep.version)) {
+        if (depEntry != null &&
+            !_isVersionCompatible(depEntry.version, dep.version)) {
           throw ActionFailedException(
             'Version mismatch for dependency: ${dep.name} (required: ${dep.version}, found: ${depEntry.version})',
             moduleId: 'PluginRegistry',
@@ -312,7 +309,8 @@ class PluginRegistry {
   bool _isVersionCompatible(String installed, String required) {
     // Simple version compatibility check
     // In a real implementation, this would use semantic versioning
-    return installed == required || installed.startsWith(required.split('.')[0]);
+    return installed == required ||
+        installed.startsWith(required.split('.')[0]);
   }
 
   /// Update dependency graph
@@ -351,15 +349,15 @@ class PluginRegistry {
   /// Search plugins by capability
   List<PluginRegistryEntry> searchByCapability(String capability) {
     return _plugins.values
-        .where((entry) => entry.capabilities.any((cap) => cap.name == capability))
+        .where(
+          (entry) => entry.capabilities.any((cap) => cap.name == capability),
+        )
         .toList();
   }
 
   /// Search plugins by author
   List<PluginRegistryEntry> searchByAuthor(String author) {
-    return _plugins.values
-        .where((entry) => entry.author == author)
-        .toList();
+    return _plugins.values.where((entry) => entry.author == author).toList();
   }
 
   /// Get plugin statistics

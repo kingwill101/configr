@@ -27,15 +27,22 @@ class DockerPackageManager extends PackageManager with GlobalInstallCapability {
 
   @override
   Future<bool> isInstalled(String packageName) async {
-    final result =
-        await runCommand('docker', ['image', 'inspect', packageName]);
+    final result = await runCommand('docker', [
+      'image',
+      'inspect',
+      packageName,
+    ]);
     return result.exitCode == 0;
   }
 
   @override
   Future<String?> getInstalledVersion(String packageName) async {
-    final result = await runCommand(
-        'docker', ['image', 'inspect', '--format={{.Tag}}', packageName]);
+    final result = await runCommand('docker', [
+      'image',
+      'inspect',
+      '--format={{.Tag}}',
+      packageName,
+    ]);
 
     if (result.exitCode == 0) {
       return result.stdout.toString().trim();

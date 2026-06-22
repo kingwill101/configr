@@ -67,12 +67,12 @@ class DownloadBlock extends ActionBlock {
 
   @override
   Map<String, String> get additionalProperties => {
-    if (checksum != null) 'checksum': checksum!,
+    'checksum': ?checksum,
     if (checksumAlgorithm != 'sha256') 'checksum_algorithm': checksumAlgorithm,
-    if (authType != null) 'auth_type': authType!,
-    if (authToken != null) 'auth_token': authToken!,
-    if (username != null) 'username': username!,
-    if (password != null) 'password': password!,
+    'auth_type': ?authType,
+    'auth_token': ?authToken,
+    'username': ?username,
+    'password': ?password,
   };
 
   @override

@@ -1,5 +1,5 @@
 import 'package:configr/src/format/format_service.dart';
-import 'package:configr/src/models/config.dart';
+import 'package:configr/src/models/config_options.dart';
 import 'package:configr/src/plugins/configr_plugin.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';

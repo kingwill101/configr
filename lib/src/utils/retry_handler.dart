@@ -63,11 +63,7 @@ class RetryResult<T> {
   });
 
   factory RetryResult.success(T value, int attempts) {
-    return RetryResult._(
-      value: value,
-      attempts: attempts,
-      succeeded: true,
-    );
+    return RetryResult._(value: value, attempts: attempts, succeeded: true);
   }
 
   factory RetryResult.failure(ModuleException exception, int attempts) {
@@ -96,22 +92,24 @@ class RetryHandler {
 
     for (int attempt = 1; attempt <= config.maxAttempts; attempt++) {
       attempts = attempt;
-      
+
       try {
-        final result = await _executeWithTimeout(
-          operation,
-          config.timeout,
-        );
-        
+        final result = await _executeWithTimeout(operation, config.timeout);
+
         return RetryResult.success(result, attempts);
       } catch (e) {
-        lastException = _wrapException(e, operationName, moduleId, correlationId);
-        
+        lastException = _wrapException(
+          e,
+          operationName,
+          moduleId,
+          correlationId,
+        );
+
         // Check if we should retry this exception
         if (!_shouldRetry(lastException, config, attempt)) {
           break;
         }
-        
+
         // Wait before retrying (except on last attempt)
         if (attempt < config.maxAttempts) {
           final delay = _calculateDelay(attempt, config);
@@ -183,7 +181,7 @@ class RetryHandler {
       case ErrorCategory.fileSystem:
         // Retry file system errors that might be temporary
         return exception.errorCode == 'PERMISSION_DENIED' ||
-               exception.errorCode == 'ACTION_FAILED';
+            exception.errorCode == 'ACTION_FAILED';
       case ErrorCategory.validation:
         // Don't retry validation errors
         return false;
@@ -208,16 +206,17 @@ class RetryHandler {
   /// Calculate delay for next retry attempt
   static Duration _calculateDelay(int attempt, RetryConfig config) {
     // Exponential backoff with jitter
-    final baseDelay = config.initialDelay.inMilliseconds * 
+    final baseDelay =
+        config.initialDelay.inMilliseconds *
         pow(config.backoffMultiplier, attempt - 1);
-    
+
     // Add jitter (±25% random variation)
     final jitter = baseDelay * 0.25 * (_random.nextDouble() * 2 - 1);
     final delayMs = (baseDelay + jitter).round();
-    
+
     // Cap at max delay
     final cappedDelay = min(delayMs, config.maxDelay.inMilliseconds);
-    
+
     return Duration(milliseconds: cappedDelay);
   }
 
@@ -229,13 +228,15 @@ class RetryHandler {
     String? moduleId,
     String? correlationId,
   }) async {
-    final futures = operations.map((operation) => execute(
-      operation,
-      config: config,
-      operationName: operationName,
-      moduleId: moduleId,
-      correlationId: correlationId,
-    ));
+    final futures = operations.map(
+      (operation) => execute(
+        operation,
+        config: config,
+        operationName: operationName,
+        moduleId: moduleId,
+        correlationId: correlationId,
+      ),
+    );
 
     return await Future.wait(futures);
   }

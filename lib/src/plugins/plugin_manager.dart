@@ -75,10 +75,7 @@ class PluginInstance {
   SendPort? _sendPort;
   final List<String> _errors = [];
 
-  PluginInstance({
-    required this.metadata,
-    required this.id,
-  });
+  PluginInstance({required this.metadata, required this.id});
 
   /// Current plugin state
   PluginState get state => _state;
@@ -109,26 +106,10 @@ class PluginInstance {
     _state = newState;
   }
 
-  /// Set plugin instance
-  void _setPlugin(dynamic plugin) {
-    _plugin = plugin;
-  }
-
-  /// Set isolate
-  void _setIsolate(Isolate isolate) {
-    _isolate = isolate;
-  }
-
-  /// Set communication ports
-  void _setPorts({SendPort? sendPort}) {
-    _sendPort = sendPort;
-  }
-
   /// Add error
   void _addError(String error) {
     _errors.add(error);
   }
-
 }
 
 /// Plugin interface that all plugins must implement
@@ -161,7 +142,7 @@ class PluginManager {
   final FileSystem? fileSystem;
 
   PluginManager({EventBus? eventBus, this.fileSystem})
-      : _eventBus = eventBus ?? EventBus();
+    : _eventBus = eventBus ?? EventBus();
 
   final Map<String, PluginInstance> _plugins = {};
   final Map<String, PluginMetadata> _availablePlugins = {};
@@ -172,7 +153,8 @@ class PluginManager {
   Map<String, PluginInstance> get plugins => Map.unmodifiable(_plugins);
 
   /// Get all available plugins
-  Map<String, PluginMetadata> get availablePlugins => Map.unmodifiable(_availablePlugins);
+  Map<String, PluginMetadata> get availablePlugins =>
+      Map.unmodifiable(_availablePlugins);
 
   /// Check if plugin manager is initialized
   bool get isInitialized => _initialized;
@@ -185,11 +167,13 @@ class PluginManager {
     await _scanForPlugins();
     _initialized = true;
 
-    _eventBus.emit(PluginEvent(
-      pluginName: 'PluginManager',
-      action: 'initialized',
-      details: {'pluginCount': _availablePlugins.length},
-    ));
+    _eventBus.emit(
+      PluginEvent(
+        pluginName: 'PluginManager',
+        action: 'initialized',
+        details: {'pluginCount': _availablePlugins.length},
+      ),
+    );
   }
 
   /// Scan for available plugins
@@ -200,7 +184,8 @@ class PluginManager {
   }
 
   /// Load a plugin by name
-  Future<PluginInstance> loadPlugin(String name, {
+  Future<PluginInstance> loadPlugin(
+    String name, {
     Map<String, dynamic>? config,
     bool isolated = false,
   }) async {
@@ -236,11 +221,13 @@ class PluginManager {
       instance._setState(PluginState.loading);
       _plugins[name] = instance;
 
-      _eventBus.emit(PluginEvent(
-        pluginName: name,
-        action: 'loading',
-        moduleId: 'PluginManager',
-      ));
+      _eventBus.emit(
+        PluginEvent(
+          pluginName: name,
+          action: 'loading',
+          moduleId: 'PluginManager',
+        ),
+      );
 
       // Load plugin dependencies first
       await _loadDependencies(metadata.dependencies);
@@ -254,11 +241,13 @@ class PluginManager {
 
       instance._setState(PluginState.loaded);
 
-      _eventBus.emit(PluginEvent(
-        pluginName: name,
-        action: 'loaded',
-        moduleId: 'PluginManager',
-      ));
+      _eventBus.emit(
+        PluginEvent(
+          pluginName: name,
+          action: 'loaded',
+          moduleId: 'PluginManager',
+        ),
+      );
 
       return instance;
     } catch (e) {
@@ -266,12 +255,14 @@ class PluginManager {
       instance._addError(e.toString());
       _plugins.remove(name);
 
-      _eventBus.emit(PluginEvent(
-        pluginName: name,
-        action: 'load_failed',
-        moduleId: 'PluginManager',
-        details: {'error': e.toString()},
-      ));
+      _eventBus.emit(
+        PluginEvent(
+          pluginName: name,
+          action: 'load_failed',
+          moduleId: 'PluginManager',
+          details: {'error': e.toString()},
+        ),
+      );
 
       rethrow;
     }
@@ -287,13 +278,19 @@ class PluginManager {
   }
 
   /// Load plugin in the same process
-  Future<void> _loadInProcessPlugin(PluginInstance instance, Map<String, dynamic> config) async {
+  Future<void> _loadInProcessPlugin(
+    PluginInstance instance,
+    Map<String, dynamic> config,
+  ) async {
     // TODO: Implement in-process plugin loading
     // This would dynamically load Dart code and instantiate the plugin
   }
 
   /// Load plugin in an isolated process
-  Future<void> _loadIsolatedPlugin(PluginInstance instance, Map<String, dynamic> config) async {
+  Future<void> _loadIsolatedPlugin(
+    PluginInstance instance,
+    Map<String, dynamic> config,
+  ) async {
     // TODO: Implement isolated plugin loading
     // This would create an isolate and load the plugin there
   }
@@ -312,31 +309,37 @@ class PluginManager {
     try {
       instance._setState(PluginState.initializing);
 
-      _eventBus.emit(PluginEvent(
-        pluginName: name,
-        action: 'initializing',
-        moduleId: 'PluginManager',
-      ));
+      _eventBus.emit(
+        PluginEvent(
+          pluginName: name,
+          action: 'initializing',
+          moduleId: 'PluginManager',
+        ),
+      );
 
       // TODO: Call plugin.initialize() with configuration
 
       instance._setState(PluginState.initialized);
 
-      _eventBus.emit(PluginEvent(
-        pluginName: name,
-        action: 'initialized',
-        moduleId: 'PluginManager',
-      ));
+      _eventBus.emit(
+        PluginEvent(
+          pluginName: name,
+          action: 'initialized',
+          moduleId: 'PluginManager',
+        ),
+      );
     } catch (e) {
       instance._setState(PluginState.error);
       instance._addError(e.toString());
 
-      _eventBus.emit(PluginEvent(
-        pluginName: name,
-        action: 'initialize_failed',
-        moduleId: 'PluginManager',
-        details: {'error': e.toString()},
-      ));
+      _eventBus.emit(
+        PluginEvent(
+          pluginName: name,
+          action: 'initialize_failed',
+          moduleId: 'PluginManager',
+          details: {'error': e.toString()},
+        ),
+      );
 
       rethrow;
     }
@@ -356,31 +359,37 @@ class PluginManager {
     try {
       instance._setState(PluginState.starting);
 
-      _eventBus.emit(PluginEvent(
-        pluginName: name,
-        action: 'starting',
-        moduleId: 'PluginManager',
-      ));
+      _eventBus.emit(
+        PluginEvent(
+          pluginName: name,
+          action: 'starting',
+          moduleId: 'PluginManager',
+        ),
+      );
 
       // TODO: Call plugin.start()
 
       instance._setState(PluginState.running);
 
-      _eventBus.emit(PluginEvent(
-        pluginName: name,
-        action: 'started',
-        moduleId: 'PluginManager',
-      ));
+      _eventBus.emit(
+        PluginEvent(
+          pluginName: name,
+          action: 'started',
+          moduleId: 'PluginManager',
+        ),
+      );
     } catch (e) {
       instance._setState(PluginState.error);
       instance._addError(e.toString());
 
-      _eventBus.emit(PluginEvent(
-        pluginName: name,
-        action: 'start_failed',
-        moduleId: 'PluginManager',
-        details: {'error': e.toString()},
-      ));
+      _eventBus.emit(
+        PluginEvent(
+          pluginName: name,
+          action: 'start_failed',
+          moduleId: 'PluginManager',
+          details: {'error': e.toString()},
+        ),
+      );
 
       rethrow;
     }
@@ -400,31 +409,37 @@ class PluginManager {
     try {
       instance._setState(PluginState.stopping);
 
-      _eventBus.emit(PluginEvent(
-        pluginName: name,
-        action: 'stopping',
-        moduleId: 'PluginManager',
-      ));
+      _eventBus.emit(
+        PluginEvent(
+          pluginName: name,
+          action: 'stopping',
+          moduleId: 'PluginManager',
+        ),
+      );
 
       // TODO: Call plugin.stop()
 
       instance._setState(PluginState.stopped);
 
-      _eventBus.emit(PluginEvent(
-        pluginName: name,
-        action: 'stopped',
-        moduleId: 'PluginManager',
-      ));
+      _eventBus.emit(
+        PluginEvent(
+          pluginName: name,
+          action: 'stopped',
+          moduleId: 'PluginManager',
+        ),
+      );
     } catch (e) {
       instance._setState(PluginState.error);
       instance._addError(e.toString());
 
-      _eventBus.emit(PluginEvent(
-        pluginName: name,
-        action: 'stop_failed',
-        moduleId: 'PluginManager',
-        details: {'error': e.toString()},
-      ));
+      _eventBus.emit(
+        PluginEvent(
+          pluginName: name,
+          action: 'stop_failed',
+          moduleId: 'PluginManager',
+          details: {'error': e.toString()},
+        ),
+      );
 
       rethrow;
     }
@@ -447,30 +462,36 @@ class PluginManager {
         await stopPlugin(name);
       }
 
-      _eventBus.emit(PluginEvent(
-        pluginName: name,
-        action: 'unloading',
-        moduleId: 'PluginManager',
-      ));
+      _eventBus.emit(
+        PluginEvent(
+          pluginName: name,
+          action: 'unloading',
+          moduleId: 'PluginManager',
+        ),
+      );
 
       // TODO: Call plugin.dispose() and cleanup
 
       _plugins.remove(name);
 
-      _eventBus.emit(PluginEvent(
-        pluginName: name,
-        action: 'unloaded',
-        moduleId: 'PluginManager',
-      ));
+      _eventBus.emit(
+        PluginEvent(
+          pluginName: name,
+          action: 'unloaded',
+          moduleId: 'PluginManager',
+        ),
+      );
     } catch (e) {
       instance._addError(e.toString());
 
-      _eventBus.emit(PluginEvent(
-        pluginName: name,
-        action: 'unload_failed',
-        moduleId: 'PluginManager',
-        details: {'error': e.toString()},
-      ));
+      _eventBus.emit(
+        PluginEvent(
+          pluginName: name,
+          action: 'unload_failed',
+          moduleId: 'PluginManager',
+          details: {'error': e.toString()},
+        ),
+      );
 
       rethrow;
     }
@@ -514,12 +535,14 @@ class PluginManager {
         await unloadPlugin(name);
       } catch (e) {
         // Log error but continue with other plugins
-        _eventBus.emit(PluginEvent(
-          pluginName: name,
-          action: 'dispose_error',
-          moduleId: 'PluginManager',
-          details: {'error': e.toString()},
-        ));
+        _eventBus.emit(
+          PluginEvent(
+            pluginName: name,
+            action: 'dispose_error',
+            moduleId: 'PluginManager',
+            details: {'error': e.toString()},
+          ),
+        );
       }
     }
 

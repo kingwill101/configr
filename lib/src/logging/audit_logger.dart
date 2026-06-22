@@ -6,14 +6,7 @@ import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/utils/event_bus.dart';
 
 /// Log levels for audit logging
-enum AuditLogLevel {
-  trace,
-  debug,
-  info,
-  warning,
-  error,
-  critical,
-}
+enum AuditLogLevel { trace, debug, info, warning, error, critical }
 
 /// Audit log entry
 class AuditLogEntry {
@@ -112,7 +105,7 @@ class AuditLogger {
   /// Initialize the audit logger
   Future<void> initialize(AuditLogConfig config) async {
     _config = config;
-    
+
     if (_config.enabled && _config.logFile != null) {
       await _openLogFile();
       _startFlushTimer();
@@ -135,7 +128,8 @@ class AuditLogger {
   }
 
   /// Log a trace message
-  void trace(String message, {
+  void trace(
+    String message, {
     String? moduleId,
     String? operation,
     String? userId,
@@ -143,17 +137,21 @@ class AuditLogger {
     String? correlationId,
     Map<String, dynamic>? metadata,
   }) {
-    _log(AuditLogLevel.trace, message,
-        moduleId: moduleId,
-        operation: operation,
-        userId: userId,
-        sessionId: sessionId,
-        correlationId: correlationId,
-        metadata: metadata);
+    _log(
+      AuditLogLevel.trace,
+      message,
+      moduleId: moduleId,
+      operation: operation,
+      userId: userId,
+      sessionId: sessionId,
+      correlationId: correlationId,
+      metadata: metadata,
+    );
   }
 
   /// Log a debug message
-  void debug(String message, {
+  void debug(
+    String message, {
     String? moduleId,
     String? operation,
     String? userId,
@@ -161,17 +159,21 @@ class AuditLogger {
     String? correlationId,
     Map<String, dynamic>? metadata,
   }) {
-    _log(AuditLogLevel.debug, message,
-        moduleId: moduleId,
-        operation: operation,
-        userId: userId,
-        sessionId: sessionId,
-        correlationId: correlationId,
-        metadata: metadata);
+    _log(
+      AuditLogLevel.debug,
+      message,
+      moduleId: moduleId,
+      operation: operation,
+      userId: userId,
+      sessionId: sessionId,
+      correlationId: correlationId,
+      metadata: metadata,
+    );
   }
 
   /// Log an info message
-  void info(String message, {
+  void info(
+    String message, {
     String? moduleId,
     String? operation,
     String? userId,
@@ -179,17 +181,21 @@ class AuditLogger {
     String? correlationId,
     Map<String, dynamic>? metadata,
   }) {
-    _log(AuditLogLevel.info, message,
-        moduleId: moduleId,
-        operation: operation,
-        userId: userId,
-        sessionId: sessionId,
-        correlationId: correlationId,
-        metadata: metadata);
+    _log(
+      AuditLogLevel.info,
+      message,
+      moduleId: moduleId,
+      operation: operation,
+      userId: userId,
+      sessionId: sessionId,
+      correlationId: correlationId,
+      metadata: metadata,
+    );
   }
 
   /// Log a warning message
-  void warning(String message, {
+  void warning(
+    String message, {
     String? moduleId,
     String? operation,
     String? userId,
@@ -197,17 +203,21 @@ class AuditLogger {
     String? correlationId,
     Map<String, dynamic>? metadata,
   }) {
-    _log(AuditLogLevel.warning, message,
-        moduleId: moduleId,
-        operation: operation,
-        userId: userId,
-        sessionId: sessionId,
-        correlationId: correlationId,
-        metadata: metadata);
+    _log(
+      AuditLogLevel.warning,
+      message,
+      moduleId: moduleId,
+      operation: operation,
+      userId: userId,
+      sessionId: sessionId,
+      correlationId: correlationId,
+      metadata: metadata,
+    );
   }
 
   /// Log an error message
-  void error(String message, {
+  void error(
+    String message, {
     String? moduleId,
     String? operation,
     String? userId,
@@ -228,17 +238,21 @@ class AuditLogger {
       errorMetadata.addAll(metadata);
     }
 
-    _log(AuditLogLevel.error, message,
-        moduleId: moduleId,
-        operation: operation,
-        userId: userId,
-        sessionId: sessionId,
-        correlationId: correlationId,
-        metadata: errorMetadata.isNotEmpty ? errorMetadata : null);
+    _log(
+      AuditLogLevel.error,
+      message,
+      moduleId: moduleId,
+      operation: operation,
+      userId: userId,
+      sessionId: sessionId,
+      correlationId: correlationId,
+      metadata: errorMetadata.isNotEmpty ? errorMetadata : null,
+    );
   }
 
   /// Log a critical message
-  void critical(String message, {
+  void critical(
+    String message, {
     String? moduleId,
     String? operation,
     String? userId,
@@ -259,34 +273,41 @@ class AuditLogger {
       errorMetadata.addAll(metadata);
     }
 
-    _log(AuditLogLevel.critical, message,
-        moduleId: moduleId,
-        operation: operation,
-        userId: userId,
-        sessionId: sessionId,
-        correlationId: correlationId,
-        metadata: errorMetadata.isNotEmpty ? errorMetadata : null);
+    _log(
+      AuditLogLevel.critical,
+      message,
+      moduleId: moduleId,
+      operation: operation,
+      userId: userId,
+      sessionId: sessionId,
+      correlationId: correlationId,
+      metadata: errorMetadata.isNotEmpty ? errorMetadata : null,
+    );
   }
 
   /// Log operation start
-  void logOperationStart(String operation, {
+  void logOperationStart(
+    String operation, {
     String? moduleId,
     String? userId,
     String? sessionId,
     String? correlationId,
     Map<String, dynamic>? metadata,
   }) {
-    info('Operation started: $operation',
-        moduleId: moduleId,
-        operation: operation,
-        userId: userId,
-        sessionId: sessionId,
-        correlationId: correlationId,
-        metadata: metadata);
+    info(
+      'Operation started: $operation',
+      moduleId: moduleId,
+      operation: operation,
+      userId: userId,
+      sessionId: sessionId,
+      correlationId: correlationId,
+      metadata: metadata,
+    );
   }
 
   /// Log operation completion
-  void logOperationComplete(String operation, {
+  void logOperationComplete(
+    String operation, {
     String? moduleId,
     String? userId,
     String? sessionId,
@@ -302,17 +323,20 @@ class AuditLogger {
       completeMetadata.addAll(metadata);
     }
 
-    info('Operation completed: $operation',
-        moduleId: moduleId,
-        operation: operation,
-        userId: userId,
-        sessionId: sessionId,
-        correlationId: correlationId,
-        metadata: completeMetadata.isNotEmpty ? completeMetadata : null);
+    info(
+      'Operation completed: $operation',
+      moduleId: moduleId,
+      operation: operation,
+      userId: userId,
+      sessionId: sessionId,
+      correlationId: correlationId,
+      metadata: completeMetadata.isNotEmpty ? completeMetadata : null,
+    );
   }
 
   /// Log operation failure
-  void logOperationFailure(String operation, {
+  void logOperationFailure(
+    String operation, {
     String? moduleId,
     String? userId,
     String? sessionId,
@@ -330,19 +354,22 @@ class AuditLogger {
       failureMetadata.addAll(metadata);
     }
 
-    error('Operation failed: $operation',
-        moduleId: moduleId,
-        operation: operation,
-        userId: userId,
-        sessionId: sessionId,
-        correlationId: correlationId,
-        metadata: failureMetadata.isNotEmpty ? failureMetadata : null,
-        errorObject: errorObject,
-        stackTrace: stackTrace);
+    error(
+      'Operation failed: $operation',
+      moduleId: moduleId,
+      operation: operation,
+      userId: userId,
+      sessionId: sessionId,
+      correlationId: correlationId,
+      metadata: failureMetadata.isNotEmpty ? failureMetadata : null,
+      errorObject: errorObject,
+      stackTrace: stackTrace,
+    );
   }
 
   /// Log security event
-  void logSecurityEvent(String event, {
+  void logSecurityEvent(
+    String event, {
     String? moduleId,
     String? operation,
     String? userId,
@@ -359,13 +386,15 @@ class AuditLogger {
       securityMetadata.addAll(metadata);
     }
 
-    warning('Security event: $event',
-        moduleId: moduleId,
-        operation: operation,
-        userId: userId,
-        sessionId: sessionId,
-        correlationId: correlationId,
-        metadata: securityMetadata);
+    warning(
+      'Security event: $event',
+      moduleId: moduleId,
+      operation: operation,
+      userId: userId,
+      sessionId: sessionId,
+      correlationId: correlationId,
+      metadata: securityMetadata,
+    );
   }
 
   /// Get recent log entries
@@ -408,7 +437,8 @@ class AuditLogger {
         byModule[entry.moduleId!] = (byModule[entry.moduleId!] ?? 0) + 1;
       }
       if (entry.operation != null) {
-        byOperation[entry.operation!] = (byOperation[entry.operation!] ?? 0) + 1;
+        byOperation[entry.operation!] =
+            (byOperation[entry.operation!] ?? 0) + 1;
       }
     }
 
@@ -457,7 +487,9 @@ class AuditLogger {
   }
 
   /// Internal log method
-  void _log(AuditLogLevel level, String message, {
+  void _log(
+    AuditLogLevel level,
+    String message, {
     String? moduleId,
     String? operation,
     String? userId,
@@ -484,12 +516,14 @@ class AuditLogger {
     _logBuffer.add(entry);
 
     // Emit event for real-time monitoring
-    _eventBus.emit(StatusUpdateEvent(
-      level: _getStatusLevel(level),
-      message: message,
-      moduleId: moduleId ?? 'AuditLogger',
-      metadata: entry.toMap(),
-    ));
+    _eventBus.emit(
+      StatusUpdateEvent(
+        level: _getStatusLevel(level),
+        message: message,
+        moduleId: moduleId ?? 'AuditLogger',
+        metadata: entry.toMap(),
+      ),
+    );
 
     // Auto-flush if buffer is too large
     if (_logBuffer.length >= 1000) {
@@ -521,11 +555,11 @@ class AuditLogger {
       _fileCounter++;
 
       final file = File(_config.logFile!);
-      final rotatedFile = File('${_config.logFile}.${_fileCounter}');
-      
+      final rotatedFile = File('${_config.logFile}.$_fileCounter');
+
       if (await file.exists()) {
         await file.rename(rotatedFile.path);
-        
+
         if (_config.compressOldFiles) {
           // TODO: Implement compression
         }
@@ -550,12 +584,15 @@ class AuditLogger {
       final directory = file.parent;
       final baseName = file.uri.pathSegments.last;
 
-      final files = directory.listSync()
+      final files = directory
+          .listSync()
           .where((f) => f is File && f.path.contains(baseName))
           .cast<File>()
           .toList();
 
-      files.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+      files.sort(
+        (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()),
+      );
 
       // Keep only maxFiles
       for (int i = _config.maxFiles; i < files.length; i++) {
@@ -582,7 +619,7 @@ class AuditLogger {
   /// Merge context with metadata
   Map<String, dynamic>? _mergeMetadata(Map<String, dynamic>? metadata) {
     if (_context.isEmpty && metadata == null) return null;
-    
+
     final merged = <String, dynamic>{};
     merged.addAll(_context);
     if (metadata != null) {

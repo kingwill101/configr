@@ -10,7 +10,9 @@ import 'package:configr/src/utils/privilege_escalation.dart';
 
 class PackageManagerFactory {
   static PackageManager create(
-      String managerName, PrivilegeEscalation privilegeEscalation) {
+    String managerName,
+    PrivilegeEscalation privilegeEscalation,
+  ) {
     switch (managerName.toLowerCase()) {
       case 'apt':
         return AptPackageManager(privilegeEscalation);
@@ -27,10 +29,12 @@ class PackageManagerFactory {
     }
   }
 
-  static Future<PackageManager?> detectAvailable(PrivilegeEscalation privilegeEscalation) async {
+  static Future<PackageManager?> detectAvailable(
+    PrivilegeEscalation privilegeEscalation,
+  ) async {
     // List of package managers to try in order of preference
     final managers = ['apt', 'pacman', 'pamac', 'npm', 'docker'];
-    
+
     for (final managerName in managers) {
       try {
         final manager = create(managerName, privilegeEscalation);
@@ -42,7 +46,7 @@ class PackageManagerFactory {
         continue;
       }
     }
-    
+
     return null; // No available package manager found
   }
 }

@@ -10,13 +10,7 @@ class FormatCommand extends BaseCommand {
 
   @override
   void executeCommand() async {
-    final useV2 = configrConfig.useV2;
-
-    if (useV2) {
-      await _executeV2();
-    } else {
-      await _executeV1();
-    }
+    await _executeV2();
   }
 
   Future<void> _executeV2() async {
@@ -44,12 +38,5 @@ class FormatCommand extends BaseCommand {
       io.error('Format failed: $e');
       logger.severe('Format error: $e');
     }
-  }
-
-  Future<void> _executeV1() async {
-    io.title('Format Configuration (v1)');
-    await configManager.load();
-    configManager.saveConfig();
-    io.success('Formatted successfully.');
   }
 }

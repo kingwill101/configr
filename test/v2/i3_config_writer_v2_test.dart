@@ -1,5 +1,4 @@
 import 'package:configr/src/writer/i3_config_writer_v2.dart';
-import 'package:configr/src/blocks/action_block.dart';
 import 'v2_test_helper.dart';
 import 'package:test/test.dart';
 

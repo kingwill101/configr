@@ -9,25 +9,26 @@ class TestCommand extends BaseCommand {
     argParser.addOption('test-option', help: 'A test option');
   }
 
+  @override
   String get name => 'test';
 
+  @override
   String get description => 'A test command';
 
+  @override
   void executeCommand() {}
 }
 
 void main() {
   group('BaseCommand', () {
     late TestCommand command;
-    late ConfigManager configManager;
+    late ConfigrRuntime runtime;
 
     setUp(() {
       command = TestCommand();
 
-      configManager = ConfigManager(
-        configrConfig: ConfigrConfig(
-          privilegeEscalation: NoPrivilegeEscalation(),
-        ),
+      runtime = ConfigrRuntime(
+        ConfigrConfig(privilegeEscalation: NoPrivilegeEscalation()),
       );
     });
 
@@ -36,18 +37,18 @@ void main() {
       expect(command.description, equals('A test command'));
     });
 
-    test('should throw error when configManager is not set', () {
+    test('should throw error when runtime is not set', () {
       expect(() => command.run(), throwsStateError);
     });
 
-    test('should work when configManager is set', () {
-      command.configManager = configManager;
+    test('should work when runtime is set', () {
+      command.runtime = runtime;
       expect(() => command.run(), returnsNormally);
     });
 
-    test('should allow setting and getting configManager', () {
-      expect(() => command.configManager = configManager, returnsNormally);
-      expect(command.configManager, equals(configManager));
+    test('should allow setting and getting runtime', () {
+      expect(() => command.runtime = runtime, returnsNormally);
+      expect(command.runtime, equals(runtime));
     });
 
     test('should have access to argParser', () {

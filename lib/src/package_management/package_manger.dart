@@ -35,19 +35,19 @@ mixin VersionLockCapability on PackageManager {
 mixin GlobalLocalContextCapability on PackageManager {
   /// Check if a package is installed globally
   Future<bool> isInstalledGlobally(String packageName);
-  
+
   /// Check if a package is installed locally
   Future<bool> isInstalledLocally(String packageName);
-  
+
   /// Get the installed version of a package globally
   Future<String?> getInstalledVersionGlobally(String packageName);
-  
+
   /// Get the installed version of a package locally
   Future<String?> getInstalledVersionLocally(String packageName);
-  
+
   /// Uninstall a package globally
   Future<void> uninstallGlobally(String packageName);
-  
+
   /// Uninstall a package locally
   Future<void> uninstallLocally(String packageName);
 }

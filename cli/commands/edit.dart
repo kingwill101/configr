@@ -22,9 +22,8 @@ class EditCommand extends BaseCommand {
       return;
     }
 
-    final configPath =
-        configManager.configrConfig.configPath ??
-        '${configManager.fileSystem.currentDirectory.path}/config';
+    final cfg = runtime.config;
+    final configPath = cfg.configPath ?? '${runtime.workingDirectory}/config';
 
     final editorParts = editor.split(' ');
     final editorCommand = editorParts.first;

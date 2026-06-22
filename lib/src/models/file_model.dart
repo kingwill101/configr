@@ -1,4 +1,3 @@
-import 'package:configr/src/extensions/list.dart';
 import 'package:configr/src/models/action.dart';
 import 'package:configr/src/models/command.dart';
 import 'package:configr/src/models/template.dart';
@@ -46,9 +45,9 @@ class ResourceModel {
           status == other.status &&
           source == other.source &&
           destination == other.destination &&
-          listEquals(actions, other.actions) &&
+          const ListEquality().equals(actions, other.actions) &&
           template == other.template &&
-          listEquals(commands, other.commands) &&
+          const ListEquality().equals(commands, other.commands) &&
           const DeepCollectionEquality().equals(properties, other.properties);
 
   @override

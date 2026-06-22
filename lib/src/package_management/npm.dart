@@ -2,7 +2,11 @@ import 'dart:io';
 import 'package:configr/src/package_management/package_manger.dart';
 import 'package:configr/src/utils/logging.dart';
 
-class NpmPackageManager extends PackageManager with GlobalInstallCapability, LocalInstallCapability, GlobalLocalContextCapability {
+class NpmPackageManager extends PackageManager
+    with
+        GlobalInstallCapability,
+        LocalInstallCapability,
+        GlobalLocalContextCapability {
   NpmPackageManager(super.privilegeEscalation);
 
   @override
@@ -34,7 +38,12 @@ class NpmPackageManager extends PackageManager with GlobalInstallCapability, Loc
 
   @override
   Future<String?> getInstalledVersion(String packageName) async {
-    final result = await runCommand('npm', ['list', '--depth=0', '--json', packageName]);
+    final result = await runCommand('npm', [
+      'list',
+      '--depth=0',
+      '--json',
+      packageName,
+    ]);
     if (result.exitCode == 0) {
       // Parse JSON output to extract version
       // This is a simplified version - in practice you'd want proper JSON parsing
@@ -85,7 +94,12 @@ class NpmPackageManager extends PackageManager with GlobalInstallCapability, Loc
   // Additional methods for global/local package management
   @override
   Future<bool> isInstalledGlobally(String packageName) async {
-    final result = await runCommand('npm', ['list', '-g', '--depth=0', packageName]);
+    final result = await runCommand('npm', [
+      'list',
+      '-g',
+      '--depth=0',
+      packageName,
+    ]);
     return result.exitCode == 0;
   }
 
@@ -97,7 +111,13 @@ class NpmPackageManager extends PackageManager with GlobalInstallCapability, Loc
 
   @override
   Future<String?> getInstalledVersionGlobally(String packageName) async {
-    final result = await runCommand('npm', ['list', '-g', '--depth=0', '--json', packageName]);
+    final result = await runCommand('npm', [
+      'list',
+      '-g',
+      '--depth=0',
+      '--json',
+      packageName,
+    ]);
     if (result.exitCode == 0) {
       final output = result.stdout.toString();
       final versionMatch = RegExp(r'"version":\s*"([^"]+)"').firstMatch(output);
@@ -110,7 +130,12 @@ class NpmPackageManager extends PackageManager with GlobalInstallCapability, Loc
 
   @override
   Future<String?> getInstalledVersionLocally(String packageName) async {
-    final result = await runCommand('npm', ['list', '--depth=0', '--json', packageName]);
+    final result = await runCommand('npm', [
+      'list',
+      '--depth=0',
+      '--json',
+      packageName,
+    ]);
     if (result.exitCode == 0) {
       final output = result.stdout.toString();
       final versionMatch = RegExp(r'"version":\s*"([^"]+)"').firstMatch(output);
@@ -133,4 +158,3 @@ class NpmPackageManager extends PackageManager with GlobalInstallCapability, Loc
     await runCommand('npm', ['uninstall', packageName]);
   }
 }
-

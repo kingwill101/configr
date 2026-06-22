@@ -1,4 +1,4 @@
-import 'package:configr/src/extensions/list.dart';
+import 'package:collection/collection.dart';
 
 class Command {
   final String name;
@@ -27,7 +27,7 @@ class Command {
           name == other.name &&
           id == other.id &&
           command == other.command &&
-          listEquals(parameters, other.parameters) &&
+          const ListEquality().equals(parameters, other.parameters) &&
           status == other.status &&
           timestamp == other.timestamp &&
           sha256 == other.sha256;

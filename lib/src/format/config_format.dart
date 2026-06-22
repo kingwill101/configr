@@ -6,7 +6,7 @@
 /// from the domain processing. Currently only i3 syntax is supported;
 /// future formats implement [ConfigReader] / [ConfigWriter] and register
 /// with [FormatService].
-library configr.src.format;
+library;
 
 export 'config_reader.dart';
 export 'config_source.dart';

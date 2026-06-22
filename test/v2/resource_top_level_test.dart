@@ -1,7 +1,5 @@
 import 'package:test/test.dart';
 
-import 'package:configr/src/blocks/v2_apply.dart';
-import 'package:configr/src/utils/event_bus.dart';
 import 'v2_test_helper.dart';
 
 /// Tests that `resource { ... }` works as a top-level block (not just

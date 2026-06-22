@@ -28,15 +28,21 @@ class PamacPackageManager extends PackageManager
 
   @override
   Future<bool> isInstalled(String packageName) async {
-    final result =
-        await runCommand('pamac', ['list', '--installed', packageName]);
+    final result = await runCommand('pamac', [
+      'list',
+      '--installed',
+      packageName,
+    ]);
     return result.exitCode == 0;
   }
 
   @override
   Future<String?> getInstalledVersion(String packageName) async {
-    final result =
-        await runCommand('pamac', ['list', '--installed', packageName]);
+    final result = await runCommand('pamac', [
+      'list',
+      '--installed',
+      packageName,
+    ]);
     if (result.exitCode == 0) {
       // Output format: "package version description"
       final parts = result.stdout.trim().split(' ');

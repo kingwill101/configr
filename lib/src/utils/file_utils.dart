@@ -301,7 +301,7 @@ class FileUtils {
   }
 
   /// Moves a file from source to destination path
-  static moveFile(
+  static Future<void> moveFile(
     String source,
     destinationPath, {
     FileSystem? fileSystem,

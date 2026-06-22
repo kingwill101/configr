@@ -17,15 +17,21 @@ void initLogging() {
         Level.SHOUT => StatusEvent.error,
         _ => StatusEvent.info,
       };
-      emitEvent(StatusUpdateEvent(
-          level: level, message: record.message, moduleId: "logger"));
+      emitEvent(
+        StatusUpdateEvent(
+          level: level,
+          message: record.message,
+          moduleId: "logger",
+        ),
+      );
     }
 
     // Still log everything to file for debugging
     final logFile = fs.file('app.log');
     final StringBuffer logBuffer = StringBuffer();
-    logBuffer
-        .writeln('\n${record.level.name}: ${record.time}: ${record.message}');
+    logBuffer.writeln(
+      '\n${record.level.name}: ${record.time}: ${record.message}',
+    );
     if (record.error != null) {
       logBuffer.writeln('\nError: ${record.error}');
     }

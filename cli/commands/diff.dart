@@ -10,13 +10,7 @@ class DiffCommand extends BaseCommand {
 
   @override
   void executeCommand() async {
-    final useV2 = configrConfig.useV2;
-
-    if (useV2) {
-      await _executeV2();
-    } else {
-      await _executeV1();
-    }
+    await _executeV2();
   }
 
   Future<void> _executeV2() async {
@@ -47,12 +41,5 @@ class DiffCommand extends BaseCommand {
       io.error('Diff failed: $e');
       logger.severe('Diff error: $e');
     }
-  }
-
-  Future<void> _executeV1() async {
-    io.title('Configuration Diff (v1)');
-    io.line('Diffing config at: ${configManager.localPath}');
-    await configManager.load();
-    io.warn('v1 diff: detailed comparison not yet implemented.');
   }
 }

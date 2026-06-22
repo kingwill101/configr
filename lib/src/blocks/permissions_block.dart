@@ -38,9 +38,9 @@ class PermissionsBlock extends ActionBlock {
 
   @override
   Map<String, String> get additionalProperties => {
-    if (owner != null) 'owner': owner!,
-    if (group != null) 'group': group!,
-    if (mode != null) 'mode': mode!,
+    'owner': ?owner,
+    'group': ?group,
+    'mode': ?mode,
   };
 
   @override

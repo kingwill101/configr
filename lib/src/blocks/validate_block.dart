@@ -42,9 +42,9 @@ class ValidateBlock extends ActionBlock {
 
   @override
   Map<String, String> get additionalProperties => {
-    if (checksum != null) 'checksum': checksum!,
-    if (format != null) 'format': format!,
-    if (schema != null) 'schema': schema!,
+    'checksum': ?checksum,
+    'format': ?format,
+    'schema': ?schema,
     if (customRules.isNotEmpty) 'custom_rules': customRules.join(', '),
     if (requiredFields.isNotEmpty) 'required_fields': requiredFields.join(', '),
   };

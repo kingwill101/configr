@@ -1,10 +1,5 @@
 /// Error severity levels for structured error handling
-enum ErrorSeverity {
-  low,
-  medium,
-  high,
-  critical,
-}
+enum ErrorSeverity { low, medium, high, critical }
 
 /// Error categories for better error classification
 enum ErrorCategory {
@@ -113,20 +108,20 @@ class SourceNotFoundException extends ModuleException {
     String? moduleId,
     String? correlationId,
   }) : super(
-          'Source path not found: $path',
-          cause: cause,
-          stackTrace: stackTrace,
-          severity: ErrorSeverity.high,
-          category: ErrorCategory.fileSystem,
-          context: ErrorContext(
-            operation: 'file_access',
-            moduleId: moduleId,
-            correlationId: correlationId,
-            metadata: {'path': path},
-          ),
-          errorCode: 'SOURCE_NOT_FOUND',
-          isRetryable: false,
-        );
+         'Source path not found: $path',
+         cause: cause,
+         stackTrace: stackTrace,
+         severity: ErrorSeverity.high,
+         category: ErrorCategory.fileSystem,
+         context: ErrorContext(
+           operation: 'file_access',
+           moduleId: moduleId,
+           correlationId: correlationId,
+           metadata: {'path': path},
+         ),
+         errorCode: 'SOURCE_NOT_FOUND',
+         isRetryable: false,
+       );
 }
 
 class DestinationExistsException extends ModuleException {
@@ -137,73 +132,63 @@ class DestinationExistsException extends ModuleException {
     String? moduleId,
     String? correlationId,
   }) : super(
-          'Destination already exists: $path',
-          cause: cause,
-          stackTrace: stackTrace,
-          severity: ErrorSeverity.medium,
-          category: ErrorCategory.fileSystem,
-          context: ErrorContext(
-            operation: 'file_creation',
-            moduleId: moduleId,
-            correlationId: correlationId,
-            metadata: {'path': path},
-          ),
-          errorCode: 'DESTINATION_EXISTS',
-          isRetryable: false,
-        );
+         'Destination already exists: $path',
+         cause: cause,
+         stackTrace: stackTrace,
+         severity: ErrorSeverity.medium,
+         category: ErrorCategory.fileSystem,
+         context: ErrorContext(
+           operation: 'file_creation',
+           moduleId: moduleId,
+           correlationId: correlationId,
+           metadata: {'path': path},
+         ),
+         errorCode: 'DESTINATION_EXISTS',
+         isRetryable: false,
+       );
 }
 
 class ActionFailedException extends ModuleException {
   ActionFailedException(
-    String message, {
-    dynamic cause,
-    StackTrace? stackTrace,
+    super.message, {
+    super.cause,
+    super.stackTrace,
     String? moduleId,
     String? correlationId,
-    ErrorSeverity severity = ErrorSeverity.medium,
-    ErrorCategory category = ErrorCategory.execution,
-    bool isRetryable = true,
-    Duration? retryAfter,
+    super.severity,
+    super.category = ErrorCategory.execution,
+    super.isRetryable = true,
+    super.retryAfter,
   }) : super(
-          message,
-          cause: cause,
-          stackTrace: stackTrace,
-          severity: severity,
-          category: category,
-          context: ErrorContext(
-            operation: 'action_execution',
-            moduleId: moduleId,
-            correlationId: correlationId,
-          ),
-          errorCode: 'ACTION_FAILED',
-          isRetryable: isRetryable,
-          retryAfter: retryAfter,
-        );
+         context: ErrorContext(
+           operation: 'action_execution',
+           moduleId: moduleId,
+           correlationId: correlationId,
+         ),
+         errorCode: 'ACTION_FAILED',
+       );
 }
 
 class ValidationFailedException extends ModuleException {
   ValidationFailedException(
-    String message, {
-    dynamic cause,
-    StackTrace? stackTrace,
+    super.message, {
+    super.cause,
+    super.stackTrace,
     String? moduleId,
     String? correlationId,
     Map<String, dynamic>? validationDetails,
   }) : super(
-          message,
-          cause: cause,
-          stackTrace: stackTrace,
-          severity: ErrorSeverity.medium,
-          category: ErrorCategory.validation,
-          context: ErrorContext(
-            operation: 'validation',
-            moduleId: moduleId,
-            correlationId: correlationId,
-            metadata: validationDetails,
-          ),
-          errorCode: 'VALIDATION_FAILED',
-          isRetryable: false,
-        );
+         severity: ErrorSeverity.medium,
+         category: ErrorCategory.validation,
+         context: ErrorContext(
+           operation: 'validation',
+           moduleId: moduleId,
+           correlationId: correlationId,
+           metadata: validationDetails,
+         ),
+         errorCode: 'VALIDATION_FAILED',
+         isRetryable: false,
+       );
 }
 
 class PermissionDeniedException extends ModuleException {
@@ -214,20 +199,20 @@ class PermissionDeniedException extends ModuleException {
     String? moduleId,
     String? correlationId,
   }) : super(
-          'Permission denied: $path',
-          cause: cause,
-          stackTrace: stackTrace,
-          severity: ErrorSeverity.high,
-          category: ErrorCategory.permission,
-          context: ErrorContext(
-            operation: 'file_access',
-            moduleId: moduleId,
-            correlationId: correlationId,
-            metadata: {'path': path},
-          ),
-          errorCode: 'PERMISSION_DENIED',
-          isRetryable: false,
-        );
+         'Permission denied: $path',
+         cause: cause,
+         stackTrace: stackTrace,
+         severity: ErrorSeverity.high,
+         category: ErrorCategory.permission,
+         context: ErrorContext(
+           operation: 'file_access',
+           moduleId: moduleId,
+           correlationId: correlationId,
+           metadata: {'path': path},
+         ),
+         errorCode: 'PERMISSION_DENIED',
+         isRetryable: false,
+       );
 }
 
 class ChecksumValidationException extends ModuleException {
@@ -238,23 +223,19 @@ class ChecksumValidationException extends ModuleException {
     String? moduleId,
     String? correlationId,
   }) : super(
-          'Checksum validation failed for $path\nExpected: $expected\nActual: $actual',
-          severity: ErrorSeverity.high,
-          category: ErrorCategory.validation,
-          context: ErrorContext(
-            operation: 'checksum_validation',
-            moduleId: moduleId,
-            correlationId: correlationId,
-            metadata: {
-              'path': path,
-              'expected': expected,
-              'actual': actual,
-            },
-          ),
-          errorCode: 'CHECKSUM_VALIDATION_FAILED',
-          isRetryable: true,
-          retryAfter: const Duration(seconds: 5),
-        );
+         'Checksum validation failed for $path\nExpected: $expected\nActual: $actual',
+         severity: ErrorSeverity.high,
+         category: ErrorCategory.validation,
+         context: ErrorContext(
+           operation: 'checksum_validation',
+           moduleId: moduleId,
+           correlationId: correlationId,
+           metadata: {'path': path, 'expected': expected, 'actual': actual},
+         ),
+         errorCode: 'CHECKSUM_VALIDATION_FAILED',
+         isRetryable: true,
+         retryAfter: const Duration(seconds: 5),
+       );
 }
 
 class FormatValidationException extends ModuleException {
@@ -265,22 +246,19 @@ class FormatValidationException extends ModuleException {
     String? moduleId,
     String? correlationId,
   }) : super(
-          'Format validation failed for $path: $format',
-          cause: cause,
-          severity: ErrorSeverity.medium,
-          category: ErrorCategory.validation,
-          context: ErrorContext(
-            operation: 'format_validation',
-            moduleId: moduleId,
-            correlationId: correlationId,
-            metadata: {
-              'path': path,
-              'format': format,
-            },
-          ),
-          errorCode: 'FORMAT_VALIDATION_FAILED',
-          isRetryable: false,
-        );
+         'Format validation failed for $path: $format',
+         cause: cause,
+         severity: ErrorSeverity.medium,
+         category: ErrorCategory.validation,
+         context: ErrorContext(
+           operation: 'format_validation',
+           moduleId: moduleId,
+           correlationId: correlationId,
+           metadata: {'path': path, 'format': format},
+         ),
+         errorCode: 'FORMAT_VALIDATION_FAILED',
+         isRetryable: false,
+       );
 }
 
 class CommandExecutionException extends ModuleException {
@@ -292,24 +270,21 @@ class CommandExecutionException extends ModuleException {
     String? correlationId,
     int? exitCode,
   }) : super(
-          'Command execution failed: $command',
-          cause: cause,
-          stackTrace: stackTrace,
-          severity: ErrorSeverity.medium,
-          category: ErrorCategory.execution,
-          context: ErrorContext(
-            operation: 'command_execution',
-            moduleId: moduleId,
-            correlationId: correlationId,
-            metadata: {
-              'command': command,
-              'exitCode': exitCode,
-            },
-          ),
-          errorCode: 'COMMAND_EXECUTION_FAILED',
-          isRetryable: true,
-          retryAfter: const Duration(seconds: 10),
-        );
+         'Command execution failed: $command',
+         cause: cause,
+         stackTrace: stackTrace,
+         severity: ErrorSeverity.medium,
+         category: ErrorCategory.execution,
+         context: ErrorContext(
+           operation: 'command_execution',
+           moduleId: moduleId,
+           correlationId: correlationId,
+           metadata: {'command': command, 'exitCode': exitCode},
+         ),
+         errorCode: 'COMMAND_EXECUTION_FAILED',
+         isRetryable: true,
+         retryAfter: const Duration(seconds: 10),
+       );
 }
 
 class SymlinkCreationException extends ModuleException {
@@ -319,20 +294,20 @@ class SymlinkCreationException extends ModuleException {
     String? moduleId,
     String? correlationId,
   }) : super(
-          'Failed to create symlink: $path',
-          cause: cause,
-          severity: ErrorSeverity.medium,
-          category: ErrorCategory.fileSystem,
-          context: ErrorContext(
-            operation: 'symlink_creation',
-            moduleId: moduleId,
-            correlationId: correlationId,
-            metadata: {'path': path},
-          ),
-          errorCode: 'SYMLINK_CREATION_FAILED',
-          isRetryable: true,
-          retryAfter: const Duration(seconds: 2),
-        );
+         'Failed to create symlink: $path',
+         cause: cause,
+         severity: ErrorSeverity.medium,
+         category: ErrorCategory.fileSystem,
+         context: ErrorContext(
+           operation: 'symlink_creation',
+           moduleId: moduleId,
+           correlationId: correlationId,
+           metadata: {'path': path},
+         ),
+         errorCode: 'SYMLINK_CREATION_FAILED',
+         isRetryable: true,
+         retryAfter: const Duration(seconds: 2),
+       );
 }
 
 class ConfigurationFailedException extends ModuleException {
@@ -343,65 +318,59 @@ class ConfigurationFailedException extends ModuleException {
     String? moduleId,
     String? correlationId,
   }) : super(
-          'Multiple configuration errors occurred:\n${errors.map((e) => '- ${e.message}').join('\n')}',
-          severity: ErrorSeverity.critical,
-          category: ErrorCategory.configuration,
-          context: ErrorContext(
-            operation: 'configuration_validation',
-            moduleId: moduleId,
-            correlationId: correlationId,
-            metadata: {
-              'errorCount': errors.length,
-              'errors': errors.map((e) => e.toStructuredData()).toList(),
-            },
-          ),
-          errorCode: 'CONFIGURATION_FAILED',
-          isRetryable: false,
-        );
+         'Multiple configuration errors occurred:\n${errors.map((e) => '- ${e.message}').join('\n')}',
+         severity: ErrorSeverity.critical,
+         category: ErrorCategory.configuration,
+         context: ErrorContext(
+           operation: 'configuration_validation',
+           moduleId: moduleId,
+           correlationId: correlationId,
+           metadata: {
+             'errorCount': errors.length,
+             'errors': errors.map((e) => e.toStructuredData()).toList(),
+           },
+         ),
+         errorCode: 'CONFIGURATION_FAILED',
+         isRetryable: false,
+       );
 }
 
 class LockfileNotFoundException extends ModuleException {
   LockfileNotFoundException(
-    String message, {
-    dynamic cause,
-    StackTrace? stackTrace,
+    super.message, {
+    super.cause,
+    super.stackTrace,
     String? moduleId,
     String? correlationId,
   }) : super(
-          message,
-          cause: cause,
-          stackTrace: stackTrace,
-          severity: ErrorSeverity.low,
-          category: ErrorCategory.configuration,
-          context: ErrorContext(
-            operation: 'rollback',
-            moduleId: moduleId,
-            correlationId: correlationId,
-          ),
-          errorCode: 'LOCKFILE_NOT_FOUND',
-          isRetryable: false,
-        );
+         severity: ErrorSeverity.low,
+         category: ErrorCategory.configuration,
+         context: ErrorContext(
+           operation: 'rollback',
+           moduleId: moduleId,
+           correlationId: correlationId,
+         ),
+         errorCode: 'LOCKFILE_NOT_FOUND',
+         isRetryable: false,
+       );
 }
 
 class ConfigFileNotFoundException extends ModuleException {
   ConfigFileNotFoundException(
-    String message, {
-    dynamic cause,
-    StackTrace? stackTrace,
+    super.message, {
+    super.cause,
+    super.stackTrace,
     String? moduleId,
     String? correlationId,
   }) : super(
-          message,
-          cause: cause,
-          stackTrace: stackTrace,
-          severity: ErrorSeverity.medium,
-          category: ErrorCategory.configuration,
-          context: ErrorContext(
-            operation: 'config_load',
-            moduleId: moduleId,
-            correlationId: correlationId,
-          ),
-          errorCode: 'CONFIG_FILE_NOT_FOUND',
-          isRetryable: false,
-        );
+         severity: ErrorSeverity.medium,
+         category: ErrorCategory.configuration,
+         context: ErrorContext(
+           operation: 'config_load',
+           moduleId: moduleId,
+           correlationId: correlationId,
+         ),
+         errorCode: 'CONFIG_FILE_NOT_FOUND',
+         isRetryable: false,
+       );
 }

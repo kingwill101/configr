@@ -73,22 +73,26 @@ class InputSanitizer {
   }
 
   /// Sanitize map input
-  Map<String, dynamic> sanitizeMap(Map<String, dynamic> input, 
-      {SanitizationOptions? options}) {
+  Map<String, dynamic> sanitizeMap(
+    Map<String, dynamic> input, {
+    SanitizationOptions? options,
+  }) {
     final result = <String, dynamic>{};
-    
+
     for (final entry in input.entries) {
       final sanitizedKey = sanitizeString(entry.key, options: options);
       final sanitizedValue = sanitizeValue(entry.value, options: options);
       result[sanitizedKey] = sanitizedValue;
     }
-    
+
     return result;
   }
 
   /// Sanitize list input
-  List<dynamic> sanitizeList(List<dynamic> input, 
-      {SanitizationOptions? options}) {
+  List<dynamic> sanitizeList(
+    List<dynamic> input, {
+    SanitizationOptions? options,
+  }) {
     return input.map((item) => sanitizeValue(item, options: options)).toList();
   }
 
@@ -130,12 +134,12 @@ class InputSanitizer {
     if (path.contains('..') || path.contains('~')) {
       return false;
     }
-    
+
     // Check for null bytes
     if (path.contains('\x00')) {
       return false;
     }
-    
+
     return true;
   }
 
@@ -159,7 +163,10 @@ class InputSanitizer {
     if (allowedTags != null && allowedTags.isNotEmpty) {
       // Remove all tags except allowed ones
       final allowedPattern = allowedTags.join('|');
-      final regex = RegExp(r'</?(?!(?:' + allowedPattern + r')\b)[^>]*>', caseSensitive: false);
+      final regex = RegExp(
+        r'</?(?!(?:' + allowedPattern + r')\b)[^>]*>',
+        caseSensitive: false,
+      );
       return input.replaceAll(regex, '');
     } else {
       // Remove all HTML tags
@@ -170,28 +177,40 @@ class InputSanitizer {
   /// Remove script tags and JavaScript
   String _removeScripts(String input) {
     // Remove script tags
-    String result = input.replaceAll(RegExp(r'<script[^>]*>.*?</script>', caseSensitive: false, dotAll: true), '');
-    
+    String result = input.replaceAll(
+      RegExp(r'<script[^>]*>.*?</script>', caseSensitive: false, dotAll: true),
+      '',
+    );
+
     // Remove JavaScript URLs
-    result = result.replaceAll(RegExp(r'javascript:', caseSensitive: false), '');
-    
+    result = result.replaceAll(
+      RegExp(r'javascript:', caseSensitive: false),
+      '',
+    );
+
     // Remove VBScript URLs
     result = result.replaceAll(RegExp(r'vbscript:', caseSensitive: false), '');
-    
+
     // Remove data URLs
-    result = result.replaceAll(RegExp(r'data:text/html', caseSensitive: false), '');
-    
+    result = result.replaceAll(
+      RegExp(r'data:text/html', caseSensitive: false),
+      '',
+    );
+
     // Remove event handlers
     result = result.replaceAll(RegExp(r'on\w+\s*=', caseSensitive: false), '');
-    
+
     return result;
   }
 
   /// Normalize whitespace
   String _normalizeWhitespace(String input) {
     return input
-        .replaceAll(RegExp(r'\s+'), ' ')  // Replace multiple whitespace with single space
-        .trim();                          // Remove leading/trailing whitespace
+        .replaceAll(
+          RegExp(r'\s+'),
+          ' ',
+        ) // Replace multiple whitespace with single space
+        .trim(); // Remove leading/trailing whitespace
   }
 
   /// Escape special characters
@@ -209,19 +228,25 @@ class InputSanitizer {
   String sanitizeFileName(String fileName) {
     // Remove or replace dangerous characters
     String result = fileName
-        .replaceAll(RegExp(r'[<>:"/\\|?*]'), '_')  // Replace invalid filename characters
-        .replaceAll(RegExp(r'\.\.'), '_')          // Replace path traversal
-        .replaceAll(RegExp(r'^\.'), '_')           // Replace leading dots
-        .replaceAll(RegExp(r'\s+$'), '')           // Remove trailing spaces
-        .replaceAll(RegExp(r'^\s+'), '');          // Remove leading spaces
-    
+        .replaceAll(
+          RegExp(r'[<>:"/\\|?*]'),
+          '_',
+        ) // Replace invalid filename characters
+        .replaceAll(RegExp(r'\.\.'), '_') // Replace path traversal
+        .replaceAll(RegExp(r'^\.'), '_') // Replace leading dots
+        .replaceAll(RegExp(r'\s+$'), '') // Remove trailing spaces
+        .replaceAll(RegExp(r'^\s+'), ''); // Remove leading spaces
+
     // Limit length
     if (result.length > 255) {
       final extension = _getFileExtension(result);
-      final nameWithoutExt = result.substring(0, result.length - extension.length);
+      final nameWithoutExt = result.substring(
+        0,
+        result.length - extension.length,
+      );
       result = nameWithoutExt.substring(0, 255 - extension.length) + extension;
     }
-    
+
     return result;
   }
 
@@ -237,15 +262,18 @@ class InputSanitizer {
     return args.map((arg) {
       // Remove or escape dangerous characters
       String sanitized = arg
-          .replaceAll(RegExp(r'[;&|`$]'), '')  // Remove command separators
-          .replaceAll(RegExp(r'[<>]'), '')     // Remove redirection operators
-          .replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ''); // Remove control characters
-      
+          .replaceAll(RegExp(r'[;&|`$]'), '') // Remove command separators
+          .replaceAll(RegExp(r'[<>]'), '') // Remove redirection operators
+          .replaceAll(
+            RegExp(r'[\x00-\x1F\x7F]'),
+            '',
+          ); // Remove control characters
+
       // Limit length
       if (sanitized.length > 1000) {
         sanitized = sanitized.substring(0, 1000);
       }
-      
+
       return sanitized;
     }).toList();
   }
@@ -254,17 +282,44 @@ class InputSanitizer {
   String sanitizeSql(String query) {
     // Remove or escape dangerous SQL patterns
     String result = query
-        .replaceAll(RegExp(r'--.*$', multiLine: true), '')  // Remove comments
-        .replaceAll(RegExp(r'/\*.*?\*/', dotAll: true), '') // Remove block comments
-        .replaceAll(RegExp(r';\s*drop\s+', caseSensitive: false), '') // Remove DROP statements
-        .replaceAll(RegExp(r';\s*delete\s+', caseSensitive: false), '') // Remove DELETE statements
-        .replaceAll(RegExp(r';\s*update\s+', caseSensitive: false), '') // Remove UPDATE statements
-        .replaceAll(RegExp(r';\s*insert\s+', caseSensitive: false), '') // Remove INSERT statements
-        .replaceAll(RegExp(r';\s*create\s+', caseSensitive: false), '') // Remove CREATE statements
-        .replaceAll(RegExp(r';\s*alter\s+', caseSensitive: false), '') // Remove ALTER statements
-        .replaceAll(RegExp(r';\s*exec\s+', caseSensitive: false), '') // Remove EXEC statements
-        .replaceAll(RegExp(r';\s*execute\s+', caseSensitive: false), ''); // Remove EXECUTE statements
-    
+        .replaceAll(RegExp(r'--.*$', multiLine: true), '') // Remove comments
+        .replaceAll(
+          RegExp(r'/\*.*?\*/', dotAll: true),
+          '',
+        ) // Remove block comments
+        .replaceAll(
+          RegExp(r';\s*drop\s+', caseSensitive: false),
+          '',
+        ) // Remove DROP statements
+        .replaceAll(
+          RegExp(r';\s*delete\s+', caseSensitive: false),
+          '',
+        ) // Remove DELETE statements
+        .replaceAll(
+          RegExp(r';\s*update\s+', caseSensitive: false),
+          '',
+        ) // Remove UPDATE statements
+        .replaceAll(
+          RegExp(r';\s*insert\s+', caseSensitive: false),
+          '',
+        ) // Remove INSERT statements
+        .replaceAll(
+          RegExp(r';\s*create\s+', caseSensitive: false),
+          '',
+        ) // Remove CREATE statements
+        .replaceAll(
+          RegExp(r';\s*alter\s+', caseSensitive: false),
+          '',
+        ) // Remove ALTER statements
+        .replaceAll(
+          RegExp(r';\s*exec\s+', caseSensitive: false),
+          '',
+        ) // Remove EXEC statements
+        .replaceAll(
+          RegExp(r';\s*execute\s+', caseSensitive: false),
+          '',
+        ); // Remove EXECUTE statements
+
     return result;
   }
 
@@ -272,15 +327,15 @@ class InputSanitizer {
   bool isSafeInput(String input) {
     // Check for dangerous patterns
     final dangerousPatterns = [
-      r'<script[^>]*>',           // Script tags
-      r'javascript:',             // JavaScript URLs
-      r'vbscript:',               // VBScript URLs
-      r'data:text/html',          // Data URLs
-      r'on\w+\s*=',               // Event handlers
-      r'\.\./',                   // Path traversal
-      r'\.\.\\',                  // Path traversal (Windows)
-      r'%2e%2e%2f',              // URL encoded path traversal
-      r'%2e%2e%5c',              // URL encoded path traversal (Windows)
+      r'<script[^>]*>', // Script tags
+      r'javascript:', // JavaScript URLs
+      r'vbscript:', // VBScript URLs
+      r'data:text/html', // Data URLs
+      r'on\w+\s*=', // Event handlers
+      r'\.\./', // Path traversal
+      r'\.\.\\', // Path traversal (Windows)
+      r'%2e%2e%2f', // URL encoded path traversal
+      r'%2e%2e%5c', // URL encoded path traversal (Windows)
       r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', // Control characters
     ];
 

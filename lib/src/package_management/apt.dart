@@ -34,8 +34,11 @@ class AptPackageManager extends PackageManager with GlobalInstallCapability {
 
   @override
   Future<String?> getInstalledVersion(String packageName) async {
-    final result =
-        await runCommand('dpkg-query', ['-W', '-f=\${Version}', packageName]);
+    final result = await runCommand('dpkg-query', [
+      '-W',
+      '-f=\${Version}',
+      packageName,
+    ]);
     return result.exitCode == 0 ? result.stdout.trim() : null;
   }
 

@@ -1,36 +1,28 @@
 import 'package:artisanal/args.dart';
-import 'package:configr/src/config_manager.dart';
 import 'package:configr/src/configr_config.dart';
 import 'package:configr/src/configr_runtime.dart';
 
 /// Base command class for Configr CLI commands.
 ///
-/// Provides access to both [ConfigrRuntime] (v2 pipeline) and
-/// [ConfigManager] (v1 legacy) so commands can implement both paths.
-/// New code should prefer [runtime] over [configManager].
+/// Provides access to [ConfigrRuntime] (v2 pipeline) and [ConfigrConfig].
+/// Set via [ConfigrCommandRunner.run] before command execution.
 abstract class BaseCommand extends Command<void> {
-  ConfigManager? _configManager;
+  ConfigrRuntime? _runtime;
 
-  /// Legacy v1 ConfigManager accessor.
-  ///
-  /// Set by [ConfigrCommandRunner.run] before command execution.
-  /// New code should use [runtime] instead.
-  ConfigManager get configManager => _configManager!;
+  /// The v2 runtime for executing configuration operations.
+  ConfigrRuntime get runtime => _runtime!;
 
-  set configManager(ConfigManager value) {
-    _configManager = value;
+  set runtime(ConfigrRuntime value) {
+    _runtime = value;
   }
 
-  /// The v2 runtime, lazily created from [configManager]'s config.
-  ConfigrRuntime get runtime => ConfigrRuntime(configManager.configrConfig);
-
-  /// The config object from [configManager].
-  ConfigrConfig get configrConfig => configManager.configrConfig;
+  /// The config object from [runtime].
+  ConfigrConfig get configrConfig => runtime.config;
 
   @override
   void run() {
-    if (_configManager == null) {
-      throw StateError('ConfigManager not set. Call setConfigManager() first.');
+    if (_runtime == null) {
+      throw StateError('ConfigrRuntime not set. Call setRuntime() first.');
     }
 
     try {

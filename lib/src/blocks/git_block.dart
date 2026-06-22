@@ -55,8 +55,8 @@ class GitBlock extends ActionBlock {
 
   @override
   Map<String, String> get additionalProperties => {
-    if (branch != null) 'branch': branch!,
-    if (commitMessage != null) 'commit_message': commitMessage!,
+    'branch': ?branch,
+    'commit_message': ?commitMessage,
     if (operation != 'clone') 'operation': operation,
   };
 
@@ -64,8 +64,6 @@ class GitBlock extends ActionBlock {
   Map<String, bool> get additionalBoolProperties => {
     if (!streamOutput) 'stream_output': streamOutput,
   };
-
-
 
   @override
   Future<void> readAdditionalProperties(

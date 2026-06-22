@@ -1,45 +1,68 @@
-# configr Modules
+# Configr Documentation
 
-Modules are the core building blocks of configr that handle specific file operations. Each module implements a specific action that can be performed on files and directories.
+> For a complete overview, see the [Documentation Index](index.md).
 
-## Core Modules
+## Overview
 
-- [Backup](backup.md) - Creates backup copies of files/directories before modifications
-- [Copy](copy.md) - Copies files/directories to new locations
-- [Compress](compress.md) - Compresses files/directories into archives
-- [Decompress](decompress.md) - Extracts files from archives with improved rollback support
-- [Delete](delete.md) - Safely deletes files and directories with recursive support
-- [Download](download.md) - Downloads files from remote URLs
-- [Execute](execute.md) - Executes shell commands on files
-- [Move](move.md) - Moves/renames files and directories
-- [Permissions](permissions.md) - Sets file permissions and ownership
-- [Rename](rename.md) - Renames files and directories with rollback support
-- [Symlink](symlink.md) - Creates/manages symbolic links
-- [Template](template.md) - Renders template files with variables
-- [Touch](touch.md) - Updates file timestamps or creates empty files
-- [Validate](validate.md) - Validates file contents and formats
+Configr is a configuration management tool for dotfiles and system
+configuration. It uses the i3config-format for declarative, block-based
+configuration files with full rollback support.
 
-## Commands
+### v2 Pipeline
 
-- [Rollback](rollback.md) - Undo configuration changes and restore previous state
-- [Tutorial](tutorial.md) - Getting started guide with common usage patterns
+Configr v2 uses the i3config v2 state machine for parsing and processing.
+Action blocks are registered as `BlockHandler` subclasses and executed
+automatically during config processing. The `--v2` flag enables the new
+pipeline.
 
-## Using Modules
+### Action Blocks
 
-Each module can be used in your config file by adding it as an action. For example:
+Each action type has a corresponding block:
 
-```
-resource {
-  source "myfile.txt"
-  destination "~/config/myfile.txt"
+- [Backup](backup.md) — Create backup copies before modifications
+- [Copy](copy.md) — Copy files/directories to new locations
+- [Compress](compress.md) — Compress files/directories into archives
+- [Decompress](decompress.md) — Extract files from archives
+- [Delete](delete.md) — Safely delete files and directories
+- [Download](download.md) — Download files from remote URLs
+- [Execute](execute.md) — Execute shell commands
+- [Move](move.md) — Move/rename files and directories
+- [Permissions](permissions.md) — Set file permissions and ownership
+- [Rename](rename.md) — Rename files and directories
+- [Symlink](symlink.md) — Create/manage symbolic links
+- [Template](template.md) — Render template files with Liquid
+- [Touch](touch.md) — Update file timestamps
+- [Validate](validate.md) — Validate file contents and formats
 
-  actions {
-    copy {}
-    permissions {
-      mode "644"
-    }
-  }
+### Example
+
+```i3
+copy {
+  source = "dotfiles/bashrc"
+  destination = "~/.bashrc"
+}
+
+permissions {
+  source = "dotfiles/bashrc"
+  destination = "~/.bashrc"
+  mode = "644"
 }
 ```
 
-See the individual module documentation for specific configuration options.
+### CLI Commands
+
+See the [CLI Usage Guide](cli-usage.md) for detailed command reference.
+
+- `configr init --v2` — Initialize a configuration
+- `configr apply --v2` — Apply configuration
+- `configr rollback --v2` — Rollback changes
+- `configr diff --v2` — Show diff
+- `configr status --v2` — Show status
+- `configr format --v2` — Format config file
+- `configr add --v2` — Add a block
+- `configr edit --v2` — Edit config file
+- `configr watch --v2` — Watch and auto-apply
+
+### Migration
+
+See the [Migration Guide](migration-guide.md) for upgrading from v1 to v2.

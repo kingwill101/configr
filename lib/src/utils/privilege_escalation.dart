@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:configr/src/cli/ui/handlers/base_handler.dart';
 import 'package:configr/src/utils/logging.dart';
 
 /// Session-based privilege lock for maintaining elevated privileges
@@ -90,12 +89,10 @@ abstract class PrivilegeEscalation {
 }
 
 class InteractiveSudoEscalation implements PrivilegeEscalation {
-  final UIHandler? uiHandler;
   final bool keepPrivilegeLock;
   final PrivilegeLock? privilegeLock;
 
   InteractiveSudoEscalation({
-    this.uiHandler,
     this.keepPrivilegeLock = false,
     this.privilegeLock,
   });
@@ -132,71 +129,38 @@ class InteractiveSudoEscalation implements PrivilegeEscalation {
       return result;
     }
 
-    // If passwordless sudo is not available, try using the UI handler for password input
-    if (uiHandler != null) {
-      uiHandler!.enablePasswordPromptMode();
+    // Fallback to direct stdin for password input
+    try {
+      stderr.writeln(
+        'Sudo password required to run: $command ${arguments.join(' ')}',
+      );
+      stderr.write('Password: ');
+      stdin.echoMode = false;
+      final password = stdin.readLineSync() ?? '';
+      stdin.echoMode = true;
+      stderr.writeln(''); // New line after password input
 
-      try {
-        final password = uiHandler!.promptPassword(
-          'Sudo password required to run: $command ${arguments.join(' ')}',
-        );
-
-        if (password.isEmpty) {
-          throw Exception('Password required but not provided');
-        }
-
-        // Use a shell to echo the password into sudo
-        final fullCommand =
-            'echo "$password" | sudo -S $command ${arguments.join(' ')}';
-        result = await Process.run('sh', ['-c', fullCommand]);
-
-        if (result.exitCode != 0) {
-          throw Exception('Failed to run command with sudo: ${result.stderr}');
-        }
-
-        // Acquire privilege lock after successful authentication
-        if (usePrivilegeLock && privilegeLock != null) {
-          privilegeLock!.acquire();
-        }
-
-        return result;
-      } finally {
-        uiHandler!.disablePasswordPromptMode();
+      if (password.isEmpty) {
+        throw Exception('Password required but not provided');
       }
-    } else {
-      // Fallback to direct stdin if no UI handler is available
-      try {
-        stderr.writeln(
-          'Sudo password required to run: $command ${arguments.join(' ')}',
-        );
-        stderr.write('Password: ');
-        stdin.echoMode = false;
-        final password = stdin.readLineSync() ?? '';
-        stdin.echoMode = true;
-        stderr.writeln(''); // New line after password input
 
-        if (password.isEmpty) {
-          throw Exception('Password required but not provided');
-        }
+      // Use a shell to echo the password into sudo
+      final fullCommand =
+          'echo "$password" | sudo -S $command ${arguments.join(' ')}';
+      result = await Process.run('sh', ['-c', fullCommand]);
 
-        // Use a shell to echo the password into sudo
-        final fullCommand =
-            'echo "$password" | sudo -S $command ${arguments.join(' ')}';
-        result = await Process.run('sh', ['-c', fullCommand]);
-
-        if (result.exitCode != 0) {
-          throw Exception('Failed to run command with sudo: ${result.stderr}');
-        }
-
-        // Acquire privilege lock after successful authentication
-        if (usePrivilegeLock && privilegeLock != null) {
-          privilegeLock!.acquire();
-        }
-
-        return result;
-      } catch (e) {
-        throw Exception('Failed to get password for sudo: $e');
+      if (result.exitCode != 0) {
+        throw Exception('Failed to run command with sudo: ${result.stderr}');
       }
+
+      // Acquire privilege lock after successful authentication
+      if (usePrivilegeLock && privilegeLock != null) {
+        privilegeLock!.acquire();
+      }
+
+      return result;
+    } catch (e) {
+      throw Exception('Failed to get password for sudo: $e');
     }
   }
 }

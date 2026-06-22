@@ -64,18 +64,17 @@ class NetworkBlock extends ActionBlock {
   @override
   Map<String, String> get additionalProperties => {
     if (operation != 'connectivity') 'operation': operation,
-    if (host != null) 'host': host!,
+    'host': ?host,
     if (port != 80) 'port': port.toString(),
     if (timeout != 30) 'timeout': timeout.toString(),
     if (expectedStatus != null) 'expected_status': expectedStatus.toString(),
-    if (expectedText != null) 'expected_text': expectedText!,
-    if (expectedContentType != null)
-      'expected_content_type': expectedContentType!,
+    'expected_text': ?expectedText,
+    'expected_content_type': ?expectedContentType,
     if (method != 'GET') 'method': method,
-    if (requestBody != null) 'request_body': requestBody!,
-    if (contentType != null) 'content_type': contentType!,
-    if (username != null) 'username': username!,
-    if (password != null) 'password': password!,
+    'request_body': ?requestBody,
+    'content_type': ?contentType,
+    'username': ?username,
+    'password': ?password,
   };
 
   @override

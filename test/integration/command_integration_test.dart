@@ -13,13 +13,11 @@ import 'package:test/test.dart';
 
 void main() {
   group('Command Integration Tests', () {
-    late ConfigManager configManager;
+    late ConfigrRuntime runtime;
 
     setUp(() {
-      configManager = ConfigManager(
-        configrConfig: ConfigrConfig(
-          privilegeEscalation: NoPrivilegeEscalation(),
-        ),
+      runtime = ConfigrRuntime(
+        ConfigrConfig(privilegeEscalation: NoPrivilegeEscalation()),
       );
     });
 
@@ -79,7 +77,7 @@ void main() {
       expect(command.description, isNotEmpty);
     });
 
-    test('All commands should have configManager set', () {
+    test('All commands should have runtime set', () {
       final commands = [
         InitCommand(),
         ApplyCommand(),
@@ -92,8 +90,8 @@ void main() {
       ];
 
       for (final command in commands) {
-        command.configManager = configManager;
-        expect(command.configManager, equals(configManager));
+        command.runtime = runtime;
+        expect(command.runtime, equals(runtime));
       }
     });
 

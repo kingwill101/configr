@@ -18,7 +18,7 @@ void main() {
 
     final testEvent = StartedEvent(
       moduleId: 'test-module',
-      message: 'Test started'
+      message: 'Test started',
     );
 
     emitEvent(testEvent);
@@ -41,7 +41,7 @@ void main() {
     final testEvent = ProgressEvent(
       moduleId: 'test-module',
       current: 50,
-      total: 100
+      total: 100,
     );
 
     emitEvent(testEvent);

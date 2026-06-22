@@ -12,8 +12,7 @@ class InitCommand extends BaseCommand {
   @override
   void executeCommand() async {
     final configDir =
-        configManager.localPath ??
-        configManager.fileSystem.currentDirectory.path;
+        runtime.config.localPath ?? runtime.fileSystem.currentDirectory.path;
     final configFile = join(configDir, 'config');
 
     if (await fs.file(configFile).exists()) {
@@ -24,39 +23,13 @@ class InitCommand extends BaseCommand {
       }
     }
 
-    final useV2 = configManager.configrConfig.useV2;
-    final content = useV2 ? _v2Template() : _v1Template();
+    final content = _v2Template();
 
-    final f = configManager.fileSystem.file(configFile);
+    final f = runtime.fileSystem.file(configFile);
     await f.writeAsString(content);
 
-    io.success('Initialized ${useV2 ? "v2" : "v1"} configuration at ${f.path}');
+    io.success('Initialized v2 configuration at ${f.path}');
   }
-
-  /// Generates a v1 (legacy) config template.
-  String _v1Template() => '''
-config {
-  # default unless overridden by a location section
-  destination = "~/.config"
-}
-
-files {
-}
-
-packages {
-}
-
-commands {
-}
-
-scripts {
-  pre_apply {
-  }
-
-  post_apply {
-  }
-}
-''';
 
   /// Generates a v2 i3config-format template with example blocks.
   String _v2Template() => '''

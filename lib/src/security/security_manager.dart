@@ -2,12 +2,7 @@ import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/utils/event_bus.dart';
 
 /// Security level for operations
-enum SecurityLevel {
-  low,
-  medium,
-  high,
-  critical,
-}
+enum SecurityLevel { low, medium, high, critical }
 
 /// Security policy definition
 class SecurityPolicy {
@@ -167,18 +162,28 @@ class SecurityManager {
     // Check blacklisted operations
     for (final policy in _policies.values) {
       if (policy.deniedOperations.contains(operation)) {
-        _auditEvent('operation_denied', operation, context, false, 
-            'Operation denied by policy: ${policy.name}');
+        _auditEvent(
+          'operation_denied',
+          operation,
+          context,
+          false,
+          'Operation denied by policy: ${policy.name}',
+        );
         return false;
       }
     }
 
     // Check whitelisted operations
     for (final policy in _policies.values) {
-      if (policy.allowedOperations.isNotEmpty && 
+      if (policy.allowedOperations.isNotEmpty &&
           !policy.allowedOperations.contains(operation)) {
-        _auditEvent('operation_denied', operation, context, false, 
-            'Operation not in allowed list for policy: ${policy.name}');
+        _auditEvent(
+          'operation_denied',
+          operation,
+          context,
+          false,
+          'Operation not in allowed list for policy: ${policy.name}',
+        );
         return false;
       }
     }
@@ -195,11 +200,16 @@ class SecurityManager {
     for (final entry in _blacklistedPaths.entries) {
       final pattern = entry.key;
       final users = entry.value;
-      
-      if (_matchesPattern(path, pattern) && 
+
+      if (_matchesPattern(path, pattern) &&
           (users.isEmpty || users.contains(context.userId ?? ''))) {
-        _auditEvent('path_access_denied', 'file_access', context, false, 
-            'Path blacklisted: $path');
+        _auditEvent(
+          'path_access_denied',
+          'file_access',
+          context,
+          false,
+          'Path blacklisted: $path',
+        );
         return false;
       }
     }
@@ -210,23 +220,34 @@ class SecurityManager {
       for (final entry in _whitelistedPaths.entries) {
         final pattern = entry.key;
         final users = entry.value;
-        
-        if (_matchesPattern(path, pattern) && 
+
+        if (_matchesPattern(path, pattern) &&
             (users.isEmpty || users.contains(context.userId ?? ''))) {
           allowed = true;
           break;
         }
       }
-      
+
       if (!allowed) {
-        _auditEvent('path_access_denied', 'file_access', context, false, 
-            'Path not whitelisted: $path');
+        _auditEvent(
+          'path_access_denied',
+          'file_access',
+          context,
+          false,
+          'Path not whitelisted: $path',
+        );
         return false;
       }
     }
 
-    _auditEvent('path_access_allowed', 'file_access', context, true, 
-        'Path access allowed', {'path': path});
+    _auditEvent(
+      'path_access_allowed',
+      'file_access',
+      context,
+      true,
+      'Path access allowed',
+      {'path': path},
+    );
     return true;
   }
 
@@ -238,8 +259,13 @@ class SecurityManager {
       // Check for potential security issues
       if (input is String) {
         if (_containsMaliciousContent(input)) {
-          _auditEvent('input_validation_failed', operation, context, false, 
-              'Malicious content detected');
+          _auditEvent(
+            'input_validation_failed',
+            operation,
+            context,
+            false,
+            'Malicious content detected',
+          );
           return false;
         }
       } else if (input is Map) {
@@ -259,8 +285,13 @@ class SecurityManager {
       _auditEvent('input_validation_passed', operation, context, true);
       return true;
     } catch (e) {
-      _auditEvent('input_validation_error', operation, context, false, 
-          'Validation error: ${e.toString()}');
+      _auditEvent(
+        'input_validation_error',
+        operation,
+        context,
+        false,
+        'Validation error: ${e.toString()}',
+      );
       return false;
     }
   }
@@ -313,7 +344,7 @@ class SecurityManager {
     final recent = getRecentAuditEvents(limit: 1000);
     final allowed = recent.where((e) => e.success).length;
     final denied = recent.where((e) => !e.success).length;
-    
+
     final eventTypes = <String, int>{};
     for (final event in recent) {
       eventTypes[event.eventType] = (eventTypes[event.eventType] ?? 0) + 1;
@@ -337,18 +368,18 @@ class SecurityManager {
   /// Check if content contains malicious patterns
   bool _containsMaliciousContent(String content) {
     final maliciousPatterns = [
-      r'<script[^>]*>.*?</script>',  // Script tags
-      r'javascript:',                // JavaScript URLs
-      r'data:text/html',            // Data URLs
-      r'vbscript:',                 // VBScript URLs
-      r'on\w+\s*=',                 // Event handlers
-      r'expression\s*\(',           // CSS expressions
-      r'url\s*\(',                  // CSS URLs
-      r'@import',                   // CSS imports
-      r'\.\./',                     // Path traversal
-      r'\.\.\\',                    // Path traversal (Windows)
-      r'%2e%2e%2f',                // URL encoded path traversal
-      r'%2e%2e%5c',                // URL encoded path traversal (Windows)
+      r'<script[^>]*>.*?</script>', // Script tags
+      r'javascript:', // JavaScript URLs
+      r'data:text/html', // Data URLs
+      r'vbscript:', // VBScript URLs
+      r'on\w+\s*=', // Event handlers
+      r'expression\s*\(', // CSS expressions
+      r'url\s*\(', // CSS URLs
+      r'@import', // CSS imports
+      r'\.\./', // Path traversal
+      r'\.\.\\', // Path traversal (Windows)
+      r'%2e%2e%2f', // URL encoded path traversal
+      r'%2e%2e%5c', // URL encoded path traversal (Windows)
     ];
 
     for (final pattern in maliciousPatterns) {
@@ -371,8 +402,14 @@ class SecurityManager {
   }
 
   /// Record audit event
-  void _auditEvent(String eventType, String operation, SecurityContext context, 
-      bool success, [String? reason, Map<String, dynamic>? details]) {
+  void _auditEvent(
+    String eventType,
+    String operation,
+    SecurityContext context,
+    bool success, [
+    String? reason,
+    Map<String, dynamic>? details,
+  ]) {
     final event = SecurityAuditEvent(
       eventType: eventType,
       operation: operation,
@@ -386,18 +423,16 @@ class SecurityManager {
     _trimAuditLog();
 
     // Emit security event
-    _eventBus.emit(SecurityEvent(
-      securityEventType: eventType,
-      severity: success ? 'info' : 'warning',
-      userId: context.userId,
-      resource: operation,
-      details: {
-        'success': success,
-        'reason': reason,
-        'details': details,
-      },
-      moduleId: 'SecurityManager',
-    ));
+    _eventBus.emit(
+      SecurityEvent(
+        securityEventType: eventType,
+        severity: success ? 'info' : 'warning',
+        userId: context.userId,
+        resource: operation,
+        details: {'success': success, 'reason': reason, 'details': details},
+        moduleId: 'SecurityManager',
+      ),
+    );
   }
 
   /// Trim audit log to maximum size

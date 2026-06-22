@@ -23,12 +23,6 @@ class WatchCommand extends BaseCommand {
   @override
   void executeCommand() async {
     final once = argResults?['once'] as bool? ?? false;
-    final useV2 = configrConfig.useV2;
-
-    if (!useV2) {
-      io.warn('The watch command requires v2 mode. Use --v2 flag.');
-      return;
-    }
 
     io.title('Configuration Watch');
 

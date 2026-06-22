@@ -1,9 +1,6 @@
 import 'dart:io';
 
 import 'base_command.dart';
-import 'package:configr/src/models/file_model.dart';
-import 'package:configr/src/models/action.dart';
-import 'package:configr/src/utils/fs.dart';
 import 'package:path/path.dart' as p;
 
 class AddCommand extends BaseCommand {
@@ -36,45 +33,17 @@ class AddCommand extends BaseCommand {
       exit(1);
     }
 
-    final useV2 = configManager.configrConfig.useV2;
-
     for (final file in files) {
-      if (useV2) {
-        await _addV2(file);
-      } else {
-        await _addV1(file);
-      }
+      await _addBlock(file);
     }
   }
 
-  Future<void> _addV1(String file) async {
-    await configManager.load();
-    final basename = p.basename(file);
-    final newFile = ResourceModel(
-      id: 'added_${basename}_${DateTime.now().millisecondsSinceEpoch}',
-      source: basename,
-      destination: r'\{\{ config_path \}\}/' + basename,
-      actions: [Action(type: 'copy')],
-    );
-
-    for (final existing in configManager.config.resources) {
-      if (existing == newFile) {
-        io.warn('File $file already exists in configuration.');
-        return;
-      }
-    }
-    configManager.config.resources.add(newFile);
-    configManager.saveConfig();
-    io.success('Added $file to configuration.');
-  }
-
-  Future<void> _addV2(String file) async {
+  Future<void> _addBlock(String file) async {
     final dest =
         argResults?['destination'] as String? ??
         '~/.config/${p.basename(file)}';
     final type = argResults?['type'] as String? ?? 'copy';
 
-    // Determine destination -- use basename if no explicit destination
     final block =
         '''
 $type {
@@ -85,9 +54,8 @@ $type {
 
     // Append to config file
     final configFile =
-        configManager.configrConfig.configPath ??
-        p.join(configManager.localPath!, 'config');
-    final f = fs.file(configFile);
+        runtime.config.configPath ?? p.join(runtime.workingDirectory, 'config');
+    final f = runtime.fileSystem.file(configFile);
 
     if (await f.exists()) {
       final current = await f.readAsString();

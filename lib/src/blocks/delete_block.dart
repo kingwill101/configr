@@ -62,7 +62,7 @@ class DeleteBlock extends ActionBlock {
   Map<String, String> get additionalProperties => {
     if (includePatterns.isNotEmpty) 'include': includePatterns.join(', '),
     if (excludePatterns.isNotEmpty) 'exclude': excludePatterns.join(', '),
-    if (backupPath != null) 'backup_path': backupPath!,
+    'backup_path': ?backupPath,
   };
 
   @override

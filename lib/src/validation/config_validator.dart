@@ -97,12 +97,7 @@ abstract class ValidationIssue {
   });
 
   Map<String, dynamic> toMap() {
-    return {
-      'path': path,
-      'message': message,
-      'code': code,
-      'details': details,
-    };
+    return {'path': path, 'message': message, 'code': code, 'details': details};
   }
 }
 
@@ -146,7 +141,9 @@ class ConfigSchema {
     final properties = <String, ValidationRule>{};
     if (map['properties'] != null) {
       for (final entry in (map['properties'] as Map<String, dynamic>).entries) {
-        properties[entry.key] = ValidationRule.fromMap(entry.value as Map<String, dynamic>);
+        properties[entry.key] = ValidationRule.fromMap(
+          entry.value as Map<String, dynamic>,
+        );
       }
     }
 
@@ -204,7 +201,10 @@ class ConfigValidator {
   }
 
   /// Register a custom validator
-  void registerCustomValidator(String name, ValidationRule Function(dynamic) validator) {
+  void registerCustomValidator(
+    String name,
+    ValidationRule Function(dynamic) validator,
+  ) {
     _customValidators[name] = validator;
   }
 
@@ -248,28 +248,36 @@ class ConfigValidator {
   }
 
   /// Validate a value against a rule
-  ValidationResult _validateValue(String path, dynamic value, ValidationRule rule) {
+  ValidationResult _validateValue(
+    String path,
+    dynamic value,
+    ValidationRule rule,
+  ) {
     final errors = <ValidationError>[];
     final warnings = <ValidationWarning>[];
 
     switch (rule.type) {
       case ValidationRuleType.required:
         if (value == null) {
-          errors.add(ValidationError(
-            path: path,
-            message: rule.message ?? 'Field is required',
-            code: 'REQUIRED',
-          ));
+          errors.add(
+            ValidationError(
+              path: path,
+              message: rule.message ?? 'Field is required',
+              code: 'REQUIRED',
+            ),
+          );
         }
         break;
 
       case ValidationRuleType.type:
         if (value != null && !_isType(value, rule.value as String)) {
-          errors.add(ValidationError(
-            path: path,
-            message: rule.message ?? 'Invalid type. Expected: ${rule.value}',
-            code: 'INVALID_TYPE',
-          ));
+          errors.add(
+            ValidationError(
+              path: path,
+              message: rule.message ?? 'Invalid type. Expected: ${rule.value}',
+              code: 'INVALID_TYPE',
+            ),
+          );
         }
         break;
 
@@ -278,21 +286,25 @@ class ConfigValidator {
           final range = rule.value as Map<String, dynamic>;
           final min = range['min'] as num?;
           final max = range['max'] as num?;
-          
+
           if (min != null && value < min) {
-            errors.add(ValidationError(
-              path: path,
-              message: rule.message ?? 'Value must be >= $min',
-              code: 'RANGE_MIN',
-            ));
+            errors.add(
+              ValidationError(
+                path: path,
+                message: rule.message ?? 'Value must be >= $min',
+                code: 'RANGE_MIN',
+              ),
+            );
           }
-          
+
           if (max != null && value > max) {
-            errors.add(ValidationError(
-              path: path,
-              message: rule.message ?? 'Value must be <= $max',
-              code: 'RANGE_MAX',
-            ));
+            errors.add(
+              ValidationError(
+                path: path,
+                message: rule.message ?? 'Value must be <= $max',
+                code: 'RANGE_MAX',
+              ),
+            );
           }
         }
         break;
@@ -302,11 +314,14 @@ class ConfigValidator {
           final pattern = rule.value as String;
           final regex = RegExp(pattern);
           if (!regex.hasMatch(value)) {
-            errors.add(ValidationError(
-              path: path,
-              message: rule.message ?? 'Value does not match pattern: $pattern',
-              code: 'PATTERN_MISMATCH',
-            ));
+            errors.add(
+              ValidationError(
+                path: path,
+                message:
+                    rule.message ?? 'Value does not match pattern: $pattern',
+                code: 'PATTERN_MISMATCH',
+              ),
+            );
           }
         }
         break;
@@ -315,27 +330,37 @@ class ConfigValidator {
         if (value != null) {
           final allowedValues = rule.value as List<dynamic>;
           if (!allowedValues.contains(value)) {
-            errors.add(ValidationError(
-              path: path,
-              message: rule.message ?? 'Value must be one of: ${allowedValues.join(', ')}',
-              code: 'INVALID_ENUM',
-            ));
+            errors.add(
+              ValidationError(
+                path: path,
+                message:
+                    rule.message ??
+                    'Value must be one of: ${allowedValues.join(', ')}',
+                code: 'INVALID_ENUM',
+              ),
+            );
           }
         }
         break;
 
       case ValidationRuleType.array:
         if (value != null && value is! List) {
-          errors.add(ValidationError(
-            path: path,
-            message: rule.message ?? 'Value must be an array',
-            code: 'INVALID_ARRAY',
-          ));
+          errors.add(
+            ValidationError(
+              path: path,
+              message: rule.message ?? 'Value must be an array',
+              code: 'INVALID_ARRAY',
+            ),
+          );
         } else if (value is List) {
           final arrayRule = rule.options?['itemRule'] as ValidationRule?;
           if (arrayRule != null) {
             for (int i = 0; i < value.length; i++) {
-              final itemResult = _validateValue('$path[$i]', value[i], arrayRule);
+              final itemResult = _validateValue(
+                '$path[$i]',
+                value[i],
+                arrayRule,
+              );
               errors.addAll(itemResult.errors);
               warnings.addAll(itemResult.warnings);
             }
@@ -345,11 +370,13 @@ class ConfigValidator {
 
       case ValidationRuleType.object:
         if (value != null && value is! Map) {
-          errors.add(ValidationError(
-            path: path,
-            message: rule.message ?? 'Value must be an object',
-            code: 'INVALID_OBJECT',
-          ));
+          errors.add(
+            ValidationError(
+              path: path,
+              message: rule.message ?? 'Value must be an object',
+              code: 'INVALID_OBJECT',
+            ),
+          );
         }
         break;
 
@@ -358,7 +385,7 @@ class ConfigValidator {
           final lengthRule = rule.value as Map<String, dynamic>;
           final minLength = lengthRule['min'] as int?;
           final maxLength = lengthRule['max'] as int?;
-          
+
           int? actualLength;
           if (value is String) {
             actualLength = value.length;
@@ -367,22 +394,26 @@ class ConfigValidator {
           } else if (value is Map) {
             actualLength = value.length;
           }
-          
+
           if (actualLength != null) {
             if (minLength != null && actualLength < minLength) {
-              errors.add(ValidationError(
-                path: path,
-                message: rule.message ?? 'Length must be >= $minLength',
-                code: 'LENGTH_MIN',
-              ));
+              errors.add(
+                ValidationError(
+                  path: path,
+                  message: rule.message ?? 'Length must be >= $minLength',
+                  code: 'LENGTH_MIN',
+                ),
+              );
             }
-            
+
             if (maxLength != null && actualLength > maxLength) {
-              errors.add(ValidationError(
-                path: path,
-                message: rule.message ?? 'Length must be <= $maxLength',
-                code: 'LENGTH_MAX',
-              ));
+              errors.add(
+                ValidationError(
+                  path: path,
+                  message: rule.message ?? 'Length must be <= $maxLength',
+                  code: 'LENGTH_MAX',
+                ),
+              );
             }
           }
         }
@@ -392,11 +423,13 @@ class ConfigValidator {
         if (value != null && value is String) {
           final format = rule.value as String;
           if (!_isValidFormat(value, format)) {
-            errors.add(ValidationError(
-              path: path,
-              message: rule.message ?? 'Invalid format: $format',
-              code: 'INVALID_FORMAT',
-            ));
+            errors.add(
+              ValidationError(
+                path: path,
+                message: rule.message ?? 'Invalid format: $format',
+                code: 'INVALID_FORMAT',
+              ),
+            );
           }
         }
         break;
@@ -411,11 +444,13 @@ class ConfigValidator {
             errors.addAll(result.errors);
             warnings.addAll(result.warnings);
           } catch (e) {
-            errors.add(ValidationError(
-              path: path,
-              message: 'Custom validation failed: ${e.toString()}',
-              code: 'CUSTOM_VALIDATION_ERROR',
-            ));
+            errors.add(
+              ValidationError(
+                path: path,
+                message: 'Custom validation failed: ${e.toString()}',
+                code: 'CUSTOM_VALIDATION_ERROR',
+              ),
+            );
           }
         }
         break;
@@ -429,7 +464,10 @@ class ConfigValidator {
   }
 
   /// Validate global rule
-  ValidationResult _validateGlobalRule(Map<String, dynamic> config, ValidationRule rule) {
+  ValidationResult _validateGlobalRule(
+    Map<String, dynamic> config,
+    ValidationRule rule,
+  ) {
     final errors = <ValidationError>[];
     final warnings = <ValidationWarning>[];
 
@@ -445,11 +483,13 @@ class ConfigValidator {
           errors.addAll(result.errors);
           warnings.addAll(result.warnings);
         } catch (e) {
-          errors.add(ValidationError(
-            path: '',
-            message: 'Global validation failed: ${e.toString()}',
-            code: 'GLOBAL_VALIDATION_ERROR',
-          ));
+          errors.add(
+            ValidationError(
+              path: '',
+              message: 'Global validation failed: ${e.toString()}',
+              code: 'GLOBAL_VALIDATION_ERROR',
+            ),
+          );
         }
       }
     }
@@ -491,7 +531,10 @@ class ConfigValidator {
       case 'url':
         return RegExp(r'^https?://').hasMatch(value);
       case 'uuid':
-        return RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', caseSensitive: false).hasMatch(value);
+        return RegExp(
+          r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+          caseSensitive: false,
+        ).hasMatch(value);
       case 'date':
         try {
           DateTime.parse(value);

@@ -1,5 +1,3 @@
-import 'package:configr/src/extensions/string.dart';
-
 import 'dart:convert';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:collection/collection.dart';
@@ -100,15 +98,7 @@ class Action {
       actions: List<Action>.from(
         json['actions']?.map((x) => Action.fromJson(x)) ?? [],
       ),
-      properties: Map<String, dynamic>.from(json['properties'] ?? {}).map((
-        key,
-        value,
-      ) {
-        if (value is String) {
-          return MapEntry(key, value.unquote().unescape());
-        }
-        return MapEntry(key, value);
-      }),
+      properties: Map<String, dynamic>.from(json['properties'] ?? {}),
       state: Map<String, dynamic>.from(json['state'] ?? {}),
       parent: json['parent'] != null
           ? Map<String, dynamic>.from(json['parent'])

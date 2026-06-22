@@ -13,5 +13,7 @@ String resolveHomeDirectory(String pathStr) {
   return pathStr;
 }
 
-final appDirs =
-    dirs.appDirs(application: 'configr', preferUnixConventions: true);
+final appDirs = dirs.appDirs(
+  application: 'configr',
+  preferUnixConventions: true,
+);

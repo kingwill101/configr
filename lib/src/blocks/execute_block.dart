@@ -42,9 +42,9 @@ class ExecuteBlock extends ActionBlock {
   @override
   Map<String, String> get additionalProperties => {
     if (command.isNotEmpty) 'command': command,
-    if (workingDirectory != null) 'working_directory': workingDirectory!,
+    'working_directory': ?workingDirectory,
     if (timeoutSeconds != 300) 'timeout': timeoutSeconds.toString(),
-    if (input != null) 'input': input!,
+    'input': ?input,
   };
 
   @override

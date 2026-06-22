@@ -163,12 +163,7 @@ class StatusUpdateEvent extends ModuleEvent {
   }
 }
 
-enum StatusEvent {
-  info,
-  warning,
-  error,
-  debug,
-}
+enum StatusEvent { info, warning, error, debug }
 
 class FailedEvent extends ModuleEvent {
   final String message;
@@ -636,7 +631,6 @@ class WaitForUserEvent extends ModuleEvent {
 
 /// Resume processing event to continue after user input
 class ResumeProcessingEvent extends ModuleEvent {
-
   ResumeProcessingEvent({
     super.moduleId,
     super.correlationId,
@@ -646,5 +640,4 @@ class ResumeProcessingEvent extends ModuleEvent {
 
   @override
   ModuleEventType get eventType => ModuleEventType.resumeProcessing;
-
 }

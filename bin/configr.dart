@@ -12,9 +12,8 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 import 'package:artisanal/args.dart';
-import 'package:configr/src/config_manager.dart';
 import 'package:configr/src/configr_config.dart';
-import 'package:configr/src/models/config.dart';
+import 'package:configr/src/configr_runtime.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:file/local.dart';
@@ -118,7 +117,6 @@ class ConfigrCommandRunner extends CommandRunner<void> {
 
     final configrConfig = ConfigrConfig(
       fileSystem: const LocalFileSystem(),
-      options: const ConfigOptions(),
       eventBus: EventBus(),
       configPath: configPath,
       keepPrivilegeLock: false,
@@ -131,11 +129,11 @@ class ConfigrCommandRunner extends CommandRunner<void> {
       pluginDirs: pluginDirs,
     );
 
-    final configManager = ConfigManager(configrConfig: configrConfig);
+    final runtime = ConfigrRuntime(configrConfig);
 
     for (final command in commands.values) {
       if (command is BaseCommand) {
-        command.configManager = configManager;
+        command.runtime = runtime;
       }
     }
 
