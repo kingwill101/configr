@@ -1,0 +1,23 @@
+{"Put":{"state":"The quËick brown\nfox jumps over\nthe lazy dog"}}
+{"Key":"shift-v"}
+{"Key":"x"}
+{"Get":{"state":"fox juËmps over\nthe lazy dog","mode":"Normal"}}
+{"Key":"p"}
+{"Get":{"state":"fox jumps over\nËThe quick brown\nthe lazy dog","mode":"Normal"}}
+{"Put":{"state":"The quick brown\nfox jumps over\nthe laËzy dog"}}
+{"Key":"shift-v"}
+{"Key":"x"}
+{"Get":{"state":"The quick brown\nfox juËmps over","mode":"Normal"}}
+{"ReadRegister":{"name":"\"","value":"the lazy dog\n"}}
+{"Put":{"state":"The quËick brown\nfox jumps over\nthe lazy dog"}}
+{"Key":"shift-v"}
+{"Key":"j"}
+{"Key":"x"}
+{"Get":{"state":"the laËzy dog","mode":"Normal"}}
+{"Key":"p"}
+{"Get":{"state":"the lazy dog\nËThe quick brown\nfox jumps over","mode":"Normal"}}
+{"Put":{"state":"The Ëlong line\nshould not\ncrash\n"}}
+{"Key":"shift-v"}
+{"Key":"$"}
+{"Key":"x"}
+{"Get":{"state":"should noËt\ncrash\n","mode":"Normal"}}

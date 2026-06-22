@@ -1,19 +1,19 @@
 import 'package:test/test.dart';
-import 'package:configr/modules/resource/resource_module.dart';
-import 'package:configr/modules/resource/backup.dart';
-import 'package:configr/modules/resource/compress.dart';
-import 'package:configr/modules/resource/copy.dart';
-import 'package:configr/modules/resource/decompress.dart';
-import 'package:configr/modules/resource/delete.dart';
-import 'package:configr/modules/resource/download.dart';
-import 'package:configr/modules/resource/echo.dart';
-import 'package:configr/modules/resource/execute.dart';
-import 'package:configr/modules/resource/permissions.dart';
-import 'package:configr/modules/resource/rename.dart';
-import 'package:configr/modules/resource/symlink.dart';
-import 'package:configr/modules/resource/touch.dart';
-import 'package:configr/modules/resource/validate.dart';
-import 'package:configr/models/action.dart';
+import 'package:configr/src/modules/resource/resource_module.dart';
+import 'package:configr/src/modules/resource/backup.dart';
+import 'package:configr/src/modules/resource/compress.dart';
+import 'package:configr/src/modules/resource/copy.dart';
+import 'package:configr/src/modules/resource/decompress.dart';
+import 'package:configr/src/modules/resource/delete.dart';
+import 'package:configr/src/modules/resource/download.dart';
+import 'package:configr/src/modules/resource/echo.dart';
+import 'package:configr/src/modules/resource/execute.dart';
+import 'package:configr/src/modules/resource/permissions.dart';
+import 'package:configr/src/modules/resource/rename.dart';
+import 'package:configr/src/modules/resource/symlink.dart';
+import 'package:configr/src/modules/resource/touch.dart';
+import 'package:configr/src/modules/resource/validate.dart';
+import 'package:configr/src/models/action.dart';
 
 import '../../helpers/test_helper.dart';
 

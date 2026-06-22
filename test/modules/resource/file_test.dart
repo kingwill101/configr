@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:test/test.dart';
-import 'package:configr/modules/resource/file.dart';
-import 'package:configr/models/action.dart';
-import 'package:configr/models/file_model.dart';
-import 'package:configr/exceptions.dart';
+import 'package:configr/src/modules/resource/file.dart';
+import 'package:configr/src/models/action.dart';
+import 'package:configr/src/models/file_model.dart';
+import 'package:configr/src/exceptions.dart';
 
 void main() {
   group('FileFileModule', () {

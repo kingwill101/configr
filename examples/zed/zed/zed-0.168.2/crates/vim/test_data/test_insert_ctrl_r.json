@@ -1,0 +1,12 @@
+{"Put":{"state":"heËllo\n"}}
+{"Key":"y"}
+{"Key":"y"}
+{"Key":"i"}
+{"Key":"ctrl-r"}
+{"Key":"\""}
+{"Get":{"state":"hehello\nËllo\n","mode":"Insert"}}
+{"Key":"ctrl-r"}
+{"Key":"x"}
+{"Key":"ctrl-r"}
+{"Key":"escape"}
+{"Get":{"state":"hehello\nËllo\n","mode":"Insert"}}

@@ -500,3 +500,66 @@ SEVERE: 2025-09-29 07:43:00.063331: Failed to process package clamav: Exception:
 
 SEVERE: 2025-09-29 07:43:02.697924: Failed to process package rkhunter: Exception: Failed to get password for sudo: Exception: Failed to run command with sudo: error: package 'rkhunter' was not found
 
+
+SEVERE: 2026-06-21 18:16:45.361550: Failed to install package git,: ProcessException: No such file or directory
+  Command: auto install -y git,
+
+SEVERE: 2026-06-21 18:16:45.682266: Failed to install package curl,: ProcessException: No such file or directory
+  Command: auto install -y curl,
+
+SEVERE: 2026-06-21 18:16:45.683179: Failed to install package wget,: ProcessException: No such file or directory
+  Command: auto install -y wget,
+
+SEVERE: 2026-06-21 18:16:45.683937: Failed to install package vim,: ProcessException: No such file or directory
+  Command: auto install -y vim,
+
+SEVERE: 2026-06-21 18:16:45.684682: Failed to install package nano,: ProcessException: No such file or directory
+  Command: auto install -y nano,
+
+SEVERE: 2026-06-21 18:16:45.685423: Failed to install package htop,: ProcessException: No such file or directory
+  Command: auto install -y htop,
+
+SEVERE: 2026-06-21 18:16:45.686182: Failed to install package tree: ProcessException: No such file or directory
+  Command: auto install -y tree
+
+SEVERE: 2026-06-21 18:55:19.727463: Failed to install package git,: ProcessException: No such file or directory
+  Command: auto install -y git,
+
+SEVERE: 2026-06-21 18:55:19.729886: Failed to install package curl,: ProcessException: No such file or directory
+  Command: auto install -y curl,
+
+SEVERE: 2026-06-21 18:55:19.732791: Failed to install package wget,: ProcessException: No such file or directory
+  Command: auto install -y wget,
+
+SEVERE: 2026-06-21 18:55:19.734284: Failed to install package vim,: ProcessException: No such file or directory
+  Command: auto install -y vim,
+
+SEVERE: 2026-06-21 18:55:19.736288: Failed to install package nano,: ProcessException: No such file or directory
+  Command: auto install -y nano,
+
+SEVERE: 2026-06-21 18:55:19.738280: Failed to install package htop,: ProcessException: No such file or directory
+  Command: auto install -y htop,
+
+SEVERE: 2026-06-21 18:55:19.740376: Failed to install package tree: ProcessException: No such file or directory
+  Command: auto install -y tree
+
+SEVERE: 2026-06-21 19:13:30.821121: Failed to install package git,: ProcessException: No such file or directory
+  Command: auto install -y git,
+
+SEVERE: 2026-06-21 19:13:30.822304: Failed to install package curl,: ProcessException: No such file or directory
+  Command: auto install -y curl,
+
+SEVERE: 2026-06-21 19:13:30.823280: Failed to install package wget,: ProcessException: No such file or directory
+  Command: auto install -y wget,
+
+SEVERE: 2026-06-21 19:13:30.824747: Failed to install package vim,: ProcessException: No such file or directory
+  Command: auto install -y vim,
+
+SEVERE: 2026-06-21 19:13:30.826010: Failed to install package nano,: ProcessException: No such file or directory
+  Command: auto install -y nano,
+
+SEVERE: 2026-06-21 19:13:30.827206: Failed to install package htop,: ProcessException: No such file or directory
+  Command: auto install -y htop,
+
+SEVERE: 2026-06-21 19:13:30.828271: Failed to install package tree: ProcessException: No such file or directory
+  Command: auto install -y tree

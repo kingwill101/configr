@@ -1,11 +1,6 @@
 import 'dart:io';
 
-import 'package:configr/config_manager.dart';
-import 'package:configr/models/action.dart';
-import 'package:configr/models/file_model.dart';
-import 'package:configr/models/template.dart';
-import 'package:configr/utils/file_utils.dart';
-import 'package:configr/utils/privellage_escallation.dart';
+import 'package:configr/configr.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:mockito/annotations.dart';
@@ -19,6 +14,7 @@ class TestHelper {
   late FileSystem fileSystem;
   late PrivilegeEscalation privilegeEscalation;
   late ConfigManager configManager;
+  late EventBus eventBus;
 
   int _testIdCounter = 0;
 
@@ -55,14 +51,21 @@ class TestHelper {
 
   void setUp() {
     fileSystem = MemoryFileSystem();
+    eventBus = EventBus();
     privilegeEscalation = MockPrivilegeEscalation();
     fileSystem.directory(baseDir).createSync(recursive: true);
     fileSystem.currentDirectory = fileSystem.directory(baseDir);
 
     configManager = ConfigManager(
-        configPath: path.join(baseDir, 'config'),
+      configrConfig: ConfigrConfig(
         fileSystem: fileSystem,
-        privilegeEscalation: privilegeEscalation);
+        privilegeEscalation: privilegeEscalation,
+        eventBus: eventBus,
+        verboseMode: false,
+        debugMode: false,
+        dryRunMode: false,
+      ),
+    );
   }
 
   String resolvePath(String relativePath) {

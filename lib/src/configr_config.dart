@@ -1,4 +1,6 @@
+import 'package:configr/src/format/format_service.dart';
 import 'package:configr/src/models/config.dart';
+import 'package:configr/src/plugins/configr_plugin.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
 import 'package:file/file.dart';
@@ -22,6 +24,15 @@ class ConfigrConfig {
   final bool debugMode;
   final bool dryRunMode;
   final bool interactiveMode;
+  final bool useV2;
+  final List<String> pluginDirs;
+  final ConfigrPluginLoader? pluginLoader;
+  final FormatService formatService;
+
+  // Phase K: Privilege escalation persistence
+  final Duration privilegeLockTimeout;
+  final bool privilegeLockEnabled;
+  final PrivilegeLock? privilegeLock;
 
   ConfigrConfig({
     FileSystem? fileSystem,
@@ -37,7 +48,26 @@ class ConfigrConfig {
     this.debugMode = false,
     this.dryRunMode = false,
     this.interactiveMode = false,
+    this.useV2 = false,
+    this.pluginDirs = const [],
+    this.privilegeLockTimeout = const Duration(minutes: 15),
+    this.privilegeLockEnabled = false,
+    ConfigrPluginLoader? pluginLoader,
+    PrivilegeLock? privilegeLock,
+    FormatService? formatService,
   }) : fileSystem = fileSystem ?? const LocalFileSystem(),
-        options = options ?? ConfigOptions(),
-        eventBus = eventBus ?? EventBus();
+       options = options ?? ConfigOptions(),
+       eventBus = eventBus ?? EventBus(),
+       pluginLoader =
+           pluginLoader ?? ConfigrPluginLoader(pluginDirectories: pluginDirs),
+       privilegeLock =
+           privilegeLock ??
+           (keepPrivilegeLock
+               ? PrivilegeLock(timeout: privilegeLockTimeout)
+               : null),
+       formatService = formatService ?? FormatService();
+
+  /// Whether a privilege lock is currently active.
+  bool get hasActivePrivilegeLock =>
+      privilegeLock != null && privilegeLock!.isActive;
 }

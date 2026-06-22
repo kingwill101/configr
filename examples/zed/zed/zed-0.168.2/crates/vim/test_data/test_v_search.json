@@ -1,0 +1,28 @@
+{"Put":{"state":"Ëa.c. abcd a.c. abcd"}}
+{"Key":"v"}
+{"Key":"/"}
+{"Key":"c"}
+{"Key":"d"}
+{"Key":"enter"}
+{"Get":{"state":"Â«a.c. abcËÂ»d a.c. abcd","mode":"Visual"}}
+{"Put":{"state":"a a aË a a a"}}
+{"Key":"v"}
+{"Key":"/"}
+{"Key":"a"}
+{"Key":"enter"}
+{"Get":{"state":"a a aÂ« aËÂ» a a","mode":"Visual"}}
+{"Key":"/"}
+{"Key":"enter"}
+{"Get":{"state":"a a aÂ« a aËÂ» a","mode":"Visual"}}
+{"Key":"?"}
+{"Key":"enter"}
+{"Get":{"state":"a a aÂ« aËÂ» a a","mode":"Visual"}}
+{"Key":"?"}
+{"Key":"enter"}
+{"Get":{"state":"a a Â«Ëa Â»a a a","mode":"Visual"}}
+{"Key":"/"}
+{"Key":"enter"}
+{"Get":{"state":"a a aÂ« aËÂ» a a","mode":"Visual"}}
+{"Key":"/"}
+{"Key":"enter"}
+{"Get":{"state":"a a aÂ« a aËÂ» a","mode":"Visual"}}

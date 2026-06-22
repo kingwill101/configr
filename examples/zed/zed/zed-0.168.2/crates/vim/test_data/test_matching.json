@@ -1,0 +1,17 @@
+{"Put":{"state":"func Ë(a string) {\n    do(something(with<Types>.and_arrays[0, 2]))\n}"}}
+{"Key":"%"}
+{"Get":{"state":"func (a stringË) {\n    do(something(with<Types>.and_arrays[0, 2]))\n}","mode":"Normal"}}
+{"Put":{"state":"func (a string) Ë{\ndo(something(with<Types>.and_arrays[0, 2]))\n}"}}
+{"Key":"%"}
+{"Get":{"state":"func (a string) {\ndo(something(with<Types>.and_arrays[0, 2]))\nË}","mode":"Normal"}}
+{"Put":{"state":"Ë{()}"}}
+{"Key":"%"}
+{"Get":{"state":"{()Ë}","mode":"Normal"}}
+{"Key":"%"}
+{"Get":{"state":"Ë{()}","mode":"Normal"}}
+{"Put":{"state":"{\n    Ë{()}\n}"}}
+{"Key":"%"}
+{"Get":{"state":"{\n    {()Ë}\n}","mode":"Normal"}}
+{"Put":{"state":"func Ëboop() {\n}"}}
+{"Key":"%"}
+{"Get":{"state":"func boop(Ë) {\n}","mode":"Normal"}}

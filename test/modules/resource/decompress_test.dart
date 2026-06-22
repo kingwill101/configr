@@ -1,8 +1,8 @@
 import 'package:test/test.dart';
-import 'package:configr/modules/resource/decompress.dart';
-import 'package:configr/modules/resource/compress.dart';
-import 'package:configr/models/action.dart';
-import 'package:configr/exceptions.dart';
+import 'package:configr/src/modules/resource/decompress.dart';
+import 'package:configr/src/modules/resource/compress.dart';
+import 'package:configr/src/models/action.dart';
+import 'package:configr/src/exceptions.dart';
 import '../../helpers/test_helper.dart';
 
 void main() {

@@ -1,7 +1,7 @@
-import 'package:configr/exceptions.dart';
-import 'package:configr/models/action.dart';
-import 'package:configr/models/file_model.dart';
-import 'package:configr/modules/resource/network.dart';
+import 'package:configr/src/exceptions.dart';
+import 'package:configr/src/models/action.dart';
+import 'package:configr/src/models/file_model.dart';
+import 'package:configr/src/modules/resource/network.dart';
 import 'package:test/test.dart';
 
 void main() {

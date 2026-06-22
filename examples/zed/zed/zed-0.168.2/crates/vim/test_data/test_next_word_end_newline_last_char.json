@@ -1,0 +1,3 @@
+{"Put":{"state":"something(Ëfoo)"}}
+{"Key":"}"}
+{"Get":{"state":"something(fooË)","mode":"Normal"}}

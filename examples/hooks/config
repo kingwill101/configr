@@ -8,7 +8,7 @@ resources {
     id "copy-with-logging"
     source "source_file.txt"
     destination "destination_file.txt"
-    
+
     actions {
       # Before hook - log the start of operation
       before {
@@ -18,13 +18,13 @@ resources {
           color true
         }
       }
-      
+
       # Main action - copy the file
       copy {
         overwrite true
         backup_original true
       }
-      
+
       # After hook - log completion and verify
       after {
         echo {
@@ -41,7 +41,7 @@ resources {
     id "download-with-validation"
     source "https://httpbin.org/json"
     destination "downloaded_data.json"
-    
+
     actions {
       # Before hook - check if destination exists
       before {
@@ -50,19 +50,19 @@ resources {
           level "info"
         }
       }
-      
+
       # Main action - download the file
       download {
         timeout 30
         retry_count 3
       }
-      
+
       # After hook - validate the downloaded file
       after {
         validate {
           file_path "downloaded_data.json"
           schema_type "json"
-          required_fields ["slideshow", "slides"]
+          required_fields "slideshow,slides"
         }
       }
     }
@@ -73,7 +73,7 @@ resources {
     id "template-with-backup"
     source "config.template"
     destination "generated_config.conf"
-    
+
     actions {
       # Before hook - create backup of existing config
       before {
@@ -83,7 +83,7 @@ resources {
           create_destination true
         }
       }
-      
+
       # Main action - process template
       template {
         app_name "MyApplication"
@@ -92,7 +92,7 @@ resources {
         port 8080
         host "localhost"
       }
-      
+
       # After hook - validate generated config and restart service
       after {
         echo {
@@ -113,7 +113,7 @@ resources {
     id "package-with-checks"
     source "system"
     destination "system"
-    
+
     actions {
       # Before hook - check system requirements
       before {
@@ -126,15 +126,15 @@ resources {
           on_success true
         }
       }
-      
+
       # Main action - install packages
       package {
-        packages ["curl", "wget", "git"]
+        packages "curl, wget, git"
         manager "auto"
         update_cache true
         skip_installed true
       }
-      
+
       # After hook - verify installation and show status
       after {
         echo {
@@ -154,7 +154,7 @@ resources {
     id "complex-workflow"
     source "app_source"
     destination "app_destination"
-    
+
     actions {
       # Before hooks - multiple preparation steps
       before {
@@ -164,14 +164,14 @@ resources {
           color true
         }
       }
-      
+
       before {
         execute {
           command "mkdir -p app_destination"
           on_success true
         }
       }
-      
+
       # Main actions - multiple operations
       copy {
         source "app_source"
@@ -179,13 +179,13 @@ resources {
         overwrite true
         recursive true
       }
-      
+
       permissions {
         path "app_destination"
         mode "755"
         recursive true
       }
-      
+
       # After hooks - cleanup and verification
       after {
         echo {
@@ -193,14 +193,14 @@ resources {
           level "info"
         }
       }
-      
+
       after {
         execute {
           command "ls -la app_destination"
           on_success true
         }
       }
-      
+
       after {
         echo {
           message "Complex workflow completed successfully"

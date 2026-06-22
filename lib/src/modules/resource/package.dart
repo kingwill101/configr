@@ -3,7 +3,6 @@ import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/modules/resource/resource_module.dart';
 import 'package:configr/src/package_management/package_management_factory.dart';
 import 'package:configr/src/package_management/package_manger.dart';
-import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
 

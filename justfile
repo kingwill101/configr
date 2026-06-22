@@ -1,5 +1,5 @@
 build: clean
-    dart compile exe bin/main.dart -o bin/main.exe
+    dart compile exe bin/configr.dart -o configr
 
 cmd  DIR *args:build
     cd examples/{{DIR}} && ../../bin/main.exe {{ args }}

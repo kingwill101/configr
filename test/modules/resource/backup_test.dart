@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:configr/exceptions.dart';
+import 'package:configr/src/exceptions.dart';
 import 'package:test/test.dart';
-import 'package:configr/modules/resource/backup.dart';
-import 'package:configr/models/action.dart';
+import 'package:configr/src/modules/resource/backup.dart';
+import 'package:configr/src/models/action.dart';
 
 import '../../helpers/test_helper.dart';
 

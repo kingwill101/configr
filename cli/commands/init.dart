@@ -1,69 +1,40 @@
-import 'dart:io';
-
 import 'base_command.dart';
 import 'package:configr/src/utils/fs.dart';
 import 'package:path/path.dart';
 
 class InitCommand extends BaseCommand {
-
   @override
   String get name => 'init';
-  
+
   @override
   String get description => 'Initialize a new configuration repository';
 
   @override
   void executeCommand() async {
-    final possibleConfigPaths = [
-      join(configManager.localPath!, 'config.json'),
-      join(configManager.localPath!, 'config'),
-    ];
+    final configDir =
+        configManager.localPath ??
+        configManager.fileSystem.currentDirectory.path;
+    final configFile = join(configDir, 'config');
 
-    for (var configPath in possibleConfigPaths) {
-      if (await fs.file(configPath).exists()) {
-        print(
-            'Configuration file ${basename(configPath)} already exists. Do you want to overwrite it? (y/n)');
-      }
-
-      final response = stdin.readLineSync();
-      if (response?.toLowerCase() != 'y') {
-        print('Aborted.');
+    if (await fs.file(configFile).exists()) {
+      io.warn('Configuration file already exists at $configFile');
+      if (!io.confirm('Overwrite it?', defaultValue: false)) {
+        io.info('Aborted.');
         return;
       }
     }
 
-    print('Choose configuration format:');
-    print('1. I3-like format (default)');
-    print('2. JSON format');
-    print('Enter your choice (1 or 2), or press Enter for default:');
+    final useV2 = configManager.configrConfig.useV2;
+    final content = useV2 ? _v2Template() : _v1Template();
 
-    final formatChoice = stdin.readLineSync()?.trim();
+    final f = configManager.fileSystem.file(configFile);
+    await f.writeAsString(content);
 
-    String configContent;
-    if (formatChoice == '2') {
-      configContent = '''
-{
-  "config": {
-    "location": [
-      {
-        "platform": "linux",
-        "destination": "~/.config"
-      }
-    ],
-    "destination": "~/.config"
-  },
-  "files": [],
-  "packages": [],
-  "commands": [],
-  "scripts": {
-    "pre_apply": [],
-    "post_apply": []
+    io.success('Initialized ${useV2 ? "v2" : "v1"} configuration at ${f.path}');
   }
-}
-''';
-    } else {
-      // Default to i3-like format
-      configContent = '''
+
+  /// Generates a v1 (legacy) config template.
+  String _v1Template() => '''
 config {
   # default unless overridden by a location section
   destination = "~/.config"
@@ -86,12 +57,58 @@ scripts {
   }
 }
 ''';
-    }
 
-    final f =
-        configManager.fileSystem.file(join(configManager.localPath!, 'config'));
-    await f.writeAsString(configContent);
+  /// Generates a v2 i3config-format template with example blocks.
+  String _v2Template() => '''
+# Configr v2 configuration
+# Uses i3config-format blocks for declarative system configuration.
 
-    print('Initialized empty configuration at ${f.path}');
-  }
+config {
+  destination = "~/.config"
+}
+
+# Copy files and directories
+copy {
+  source = "dotfiles/bashrc"
+  destination = "~/.bashrc"
+}
+
+# Create files with content
+file {
+  source = "~/.config/configr/user-config"
+  content = "# user preferences go here"
+  operation = "create"
+}
+
+# Create symbolic links
+symlink {
+  source = "dotfiles/gitconfig"
+  destination = "~/.gitconfig"
+}
+
+# Template rendering
+template {
+  source = "templates/starship.toml.liquid"
+  destination = "~/.config/starship.toml"
+}
+
+# Package management
+package {
+  source = "curl git"
+  operation = "install"
+  package_manager = "apt"
+}
+
+# Execute commands
+execute {
+  command = "echo 'Setup complete!'"
+}
+
+# Git operations
+git {
+  source = "https://github.com/user/repo.git"
+  destination = "~/projects/repo"
+  operation = "clone"
+}
+''';
 }

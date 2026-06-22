@@ -1,0 +1,39 @@
+{"Put":{"state":"aaË aa aa aa aa"}}
+{"Key":"/"}
+{"Key":"a"}
+{"Key":"a"}
+{"Key":"enter"}
+{"Get":{"state":"aa Ëaa aa aa aa","mode":"Normal"}}
+{"Key":"g"}
+{"Key":"n"}
+{"Get":{"state":"aa Â«aaËÂ» aa aa aa","mode":"Visual"}}
+{"Key":"g"}
+{"Key":"n"}
+{"Get":{"state":"aa Â«aa aaËÂ» aa aa","mode":"Visual"}}
+{"Key":"escape"}
+{"Key":"d"}
+{"Key":"g"}
+{"Key":"n"}
+{"Get":{"state":"aa aa Ë aa aa","mode":"Normal"}}
+{"Put":{"state":"aaË aa aa aa aa"}}
+{"Key":"/"}
+{"Key":"a"}
+{"Key":"a"}
+{"Key":"enter"}
+{"Get":{"state":"aa Ëaa aa aa aa","mode":"Normal"}}
+{"Key":"3"}
+{"Key":"g"}
+{"Key":"n"}
+{"Get":{"state":"aa aa aa Â«aaËÂ» aa","mode":"Visual"}}
+{"Put":{"state":"aaË aa aa aa aa"}}
+{"Key":"/"}
+{"Key":"a"}
+{"Key":"a"}
+{"Key":"enter"}
+{"Get":{"state":"aa Ëaa aa aa aa","mode":"Normal"}}
+{"Key":"g"}
+{"Key":"shift-n"}
+{"Get":{"state":"aa Â«ËaaÂ» aa aa aa","mode":"Visual"}}
+{"Key":"g"}
+{"Key":"shift-n"}
+{"Get":{"state":"Â«Ëaa aaÂ» aa aa aa","mode":"Visual"}}

@@ -3,7 +3,6 @@ import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/modules/resource/resource_module.dart';
 import 'package:configr/src/utils/fs.dart';
 import 'package:configr/src/utils/logging.dart';
-import 'package:configr/src/utils/event_bus.dart';
 import 'package:liquify/liquify.dart' as liquify;
 
 /// Enhanced template module with advanced file generation from templates.

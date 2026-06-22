@@ -5,7 +5,6 @@ import 'package:crypto/crypto.dart';
 import 'package:configr/src/modules/resource/resource_module.dart';
 import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
-import 'package:configr/src/utils/event_bus.dart';
 import 'package:yaml/yaml.dart';
 
 class FileValidateModule extends ResourceModule {

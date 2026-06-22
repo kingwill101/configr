@@ -1,0 +1,61 @@
+{"SetOption":{"value":"wrap"}}
+{"SetOption":{"value":"columns=12"}}
+{"Put":{"state":"tËwelve char twelve char\ntwelve char\n"}}
+{"Key":"j"}
+{"Get":{"state":"twelve char twelve char\ntËwelve char\n","mode":"Normal"}}
+{"Key":"k"}
+{"Get":{"state":"tËwelve char twelve char\ntwelve char\n","mode":"Normal"}}
+{"Key":"g"}
+{"Key":"j"}
+{"Get":{"state":"twelve char tËwelve char\ntwelve char\n","mode":"Normal"}}
+{"Key":"g"}
+{"Key":"j"}
+{"Get":{"state":"twelve char twelve char\ntËwelve char\n","mode":"Normal"}}
+{"Key":"g"}
+{"Key":"k"}
+{"Get":{"state":"twelve char tËwelve char\ntwelve char\n","mode":"Normal"}}
+{"Key":"g"}
+{"Key":"^"}
+{"Get":{"state":"twelve char Ëtwelve char\ntwelve char\n","mode":"Normal"}}
+{"Key":"^"}
+{"Get":{"state":"Ëtwelve char twelve char\ntwelve char\n","mode":"Normal"}}
+{"Key":"g"}
+{"Key":"$"}
+{"Get":{"state":"twelve charË twelve char\ntwelve char\n","mode":"Normal"}}
+{"Key":"$"}
+{"Get":{"state":"twelve char twelve chaËr\ntwelve char\n","mode":"Normal"}}
+{"Put":{"state":"tËwelve char twelve char\ntwelve char\n"}}
+{"Key":"enter"}
+{"Get":{"state":"twelve char twelve char\nËtwelve char\n","mode":"Normal"}}
+{"Put":{"state":"twelve char\ntËwelve char twelve char\ntwelve char\n"}}
+{"Key":"o"}
+{"Key":"o"}
+{"Key":"escape"}
+{"Get":{"state":"twelve char\ntwelve char twelve char\nËo\ntwelve char\n","mode":"Normal"}}
+{"Put":{"state":"twelve char\ntËwelve char twelve char\ntwelve char\n"}}
+{"Key":"shift-a"}
+{"Key":"a"}
+{"Key":"escape"}
+{"Get":{"state":"twelve char\ntwelve char twelve charËa\ntwelve char\n","mode":"Normal"}}
+{"Key":"shift-i"}
+{"Key":"i"}
+{"Key":"escape"}
+{"Get":{"state":"twelve char\nËitwelve char twelve chara\ntwelve char\n","mode":"Normal"}}
+{"Key":"shift-d"}
+{"Get":{"state":"twelve char\nË\ntwelve char\n","mode":"Normal"}}
+{"Put":{"state":"twelve char\ntwelve char tËwelve char\ntwelve char\n"}}
+{"Key":"shift-o"}
+{"Key":"o"}
+{"Key":"escape"}
+{"Get":{"state":"twelve char\nËo\ntwelve char twelve char\ntwelve char\n","mode":"Normal"}}
+{"Put":{"state":"fourteen chaËr\nfourteen char\n"}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"w"}
+{"Get":{"state":"fourteenË \nfourteen char\n","mode":"Normal"}}
+{"Key":"j"}
+{"Key":"shift-f"}
+{"Key":"e"}
+{"Key":"f"}
+{"Key":"r"}
+{"Get":{"state":"fourteen \nfourteen chaËr\n","mode":"Normal"}}

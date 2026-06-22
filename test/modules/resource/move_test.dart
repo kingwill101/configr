@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
-import 'package:configr/modules/resource/move.dart';
-import 'package:configr/models/action.dart';
+import 'package:configr/src/modules/resource/move.dart';
+import 'package:configr/src/models/action.dart';
 import '../../helpers/test_helper.dart';
 
 void main() {

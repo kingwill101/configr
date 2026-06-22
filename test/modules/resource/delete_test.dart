@@ -1,8 +1,8 @@
 import 'package:test/test.dart';
-import 'package:configr/modules/resource/delete.dart';
-import 'package:configr/models/action.dart';
-import 'package:configr/events/module_events.dart';
-import 'package:configr/utils/event_bus.dart';
+import 'package:configr/src/modules/resource/delete.dart';
+import 'package:configr/src/models/action.dart';
+import 'package:configr/src/events/module_events.dart';
+import 'package:configr/src/utils/event_bus.dart';
 import '../../helpers/test_helper.dart';
 
 void main() {

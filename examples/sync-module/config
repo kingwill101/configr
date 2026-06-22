@@ -4,7 +4,7 @@ resources {
     id "basic-sync"
     source "source_dir"
     destination "destination_dir"
-    
+
     actions {
       sync {
         sync_mode "bidirectional"
@@ -21,7 +21,7 @@ resources {
     id "document-backup"
     source "documents"
     destination "backup/documents"
-    
+
     actions {
       # Before hook - create backup directory and log
       before {
@@ -31,23 +31,23 @@ resources {
           color true
         }
       }
-      
+
       before {
         execute {
           command "mkdir -p backup/documents"
           on_success true
         }
       }
-      
+
       sync {
         sync_mode "source_to_dest"
         conflict_resolution "newer"
-        exclude_patterns ["*.tmp", "*.swp", ".DS_Store", "Thumbs.db"]
+        exclude "*.tmp, *.swp, .DS_Store, Thumbs.db"
         preserve_permissions true
         preserve_timestamps true
         delete_orphans false
       }
-      
+
       # After hook - verify backup and show statistics
       after {
         echo {
@@ -56,7 +56,7 @@ resources {
           color true
         }
       }
-      
+
       after {
         execute {
           command "du -sh backup/documents"
@@ -71,13 +71,13 @@ resources {
     id "project-sync"
     source "project"
     destination "backup/project"
-    
+
     actions {
       sync {
         sync_mode "source_to_dest"
         conflict_resolution "source"
-        include_patterns ["*.dart", "*.yaml", "*.md", "pubspec.*", "*.json"]
-        exclude_patterns ["*.log", "build/", ".dart_tool/", "node_modules/"]
+        include "*.dart, *.yaml, *.md, pubspec.*, *.json"
+        exclude "*.log, build/, .dart_tool/, node_modules/"
         preserve_permissions true
         preserve_timestamps true
         delete_orphans true
@@ -90,12 +90,12 @@ resources {
     id "config-sync"
     source "configs"
     destination "backup/configs"
-    
+
     actions {
       sync {
         sync_mode "source_to_dest"
         conflict_resolution "source"
-        include_patterns ["*.conf", "*.cfg", "*.ini", "*.json"]
+        include "*.conf, *.cfg, *.ini, *.json"
         preserve_permissions true
         preserve_timestamps true
         delete_orphans true
@@ -108,12 +108,12 @@ resources {
     id "media-sync"
     source "media"
     destination "backup/media"
-    
+
     actions {
       sync {
         sync_mode "source_to_dest"
         conflict_resolution "larger"
-        include_patterns ["*.jpg", "*.jpeg", "*.png", "*.gif", "*.mp4", "*.mov", "*.avi"]
+        include "*.jpg, *.jpeg, *.png, *.gif, *.mp4, *.mov, *.avi"
         preserve_permissions false
         preserve_timestamps true
         delete_orphans false
@@ -121,4 +121,3 @@ resources {
     }
   }
 }
-

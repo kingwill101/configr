@@ -4,7 +4,6 @@ import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/modules/resource/resource_module.dart';
 import 'package:configr/src/utils/logging.dart';
-import 'package:configr/src/utils/event_bus.dart';
 import 'package:git/git.dart';
 
 /// Simple git module for dotfile management operations using the git package.

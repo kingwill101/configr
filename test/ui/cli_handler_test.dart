@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:configr/events/module_events.dart';
-import 'package:configr/ui/handlers/cli_handler.dart';
+import 'package:configr/src/events/module_events.dart';
+import 'package:configr/src/cli/ui/handlers/cli_handler.dart';
 import 'package:test/test.dart';
 
 void main() {

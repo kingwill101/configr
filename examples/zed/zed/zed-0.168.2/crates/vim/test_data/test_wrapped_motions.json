@@ -1,0 +1,15 @@
+{"SetOption":{"value":"wrap"}}
+{"SetOption":{"value":"columns=12"}}
+{"Put":{"state":"aaËaa\nðð"}}
+{"Key":"j"}
+{"Get":{"state":"aaaa\nðËð","mode":"Normal"}}
+{"Put":{"state":"123456789012aaËaa\n123456789012ðð"}}
+{"Key":"j"}
+{"Get":{"state":"123456789012aaaa\n123456789012ðËð","mode":"Normal"}}
+{"Put":{"state":"123456789012aaËaa\n123456789012ðð"}}
+{"Key":"j"}
+{"Get":{"state":"123456789012aaaa\n123456789012ðËð","mode":"Normal"}}
+{"Put":{"state":"123456789012aaaaËaaaaaaaa123456789012\nwow\n123456789012ðððððð123456789012"}}
+{"Key":"j"}
+{"Key":"j"}
+{"Get":{"state":"123456789012aaaaaaaaaaaa123456789012\nwow\n123456789012ððËðððð123456789012","mode":"Normal"}}

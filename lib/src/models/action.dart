@@ -27,17 +27,17 @@ class Action {
     Map<String, dynamic>? properties,
     Map<String, dynamic>? state,
     this.parent,
-  })  : id = id ?? _generateId(type, properties ?? {}),
-        actions = actions ?? const [],
-        properties = properties ?? {},
-        state = state ?? {};
+  }) : id = id ?? _generateId(type, properties ?? {}),
+       actions = actions ?? const [],
+       properties = properties ?? {},
+       state = state ?? {};
 
   static String _generateId(String type, Map<String, dynamic> properties) {
     final data = {
       'type': type,
       'properties': Map.from(properties)
         ..remove('status')
-        ..remove('timestamp')
+        ..remove('timestamp'),
     };
     final jsonStr = json.encode(data);
     return crypto.sha256
@@ -64,30 +64,30 @@ class Action {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        type,
-        backupPath,
-        status,
-        timestamp,
-        sha256,
-        const ListEquality().hash(actions),
-        const DeepCollectionEquality().hash(properties),
-        const DeepCollectionEquality().hash(state),
-        const DeepCollectionEquality().hash(parent),
-      );
+    id,
+    type,
+    backupPath,
+    status,
+    timestamp,
+    sha256,
+    const ListEquality().hash(actions),
+    const DeepCollectionEquality().hash(properties),
+    const DeepCollectionEquality().hash(state),
+    const DeepCollectionEquality().hash(parent),
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'type': type,
-        'backupPath': backupPath,
-        'status': status,
-        'timestamp': timestamp,
-        'sha256': sha256,
-        'actions': actions.map((a) => a.toJson()).toList(),
-        'properties': properties,
-        'state': state,
-        'parent': parent,
-      };
+    'id': id,
+    'type': type,
+    'backupPath': backupPath,
+    'status': status,
+    'timestamp': timestamp,
+    'sha256': sha256,
+    'actions': actions.map((a) => a.toJson()).toList(),
+    'properties': properties,
+    'state': state,
+    'parent': parent,
+  };
 
   factory Action.fromJson(Map<String, dynamic> json) {
     return Action(
@@ -98,19 +98,25 @@ class Action {
       timestamp: json['timestamp'],
       sha256: json['sha256'],
       actions: List<Action>.from(
-          json['actions']?.map((x) => Action.fromJson(x)) ?? []),
-      properties:
-          Map<String, dynamic>.from(json['properties'] ?? {}).map((key, value) {
+        json['actions']?.map((x) => Action.fromJson(x)) ?? [],
+      ),
+      properties: Map<String, dynamic>.from(json['properties'] ?? {}).map((
+        key,
+        value,
+      ) {
         if (value is String) {
           return MapEntry(key, value.unquote().unescape());
         }
         return MapEntry(key, value);
       }),
       state: Map<String, dynamic>.from(json['state'] ?? {}),
-      parent: json['parent'] != null ? Map<String, dynamic>.from(json['parent']) : null,
+      parent: json['parent'] != null
+          ? Map<String, dynamic>.from(json['parent'])
+          : null,
     );
   }
 
+  @Deprecated('Use I3ConfigWriterV2 instead. Will be removed in v3.')
   String toConfig({String indent = ''}) {
     StringBuffer buffer = StringBuffer();
     final hasNoneNull = toJson().values.any((e) => e != null);

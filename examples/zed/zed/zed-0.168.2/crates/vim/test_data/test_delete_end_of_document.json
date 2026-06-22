@@ -1,0 +1,16 @@
+{"Put":{"state":"The quick\nbrownË fox\njumps over\nthe lazy"}}
+{"Key":"d"}
+{"Key":"shift-g"}
+{"Get":{"state":"The qËuick","mode":"Normal"}}
+{"Put":{"state":"The quick\nbrownË fox\njumps over\nthe lazy"}}
+{"Key":"d"}
+{"Key":"shift-g"}
+{"Get":{"state":"The qËuick","mode":"Normal"}}
+{"Put":{"state":"The quick\nbrown fox\njumps over\nthe lËazy"}}
+{"Key":"d"}
+{"Key":"shift-g"}
+{"Get":{"state":"The quick\nbrown fox\njumpsË over","mode":"Normal"}}
+{"Put":{"state":"The quick\nbrown fox\njumps over\nË"}}
+{"Key":"d"}
+{"Key":"shift-g"}
+{"Get":{"state":"The quick\nbrown fox\nËjumps over","mode":"Normal"}}

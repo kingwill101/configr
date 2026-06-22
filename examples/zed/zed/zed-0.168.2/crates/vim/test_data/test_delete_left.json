@@ -1,0 +1,15 @@
+{"Put":{"state":"ËTest"}}
+{"Key":"shift-x"}
+{"Get":{"state":"ËTest","mode":"Normal"}}
+{"Put":{"state":"TËest"}}
+{"Key":"shift-x"}
+{"Get":{"state":"Ëest","mode":"Normal"}}
+{"Put":{"state":"TeËst"}}
+{"Key":"shift-x"}
+{"Get":{"state":"TËst","mode":"Normal"}}
+{"Put":{"state":"TesËt"}}
+{"Key":"shift-x"}
+{"Get":{"state":"TeËt","mode":"Normal"}}
+{"Put":{"state":"Test\nËtest"}}
+{"Key":"shift-x"}
+{"Get":{"state":"Test\nËtest","mode":"Normal"}}

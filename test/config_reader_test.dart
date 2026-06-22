@@ -1,4 +1,4 @@
-import 'package:configr/utils/config_reader.dart';
+import 'package:configr/src/reader/i3_config_reader.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -65,8 +65,8 @@ packages {
 ''';
     });
 
-    test('parseConfig should correctly parse resources section', () {
-      final result = parseConfig(configString);
+    test('parseConfig should correctly parse resources section', () async {
+      final result = await I3ConfigReader().read(configString);
 
       expect(result.resources, hasLength(2));
       expect(result.resources[0].source, equals("i3/config"));
@@ -77,27 +77,31 @@ packages {
 
       expect(result.resources[1].source, equals("dunst/dunstrc"));
       expect(
-          result.resources[1].destination, equals("~/.config/dunst/dunstrc"));
+        result.resources[1].destination,
+        equals("~/.config/dunst/dunstrc"),
+      );
       expect(result.resources[1].actions, hasLength(1));
     });
 
-    test('parseConfig should correctly parse commands section', () {
-      final result = parseConfig(configString);
+    test('parseConfig should correctly parse commands section', () async {
+      final result = await I3ConfigReader().read(configString);
 
       expect(result.commands, hasLength(2));
       expect(result.commands[0].name, equals("install-dependencies"));
       expect(result.commands[0].status, equals("completed"));
       expect(result.commands[0].timestamp, equals("2024-08-21T12:36:00Z"));
       expect(
-          result.commands[0].parameters, equals(["i3", "dunst", "alacritty"]));
+        result.commands[0].parameters,
+        equals(["i3", "dunst", "alacritty"]),
+      );
 
       expect(result.commands[1].name, equals("update-packages"));
       expect(result.commands[1].status, equals("completed"));
       expect(result.commands[1].timestamp, equals("2024-08-21T12:36:05Z"));
     });
 
-    test('parseConfig should correctly parse packages section', () {
-      final result = parseConfig(configString);
+    test('parseConfig should correctly parse packages section', () async {
+      final result = await I3ConfigReader().read(configString);
 
       expect(result.packages, hasLength(2));
       expect(result.packages[0].name, equals("i3"));
@@ -115,16 +119,16 @@ packages {
       expect(result.packages[1].timestamp, equals("2024-08-21T12:36:20Z"));
     });
 
-    test('parseConfig should handle empty config', () {
+    test('parseConfig should handle empty config', () async {
       final emptyConfig = '';
-      final result = parseConfig(emptyConfig);
+      final result = await I3ConfigReader().read(emptyConfig);
 
       expect(result.resources, isEmpty);
       expect(result.commands, isEmpty);
       expect(result.packages, isEmpty);
     });
 
-    test('parseConfig should handle config with only resources', () {
+    test('parseConfig should handle config with only resources', () async {
       final resourcesOnlyConfig = '''
 resources {
   resource {
@@ -133,14 +137,14 @@ resources {
   }
 }
 ''';
-      final result = parseConfig(resourcesOnlyConfig);
+      final result = await I3ConfigReader().read(resourcesOnlyConfig);
 
       expect(result.resources, hasLength(1));
       expect(result.commands, isEmpty);
       expect(result.packages, isEmpty);
     });
 
-    test('parseConfig should handle file without actions', () {
+    test('parseConfig should handle file without actions', () async {
       final noActionsConfig = '''
 resources {
   resource {
@@ -149,13 +153,13 @@ resources {
   }
 }
 ''';
-      final result = parseConfig(noActionsConfig);
+      final result = await I3ConfigReader().read(noActionsConfig);
 
       expect(result.resources, hasLength(1));
       expect(result.resources[0].actions, isEmpty);
     });
 
-    test('parseConfig should handle command without parameters', () {
+    test('parseConfig should handle command without parameters', () async {
       final noParamsCommandConfig = '''
 commands {
   command test-command {
@@ -164,14 +168,14 @@ commands {
   }
 }
 ''';
-      final result = parseConfig(noParamsCommandConfig);
+      final result = await I3ConfigReader().read(noParamsCommandConfig);
 
       expect(result.commands, hasLength(1));
       expect(result.commands[0].parameters, isEmpty);
     });
   });
 
-  test('parseConfig should handle rollback status', () {
+  test('parseConfig should handle rollback status', () async {
     final rollbackConfig = '''
 resources {
   resource {
@@ -186,11 +190,13 @@ resources {
   }
 }
 ''';
-    final result = parseConfig(rollbackConfig);
+    final result = await I3ConfigReader().read(rollbackConfig);
 
     expect(result.resources, hasLength(1));
     expect(result.resources[0].actions[0].status, equals("rolledback"));
-    expect(result.resources[0].actions[0].timestamp,
-        equals("2024-08-21T12:34:56Z"));
+    expect(
+      result.resources[0].actions[0].timestamp,
+      equals("2024-08-21T12:34:56Z"),
+    );
   });
 }

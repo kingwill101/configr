@@ -1,0 +1,19 @@
+{"Put":{"state":"abc\ndeËf\nparagraph\nthe second\nthird and\nfinal"}}
+{"Key":"shift-l"}
+{"Get":{"state":"abc\ndef\nparagraph\nthe second\nthird and\nfiËnal","mode":"Normal"}}
+{"Put":{"state":"1 2 3\n4 5 Ë6\n7 8 9\n"}}
+{"Key":"shift-l"}
+{"Get":{"state":"1 2 3\n4 5 6\n7 8 9\nË","mode":"Normal"}}
+{"Put":{"state":"1 2 3\nË4 5 6\n7 8 9\n"}}
+{"Key":"shift-l"}
+{"Get":{"state":"1 2 3\n4 5 6\n7 8 9\nË","mode":"Normal"}}
+{"Put":{"state":"1 2 Ë3\n4 5 6\n7 8 9\n"}}
+{"Key":"shift-l"}
+{"Get":{"state":"1 2 3\n4 5 6\n7 8 9\nË","mode":"Normal"}}
+{"Put":{"state":"Ë1 2 3\n4 5 6\n7 8 9\n"}}
+{"Key":"shift-l"}
+{"Get":{"state":"1 2 3\n4 5 6\n7 8 9\nË","mode":"Normal"}}
+{"Put":{"state":"1 2 3\n4 5 Ë6\n7 8 9\n"}}
+{"Key":"9"}
+{"Key":"shift-l"}
+{"Get":{"state":"1 2 Ë3\n4 5 6\n7 8 9\n","mode":"Normal"}}

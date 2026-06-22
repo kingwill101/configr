@@ -1,6 +1,6 @@
-import 'package:configr/models/action.dart';
-import 'package:configr/models/file_model.dart';
-import 'package:configr/modules/resource/template.dart';
+import 'package:configr/src/models/action.dart';
+import 'package:configr/src/models/file_model.dart';
+import 'package:configr/src/modules/resource/template.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:test/test.dart';

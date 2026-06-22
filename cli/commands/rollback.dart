@@ -1,44 +1,113 @@
+import 'dart:async';
+
+import 'package:configr/src/events/module_events.dart';
 import 'base_command.dart';
 import 'package:configr/src/utils/logging.dart';
 
 class RollbackCommand extends BaseCommand {
   RollbackCommand() {
-    argParser.addOption('count', abbr: 'n', help: 'Number of most recent resources to rollback', valueHelp: 'number');
+    argParser.addOption(
+      'count',
+      abbr: 'n',
+      help: 'Number of most recent resources to rollback',
+      valueHelp: 'number',
+    );
   }
 
   @override
   String get name => 'rollback';
-  
+
   @override
   String get description => 'Rollback configuration changes';
 
   @override
   void executeCommand() async {
-    final count = argResults?['count'] != null ? int.tryParse(argResults!['count']) : null;
-    
+    final count = argResults?['count'] != null
+        ? int.tryParse(argResults!['count'])
+        : null;
+    final useV2 = configrConfig.useV2;
+
+    if (useV2) {
+      await _executeV2(count: count);
+    } else {
+      await _executeV1(count: count);
+    }
+  }
+
+  Future<void> _executeV2({int? count}) async {
+    io.title('Rollback Configuration (v2)');
+
+    // Subscribe to block-level rollback events for live progress.
+    final subscriptions = <StreamSubscription>[];
+    subscriptions.add(
+      runtime.eventBus.stream.listen((event) {
+        switch (event) {
+          case StartedEvent(:final message, :final moduleId):
+            io.line('  ◀ $moduleId: $message');
+          case CompletedEvent(:final message, :final moduleId):
+            io.success('  ✔ $moduleId: $message');
+          case FailedEvent(:final message, :final moduleId):
+            io.error('  ✘ $moduleId: $message');
+          default:
+            break;
+        }
+      }),
+    );
+
+    try {
+      await runtime.rollback(count: count);
+      io.success('Rollback completed successfully.');
+    } catch (e) {
+      if (e.toString().contains('Configuration file not found')) {
+        io.error(
+          'Configuration file not found.\n\n'
+          'Please run this command from a directory containing a config file, '
+          'or specify a config file path.',
+        );
+      } else if (e.toString().contains('No rollback information available')) {
+        io.info(
+          'Nothing to rollback. No previous configuration has been applied.',
+        );
+      } else {
+        io.error('Rollback failed: $e');
+        logger.severe('Rollback error: $e');
+      }
+    } finally {
+      for (final sub in subscriptions) {
+        await sub.cancel();
+      }
+    }
+  }
+
+  Future<void> _executeV1({int? count}) async {
     try {
       await configManager.load();
-      logger.info('Starting rollback of configuration...');
-      if (count != null && count! < 1) {
-        logger.severe('Invalid rollback count: $count');
+      io.info('Starting rollback of configuration...');
+      if (count != null && count < 1) {
+        io.error('Invalid rollback count: $count');
         return;
       }
       if (count != null) {
-        logger.info('Rolling back last $count operations');
+        io.info('Rolling back last $count operations');
       }
 
       await configManager.rollbackConfig(count: count);
-      logger.info('Configuration rollback completed successfully');
+      io.success('Configuration rollback completed successfully');
     } catch (e) {
-      // Handle specific error cases with user-friendly messages
       if (e.toString().contains('Configuration file not found')) {
-        logger.severe('Configuration file not found.\n\nPlease run this command from a directory containing a config file, or specify a config file path.');
-        return;
+        io.error(
+          'Configuration file not found.\n\n'
+          'Please run this command from a directory containing a config file, '
+          'or specify a config file path.',
+        );
       } else if (e.toString().contains('No rollback information available')) {
-        logger.info('Nothing to rollback. No previous configuration has been applied.');
-        return;
+        io.info(
+          'Nothing to rollback. No previous configuration has been applied.',
+        );
+      } else {
+        io.error('Rollback failed: $e');
+        logger.severe('Rollback error: $e');
       }
-      logger.severe('Rollback failed: $e');
     }
   }
 }

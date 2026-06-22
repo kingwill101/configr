@@ -1,7 +1,6 @@
-import 'package:configr/commands/base_command.dart';
-import 'package:configr/config_manager.dart';
-import 'package:configr/utils/fs.dart';
-import 'package:configr/utils/privellage_escallation.dart';
+// CLI commands are in cli/commands/ - using relative imports
+import '../../cli/commands/base_command.dart';
+import 'package:configr/configr.dart';
 import 'package:test/test.dart';
 
 class TestCommand extends BaseCommand {
@@ -10,16 +9,11 @@ class TestCommand extends BaseCommand {
     argParser.addOption('test-option', help: 'A test option');
   }
 
-  @override
   String get name => 'test';
 
-  @override
   String get description => 'A test command';
 
-  @override
-  void executeCommand() {
-    // Test implementation
-  }
+  void executeCommand() {}
 }
 
 void main() {
@@ -29,14 +23,11 @@ void main() {
 
     setUp(() {
       command = TestCommand();
-      
-      final privilegeEscalation = InteractiveSudoEscalation();
+
       configManager = ConfigManager(
-        repoUrl: 'https://github.com/test/test.git',
-        path: fs.currentDirectory.path,
-        fileSystem: fs,
-        privilegeEscalation: privilegeEscalation,
-        configPath: 'test-config',
+        configrConfig: ConfigrConfig(
+          privilegeEscalation: NoPrivilegeEscalation(),
+        ),
       );
     });
 

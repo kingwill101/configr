@@ -1,0 +1,14 @@
+{"Put":{"state":"Ëhello world"}}
+{"Key":"q"}
+{"Key":"w"}
+{"Key":"c"}
+{"Key":"w"}
+{"Key":"j"}
+{"Key":"escape"}
+{"Key":"q"}
+{"Get":{"state":"Ëj world","mode":"Normal"}}
+{"Key":"2"}
+{"Key":"l"}
+{"Key":"@"}
+{"Key":"w"}
+{"Get":{"state":"j Ëj","mode":"Normal"}}

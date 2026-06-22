@@ -1,0 +1,10 @@
+{"Put":{"state":"h\"e\\\"lËlo \\\"world\"!"}}
+{"Key":"v"}
+{"Key":"i"}
+{"Key":"\""}
+{"Get":{"state":"h\"Â«e\\\"llo \\\"worldËÂ»\"!","mode":"Visual"}}
+{"Put":{"state":"hello \"teËst \\\"inside\\\" world\""}}
+{"Key":"v"}
+{"Key":"i"}
+{"Key":"\""}
+{"Get":{"state":"hello \"Â«test \\\"inside\\\" worldËÂ»\"","mode":"Visual"}}

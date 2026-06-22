@@ -1,0 +1,28 @@
+{"Put":{"state":"Test tesËt\n    test"}}
+{"Key":"d"}
+{"Key":"w"}
+{"Get":{"state":"Test teËs\n    test","mode":"Normal"}}
+{"Put":{"state":"TeËst"}}
+{"Key":"d"}
+{"Key":"w"}
+{"Get":{"state":"TËe","mode":"Normal"}}
+{"Put":{"state":"TËest test"}}
+{"Key":"d"}
+{"Key":"w"}
+{"Get":{"state":"TËtest","mode":"Normal"}}
+{"Put":{"state":"Test teËst\ntest"}}
+{"Key":"d"}
+{"Key":"w"}
+{"Get":{"state":"Test tËe\ntest","mode":"Normal"}}
+{"Put":{"state":"Test tesËt\ntest"}}
+{"Key":"d"}
+{"Key":"w"}
+{"Get":{"state":"Test teËs\ntest","mode":"Normal"}}
+{"Put":{"state":"Test test\nË\ntest"}}
+{"Key":"d"}
+{"Key":"w"}
+{"Get":{"state":"Test test\nËtest","mode":"Normal"}}
+{"Put":{"state":"Test teËst-test test"}}
+{"Key":"d"}
+{"Key":"shift-w"}
+{"Get":{"state":"Test teËtest","mode":"Normal"}}

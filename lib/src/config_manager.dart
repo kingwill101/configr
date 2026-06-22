@@ -60,7 +60,10 @@ class ConfigManager {
        options = configrConfig.options,
        config = Config(options: configrConfig.options),
        fileSystem = configrConfig.fileSystem,
-       localPath = path ?? configrConfig.localPath ?? configrConfig.fileSystem.currentDirectory.path,
+       localPath =
+           path ??
+           configrConfig.localPath ??
+           configrConfig.fileSystem.currentDirectory.path,
        uiHandler = _resolveUIHandler(
          configrConfig.uiHandler,
          interactiveMode,
@@ -74,6 +77,7 @@ class ConfigManager {
          verboseMode,
          debugMode,
          usePrivilegeLock: keepPrivilegeLock,
+         privilegeLock: configrConfig.privilegeLock,
        ) {
     lockfileManager = LockfileManager(
       '$localPath/lockfile.json',
@@ -133,13 +137,14 @@ class ConfigManager {
     return CLIHandler();
   }
 
-static PrivilegeEscalation _resolvePrivilegeEscalation(
+  static PrivilegeEscalation _resolvePrivilegeEscalation(
     PrivilegeEscalation? privilegeEscalation,
     UIHandler? uiHandler,
     bool interactiveMode,
     bool verboseMode,
     bool debugMode, {
     bool usePrivilegeLock = false,
+    PrivilegeLock? privilegeLock,
   }) {
     if (privilegeEscalation != null) {
       return privilegeEscalation;
@@ -151,7 +156,11 @@ static PrivilegeEscalation _resolvePrivilegeEscalation(
       verboseMode,
       debugMode,
     );
-    return InteractiveSudoEscalation(uiHandler: handler, keepPrivilegeLock: usePrivilegeLock);
+    return InteractiveSudoEscalation(
+      uiHandler: handler,
+      keepPrivilegeLock: usePrivilegeLock,
+      privilegeLock: privilegeLock,
+    );
   }
 
   Future<void> load() async {

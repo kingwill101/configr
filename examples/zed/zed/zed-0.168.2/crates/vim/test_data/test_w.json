@@ -1,0 +1,40 @@
+{"Put":{"state":"The Ëquick-brown\n\n\nfox_jumps over\nthe"}}
+{"Key":"w"}
+{"Get":{"state":"The quickË-brown\n\n\nfox_jumps over\nthe","mode":"Normal"}}
+{"Key":"w"}
+{"Get":{"state":"The quick-Ëbrown\n\n\nfox_jumps over\nthe","mode":"Normal"}}
+{"Key":"w"}
+{"Get":{"state":"The quick-brown\nË\n\nfox_jumps over\nthe","mode":"Normal"}}
+{"Key":"w"}
+{"Get":{"state":"The quick-brown\n\nË\nfox_jumps over\nthe","mode":"Normal"}}
+{"Key":"w"}
+{"Get":{"state":"The quick-brown\n\n\nËfox_jumps over\nthe","mode":"Normal"}}
+{"Key":"w"}
+{"Get":{"state":"The quick-brown\n\n\nfox_jumps Ëover\nthe","mode":"Normal"}}
+{"Key":"w"}
+{"Get":{"state":"The quick-brown\n\n\nfox_jumps over\nËthe","mode":"Normal"}}
+{"Key":"w"}
+{"Get":{"state":"The quick-brown\n\n\nfox_jumps over\nthËe","mode":"Normal"}}
+{"Key":"w"}
+{"Get":{"state":"The quick-brown\n\n\nfox_jumps over\nthËe","mode":"Normal"}}
+{"Put":{"state":"The Ëquick-brown\n\n\nfox_jumps over\nthe"}}
+{"Key":"shift-w"}
+{"Get":{"state":"The quick-brown\nË\n\nfox_jumps over\nthe","mode":"Normal"}}
+{"Put":{"state":"The quickË-brown\n\n\nfox_jumps over\nthe"}}
+{"Key":"shift-w"}
+{"Get":{"state":"The quick-brown\nË\n\nfox_jumps over\nthe","mode":"Normal"}}
+{"Put":{"state":"The quick-Ëbrown\n\n\nfox_jumps over\nthe"}}
+{"Key":"shift-w"}
+{"Get":{"state":"The quick-brown\nË\n\nfox_jumps over\nthe","mode":"Normal"}}
+{"Key":"shift-w"}
+{"Get":{"state":"The quick-brown\n\nË\nfox_jumps over\nthe","mode":"Normal"}}
+{"Key":"shift-w"}
+{"Get":{"state":"The quick-brown\n\n\nËfox_jumps over\nthe","mode":"Normal"}}
+{"Key":"shift-w"}
+{"Get":{"state":"The quick-brown\n\n\nfox_jumps Ëover\nthe","mode":"Normal"}}
+{"Key":"shift-w"}
+{"Get":{"state":"The quick-brown\n\n\nfox_jumps over\nËthe","mode":"Normal"}}
+{"Key":"shift-w"}
+{"Get":{"state":"The quick-brown\n\n\nfox_jumps over\nthËe","mode":"Normal"}}
+{"Key":"shift-w"}
+{"Get":{"state":"The quick-brown\n\n\nfox_jumps over\nthËe","mode":"Normal"}}

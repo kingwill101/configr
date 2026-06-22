@@ -1,0 +1,14 @@
+{"Put":{"state":"Line one\nLine two\nLiËne three\nLine four\nLine five\n"}}
+{"Key":"c"}
+{"Key":"e"}
+{"Key":"k"}
+{"Key":"e"}
+{"Key":"escape"}
+{"Key":"j"}
+{"Key":"j"}
+{"Key":"'"}
+{"Key":"."}
+{"Get":{"state":"Line one\nLine two\nËLike three\nLine four\nLine five\n","mode":"Normal"}}
+{"Key":"`"}
+{"Key":"."}
+{"Get":{"state":"Line one\nLine two\nLiËke three\nLine four\nLine five\n","mode":"Normal"}}

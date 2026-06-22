@@ -1,0 +1,28 @@
+{"Exec":{"command":"imap pin ð"}}
+{"Exec":{"command":"imap pine ð²"}}
+{"Exec":{"command":"imap pineapple ð"}}
+{"Put":{"state":"Ë"}}
+{"Key":"i"}
+{"Key":"p"}
+{"Key":"i"}
+{"Key":"n"}
+{"Get":{"state":"ðË","mode":"Insert"}}
+{"Put":{"state":"Ë"}}
+{"Key":"i"}
+{"Key":"p"}
+{"Key":"i"}
+{"Key":"n"}
+{"Key":"e"}
+{"Get":{"state":"ð²Ë","mode":"Insert"}}
+{"Put":{"state":"Ë"}}
+{"Key":"i"}
+{"Key":"p"}
+{"Key":"i"}
+{"Key":"n"}
+{"Key":"e"}
+{"Key":"a"}
+{"Key":"p"}
+{"Key":"p"}
+{"Key":"l"}
+{"Key":"e"}
+{"Get":{"state":"ðË","mode":"Insert"}}

@@ -1,0 +1,21 @@
+{"Put":{"state":"The qËuick\n\nbrown fox jumps\nover the lazy dog"}}
+{"Key":"g"}
+{"Key":"g"}
+{"Get":{"state":"The qËuick\n\nbrown fox jumps\nover the lazy dog","mode":"Normal"}}
+{"Put":{"state":"The quick\n\nbrown fox jumps\nover Ëthe lazy dog"}}
+{"Key":"g"}
+{"Key":"g"}
+{"Get":{"state":"The qËuick\n\nbrown fox jumps\nover the lazy dog","mode":"Normal"}}
+{"Put":{"state":"The quick\n\nbrown fox jumps\nover the laËzy dog"}}
+{"Key":"g"}
+{"Key":"g"}
+{"Get":{"state":"The quicËk\n\nbrown fox jumps\nover the lazy dog","mode":"Normal"}}
+{"Put":{"state":"\n\nbrown fox jumps\nover the laËzy dog"}}
+{"Key":"g"}
+{"Key":"g"}
+{"Get":{"state":"Ë\n\nbrown fox jumps\nover the lazy dog","mode":"Normal"}}
+{"Put":{"state":"Ë\n\nbrown fox jumps\nover the lazydog"}}
+{"Key":"2"}
+{"Key":"g"}
+{"Key":"g"}
+{"Get":{"state":"\nË\nbrown fox jumps\nover the lazydog","mode":"Normal"}}

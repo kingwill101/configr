@@ -1,7 +1,7 @@
 import 'package:test/test.dart';
-import 'package:configr/models/action.dart';
-import 'package:configr/models/file_model.dart';
-import 'package:configr/modules/resource/resource_module.dart';
+import 'package:configr/src/models/action.dart';
+import 'package:configr/src/models/file_model.dart';
+import 'package:configr/src/modules/resource/resource_module.dart';
 
 void main() {
   group('Action Parent Property Tests', () {

@@ -1,5 +1,5 @@
-import 'package:configr/exceptions.dart';
-import 'package:configr/models/config.dart';
+import 'package:configr/src/exceptions.dart';
+import 'package:configr/src/models/config.dart';
 
 import 'package:test/test.dart';
 

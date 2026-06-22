@@ -1,17 +1,95 @@
+import 'package:configr/src/utils/logging.dart';
 import 'base_command.dart';
 
 class StatusCommand extends BaseCommand {
-
   @override
   String get name => 'status';
-  
+
   @override
   String get description => 'Show configuration status';
 
   @override
   void executeCommand() async {
-    await configManager.load();
-    // Implement status logic here
-    print('Status functionality not yet implemented.');
+    final useV2 = configrConfig.useV2;
+
+    if (useV2) {
+      await _executeV2();
+    } else {
+      await _executeV1();
+    }
   }
+
+  Future<void> _executeV2() async {
+    io.title('Configuration Status (v2)');
+
+    try {
+      final blocks = await runtime.parseAndCollect();
+
+      if (blocks.isEmpty) {
+        io.warn('No action blocks found in configuration.');
+        return;
+      }
+
+      io.section('${blocks.length} action block(s) configured:');
+
+      // Group blocks by type for summary
+      final byType = <String, List<ActionBlockSummary>>{};
+      for (final block in blocks) {
+        byType
+            .putIfAbsent(block.blockType, () => [])
+            .add(
+              ActionBlockSummary(
+                id: block.id.isEmpty ? '(unnamed)' : block.id,
+                source: block.source,
+                destination: block.destination,
+                status: block.status,
+              ),
+            );
+      }
+
+      for (final entry in byType.entries) {
+        io.line('  ${entry.key}: ${entry.value.length} block(s)');
+        for (final summary in entry.value) {
+          final statusIcon = switch (summary.status) {
+            'completed' => '✅',
+            'failed' => '❌',
+            _ => '⏳',
+          };
+          io.line('    $statusIcon ${summary.id}');
+          if (summary.source.isNotEmpty) {
+            io.line('         source: ${summary.source}');
+          }
+          if (summary.destination.isNotEmpty) {
+            io.line('         destination: ${summary.destination}');
+          }
+        }
+      }
+
+      io.success('Status check complete — ${blocks.length} blocks found.');
+    } catch (e) {
+      io.error('Status check failed: $e');
+      logger.severe('Status error: $e');
+    }
+  }
+
+  Future<void> _executeV1() async {
+    io.title('Configuration Status (v1)');
+    await configManager.load();
+    io.warn('v1 status: detailed status not yet implemented.');
+  }
+}
+
+/// Lightweight summary of a parsed action block for status display.
+class ActionBlockSummary {
+  final String id;
+  final String source;
+  final String destination;
+  final String? status;
+
+  const ActionBlockSummary({
+    required this.id,
+    required this.source,
+    required this.destination,
+    this.status,
+  });
 }

@@ -1,0 +1,15 @@
+{"Put":{"state":"aaËaa\nðð"}}
+{"Key":"j"}
+{"Get":{"state":"aaaa\nðËð","mode":"Normal"}}
+{"Put":{"state":"ËThe quick brown\nfox jumps"}}
+{"Key":"j"}
+{"Get":{"state":"The quick brown\nËfox jumps","mode":"Normal"}}
+{"Put":{"state":"The qËuick brown\nfox jumps"}}
+{"Key":"j"}
+{"Get":{"state":"The quick brown\nfox jËumps","mode":"Normal"}}
+{"Put":{"state":"The quick broËwn\nfox jumps"}}
+{"Key":"j"}
+{"Get":{"state":"The quick brown\nfox jumpËs","mode":"Normal"}}
+{"Put":{"state":"The quick brown\nËfox jumps"}}
+{"Key":"j"}
+{"Get":{"state":"The quick brown\nËfox jumps","mode":"Normal"}}

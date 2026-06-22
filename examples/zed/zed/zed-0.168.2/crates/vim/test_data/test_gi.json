@@ -1,0 +1,10 @@
+{"Put":{"state":"one two\nthree fËr"}}
+{"Key":"i"}
+{"Key":"o"}
+{"Key":"escape"}
+{"Key":"k"}
+{"Key":"g"}
+{"Key":"i"}
+{"Key":"u"}
+{"Key":"escape"}
+{"Get":{"state":"one two\nthree foËur","mode":"Normal"}}

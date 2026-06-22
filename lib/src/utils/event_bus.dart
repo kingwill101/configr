@@ -2,14 +2,18 @@ import 'dart:async';
 
 import 'package:configr/src/events/module_events.dart';
 
+@Deprecated('Use EventBus constructor directly. Will be removed in v3.')
 EventBus _defaultEventBus = EventBus();
 
+@Deprecated('Use EventBus constructor directly. Will be removed in v3.')
 EventBus get eventBus => _defaultEventBus;
 
+@Deprecated('Use EventBus constructor directly. Will be removed in v3.')
 void setDefaultEventBus(EventBus bus) {
   _defaultEventBus = bus;
 }
 
+@Deprecated('Use EventBus.emit() on an instance. Will be removed in v3.')
 void emitEvent(ModuleEvent event) {
   _defaultEventBus.emit(event);
 }
@@ -30,10 +34,11 @@ class EventBus {
   final StreamController<ModuleEvent> _controller;
 
   EventBus({StreamController<ModuleEvent>? controller})
-      : _controller = controller ?? StreamController<ModuleEvent>.broadcast();
+    : _controller = controller ?? StreamController<ModuleEvent>.broadcast();
 
   final List<EventSubscription> _subscriptions = [];
-  final Map<ModuleEventType, List<StreamSubscription<ModuleEvent>>> _typedSubscriptions = {};
+  final Map<ModuleEventType, List<StreamSubscription<ModuleEvent>>>
+  _typedSubscriptions = {};
 
   Stream<ModuleEvent> get stream => _controller.stream;
 
@@ -65,11 +70,7 @@ class EventBus {
   }) {
     final subscription = _controller.stream
         .where((event) => eventTypes.contains(event.eventType))
-        .listen(
-          onEvent,
-          onError: onError,
-          onDone: onDone,
-        );
+        .listen(onEvent, onError: onError, onDone: onDone);
 
     final eventSubscription = EventSubscription(subscription);
     _subscriptions.add(eventSubscription);
@@ -89,11 +90,7 @@ class EventBus {
   }) {
     final subscription = _controller.stream
         .where((event) => moduleIds.contains(event.moduleId))
-        .listen(
-          onEvent,
-          onError: onError,
-          onDone: onDone,
-        );
+        .listen(onEvent, onError: onError, onDone: onDone);
 
     final eventSubscription = EventSubscription(subscription);
     _subscriptions.add(eventSubscription);
@@ -108,11 +105,7 @@ class EventBus {
   }) {
     final subscription = _controller.stream
         .where(filter)
-        .listen(
-          onEvent,
-          onError: onError,
-          onDone: onDone,
-        );
+        .listen(onEvent, onError: onError, onDone: onDone);
 
     final eventSubscription = EventSubscription(subscription);
     _subscriptions.add(eventSubscription);
@@ -128,7 +121,9 @@ class EventBus {
   }
 
   Stream<ModuleEvent> streamOfCorrelation(String correlationId) {
-    return _controller.stream.where((event) => event.correlationId == correlationId);
+    return _controller.stream.where(
+      (event) => event.correlationId == correlationId,
+    );
   }
 
   EventBusStats getStats() {

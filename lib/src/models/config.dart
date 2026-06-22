@@ -48,22 +48,22 @@ class Config {
     List<String>? postApplyScripts,
     bool? shouldFailFast,
     ConfigOptions? options,
-  })  : options = options ?? ConfigOptions(),
-        failFast = shouldFailFast ?? true,
-        resources = resources ?? [],
-        commands = commands ?? [],
-        packages = packages ?? [],
-        preApplyScripts = preApplyScripts ?? [],
-        postApplyScripts = postApplyScripts ?? [];
+  }) : options = options ?? ConfigOptions(),
+       failFast = shouldFailFast ?? true,
+       resources = resources ?? [],
+       commands = commands ?? [],
+       packages = packages ?? [],
+       preApplyScripts = preApplyScripts ?? [],
+       postApplyScripts = postApplyScripts ?? [];
 
   @override
   int get hashCode => Object.hash(
-        Object.hashAll(resources),
-        Object.hashAll(commands),
-        Object.hashAll(packages),
-        Object.hashAll(preApplyScripts),
-        Object.hashAll(postApplyScripts),
-      );
+    Object.hashAll(resources),
+    Object.hashAll(commands),
+    Object.hashAll(packages),
+    Object.hashAll(preApplyScripts),
+    Object.hashAll(postApplyScripts),
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -79,23 +79,28 @@ class Config {
 
   factory Config.fromJson(Map<String, dynamic> json) {
     return Config(
-      resources: (json['resources'] as List<dynamic>?)
+      resources:
+          (json['resources'] as List<dynamic>?)
               ?.map((e) => ResourceModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      commands: (json['commands'] as List<dynamic>?)
+      commands:
+          (json['commands'] as List<dynamic>?)
               ?.map((e) => Command.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      packages: (json['packages'] as List<dynamic>?)
+      packages:
+          (json['packages'] as List<dynamic>?)
               ?.map((e) => Package.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      preApplyScripts: (json['preApplyScripts'] as List<dynamic>?)
+      preApplyScripts:
+          (json['preApplyScripts'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           [],
-      postApplyScripts: (json['postApplyScripts'] as List<dynamic>?)
+      postApplyScripts:
+          (json['postApplyScripts'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           [],
@@ -117,6 +122,7 @@ class Config {
     return 'Config(resources: $resources, commands: $commands, packages: $packages, preApplyScripts: $preApplyScripts, postApplyScripts: $postApplyScripts)';
   }
 
+  @Deprecated('Use I3ConfigWriterV2 instead. Will be removed in v3.')
   String toConfig() {
     StringBuffer buffer = StringBuffer();
 

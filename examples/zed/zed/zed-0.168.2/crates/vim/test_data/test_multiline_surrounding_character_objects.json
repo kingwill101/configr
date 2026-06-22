@@ -1,0 +1,15 @@
+{"Put":{"state":"func empty(a string) bool {\n   if a == \"\" {\n      return true\n   }\n   Ëreturn false\n}"}}
+{"Key":"v"}
+{"Key":"i"}
+{"Key":"{"}
+{"Get":{"state":"func empty(a string) bool {\nÂ«   if a == \"\" {\n      return true\n   }\n   return false\nËÂ»}","mode":"Visual"}}
+{"Put":{"state":"func empty(a string) bool {\n     if a == \"\" {\n         Ëreturn true\n     }\n     return false\n}"}}
+{"Key":"v"}
+{"Key":"i"}
+{"Key":"{"}
+{"Get":{"state":"func empty(a string) bool {\n     if a == \"\" {\nÂ«         return true\nËÂ»     }\n     return false\n}","mode":"Visual"}}
+{"Put":{"state":"func empty(a string) bool {\n     if a == \"\" Ë{\n         return true\n     }\n     return false\n}"}}
+{"Key":"v"}
+{"Key":"i"}
+{"Key":"{"}
+{"Get":{"state":"func empty(a string) bool {\n     if a == \"\" {\nÂ«         return true\nËÂ»     }\n     return false\n}","mode":"Visual"}}

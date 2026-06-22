@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
-import 'package:configr/utils/event_bus.dart';
-import 'package:configr/events/module_events.dart';
+import 'package:configr/src/utils/event_bus.dart';
+import 'package:configr/src/events/module_events.dart';
 
 void main() {
   late EventBus eventBus;

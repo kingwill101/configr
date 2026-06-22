@@ -1,0 +1,10 @@
+{"Put":{"state":"helËlo world."}}
+{"Key":"i"}
+{"Key":"ctrl-o"}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"w"}
+{"Get":{"state":"Ë world.","mode":"Insert"}}
+{"Key":"ctrl-o"}
+{"Key":"p"}
+{"Get":{"state":" helloËworld.","mode":"Insert"}}

@@ -1,0 +1,6 @@
+{"Put":{"state":"Ë0\n"}}
+{"Key":"ctrl-x"}
+{"Get":{"state":"-Ë1\n","mode":"Normal"}}
+{"Key":"2"}
+{"Key":"ctrl-a"}
+{"Get":{"state":"Ë1\n", "mode":"Normal"}}

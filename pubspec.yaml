@@ -1,5 +1,5 @@
 name: configr
-description: A sample command-line application.
+description: A powerful configuration management tool for dotfiles with i3-style config format support.
 version: 1.0.0
 # repository: https://github.com/my_org/my_repo
 
@@ -8,14 +8,13 @@ environment:
 
 dependencies:
   args: ^2.7.0
-  i3config: ^2.0.1
+  i3config: ^2.3.0
   path: ^1.9.1
   crypto: ^3.0.6
   file: ^7.0.1
   mustache_template: ^2.0.1
   xdg_desktop_portal: ^0.1.13
   logging: ^1.3.0
-  interact: ^2.2.0
   opentelemetry: ^0.18.10
   app_dirs: ^0.2.0
   liquify: ^1.3.0
@@ -26,6 +25,7 @@ dependencies:
   glob: ^2.1.3
   yaml: ^3.1.3
   git: ^2.2.0
+  artisanal: ^0.3.0
 
 dev_dependencies:
   lints: ^6.0.0
@@ -35,4 +35,4 @@ dev_dependencies:
 dependency_overrides:
   intl: ^0.20.2
 executables:
-  configr: main
+  configr:

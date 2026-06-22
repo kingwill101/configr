@@ -1,0 +1,36 @@
+{"Put":{"state":"Line one\nLine two\nLine Ëthree\nLine four\nLine five\n"}}
+{"Key":"v"}
+{"Key":"j"}
+{"Key":"escape"}
+{"Key":"k"}
+{"Key":"k"}
+{"Key":"'"}
+{"Key":"<"}
+{"Get":{"state":"Line one\nLine two\nËLine three\nLine four\nLine five\n","mode":"Normal"}}
+{"Key":"`"}
+{"Key":"<"}
+{"Get":{"state":"Line one\nLine two\nLine Ëthree\nLine four\nLine five\n","mode":"Normal"}}
+{"Key":"'"}
+{"Key":">"}
+{"Get":{"state":"Line one\nLine two\nLine three\nËLine four\nLine five\n","mode":"Normal"}}
+{"Key":"`"}
+{"Key":">"}
+{"Get":{"state":"Line one\nLine two\nLine three\nLine Ëfour\nLine five\n","mode":"Normal"}}
+{"Key":"g"}
+{"Key":"g"}
+{"Key":"^"}
+{"Key":"j"}
+{"Key":"j"}
+{"Key":"l"}
+{"Key":"l"}
+{"Key":"c"}
+{"Key":"e"}
+{"Key":"k"}
+{"Key":"e"}
+{"Key":"escape"}
+{"Key":"'"}
+{"Key":"."}
+{"Get":{"state":"Line one\nLine two\nËLike three\nLine four\nLine five\n","mode":"Normal"}}
+{"Key":"`"}
+{"Key":"."}
+{"Get":{"state":"Line one\nLine two\nLiËke three\nLine four\nLine five\n","mode":"Normal"}}

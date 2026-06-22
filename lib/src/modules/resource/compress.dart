@@ -7,7 +7,6 @@ import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/fs.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:archive/archive.dart';
-import 'package:configr/src/utils/event_bus.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 

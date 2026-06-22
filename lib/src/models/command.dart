@@ -34,14 +34,14 @@ class Command {
 
   @override
   int get hashCode => Object.hash(
-        name,
-        id,
-        command,
-        Object.hashAll(parameters),
-        status,
-        timestamp,
-        sha256,
-      );
+    name,
+    id,
+    command,
+    Object.hashAll(parameters),
+    status,
+    timestamp,
+    sha256,
+  );
 
   @override
   String toString() {
@@ -61,15 +61,16 @@ class Command {
   }
 
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'id': id,
-        'command': command,
-        'parameters': parameters,
-        'status': status,
-        'timestamp': timestamp,
-        'sha256': sha256,
-      };
+    'name': name,
+    'id': id,
+    'command': command,
+    'parameters': parameters,
+    'status': status,
+    'timestamp': timestamp,
+    'sha256': sha256,
+  };
 
+  @Deprecated('Use I3ConfigWriterV2 instead. Will be removed in v3.')
   String toConfig({String indent = ''}) {
     StringBuffer buffer = StringBuffer();
     buffer.writeln('$indent$name {');

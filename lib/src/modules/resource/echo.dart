@@ -1,6 +1,5 @@
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/modules/resource/resource_module.dart';
-import 'package:configr/src/utils/event_bus.dart';
 
 class FileEchoModule extends ResourceModule {
   FileEchoModule(super.file, super.action, {super.fileSystem, super.eventBus});

@@ -4,7 +4,6 @@ import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/extensions/string.dart';
 import 'package:configr/src/modules/resource/resource_module.dart';
-import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/fs.dart';
 import 'package:crypto/crypto.dart';

@@ -21,20 +21,20 @@ class ResourceModel {
   String? sha256;
   String? status;
 
-  ResourceModel(
-      {required this.id,
-      required this.source,
-      required this.destination,
-      required this.actions,
-      this.type,
-      this.status,
-      this.template,
-      List<Command>? commands,
-      String? shasum,
-      Map<String, dynamic>? properties})
-      : commands = commands ?? const [],
-        sha256 = shasum ?? '',
-        properties = properties ?? {};
+  ResourceModel({
+    required this.id,
+    required this.source,
+    required this.destination,
+    required this.actions,
+    this.type,
+    this.status,
+    this.template,
+    List<Command>? commands,
+    String? shasum,
+    Map<String, dynamic>? properties,
+  }) : commands = commands ?? const [],
+       sha256 = shasum ?? '',
+       properties = properties ?? {};
 
   @override
   bool operator ==(Object other) =>
@@ -53,17 +53,17 @@ class ResourceModel {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        sha256,
-        source,
-        template,
-        status,
-        destination,
-        type,
-        Object.hashAll(actions),
-        Object.hashAll(commands),
-        Object.hashAll(properties.entries),
-      );
+    id,
+    sha256,
+    source,
+    template,
+    status,
+    destination,
+    type,
+    Object.hashAll(actions),
+    Object.hashAll(commands),
+    Object.hashAll(properties.entries),
+  );
 
   factory ResourceModel.fromJson(Map<String, dynamic> json) {
     return ResourceModel(
@@ -72,34 +72,40 @@ class ResourceModel {
       destination: json['destination'] as String,
       type: json['type'] as String?,
       status: json['status'] as String?,
-      template:
-          json['template'] != null ? Template.fromJson(json['template']) : null,
-      actions: (json['actions'] as List?)
+      template: json['template'] != null
+          ? Template.fromJson(json['template'])
+          : null,
+      actions:
+          (json['actions'] as List?)
               ?.map((a) => Action.fromJson(a as Map<String, dynamic>))
               .toList() ??
           [],
-      commands: (json['commands'] as List?)
+      commands:
+          (json['commands'] as List?)
               ?.map((c) => Command.fromJson(c as Map<String, dynamic>))
               .toList() ??
           [],
       shasum: json['sha256'] as String?,
-      properties: Map<String, dynamic>.from(json['properties'] as Map<String, dynamic>? ?? {}),
+      properties: Map<String, dynamic>.from(
+        json['properties'] as Map<String, dynamic>? ?? {},
+      ),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'source': source,
-        'destination': destination,
-        'type': type,
-        'status': status,
-        'template': template?.toJson(),
-        'actions': actions.map((a) => a.toJson()).toList(),
-        'commands': commands.map((c) => c.toJson()).toList(),
-        'sha256': sha256,
-        'properties': properties,
-      };
+    'id': id,
+    'source': source,
+    'destination': destination,
+    'type': type,
+    'status': status,
+    'template': template?.toJson(),
+    'actions': actions.map((a) => a.toJson()).toList(),
+    'commands': commands.map((c) => c.toJson()).toList(),
+    'sha256': sha256,
+    'properties': properties,
+  };
 
+  @Deprecated('Use I3ConfigWriterV2 instead. Will be removed in v3.')
   String toConfig({String indent = ''}) {
     StringBuffer buffer = StringBuffer();
     buffer.writeln('${indent}file {');

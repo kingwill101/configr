@@ -1,7 +1,7 @@
 import 'dart:io';
-import 'package:configr/package_management/npm.dart';
-import 'package:configr/package_management/package_manger.dart';
-import 'package:configr/utils/privellage_escallation.dart';
+import 'package:configr/src/package_management/npm.dart';
+import 'package:configr/src/package_management/package_manger.dart';
+import 'package:configr/src/utils/privilege_escalation.dart';
 import 'package:test/test.dart';
 
 void main() {

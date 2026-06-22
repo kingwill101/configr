@@ -1,0 +1,27 @@
+{"Put":{"state":"Ëabc def"}}
+{"Key":"g"}
+{"Key":"shift-u"}
+{"Key":"w"}
+{"Get":{"state":"ËABC def","mode":"Normal"}}
+{"Key":"g"}
+{"Key":"u"}
+{"Key":"w"}
+{"Get":{"state":"Ëabc def","mode":"Normal"}}
+{"Key":"g"}
+{"Key":"~"}
+{"Key":"w"}
+{"Get":{"state":"ËABC def","mode":"Normal"}}
+{"Key":"."}
+{"Get":{"state":"Ëabc def","mode":"Normal"}}
+{"Put":{"state":"abËc def"}}
+{"Key":"g"}
+{"Key":"~"}
+{"Key":"i"}
+{"Key":"w"}
+{"Get":{"state":"ËABC def","mode":"Normal"}}
+{"Key":"."}
+{"Get":{"state":"Ëabc def","mode":"Normal"}}
+{"Key":"g"}
+{"Key":"shift-u"}
+{"Key":"$"}
+{"Get":{"state":"ËABC DEF","mode":"Normal"}}

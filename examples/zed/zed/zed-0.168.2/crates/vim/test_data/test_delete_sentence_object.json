@@ -1,0 +1,270 @@
+{"Put":{"state":"ËThe quick brown? Fox Jumps! Over the lazy."}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"Ë Fox Jumps! Over the lazy.","mode":"Normal"}}
+{"Put":{"state":"The quick Ëbrown? Fox Jumps! Over the lazy."}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"Ë Fox Jumps! Over the lazy.","mode":"Normal"}}
+{"Put":{"state":"The quick brownË? Fox Jumps! Over the lazy."}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"Ë Fox Jumps! Over the lazy.","mode":"Normal"}}
+{"Put":{"state":"The quick brown?Ë Fox Jumps! Over the lazy."}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown?ËFox Jumps! Over the lazy.","mode":"Normal"}}
+{"Put":{"state":"The quick brown? ËFox Jumps! Over the lazy."}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown? Ë Over the lazy.","mode":"Normal"}}
+{"Put":{"state":"The quick brown? Fox JËumps! Over the lazy."}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown? Ë Over the lazy.","mode":"Normal"}}
+{"Put":{"state":"The quick brown? Fox JumpsË! Over the lazy."}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown? Ë Over the lazy.","mode":"Normal"}}
+{"Put":{"state":"The quick brown? Fox Jumps!Ë Over the lazy."}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown? Fox Jumps!ËOver the lazy.","mode":"Normal"}}
+{"Put":{"state":"The quick brown? Fox Jumps! OvËer the lazy."}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown? Fox Jumps!Ë ","mode":"Normal"}}
+{"Put":{"state":"The quick brown? Fox Jumps! Over theË lazy."}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown? Fox Jumps!Ë ","mode":"Normal"}}
+{"Put":{"state":"The quick brown? Fox Jumps! Over the lazyË."}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown? Fox Jumps!Ë ","mode":"Normal"}}
+{"Put":{"state":"ËThe quick brown\nfox jumps over\nthe lazy dog. The quick \nbrown fox jumps over\n"}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"Ë The quick \nbrown fox jumps over\n","mode":"Normal"}}
+{"Put":{"state":"The quick Ëbrown\nfox jumps over\nthe lazy dog. The quick \nbrown fox jumps over\n"}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"Ë The quick \nbrown fox jumps over\n","mode":"Normal"}}
+{"Put":{"state":"The quick brownË\nfox jumps over\nthe lazy dog. The quick \nbrown fox jumps over\n"}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"Ë The quick \nbrown fox jumps over\n","mode":"Normal"}}
+{"Put":{"state":"The quick brown\nfox jumps over\nthe lazy doËg. The quick \nbrown fox jumps over\n"}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"Ë The quick \nbrown fox jumps over\n","mode":"Normal"}}
+{"Put":{"state":"The quick brown\nfox jumps over\nthe lazy dogË. The quick \nbrown fox jumps over\n"}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"Ë The quick \nbrown fox jumps over\n","mode":"Normal"}}
+{"Put":{"state":"The quick brown\nfox jumps over\nthe lazy dog.Ë The quick \nbrown fox jumps over\n"}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown\nfox jumps over\nthe lazy dog.ËThe quick \nbrown fox jumps over\n","mode":"Normal"}}
+{"Put":{"state":"The quick brown\nfox jumps over\nthe lazy dog. ËThe quick \nbrown fox jumps over\n"}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown\nfox jumps over\nthe lazy dog.Ë \n","mode":"Normal"}}
+{"Put":{"state":"The quick brown\nfox jumps over\nthe lazy dog. The quick Ë\nbrown fox jumps over\n"}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown\nfox jumps over\nthe lazy dog.Ë \n","mode":"Normal"}}
+{"Put":{"state":"ËThe quick brown.)]'\" Brown fox jumps. "}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"Ë Brown fox jumps. ","mode":"Normal"}}
+{"Put":{"state":"The Ëquick brown.)]'\" Brown fox jumps. "}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"Ë Brown fox jumps. ","mode":"Normal"}}
+{"Put":{"state":"The quick brownË.)]'\" Brown fox jumps. "}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"Ë Brown fox jumps. ","mode":"Normal"}}
+{"Put":{"state":"The quick brown.)Ë]'\" Brown fox jumps. "}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"Ë Brown fox jumps. ","mode":"Normal"}}
+{"Put":{"state":"The quick brown.)]Ë'\" Brown fox jumps. "}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"Ë Brown fox jumps. ","mode":"Normal"}}
+{"Put":{"state":"The quick brown.)]'Ë\" Brown fox jumps. "}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"Ë Brown fox jumps. ","mode":"Normal"}}
+{"Put":{"state":"The quick brown.)]'\" Brown Ëfox jumps. "}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown.)]'\" Ë ","mode":"Normal"}}
+{"Put":{"state":"The quick brown.)]'\" Brown fox jumpsË. "}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown.)]'\" Ë ","mode":"Normal"}}
+{"Put":{"state":"The quick brown.)]'\" Brown fox jumps.Ë "}}
+{"Key":"d"}
+{"Key":"i"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown.)]'\" Brown fox jumpsË.","mode":"Normal"}}
+{"Put":{"state":"ËThe quick brown? Fox Jumps! Over the lazy."}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"ËFox Jumps! Over the lazy.","mode":"Normal"}}
+{"Put":{"state":"The quick Ëbrown? Fox Jumps! Over the lazy."}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"ËFox Jumps! Over the lazy.","mode":"Normal"}}
+{"Put":{"state":"The quick brownË? Fox Jumps! Over the lazy."}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"ËFox Jumps! Over the lazy.","mode":"Normal"}}
+{"Put":{"state":"The quick brown? ËFox Jumps! Over the lazy."}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown? ËOver the lazy.","mode":"Normal"}}
+{"Put":{"state":"The quick brown? Fox JËumps! Over the lazy."}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown? ËOver the lazy.","mode":"Normal"}}
+{"Put":{"state":"The quick brown? Fox JumpsË! Over the lazy."}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown? ËOver the lazy.","mode":"Normal"}}
+{"Put":{"state":"The quick brown? Fox Jumps!Ë Over the lazy."}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown? Fox JumpsË!","mode":"Normal"}}
+{"Put":{"state":"The quick brown? Fox Jumps! OvËer the lazy."}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown? Fox JumpsË!","mode":"Normal"}}
+{"Put":{"state":"The quick brown? Fox Jumps! Over theË lazy."}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown? Fox JumpsË!","mode":"Normal"}}
+{"Put":{"state":"The quick brown? Fox Jumps! Over the lazyË."}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown? Fox JumpsË!","mode":"Normal"}}
+{"Put":{"state":"ËThe quick brown\nfox jumps over\nthe lazy dog. The quick \nbrown fox jumps over\n"}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"ËThe quick \nbrown fox jumps over\n","mode":"Normal"}}
+{"Put":{"state":"The quick Ëbrown\nfox jumps over\nthe lazy dog. The quick \nbrown fox jumps over\n"}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"ËThe quick \nbrown fox jumps over\n","mode":"Normal"}}
+{"Put":{"state":"The quick brownË\nfox jumps over\nthe lazy dog. The quick \nbrown fox jumps over\n"}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"ËThe quick \nbrown fox jumps over\n","mode":"Normal"}}
+{"Put":{"state":"The quick brown\nfox jumps over\nthe lazy doËg. The quick \nbrown fox jumps over\n"}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"ËThe quick \nbrown fox jumps over\n","mode":"Normal"}}
+{"Put":{"state":"The quick brown\nfox jumps over\nthe lazy dogË. The quick \nbrown fox jumps over\n"}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"ËThe quick \nbrown fox jumps over\n","mode":"Normal"}}
+{"Put":{"state":"The quick brown\nfox jumps over\nthe lazy dog.Ë The quick \nbrown fox jumps over\n"}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown\nfox jumps over\nthe lazy dogË.\n","mode":"Normal"}}
+{"Put":{"state":"The quick brown\nfox jumps over\nthe lazy dog. ËThe quick \nbrown fox jumps over\n"}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown\nfox jumps over\nthe lazy dogË.\n","mode":"Normal"}}
+{"Put":{"state":"The quick brown\nfox jumps over\nthe lazy dog. The quick Ë\nbrown fox jumps over\n"}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown\nfox jumps over\nthe lazy dogË.\n","mode":"Normal"}}
+{"Put":{"state":"ËThe quick brown.)]'\" Brown fox jumps. "}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"ËBrown fox jumps. ","mode":"Normal"}}
+{"Put":{"state":"The Ëquick brown.)]'\" Brown fox jumps. "}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"ËBrown fox jumps. ","mode":"Normal"}}
+{"Put":{"state":"The quick brownË.)]'\" Brown fox jumps. "}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"ËBrown fox jumps. ","mode":"Normal"}}
+{"Put":{"state":"The quick brown.)Ë]'\" Brown fox jumps. "}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"ËBrown fox jumps. ","mode":"Normal"}}
+{"Put":{"state":"The quick brown.)]Ë'\" Brown fox jumps. "}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"ËBrown fox jumps. ","mode":"Normal"}}
+{"Put":{"state":"The quick brown.)]'Ë\" Brown fox jumps. "}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"ËBrown fox jumps. ","mode":"Normal"}}
+{"Put":{"state":"The quick brown.)]'\" Brown Ëfox jumps. "}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown.)]'\"Ë ","mode":"Normal"}}
+{"Put":{"state":"The quick brown.)]'\" Brown fox jumpsË. "}}
+{"Key":"d"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"The quick brown.)]'\"Ë ","mode":"Normal"}}

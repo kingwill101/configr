@@ -105,7 +105,7 @@ resources {
     actions {
       file {
         operation "create"
-        content "server {\n    listen 80;\n    server_name example.com;\n    \n    location / {\n        root /var/www/html;\n        index index.html index.htm;\n        try_files \$uri \$uri/ =404;\n    }\n    \n    location /api {\n        proxy_pass http://localhost:3000;\n        proxy_set_header Host \$host;\n        proxy_set_header X-Real-IP \$remote_addr;\n    }\n    \n    # Security headers\n    add_header X-Frame-Options DENY;\n    add_header X-Content-Type-Options nosniff;\n    add_header X-XSS-Protection \"1; mode=block\";\n}"
+        content "server {\n    listen 80;\n    server_name example.com;\n    \n    location / {\n        root /var/www/html;\n        index index.html index.htm;\n        try_files $uri $uri/ =404;\n    }\n    \n    location /api {\n        proxy_pass http://localhost:3000;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n    }\n    \n    # Security headers\n    add_header X-Frame-Options DENY;\n    add_header X-Content-Type-Options nosniff;\n    add_header X-XSS-Protection \"1; mode=block\";\n}"
         create_directories "true"
       }
     }

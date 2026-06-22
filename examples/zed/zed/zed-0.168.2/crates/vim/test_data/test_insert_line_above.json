@@ -1,0 +1,18 @@
+{"Put":{"state":"Ë"}}
+{"Key":"shift-o"}
+{"Get":{"state":"Ë\n","mode":"Insert"}}
+{"Put":{"state":"The Ëquick"}}
+{"Key":"shift-o"}
+{"Get":{"state":"Ë\nThe quick","mode":"Insert"}}
+{"Put":{"state":"The qËuick\nbrown fox\njumps over"}}
+{"Key":"shift-o"}
+{"Get":{"state":"Ë\nThe quick\nbrown fox\njumps over","mode":"Insert"}}
+{"Put":{"state":"The quick\nbrown Ëfox\njumps over"}}
+{"Key":"shift-o"}
+{"Get":{"state":"The quick\nË\nbrown fox\njumps over","mode":"Insert"}}
+{"Put":{"state":"The quick\nbrown fox\njumps Ëover"}}
+{"Key":"shift-o"}
+{"Get":{"state":"The quick\nbrown fox\nË\njumps over","mode":"Insert"}}
+{"Put":{"state":"The quick\nË\nbrown fox"}}
+{"Key":"shift-o"}
+{"Get":{"state":"The quick\nË\n\nbrown fox","mode":"Insert"}}

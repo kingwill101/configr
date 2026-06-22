@@ -1,24 +1,26 @@
-import 'dart:io';
+import 'dart:io' as dart_io;
 
+import 'package:artisanal/artisanal.dart' show Console;
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/cli/ui/handlers/base_handler.dart';
 import 'package:configr/src/utils/event_bus.dart';
 
-/// Interactive UI handler that properly handles user input with event coordination
+/// Interactive UI handler that uses artisanal [Console] for styled output
+/// and coordinates user input through the event bus.
 class InteractiveHandler implements UIHandler {
+  final Console _console;
   EventBus _eventBus;
-  final bool _verboseMode;
   final bool _debugMode;
   final bool _interactiveMode;
-  
-  
+
   InteractiveHandler({
     required EventBus eventBus,
+    Console? console,
     bool verboseMode = false,
     bool debugMode = false,
     bool interactiveMode = true,
   }) : _eventBus = eventBus,
-       _verboseMode = verboseMode,
+       _console = console ?? Console(interactive: interactiveMode),
        _debugMode = debugMode,
        _interactiveMode = interactiveMode {
     _setupEventListeners();
@@ -39,14 +41,17 @@ class InteractiveHandler implements UIHandler {
   void _handleUserInputRequired(UserInputRequiredEvent event) {
     if (!_interactiveMode) {
       // In non-interactive mode, use default value or first option
-      final input = event.defaultValue ?? 
-                   (event.options?.isNotEmpty == true ? event.options!.first : '');
-      _eventBus.emit(UserInputReceivedEvent(
-        moduleId: event.moduleId,
-        correlationId: event.correlationId,
-        input: input,
-        inputType: event.inputType,
-      ));
+      final input =
+          event.defaultValue ??
+          (event.options?.isNotEmpty == true ? event.options!.first : '');
+      _eventBus.emit(
+        UserInputReceivedEvent(
+          moduleId: event.moduleId,
+          correlationId: event.correlationId,
+          input: input,
+          inputType: event.inputType,
+        ),
+      );
       return;
     }
 
@@ -56,13 +61,15 @@ class InteractiveHandler implements UIHandler {
 
   void _handleWaitForUser(WaitForUserEvent event) {
     if (_interactiveMode) {
-      print('\n⏸️  Waiting for user input: ${event.reason}');
-      print('Press Enter to continue...');
-      stdin.readLineSync();
-      _eventBus.emit(ResumeProcessingEvent(
-        moduleId: event.moduleId,
-        correlationId: event.correlationId,
-      ));
+      _console.writeln('\n⏸️  Waiting for user input: ${event.reason}');
+      _console.info('Press Enter to continue...');
+      dart_io.stdin.readLineSync();
+      _eventBus.emit(
+        ResumeProcessingEvent(
+          moduleId: event.moduleId,
+          correlationId: event.correlationId,
+        ),
+      );
     }
   }
 
@@ -91,13 +98,16 @@ class InteractiveHandler implements UIHandler {
     } else if (event is ResourceRollbackCompletedEvent) {
       _handleResourceRollbackCompleted(event);
     } else if (_debugMode) {
-      print('🔍 [DEBUG] ${event.runtimeType}: ${event.toStructuredData()}');
+      _console.writeln(
+        '🔍 [DEBUG] ${event.runtimeType}: ${event.toStructuredData()}',
+      );
     }
   }
 
   void _promptForInput(UserInputRequiredEvent event) {
-    final correlationId = event.correlationId ?? DateTime.now().millisecondsSinceEpoch.toString();
-    
+    final correlationId =
+        event.correlationId ?? DateTime.now().millisecondsSinceEpoch.toString();
+
     switch (event.inputType) {
       case 'text':
         _promptText(event, correlationId);
@@ -117,104 +127,112 @@ class InteractiveHandler implements UIHandler {
   }
 
   void _promptText(UserInputRequiredEvent event, String correlationId) {
-    final promptText = event.defaultValue != null 
-        ? '${event.prompt} [${event.defaultValue}]: '
-        : '${event.prompt}: ';
-    
-    stdout.write(promptText);
-    final input = stdin.readLineSync()?.trim() ?? '';
-    final result = input.isEmpty ? (event.defaultValue ?? '') : input;
-    
-    _eventBus.emit(UserInputReceivedEvent(
-      moduleId: event.moduleId,
-      correlationId: correlationId,
-      input: result,
-      inputType: event.inputType,
-    ));
+    final result = _console.ask(event.prompt, defaultValue: event.defaultValue);
+
+    _eventBus.emit(
+      UserInputReceivedEvent(
+        moduleId: event.moduleId,
+        correlationId: correlationId,
+        input: result,
+        inputType: event.inputType,
+      ),
+    );
   }
 
   void _promptPassword(UserInputRequiredEvent event, String correlationId) {
-    stdout.write('${event.prompt}: ');
-    stdin.echoMode = false;
-    final password = stdin.readLineSync() ?? '';
-    stdin.echoMode = true;
-    print(''); // Add newline after hidden input
-    
-    _eventBus.emit(UserInputReceivedEvent(
-      moduleId: event.moduleId,
-      correlationId: correlationId,
-      input: password,
-      inputType: event.inputType,
-    ));
+    // For password prompts we use dart:io stdin directly since
+    // the async secret() doesn't fit the event-driven flow here.
+    dart_io.stdout.write('${event.prompt}: ');
+    dart_io.stdin.echoMode = false;
+    final password = dart_io.stdin.readLineSync() ?? '';
+    dart_io.stdin.echoMode = true;
+    _console.writeln(); // newline after hidden input
+
+    _eventBus.emit(
+      UserInputReceivedEvent(
+        moduleId: event.moduleId,
+        correlationId: correlationId,
+        input: password,
+        inputType: event.inputType,
+      ),
+    );
   }
 
   void _promptConfirm(UserInputRequiredEvent event, String correlationId) {
-    final defaultText = event.defaultValue == 'true' ? 'Y/n' : 'y/N';
-    final promptText = '${event.prompt} [$defaultText]: ';
-    
-    stdout.write(promptText);
-    final input = stdin.readLineSync()?.trim().toLowerCase() ?? '';
-    final result = input.isEmpty 
-        ? (event.defaultValue == 'true' ? 'true' : 'false')
-        : (input.startsWith('y') ? 'true' : 'false');
-    
-    _eventBus.emit(UserInputReceivedEvent(
-      moduleId: event.moduleId,
-      correlationId: correlationId,
-      input: result,
-      inputType: event.inputType,
-    ));
+    final defaultVal = event.defaultValue == 'true';
+    final result = _console.confirm(event.prompt, defaultValue: defaultVal);
+
+    _eventBus.emit(
+      UserInputReceivedEvent(
+        moduleId: event.moduleId,
+        correlationId: correlationId,
+        input: result ? 'true' : 'false',
+        inputType: event.inputType,
+      ),
+    );
   }
 
   void _promptSelect(UserInputRequiredEvent event, String correlationId) {
-    print('\n${event.prompt}');
-    if (event.options != null) {
-      for (int i = 0; i < event.options!.length; i++) {
-        final marker = event.defaultValue == event.options![i] ? ' (default)' : '';
-        print('  ${i + 1}. ${event.options![i]}$marker');
-      }
+    if (event.options == null || event.options!.isEmpty) {
+      _eventBus.emit(
+        UserInputReceivedEvent(
+          moduleId: event.moduleId,
+          correlationId: correlationId,
+          input: event.defaultValue ?? '',
+          inputType: event.inputType,
+        ),
+      );
+      return;
     }
-    
-    stdout.write('Select option [1-${event.options?.length ?? 1}]: ');
-    final input = stdin.readLineSync()?.trim() ?? '';
-    
-    String result;
-    if (input.isEmpty && event.defaultValue != null) {
-      result = event.defaultValue!;
-    } else {
-      final index = int.tryParse(input);
-      if (index != null && index >= 1 && index <= (event.options?.length ?? 1)) {
-        result = event.options?[index - 1] ?? event.defaultValue ?? '';
-      } else {
-        result = event.defaultValue ?? (event.options?.first ?? '');
-      }
-    }
-    
-    _eventBus.emit(UserInputReceivedEvent(
-      moduleId: event.moduleId,
-      correlationId: correlationId,
-      input: result,
-      inputType: event.inputType,
-    ));
+
+    final defaultIdx = event.defaultValue != null
+        ? event.options!.indexOf(event.defaultValue!)
+        : null;
+    final result = _console.choice(
+      event.prompt,
+      choices: event.options!,
+      defaultIndex: defaultIdx != null && defaultIdx >= 0 ? defaultIdx : null,
+    );
+
+    _eventBus.emit(
+      UserInputReceivedEvent(
+        moduleId: event.moduleId,
+        correlationId: correlationId,
+        input: result.toString(),
+        inputType: event.inputType,
+      ),
+    );
   }
 
-  // Event handling methods
+  // ---------------------------------------------------------------------------
+  // Event display methods — all use artisanal Console
+  // ---------------------------------------------------------------------------
+
   void _handleStatusUpdate(StatusUpdateEvent event) {
-    final prefix = _getStatusPrefix(event.level);
-    final message = _formatMessage(event.message);
-    print('$prefix $message');
+    switch (event.level) {
+      case StatusEvent.info:
+        _console.info(event.message);
+      case StatusEvent.warning:
+        _console.warn(event.message);
+      case StatusEvent.error:
+        _console.error(event.message);
+      case StatusEvent.debug:
+        if (_debugMode) {
+          _console.writeln('🔍 ${event.message}');
+        }
+    }
   }
 
   void _handleProgress(ProgressEvent event) {
     if (event.total > 0) {
       final percentage = (event.current / event.total * 100).round();
       final bar = _generateProgressBar(event.current, event.total);
-      print('\r🔄 $bar $percentage% ${event.message}');
+      _console.write('\r🔄 $bar $percentage% ${event.message}');
       if (event.current >= event.total) {
-        print(''); // New line when complete
+        _console.writeln(); // New line when complete
       }
     } else {
-      print('🔄 ${event.message}');
+      _console.info('🔄 ${event.message}');
     }
   }
 
@@ -223,89 +241,87 @@ class InteractiveHandler implements UIHandler {
       final percentage = (event.current / event.total * 100).round();
       final bar = _generateProgressBar(event.current, event.total);
       final url = event.url != null ? ' (${event.url})' : '';
-      print('\r⬇️  $bar $percentage% ${event.message}$url');
+      _console.write('\r⬇️  $bar $percentage% ${event.message}$url');
       if (event.current >= event.total) {
-        print(''); // New line when complete
+        _console.writeln(); // New line when complete
       }
     } else {
-      print('⬇️  ${event.message}');
+      _console.info('⬇️  ${event.message}');
     }
   }
 
   void _handleStarted(StartedEvent event) {
-    print('🔄 ${event.message}');
+    _console.info('🔄 ${event.message}');
   }
 
   void _handleCompleted(CompletedEvent event) {
-    final duration = event.duration != null 
+    final duration = event.duration != null
         ? ' (${_formatDuration(event.duration!)})'
         : '';
-    print('✅ ${event.message}$duration');
+    _console.success('✅ ${event.message}$duration');
   }
 
   void _handleFailed(FailedEvent event) {
-    print('❌ ${event.message}');
+    _console.error('❌ ${event.message}');
     if (event.errorCode != null) {
-      print('   Error Code: ${event.errorCode}');
+      _console.writeln('   Error Code: ${event.errorCode}');
     }
     if (event.cause != null) {
-      print('   Cause: ${event.cause}');
+      _console.writeln('   Cause: ${event.cause}');
     }
   }
 
   void _handleError(ErrorEvent event) {
     final severity = _getSeverityPrefix(event.severity);
-    print('$severity ${event.message}');
+    _console.error('$severity ${event.message}');
     if (_debugMode) {
-      print('   Category: ${event.category}');
-      print('   Error Code: ${event.errorCode}');
+      _console.writeln('   Category: ${event.category}');
+      _console.writeln('   Error Code: ${event.errorCode}');
       if (event.cause != null) {
-        print('   Cause: ${event.cause}');
+        _console.writeln('   Cause: ${event.cause}');
       }
     }
   }
 
   void _handleResourceStarted(ResourceStartedEvent event) {
-    print('🔄 [${event.resourceId}] Starting ${event.resourceType}');
-    print('   Source: ${event.source}');
-    print('   Destination: ${event.destination}');
-    print('   Actions: ${event.actionCount}');
+    _console.section('📦 [${event.resourceId}] Starting ${event.resourceType}');
+    _console.writeln('   Source: ${event.source}');
+    _console.writeln('   Destination: ${event.destination}');
+    _console.writeln('   Actions: ${event.actionCount}');
   }
 
   void _handleResourceCompleted(ResourceCompletedEvent event) {
     final duration = _formatDuration(event.duration);
-    print('✅ [${event.resourceId}] Completed ${event.resourceType}');
-    print('   Actions: ${event.completedActions}/${event.totalActions}');
-    print('   Duration: $duration');
+    _console.success('✅ [${event.resourceId}] Completed ${event.resourceType}');
+    _console.info(
+      '   Actions: ${event.completedActions}/${event.totalActions}',
+    );
+    _console.info('   Duration: $duration');
   }
 
   void _handleResourceRollbackStarted(ResourceRollbackStartedEvent event) {
-    print('🔄 [${event.resourceId}] Rolling back ${event.resourceType}');
-    print('   Source: ${event.source}');
-    print('   Destination: ${event.destination}');
-    print('   Actions: ${event.actionCount}');
+    _console.writeln(
+      '🔄 [${event.resourceId}] Rolling back ${event.resourceType}',
+    );
+    _console.writeln('   Source: ${event.source}');
+    _console.writeln('   Destination: ${event.destination}');
+    _console.writeln('   Actions: ${event.actionCount}');
   }
 
   void _handleResourceRollbackCompleted(ResourceRollbackCompletedEvent event) {
     final duration = _formatDuration(event.duration);
-    print('✅ [${event.resourceId}] Rollback completed for ${event.resourceType}');
-    print('   Actions: ${event.rolledbackActions}/${event.totalActions}');
-    print('   Duration: $duration');
+    _console.success(
+      '✅ [${event.resourceId}] Rollback completed for ${event.resourceType}',
+    );
+    _console.info(
+      '   Actions: ${event.rolledbackActions}/${event.totalActions}',
+    );
+    _console.info('   Duration: $duration');
   }
 
+  // ---------------------------------------------------------------------------
   // Utility methods
-  String _getStatusPrefix(StatusEvent level) {
-    switch (level) {
-      case StatusEvent.info:
-        return 'ℹ️ ';
-      case StatusEvent.warning:
-        return '⚠️ ';
-      case StatusEvent.error:
-        return '❌';
-      case StatusEvent.debug:
-        return '🔍';
-    }
-  }
+  // ---------------------------------------------------------------------------
 
   String _getSeverityPrefix(String severity) {
     switch (severity.toLowerCase()) {
@@ -314,20 +330,12 @@ class InteractiveHandler implements UIHandler {
       case 'high':
         return '❌';
       case 'medium':
-        return '⚠️ ';
+        return '⚠️';
       case 'low':
-        return 'ℹ️ ';
+        return 'ℹ️';
       default:
         return '❓';
     }
-  }
-
-  String _formatMessage(String message) {
-    if (_verboseMode) {
-      final timestamp = DateTime.now().toIso8601String();
-      return '[$timestamp] $message';
-    }
-    return message;
   }
 
   String _generateProgressBar(int current, int total) {
@@ -347,9 +355,43 @@ class InteractiveHandler implements UIHandler {
     }
   }
 
-  // BaseHandler implementation
+  // ---------------------------------------------------------------------------
+  // UIHandler interface methods
+  // ---------------------------------------------------------------------------
+
+  @override
   void handleEvent(ModuleEvent event) {
     // Events are handled by the stream listener
+  }
+
+  @override
+  void start() {
+    // Already started in constructor
+  }
+
+  @override
+  void stop() {
+    // Nothing to stop
+  }
+
+  @override
+  void enableInteractiveMode() {
+    // Already handled in constructor
+  }
+
+  @override
+  void disableInteractiveMode() {
+    // Already handled in constructor
+  }
+
+  @override
+  void enablePasswordPromptMode() {
+    // Not needed for this handler
+  }
+
+  @override
+  void disablePasswordPromptMode() {
+    // Not needed for this handler
   }
 
   void enableVerboseMode() {
@@ -368,66 +410,45 @@ class InteractiveHandler implements UIHandler {
     // Already handled in constructor
   }
 
-  void enablePasswordPromptMode() {
-    // Not needed for this handler
-  }
-
-  void disablePasswordPromptMode() {
-    // Not needed for this handler
-  }
-
   // Interactive methods that emit events instead of direct input
+  @override
   String prompt(String message, {String? defaultValue}) {
-    // Always return default value to prevent infinite loops
     return defaultValue ?? '';
   }
 
+  @override
   bool confirm(String message, {bool defaultValue = false}) {
-    // Always return default value to prevent infinite loops
     return defaultValue;
   }
 
+  @override
   T select<T>(String message, List<T> options, {T? defaultValue}) {
-    // Always return default value to prevent infinite loops
     return defaultValue ?? options.first;
   }
 
+  @override
   String promptPassword(String message) {
-    // Always return empty string to prevent infinite loops
     return '';
   }
 
+  @override
   void showMessage(String message) {
-    print('ℹ️  $message');
+    _console.info(message);
   }
 
+  @override
   void showWarning(String message) {
-    print('⚠️  $message');
+    _console.warn(message);
   }
 
+  @override
   void showError(String message) {
-    print('❌ $message');
+    _console.error(message);
   }
 
+  @override
   void showSuccess(String message) {
-    print('✅ $message');
-  }
-
-  // UIHandler interface methods
-  void start() {
-    // Already started in constructor
-  }
-
-  void stop() {
-    // Nothing to stop
-  }
-
-  void enableInteractiveMode() {
-    // Already handled in constructor
-  }
-
-  void disableInteractiveMode() {
-    // Already handled in constructor
+    _console.success(message);
   }
 
   void setEventBus(EventBus eventBus) {

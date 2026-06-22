@@ -1,0 +1,19 @@
+{"Put":{"state":"hello (in [parËens] o)"}}
+{"Key":"ctrl-v"}
+{"Key":"l"}
+{"Key":"a"}
+{"Key":"]"}
+{"Get":{"state":"hello (in Â«[parens]ËÂ» o)","mode":"Visual"}}
+{"Key":"i"}
+{"Key":"("}
+{"Get":{"state":"hello (Â«in [parens] oËÂ»)","mode":"Visual"}}
+{"Put":{"state":"hello in a wËord again."}}
+{"Key":"ctrl-v"}
+{"Key":"l"}
+{"Key":"i"}
+{"Key":"w"}
+{"Get":{"state":"hello in a wÂ«ordËÂ» again.","mode":"VisualBlock"}}
+{"Key":"o"}
+{"Key":"a"}
+{"Key":"s"}
+{"Get":{"state":"Â«Ëhello in a wordÂ» again.","mode":"VisualBlock"}}

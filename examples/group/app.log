@@ -1,0 +1,159 @@
+
+WARNING: 2026-06-21 04:17:21.663101: Failed to read state for copy
+
+Error: FileSystemException: Cannot open file, path = '.group' (OS Error: Is a directory, errno = 21)
+
+StackTrace: #0      _checkForErrorResponse (dart:io/common.dart:58)
+#1      _File.open.<anonymous closure> (dart:io/file_impl.dart:438)
+<asynchronous suspension>
+#2      _File.readAsBytes.<anonymous closure> (dart:io/file_impl.dart:645)
+<asynchronous suspension>
+#3      _File.readAsString (dart:io/file_impl.dart:712)
+<asynchronous suspension>
+#4      FileUtils.readFile (package:configr/src/utils/file_utils.dart:564)
+<asynchronous suspension>
+#5      CopyBlock.execute (package:configr/src/blocks/copy_block.dart:169)
+<asynchronous suspension>
+#6      ActionBlock.afterChildrenProcessed (package:configr/src/blocks/action_block.dart:162)
+<asynchronous suspension>
+#7      CommandProcessingState._processCommandWithBlock (package:i3config/src/v2/state.dart:178)
+<asynchronous suspension>
+#8      CommandProcessingState.process (package:i3config/src/v2/state.dart:86)
+<asynchronous suspension>
+#9      InitialState.process (package:i3config/src/v2/state.dart:55)
+<asynchronous suspension>
+#10     CommandProcessingState._processCommandWithBlock (package:i3config/src/v2/state.dart:169)
+<asynchronous suspension>
+#11     CommandProcessingState.process (package:i3config/src/v2/state.dart:86)
+<asynchronous suspension>
+#12     InitialState.process (package:i3config/src/v2/state.dart:55)
+<asynchronous suspension>
+#13     CommandProcessingState._processCommandWithBlock (package:i3config/src/v2/state.dart:185)
+<asynchronous suspension>
+#14     CommandProcessingState.process (package:i3config/src/v2/state.dart:86)
+<asynchronous suspension>
+#15     InitialState.process (package:i3config/src/v2/state.dart:55)
+<asynchronous suspension>
+#16     ConfigProcessor.process (package:i3config/src/v2/processor.dart:80)
+<asynchronous suspension>
+#17     applyV2 (package:configr/src/blocks/v2_apply.dart:76)
+<asynchronous suspension>
+#18     ApplyCommand._executeV2 (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/cli/commands/apply.dart:67)
+<asynchronous suspension>
+#19     ApplyCommand.executeCommand (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/cli/commands/apply.dart:38)
+<asynchronous suspension>
+
+
+SEVERE: 2026-06-21 04:17:21.675648: Failed to process file .group/folder1/folder 1 file.txt: PathExistsException: Cannot create link to target '.group/folder1/folder 1 file.txt', path = '.group/folder1/folder 1 file.txt' (OS Error: File exists, errno = 17)
+
+SEVERE: 2026-06-21 04:17:21.675990: Failed to process file .group/folder2/folder2 file.txt: PathExistsException: Cannot create link to target '.group/folder2/folder2 file.txt', path = '.group/folder2/folder2 file.txt' (OS Error: File exists, errno = 17)
+
+SEVERE: 2026-06-21 04:17:21.676283: Failed to process file .group/file1.txt: PathExistsException: Cannot create link to target '.group/file1.txt', path = '.group/file1.txt' (OS Error: File exists, errno = 17)
+
+SEVERE: 2026-06-21 04:17:21.676545: Failed to process file .group/file2.txt: PathExistsException: Cannot create link to target '.group/file2.txt', path = '.group/file2.txt' (OS Error: File exists, errno = 17)
+
+WARNING: 2026-06-21 18:55:12.422729: Failed to read state for copy
+
+Error: FileSystemException: Cannot open file, path = '.group' (OS Error: Is a directory, errno = 21)
+
+StackTrace: #0      _checkForErrorResponse (dart:io/common.dart:58)
+#1      _File.open.<anonymous closure> (dart:io/file_impl.dart:438)
+<asynchronous suspension>
+#2      _File.readAsBytes.<anonymous closure> (dart:io/file_impl.dart:645)
+<asynchronous suspension>
+#3      _File.readAsString (dart:io/file_impl.dart:712)
+<asynchronous suspension>
+#4      FileUtils.readFile (package:configr/src/utils/file_utils.dart:564)
+<asynchronous suspension>
+#5      CopyBlock.execute (package:configr/src/blocks/copy_block.dart:155)
+<asynchronous suspension>
+#6      ActionBlock.afterChildrenProcessed (package:configr/src/blocks/action_block.dart:162)
+<asynchronous suspension>
+#7      CommandProcessingState._processCommandWithBlock (package:i3config/src/v2/state.dart:178)
+<asynchronous suspension>
+#8      CommandProcessingState.process (package:i3config/src/v2/state.dart:86)
+<asynchronous suspension>
+#9      InitialState.process (package:i3config/src/v2/state.dart:55)
+<asynchronous suspension>
+#10     CommandProcessingState._processCommandWithBlock (package:i3config/src/v2/state.dart:169)
+<asynchronous suspension>
+#11     CommandProcessingState.process (package:i3config/src/v2/state.dart:86)
+<asynchronous suspension>
+#12     InitialState.process (package:i3config/src/v2/state.dart:55)
+<asynchronous suspension>
+#13     CommandProcessingState._processCommandWithBlock (package:i3config/src/v2/state.dart:185)
+<asynchronous suspension>
+#14     CommandProcessingState.process (package:i3config/src/v2/state.dart:86)
+<asynchronous suspension>
+#15     InitialState.process (package:i3config/src/v2/state.dart:55)
+<asynchronous suspension>
+#16     ConfigProcessor.process (package:i3config/src/v2/processor.dart:80)
+<asynchronous suspension>
+#17     applyV2 (package:configr/src/blocks/v2_apply.dart:76)
+<asynchronous suspension>
+#18     ApplyCommand._executeV2 (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/cli/commands/apply.dart:67)
+<asynchronous suspension>
+#19     ApplyCommand.executeCommand (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/cli/commands/apply.dart:38)
+<asynchronous suspension>
+
+
+SEVERE: 2026-06-21 18:55:12.428147: Failed to process file .group/folder1/folder 1 file.txt: PathExistsException: Cannot create link to target '.group/folder1/folder 1 file.txt', path = '.group/folder1/folder 1 file.txt' (OS Error: File exists, errno = 17)
+
+SEVERE: 2026-06-21 18:55:12.429152: Failed to process file .group/folder2/folder2 file.txt: PathExistsException: Cannot create link to target '.group/folder2/folder2 file.txt', path = '.group/folder2/folder2 file.txt' (OS Error: File exists, errno = 17)
+
+SEVERE: 2026-06-21 18:55:12.430201: Failed to process file .group/file1.txt: PathExistsException: Cannot create link to target '.group/file1.txt', path = '.group/file1.txt' (OS Error: File exists, errno = 17)
+
+SEVERE: 2026-06-21 18:55:12.431037: Failed to process file .group/file2.txt: PathExistsException: Cannot create link to target '.group/file2.txt', path = '.group/file2.txt' (OS Error: File exists, errno = 17)
+
+WARNING: 2026-06-21 19:12:48.664019: Failed to read state for copy
+
+Error: FileSystemException: Cannot open file, path = '.group' (OS Error: Is a directory, errno = 21)
+
+StackTrace: #0      _checkForErrorResponse (dart:io/common.dart:58)
+#1      _File.open.<anonymous closure> (dart:io/file_impl.dart:438)
+<asynchronous suspension>
+#2      _File.readAsBytes.<anonymous closure> (dart:io/file_impl.dart:645)
+<asynchronous suspension>
+#3      _File.readAsString (dart:io/file_impl.dart:712)
+<asynchronous suspension>
+#4      FileUtils.readFile (package:configr/src/utils/file_utils.dart:564)
+<asynchronous suspension>
+#5      CopyBlock.execute (package:configr/src/blocks/copy_block.dart:155)
+<asynchronous suspension>
+#6      ActionBlock.afterChildrenProcessed (package:configr/src/blocks/action_block.dart:162)
+<asynchronous suspension>
+#7      CommandProcessingState._processCommandWithBlock (package:i3config/src/v2/state.dart:178)
+<asynchronous suspension>
+#8      CommandProcessingState.process (package:i3config/src/v2/state.dart:86)
+<asynchronous suspension>
+#9      InitialState.process (package:i3config/src/v2/state.dart:55)
+<asynchronous suspension>
+#10     CommandProcessingState._processCommandWithBlock (package:i3config/src/v2/state.dart:169)
+<asynchronous suspension>
+#11     CommandProcessingState.process (package:i3config/src/v2/state.dart:86)
+<asynchronous suspension>
+#12     InitialState.process (package:i3config/src/v2/state.dart:55)
+<asynchronous suspension>
+#13     CommandProcessingState._processCommandWithBlock (package:i3config/src/v2/state.dart:185)
+<asynchronous suspension>
+#14     CommandProcessingState.process (package:i3config/src/v2/state.dart:86)
+<asynchronous suspension>
+#15     InitialState.process (package:i3config/src/v2/state.dart:55)
+<asynchronous suspension>
+#16     ConfigProcessor.process (package:i3config/src/v2/processor.dart:80)
+<asynchronous suspension>
+#17     applyV2 (package:configr/src/blocks/v2_apply.dart:76)
+<asynchronous suspension>
+#18     ApplyCommand._executeV2 (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/cli/commands/apply.dart:67)
+<asynchronous suspension>
+#19     ApplyCommand.executeCommand (file:///run/media/kingwill101/disk2/code/code/dart_packages/configr/cli/commands/apply.dart:38)
+<asynchronous suspension>
+
+
+SEVERE: 2026-06-21 19:12:48.666390: Failed to process file .group/folder1/folder 1 file.txt: PathExistsException: Cannot create link to target '.group/folder1/folder 1 file.txt', path = '.group/folder1/folder 1 file.txt' (OS Error: File exists, errno = 17)
+
+SEVERE: 2026-06-21 19:12:48.666717: Failed to process file .group/folder2/folder2 file.txt: PathExistsException: Cannot create link to target '.group/folder2/folder2 file.txt', path = '.group/folder2/folder2 file.txt' (OS Error: File exists, errno = 17)
+
+SEVERE: 2026-06-21 19:12:48.667010: Failed to process file .group/file1.txt: PathExistsException: Cannot create link to target '.group/file1.txt', path = '.group/file1.txt' (OS Error: File exists, errno = 17)
+
+SEVERE: 2026-06-21 19:12:48.667280: Failed to process file .group/file2.txt: PathExistsException: Cannot create link to target '.group/file2.txt', path = '.group/file2.txt' (OS Error: File exists, errno = 17)

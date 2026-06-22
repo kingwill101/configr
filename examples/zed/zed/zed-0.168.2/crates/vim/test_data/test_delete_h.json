@@ -1,0 +1,16 @@
+{"Put":{"state":"TeËst"}}
+{"Key":"d"}
+{"Key":"h"}
+{"Get":{"state":"TËst","mode":"Normal"}}
+{"Put":{"state":"TËest"}}
+{"Key":"d"}
+{"Key":"h"}
+{"Get":{"state":"Ëest","mode":"Normal"}}
+{"Put":{"state":"ËTest"}}
+{"Key":"d"}
+{"Key":"h"}
+{"Get":{"state":"ËTest","mode":"Normal"}}
+{"Put":{"state":"Test\nËtest"}}
+{"Key":"d"}
+{"Key":"h"}
+{"Get":{"state":"Test\nËtest","mode":"Normal"}}

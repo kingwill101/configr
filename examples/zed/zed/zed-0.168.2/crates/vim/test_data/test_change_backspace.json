@@ -1,0 +1,16 @@
+{"Put":{"state":"TeËst"}}
+{"Key":"c"}
+{"Key":"backspace"}
+{"Get":{"state":"TËst","mode":"Insert"}}
+{"Put":{"state":"TËest"}}
+{"Key":"c"}
+{"Key":"backspace"}
+{"Get":{"state":"Ëest","mode":"Insert"}}
+{"Put":{"state":"ËTest"}}
+{"Key":"c"}
+{"Key":"backspace"}
+{"Get":{"state":"ËTest","mode":"Insert"}}
+{"Put":{"state":"Test\nËtest"}}
+{"Key":"c"}
+{"Key":"backspace"}
+{"Get":{"state":"TestËtest","mode":"Insert"}}

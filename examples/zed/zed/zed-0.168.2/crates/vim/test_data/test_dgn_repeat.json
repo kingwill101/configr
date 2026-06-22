@@ -1,0 +1,14 @@
+{"Put":{"state":"aaË aa aa aa aa"}}
+{"Key":"/"}
+{"Key":"a"}
+{"Key":"a"}
+{"Key":"enter"}
+{"Get":{"state":"aa Ëaa aa aa aa","mode":"Normal"}}
+{"Key":"d"}
+{"Key":"g"}
+{"Key":"n"}
+{"Get":{"state":"aa Ë aa aa aa","mode":"Normal"}}
+{"Key":"."}
+{"Get":{"state":"aa  Ë aa aa","mode":"Normal"}}
+{"Key":"."}
+{"Get":{"state":"aa   Ë aa","mode":"Normal"}}

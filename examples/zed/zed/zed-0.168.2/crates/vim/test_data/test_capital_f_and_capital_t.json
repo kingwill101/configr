@@ -1,0 +1,570 @@
+{"Put":{"state":"Ëaaab b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"Ëaaab b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaaËb b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaaËb b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaabË b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaaËb b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab Ëb   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaaËb b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab bË   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab Ëb   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   Ëbb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab Ëb   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bËb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   Ëbb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bbË aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bËb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aËaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bËb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaaËbaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bËb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\nË    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\nË    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    Ëbaaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    Ëbaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    bËaaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    Ëbaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaËa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    Ëbaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa Ëbbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    Ëbaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bËbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa Ëbbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbËb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bËbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbb\nË   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bbb\nË   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbb\n   \nËb\n"}}
+{"Key":"1"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bbb\n   \nËb\n","mode":"Normal"}}
+{"Put":{"state":"Ëaaab b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"Ëaaab b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaaËb b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaaËb b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaabË b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaabË b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab Ëb   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaabË b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab bË   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab bË   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   Ëbb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab bË   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bËb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bËb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bbË aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bbË aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aËaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bbË aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaaËbaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bbË aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\nË    baaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\nË    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    Ëbaaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    Ëbaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    bËaaa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    bËaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaËa bbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    bËaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa Ëbbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    bËaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bËbb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bËbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbËb\n   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bbËb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbb\nË   \nb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bbb\nË   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbb\n   \nËb\n"}}
+{"Key":"1"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bbb\n   \nËb\n","mode":"Normal"}}
+{"Put":{"state":"Ëaaab b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"Ëaaab b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaaËb b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaaËb b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaabË b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaabË b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab Ëb   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab Ëb   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab bË   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaaËb b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   Ëbb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaaËb b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bËb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab Ëb   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bbË aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   Ëbb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aËaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   Ëbb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaaËbaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   Ëbb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\nË    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\nË    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    Ëbaaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    Ëbaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    bËaaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    bËaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaËa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaËa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa Ëbbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa Ëbbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bËbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    Ëbaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbËb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa Ëbbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbb\nË   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bbb\nË   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbb\n   \nËb\n"}}
+{"Key":"2"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bbb\n   \nËb\n","mode":"Normal"}}
+{"Put":{"state":"Ëaaab b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"Ëaaab b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaaËb b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaaËb b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaabË b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaabË b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab Ëb   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab Ëb   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab bË   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaabË b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   Ëbb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaabË b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bËb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab bË   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bbË aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bËb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aËaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bËb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaaËbaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bËb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\nË    baaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\nË    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    Ëbaaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    Ëbaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    bËaaa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    bËaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaËa bbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaËa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa Ëbbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa Ëbbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bËbb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    bËaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbËb\n   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bËbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbb\nË   \nb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bbb\nË   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbb\n   \nËb\n"}}
+{"Key":"2"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bbb\n   \nËb\n","mode":"Normal"}}
+{"Put":{"state":"Ëaaab b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"Ëaaab b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaaËb b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaaËb b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaabË b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaabË b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab Ëb   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab Ëb   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab bË   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab bË   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   Ëbb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   Ëbb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bËb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaaËb b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bbË aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab Ëb   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aËaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab Ëb   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaaËbaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab Ëb   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\nË    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\nË    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    Ëbaaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    Ëbaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    bËaaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    bËaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaËa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaËa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa Ëbbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa Ëbbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bËbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bËbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbËb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    Ëbaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbb\nË   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bbb\nË   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbb\n   \nËb\n"}}
+{"Key":"3"}
+{"Key":"shift-f"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bbb\n   \nËb\n","mode":"Normal"}}
+{"Put":{"state":"Ëaaab b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"Ëaaab b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaaËb b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaaËb b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaabË b   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaabË b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab Ëb   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab Ëb   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab bË   bb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab bË   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   Ëbb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   Ëbb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bËb aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaabË b   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bbË aaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab bË   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aËaabaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab bË   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaaËbaaa\n    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab bË   bb aaabaaa\n    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\nË    baaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\nË    baaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    Ëbaaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    Ëbaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    bËaaa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    bËaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaËa bbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaËa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa Ëbbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa Ëbbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bËbb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bËbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbËb\n   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    bËaaa bbb\n   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbb\nË   \nb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bbb\nË   \nb\n","mode":"Normal"}}
+{"Put":{"state":"aaab b   bb aaabaaa\n    baaa bbb\n   \nËb\n"}}
+{"Key":"3"}
+{"Key":"shift-t"}
+{"Key":"b"}
+{"Get":{"state":"aaab b   bb aaabaaa\n    baaa bbb\n   \nËb\n","mode":"Normal"}}

@@ -6,7 +6,7 @@
 import 'dart:async' as _i3;
 import 'dart:io' as _i4;
 
-import 'package:configr/utils/privellage_escallation.dart' as _i2;
+import 'package:configr/src/utils/privilege_escalation.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i5;
 
@@ -30,6 +30,15 @@ import 'package:mockito/src/dummies.dart' as _i5;
 /// See the documentation for Mockito's code generation for more information.
 class MockPrivilegeEscalation extends _i1.Mock
     implements _i2.PrivilegeEscalation {
+  @override
+  bool get usePrivilegeLock =>
+      (super.noSuchMethod(
+            Invocation.getter(#usePrivilegeLock),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
+          as bool);
+
   @override
   _i3.Future<_i4.ProcessResult> runWithElevatedPrivileges(
     String? command,

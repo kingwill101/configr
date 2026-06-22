@@ -1,0 +1,12 @@
+resources {
+  resource {
+    type "file"
+    destination "test.txt"
+    actions {
+      file {
+        operation "create"
+        content "hello"
+      }
+    }
+  }
+}

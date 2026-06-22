@@ -1,0 +1,29 @@
+{"Put":{"state":"The quick brown\nfox juËmps over\nthe lazy dog\n"}}
+{"Key":"shift-s"}
+{"Key":"o"}
+{"Get":{"state":"The quick brown\noË\nthe lazy dog\n","mode":"Insert"}}
+{"Put":{"state":"The quick brown\nfox juËmps over\nthe lazy dog\n"}}
+{"Key":"v"}
+{"Key":"k"}
+{"Key":"shift-s"}
+{"Key":"o"}
+{"Get":{"state":"oË\nthe lazy dog\n","mode":"Insert"}}
+{"Put":{"state":"The quick brown\nfox juËmps over\nthe lazy dog\n"}}
+{"Key":"ctrl-v"}
+{"Key":"j"}
+{"Key":"shift-s"}
+{"Key":"o"}
+{"Get":{"state":"The quick brown\noË\n","mode":"Insert"}}
+{"Put":{"state":"The quick brown\nfox juËmps over\nthe lazy dog\n"}}
+{"Key":"v"}
+{"Key":"$"}
+{"Key":"shift-s"}
+{"Key":"o"}
+{"Get":{"state":"The quick brown\noË\nthe lazy dog\n","mode":"Insert"}}
+{"SetOption":{"value":"shiftwidth=4"}}
+{"Put":{"state":"The quick brown\nfox juËmps over\nthe lazy dog\n"}}
+{"Key":">"}
+{"Key":">"}
+{"Key":"shift-s"}
+{"Key":"o"}
+{"Get":{"state":"The quick brown\n    oË\nthe lazy dog\n","mode":"Insert"}}

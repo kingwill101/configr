@@ -1,7 +1,5 @@
 import 'package:test/test.dart';
-import 'package:configr/models/action.dart';
-import 'package:configr/models/file_model.dart';
-import 'package:configr/modules/resource/resource_module.dart';
+import 'package:configr/configr.dart';
 
 void main() {
   group('Privilege Inheritance Tests', () {

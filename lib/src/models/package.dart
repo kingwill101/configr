@@ -34,16 +34,8 @@ class Package {
           sha256 == other.sha256;
 
   @override
-  int get hashCode => Object.hash(
-        id,
-        name,
-        manager,
-        version,
-        scope,
-        status,
-        timestamp,
-        sha256,
-      );
+  int get hashCode =>
+      Object.hash(id, name, manager, version, scope, status, timestamp, sha256);
 
   @override
   String toString() {
@@ -64,16 +56,17 @@ class Package {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'manager': manager,
-        'version': version,
-        'scope': scope,
-        'status': status,
-        'timestamp': timestamp,
-        'sha256': sha256,
-      };
+    'id': id,
+    'name': name,
+    'manager': manager,
+    'version': version,
+    'scope': scope,
+    'status': status,
+    'timestamp': timestamp,
+    'sha256': sha256,
+  };
 
+  @Deprecated('Use I3ConfigWriterV2 instead. Will be removed in v3.')
   String toConfig({String indent = ''}) {
     StringBuffer buffer = StringBuffer();
     buffer.writeln('${indent}package {');

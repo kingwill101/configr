@@ -1,0 +1,18 @@
+{"Put":{"state":"Ë total: 0xff"}}
+{"Key":"ctrl-a"}
+{"Get":{"state":" total: 0x10Ë0","mode":"Normal"}}
+{"Put":{"state":"Ë total: 0xff"}}
+{"Key":"ctrl-x"}
+{"Get":{"state":" total: 0xfËe","mode":"Normal"}}
+{"Put":{"state":"Ë total: 0xFF"}}
+{"Key":"ctrl-x"}
+{"Get":{"state":" total: 0xFËE","mode":"Normal"}}
+{"Put":{"state":"(Ë0b10f)"}}
+{"Key":"ctrl-a"}
+{"Get":{"state":"(0b1Ë1f)","mode":"Normal"}}
+{"Put":{"state":"Ë-1"}}
+{"Key":"ctrl-a"}
+{"Get":{"state":"Ë0","mode":"Normal"}}
+{"Put":{"state":"banËana"}}
+{"Key":"ctrl-a"}
+{"Get":{"state":"banËana","mode":"Normal"}}

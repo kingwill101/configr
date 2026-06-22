@@ -1,0 +1,12 @@
+{"Put":{"state":"ËTest"}}
+{"Key":"x"}
+{"Get":{"state":"Ëest","mode":"Normal"}}
+{"Put":{"state":"TeËst"}}
+{"Key":"x"}
+{"Get":{"state":"TeËt","mode":"Normal"}}
+{"Put":{"state":"TesËt"}}
+{"Key":"x"}
+{"Get":{"state":"TeËs","mode":"Normal"}}
+{"Put":{"state":"TesËt\ntest"}}
+{"Key":"x"}
+{"Get":{"state":"TeËs\ntest","mode":"Normal"}}

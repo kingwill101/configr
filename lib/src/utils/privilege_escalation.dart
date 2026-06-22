@@ -3,66 +3,73 @@ import 'dart:io';
 import 'package:configr/src/cli/ui/handlers/base_handler.dart';
 import 'package:configr/src/utils/logging.dart';
 
-/// Privilege lock for maintaining elevated privileges across multiple operations
+/// Session-based privilege lock for maintaining elevated privileges
+/// across multiple operations.
+///
+/// Unlike the old singleton [PrivilegeLock], this is an instance-based lock
+/// with a configurable timeout.  Create a new instance per session or
+/// per [ConfigrConfig].
 class PrivilegeLock {
-  static PrivilegeLock? _instance;
-  static PrivilegeLock get instance => _instance ??= PrivilegeLock._();
-  
-  PrivilegeLock._();
-  
+  /// Configurable timeout — defaults to 15 minutes.
+  final Duration timeout;
+
   bool _isActive = false;
   DateTime? _lastUsed;
   Timer? _timeoutTimer;
-  static const Duration _timeoutDuration = Duration(minutes: 15);
-  
+
+  PrivilegeLock({this.timeout = const Duration(minutes: 15)});
+
   bool get isActive => _isActive;
   DateTime? get lastUsed => _lastUsed;
+
   Duration? get timeUntilTimeout {
     if (!_isActive || _lastUsed == null) return null;
     final elapsed = DateTime.now().difference(_lastUsed!);
-    return _timeoutDuration - elapsed;
+    return timeout - elapsed;
   }
-  
-  /// Acquire privilege lock
+
+  /// Acquire privilege lock.
   void acquire() {
     if (_isActive) {
       _updateLastUsed();
       return;
     }
-    
+
     _isActive = true;
     _lastUsed = DateTime.now();
     _startTimeoutTimer();
-    logger.info('Privilege lock acquired');
+    logger.info('Privilege lock acquired (timeout: ${timeout.inMinutes} min)');
   }
-  
-  /// Release privilege lock
+
+  /// Release privilege lock.
   void release() {
     if (!_isActive) return;
-    
+
     _isActive = false;
     _lastUsed = null;
     _timeoutTimer?.cancel();
     _timeoutTimer = null;
     logger.info('Privilege lock released');
   }
-  
-  /// Update last used timestamp and reset timeout
+
+  /// Update last used timestamp and reset timeout.
   void _updateLastUsed() {
     _lastUsed = DateTime.now();
     _timeoutTimer?.cancel();
     _startTimeoutTimer();
   }
-  
-  /// Start timeout timer
+
+  /// Start timeout timer.
   void _startTimeoutTimer() {
-    _timeoutTimer = Timer(_timeoutDuration, () {
-      logger.info('Privilege lock timed out after ${_timeoutDuration.inMinutes} minutes');
+    _timeoutTimer = Timer(timeout, () {
+      logger.info(
+        'Privilege lock timed out after ${timeout.inMinutes} minutes',
+      );
       release();
     });
   }
-  
-  /// Force release privilege lock (for cleanup)
+
+  /// Force release privilege lock (for cleanup).
   void forceRelease() {
     _isActive = false;
     _lastUsed = null;
@@ -70,18 +77,14 @@ class PrivilegeLock {
     _timeoutTimer = null;
     logger.warning('Privilege lock force released');
   }
-  
-  /// Reset singleton instance (for testing)
-  static void reset() {
-    _instance?.forceRelease();
-    _instance = null;
-  }
 }
 
 abstract class PrivilegeEscalation {
   Future<ProcessResult> runWithElevatedPrivileges(
-      String command, List<String> arguments);
-  
+    String command,
+    List<String> arguments,
+  );
+
   /// Check if privilege lock should be used
   bool get usePrivilegeLock => false;
 }
@@ -89,34 +92,42 @@ abstract class PrivilegeEscalation {
 class InteractiveSudoEscalation implements PrivilegeEscalation {
   final UIHandler? uiHandler;
   final bool keepPrivilegeLock;
+  final PrivilegeLock? privilegeLock;
 
-  InteractiveSudoEscalation({this.uiHandler, this.keepPrivilegeLock = false});
+  InteractiveSudoEscalation({
+    this.uiHandler,
+    this.keepPrivilegeLock = false,
+    this.privilegeLock,
+  });
 
   @override
   bool get usePrivilegeLock => keepPrivilegeLock;
-  
+
   @override
   Future<ProcessResult> runWithElevatedPrivileges(
-      String command, List<String> arguments) async {
-    
+    String command,
+    List<String> arguments,
+  ) async {
     // If privilege lock is enabled and active, try to use it first
-    if (usePrivilegeLock && PrivilegeLock.instance.isActive) {
+    if (usePrivilegeLock && privilegeLock != null && privilegeLock!.isActive) {
       try {
         var result = await Process.run('sudo', ['-n', command, ...arguments]);
         if (result.exitCode == 0) {
-          PrivilegeLock.instance._updateLastUsed();
+          privilegeLock!._updateLastUsed();
           return result;
         }
       } catch (e) {
-        logger.warning('Failed to use privilege lock, falling back to authentication: $e');
+        logger.warning(
+          'Failed to use privilege lock, falling back to authentication: $e',
+        );
       }
     }
-    
+
     // First, try running sudo with -n (non-interactive) to see if we have passwordless sudo
     var result = await Process.run('sudo', ['-n', command, ...arguments]);
     if (result.exitCode == 0) {
-      if (usePrivilegeLock) {
-        PrivilegeLock.instance.acquire();
+      if (usePrivilegeLock && privilegeLock != null) {
+        privilegeLock!.acquire();
       }
       return result;
     }
@@ -124,10 +135,12 @@ class InteractiveSudoEscalation implements PrivilegeEscalation {
     // If passwordless sudo is not available, try using the UI handler for password input
     if (uiHandler != null) {
       uiHandler!.enablePasswordPromptMode();
-      
+
       try {
-        final password = uiHandler!.promptPassword('Sudo password required to run: $command ${arguments.join(' ')}');
-        
+        final password = uiHandler!.promptPassword(
+          'Sudo password required to run: $command ${arguments.join(' ')}',
+        );
+
         if (password.isEmpty) {
           throw Exception('Password required but not provided');
         }
@@ -142,8 +155,8 @@ class InteractiveSudoEscalation implements PrivilegeEscalation {
         }
 
         // Acquire privilege lock after successful authentication
-        if (usePrivilegeLock) {
-          PrivilegeLock.instance.acquire();
+        if (usePrivilegeLock && privilegeLock != null) {
+          privilegeLock!.acquire();
         }
 
         return result;
@@ -153,7 +166,9 @@ class InteractiveSudoEscalation implements PrivilegeEscalation {
     } else {
       // Fallback to direct stdin if no UI handler is available
       try {
-        stderr.writeln('Sudo password required to run: $command ${arguments.join(' ')}');
+        stderr.writeln(
+          'Sudo password required to run: $command ${arguments.join(' ')}',
+        );
         stderr.write('Password: ');
         stdin.echoMode = false;
         final password = stdin.readLineSync() ?? '';
@@ -174,8 +189,8 @@ class InteractiveSudoEscalation implements PrivilegeEscalation {
         }
 
         // Acquire privilege lock after successful authentication
-        if (usePrivilegeLock) {
-          PrivilegeLock.instance.acquire();
+        if (usePrivilegeLock && privilegeLock != null) {
+          privilegeLock!.acquire();
         }
 
         return result;
@@ -188,50 +203,61 @@ class InteractiveSudoEscalation implements PrivilegeEscalation {
 
 class NonInteractiveSudoEscalation implements PrivilegeEscalation {
   final bool keepPrivilegeLock;
+  final PrivilegeLock? privilegeLock;
 
-  NonInteractiveSudoEscalation({this.keepPrivilegeLock = false});
+  NonInteractiveSudoEscalation({
+    this.keepPrivilegeLock = false,
+    this.privilegeLock,
+  });
 
   @override
   bool get usePrivilegeLock => keepPrivilegeLock;
-  
+
   @override
   Future<ProcessResult> runWithElevatedPrivileges(
-      String command, List<String> arguments) async {
-    
+    String command,
+    List<String> arguments,
+  ) async {
     // If privilege lock is enabled and active, try to use it first
-    if (usePrivilegeLock && PrivilegeLock.instance.isActive) {
+    if (usePrivilegeLock && privilegeLock != null && privilegeLock!.isActive) {
       try {
         var result = await Process.run('sudo', ['-n', command, ...arguments]);
         if (result.exitCode == 0) {
-          PrivilegeLock.instance._updateLastUsed();
+          privilegeLock!._updateLastUsed();
           return result;
         }
       } catch (e) {
-        logger.warning('Failed to use privilege lock, falling back to passwordless sudo: $e');
+        logger.warning(
+          'Failed to use privilege lock, falling back to passwordless sudo: $e',
+        );
       }
     }
-    
+
     // Try running sudo with -n (non-interactive) to see if we have passwordless sudo
     var result = await Process.run('sudo', ['-n', command, ...arguments]);
     if (result.exitCode == 0) {
-      if (usePrivilegeLock) {
-        PrivilegeLock.instance.acquire();
+      if (usePrivilegeLock && privilegeLock != null) {
+        privilegeLock!.acquire();
       }
       return result;
     }
 
     // If passwordless sudo is not available, throw an error instead of prompting
-    throw Exception('Passwordless sudo required but not available. Please configure passwordless sudo or run with appropriate privileges.');
+    throw Exception(
+      'Passwordless sudo required but not available. Please configure passwordless sudo or run with appropriate privileges.',
+    );
   }
 }
 
 class NoPrivilegeEscalation implements PrivilegeEscalation {
   @override
   bool get usePrivilegeLock => false;
-  
+
   @override
   Future<ProcessResult> runWithElevatedPrivileges(
-      String command, List<String> arguments) async {
+    String command,
+    List<String> arguments,
+  ) async {
     // Run command directly without any privilege escalation
     return await Process.run(command, arguments);
   }

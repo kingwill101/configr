@@ -1,0 +1,15 @@
+{"Put":{"state":"line one\nline Ëtwo\nline three"}}
+{"Key":"m"}
+{"Key":"a"}
+{"Key":"l"}
+{"Key":"'"}
+{"Key":"a"}
+{"Get":{"state":"line one\nËline two\nline three","mode":"Normal"}}
+{"Key":"`"}
+{"Key":"a"}
+{"Get":{"state":"line one\nline Ëtwo\nline three","mode":"Normal"}}
+{"Key":"^"}
+{"Key":"d"}
+{"Key":"`"}
+{"Key":"a"}
+{"Get":{"state":"line one\nËtwo\nline three","mode":"Normal"}}

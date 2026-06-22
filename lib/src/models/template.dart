@@ -21,10 +21,7 @@ class Template {
   int get hashCode => template.hashCode ^ vars.hashCode;
 
   Map<String, dynamic> toJson() {
-    return {
-      'template': template,
-      'vars': vars,
-    };
+    return {'template': template, 'vars': vars};
   }
 
   factory Template.fromJson(Map<String, dynamic> json) {
@@ -34,6 +31,7 @@ class Template {
     );
   }
 
+  @Deprecated('Use I3ConfigWriterV2 instead. Will be removed in v3.')
   String toConfig({String indent = ''}) {
     StringBuffer buffer = StringBuffer();
     buffer.writeln('${indent}template {');

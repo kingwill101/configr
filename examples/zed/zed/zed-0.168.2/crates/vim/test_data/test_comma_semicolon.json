@@ -1,0 +1,34 @@
+{"Put":{"state":"Ëone two three four"}}
+{"Key":"f"}
+{"Key":"o"}
+{"Get":{"state":"one twËo three four","mode":"Normal"}}
+{"Key":","}
+{"Get":{"state":"Ëone two three four","mode":"Normal"}}
+{"Key":"2"}
+{"Key":";"}
+{"Get":{"state":"one two three fËour","mode":"Normal"}}
+{"Key":"shift-f"}
+{"Key":"e"}
+{"Get":{"state":"one two threËe four","mode":"Normal"}}
+{"Key":"2"}
+{"Key":";"}
+{"Get":{"state":"onËe two three four","mode":"Normal"}}
+{"Key":","}
+{"Get":{"state":"one two thrËee four","mode":"Normal"}}
+{"Put":{"state":"Ëone two three four"}}
+{"Key":"t"}
+{"Key":"o"}
+{"Get":{"state":"one tËwo three four","mode":"Normal"}}
+{"Key":","}
+{"Get":{"state":"oËne two three four","mode":"Normal"}}
+{"Key":"2"}
+{"Key":";"}
+{"Get":{"state":"one two three Ëfour","mode":"Normal"}}
+{"Key":"shift-t"}
+{"Key":"e"}
+{"Get":{"state":"one two threeË four","mode":"Normal"}}
+{"Key":"3"}
+{"Key":";"}
+{"Get":{"state":"oneË two three four","mode":"Normal"}}
+{"Key":","}
+{"Get":{"state":"one two thËree four","mode":"Normal"}}

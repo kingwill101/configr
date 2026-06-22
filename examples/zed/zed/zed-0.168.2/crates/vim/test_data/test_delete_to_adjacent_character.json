@@ -1,0 +1,10 @@
+{"Put":{"state":"Ëax"}}
+{"Key":"d"}
+{"Key":"t"}
+{"Key":"x"}
+{"Get":{"state":"Ëx","mode":"Normal"}}
+{"Put":{"state":"aËx"}}
+{"Key":"d"}
+{"Key":"t"}
+{"Key":"x"}
+{"Get":{"state":"aËx","mode":"Normal"}}

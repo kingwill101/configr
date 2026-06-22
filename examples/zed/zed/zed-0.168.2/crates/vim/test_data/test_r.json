@@ -1,0 +1,31 @@
+{"Put":{"state":"Ëhello\n"}}
+{"Key":"r"}
+{"Key":"-"}
+{"Get":{"state":"Ë-ello\n","mode":"Normal"}}
+{"Put":{"state":"Ëhello\n"}}
+{"Key":"3"}
+{"Key":"r"}
+{"Key":"-"}
+{"Get":{"state":"--Ë-lo\n","mode":"Normal"}}
+{"Put":{"state":"Ëhello\n"}}
+{"Key":"r"}
+{"Key":"-"}
+{"Key":"2"}
+{"Key":"l"}
+{"Key":"."}
+{"Get":{"state":"-eË-lo\n","mode":"Normal"}}
+{"Put":{"state":"Ëhello world\n"}}
+{"Key":"2"}
+{"Key":"r"}
+{"Key":"-"}
+{"Key":"f"}
+{"Key":"w"}
+{"Key":"."}
+{"Get":{"state":"--llo -Ë-rld\n","mode":"Normal"}}
+{"Put":{"state":"Ëhello world\n"}}
+{"Key":"2"}
+{"Key":"0"}
+{"Key":"r"}
+{"Key":"-"}
+{"Key":""}
+{"Get":{"state":"Ëhello world\n","mode":"Normal"}}

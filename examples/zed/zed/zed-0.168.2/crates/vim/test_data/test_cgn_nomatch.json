@@ -1,0 +1,28 @@
+{"Put":{"state":"aaË aa aa aa aa"}}
+{"Key":"/"}
+{"Key":"b"}
+{"Key":"b"}
+{"Key":"enter"}
+{"Get":{"state":"aaË aa aa aa aa","mode":"Normal"}}
+{"Key":"c"}
+{"Key":"g"}
+{"Key":"n"}
+{"Key":"x"}
+{"Key":"escape"}
+{"Get":{"state":"aaËaa aa aa aa","mode":"Normal"}}
+{"Key":"."}
+{"Get":{"state":"aaËa aa aa aa","mode":"Normal"}}
+{"Put":{"state":"aaË bb aa aa aa"}}
+{"Key":"/"}
+{"Key":"b"}
+{"Key":"b"}
+{"Key":"enter"}
+{"Get":{"state":"aa Ëbb aa aa aa","mode":"Normal"}}
+{"Key":"c"}
+{"Key":"g"}
+{"Key":"n"}
+{"Key":"x"}
+{"Key":"escape"}
+{"Get":{"state":"aa Ëx aa aa aa","mode":"Normal"}}
+{"Key":"."}
+{"Get":{"state":"aa Ëx aa aa aa","mode":"Normal"}}

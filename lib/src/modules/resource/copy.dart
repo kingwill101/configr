@@ -4,7 +4,6 @@ import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/modules/resource/resource_module.dart';
 import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
-import 'package:configr/src/utils/event_bus.dart';
 import 'package:path/path.dart' as path;
 import 'package:glob/glob.dart';
 
