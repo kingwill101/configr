@@ -143,11 +143,7 @@ class DeleteBlock extends ActionBlock {
     if (!exists) {
       logger.warning('Path $source does not exist, skipping deletion');
       emitEvent(
-        StatusUpdateEvent(
-          moduleId: id,
-          level: StatusEvent.info,
-          message: 'Path does not exist, skipping',
-        ),
+        CompletedEvent(moduleId: id, message: 'Path does not exist, skipping'),
       );
       status = 'completed';
       return;
@@ -227,9 +223,10 @@ class DeleteBlock extends ActionBlock {
 
   Future<void> _deleteFileWithProgress() async {
     emitEvent(
-      StatusUpdateEvent(
+      ProgressEvent(
         moduleId: id,
-        level: StatusEvent.info,
+        current: 0,
+        total: 1,
         message: 'Deleting file...',
       ),
     );
@@ -258,9 +255,10 @@ class DeleteBlock extends ActionBlock {
 
   Future<void> _deleteDirectoryWithProgress() async {
     emitEvent(
-      StatusUpdateEvent(
+      ProgressEvent(
         moduleId: id,
-        level: StatusEvent.info,
+        current: 0,
+        total: 1,
         message: 'Scanning directory...',
       ),
     );

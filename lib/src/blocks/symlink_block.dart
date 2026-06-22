@@ -315,11 +315,11 @@ class SymlinkBlock extends ActionBlock {
     final filesToProcess = await _getFilesToProcess(source);
 
     emitEvent(
-      StatusUpdateEvent(
+      ProgressEvent(
         moduleId: id,
-        level: StatusEvent.info,
-        message:
-            'Processing ${filesToProcess.length} files for bulk symlink operation',
+        current: 0,
+        total: filesToProcess.length,
+        message: 'Processing symlinks...',
       ),
     );
 
@@ -330,11 +330,11 @@ class SymlinkBlock extends ActionBlock {
 
         if (showProgress && (i + 1) % 10 == 0) {
           emitEvent(
-            StatusUpdateEvent(
+            ProgressEvent(
               moduleId: id,
-              level: StatusEvent.info,
-              message:
-                  'Progress: ${i + 1}/${filesToProcess.length} files processed',
+              current: i + 1,
+              total: filesToProcess.length,
+              message: 'Linking files...',
             ),
           );
         }

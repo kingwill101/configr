@@ -257,14 +257,19 @@ class InteractiveHandler implements UIHandler {
   void _handleStarted(StartedEvent event) {
     final completer = Completer<TaskResult>();
     _pendingTasks[event.moduleId] = completer;
-    unawaited(_console.task(event.message, run: () => completer.future));
+    unawaited(
+      _console.task(
+        '${event.moduleId}: ${event.message}',
+        run: () => completer.future,
+      ),
+    );
   }
 
   void _handleCompleted(CompletedEvent event) {
     final completer = _pendingTasks.remove(event.moduleId);
     if (completer != null) {
       completer.complete(TaskResult.success);
-    } else {
+    } else if (event.message.isNotEmpty) {
       _console.success(event.message);
     }
   }
@@ -273,6 +278,9 @@ class InteractiveHandler implements UIHandler {
     final completer = _pendingTasks.remove(event.moduleId);
     if (completer != null) {
       completer.complete(TaskResult.failure);
+    }
+    if (event.message.isNotEmpty) {
+      _console.error(event.message);
     }
     if (event.errorCode != null) {
       _console.writeln('   Error Code: ${event.errorCode}');
@@ -297,15 +305,19 @@ class InteractiveHandler implements UIHandler {
     _console.section('Starting ${event.resourceType}');
     _console.writeln('   Source: ${event.source}');
     _console.writeln('   Destination: ${event.destination}');
-    _console.writeln('   Actions: ${event.actionCount}');
+    if (event.actionCount > 0) {
+      _console.writeln('   Actions: ${event.actionCount}');
+    }
   }
 
   void _handleResourceCompleted(ResourceCompletedEvent event) {
     final duration = _formatDuration(event.duration);
     _console.success('Completed ${event.resourceType}');
-    _console.info(
-      '   Actions: ${event.completedActions}/${event.totalActions}',
-    );
+    if (event.totalActions > 0) {
+      _console.info(
+        '   Actions: ${event.completedActions}/${event.totalActions}',
+      );
+    }
     _console.info('   Duration: $duration');
   }
 
@@ -313,7 +325,9 @@ class InteractiveHandler implements UIHandler {
     _console.writeln('Rolling back ${event.resourceType}');
     _console.writeln('   Source: ${event.source}');
     _console.writeln('   Destination: ${event.destination}');
-    _console.writeln('   Actions: ${event.actionCount}');
+    if (event.actionCount > 0) {
+      _console.writeln('   Actions: ${event.actionCount}');
+    }
   }
 
   void _handleResourceRollbackCompleted(ResourceRollbackCompletedEvent event) {
@@ -321,9 +335,11 @@ class InteractiveHandler implements UIHandler {
     _console.success(
       'Rollback completed for ${event.resourceType}',
     );
-    _console.info(
-      '   Actions: ${event.rolledbackActions}/${event.totalActions}',
-    );
+    if (event.totalActions > 0) {
+      _console.info(
+        '   Actions: ${event.rolledbackActions}/${event.totalActions}',
+      );
+    }
     _console.info('   Duration: $duration');
   }
 

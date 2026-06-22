@@ -396,14 +396,6 @@ Future<void> rollbackV2(
     block.sha256 = record.sha256;
     block.status = record.status;
 
-    logger.info(
-      'Rolling back ${record.blockType}: '
-      '${record.id.isNotEmpty
-          ? record.id
-          : record.source.isNotEmpty
-          ? record.source
-          : record.blockType}',
-    );
     try {
       await block.rollback();
       rolledBack++;

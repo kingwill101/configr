@@ -145,9 +145,10 @@ class CompressBlock extends ActionBlock {
 
     try {
       emitEvent(
-        StatusUpdateEvent(
+        ProgressEvent(
           moduleId: id,
-          level: StatusEvent.info,
+          current: 0,
+          total: 1,
           message: 'Compressing files...',
         ),
       );
@@ -312,9 +313,10 @@ class CompressBlock extends ActionBlock {
         archive.addFile(archiveFile);
 
         emitEvent(
-          StatusUpdateEvent(
+          ProgressEvent(
             moduleId: id,
-            level: StatusEvent.info,
+            current: 0,
+            total: 1,
             message: 'Added: $relativePath',
           ),
         );

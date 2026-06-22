@@ -90,7 +90,12 @@ class CLIHandler implements UIHandler {
         final startedEvent = event as StartedEvent;
         final completer = Completer<TaskResult>();
         _pendingTasks[event.moduleId] = completer;
-        unawaited(_console.task(startedEvent.message, run: () => completer.future));
+        unawaited(
+          _console.task(
+            '${startedEvent.moduleId}: ${startedEvent.message}',
+            run: () => completer.future,
+          ),
+        );
         break;
       case ModuleEventType.progress:
         if (_pendingTasks.containsKey(event.moduleId)) break;
@@ -117,7 +122,12 @@ class CLIHandler implements UIHandler {
           completer.complete(TaskResult.success);
         } else {
           final completedEvent = event as CompletedEvent;
-          _console.success(completedEvent.message, verbosity: Verbosity.normal);
+          if (completedEvent.message.isNotEmpty) {
+            _console.success(
+              completedEvent.message,
+              verbosity: Verbosity.normal,
+            );
+          }
         }
         break;
       case ModuleEventType.failed:
@@ -225,10 +235,12 @@ class CLIHandler implements UIHandler {
           '   Duration: ${duration}ms',
           verbosity: Verbosity.verbose,
         );
-        _console.info(
-          '   Actions: ${resourceEvent.completedActions}/${resourceEvent.totalActions}',
-          verbosity: Verbosity.verbose,
-        );
+        if (resourceEvent.totalActions > 0) {
+          _console.info(
+            '   Actions: ${resourceEvent.completedActions}/${resourceEvent.totalActions}',
+            verbosity: Verbosity.verbose,
+          );
+        }
         _console.writeln();
         break;
       case ModuleEventType.resourceRollbackStarted:

@@ -315,18 +315,20 @@ class ResourceBlockHandler extends i3.BaseBlockHandler {
     final resourceId = (builder.id?.isNotEmpty ?? false)
         ? builder.id!
         : builder.type ?? 'resource';
-    eventBus?.emit(
-      ResourceCompletedEvent(
-        moduleId: 'config-manager',
-        resourceId: resourceId,
-        resourceType: builder.type ?? 'unknown',
-        source: builder.source ?? '',
-        destination: builder.destination ?? '',
-        completedActions: 0,
-        totalActions: 0,
-        duration: Duration.zero,
-      ),
-    );
+    if (builder.actions.isNotEmpty) {
+      eventBus?.emit(
+        ResourceCompletedEvent(
+          moduleId: 'config-manager',
+          resourceId: resourceId,
+          resourceType: builder.type ?? 'unknown',
+          source: builder.source ?? '',
+          destination: builder.destination ?? '',
+          completedActions: builder.actions.length,
+          totalActions: builder.actions.length,
+          duration: Duration.zero,
+        ),
+      );
+    }
 
     // v1 path: add to ConfigBuilder if present.
     final configBuilder = context.globalContext.options['configBuilder'];

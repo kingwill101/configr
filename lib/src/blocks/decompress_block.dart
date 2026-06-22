@@ -41,6 +41,8 @@ class DecompressBlock extends ActionBlock {
   bool sourceExists = false;
   int totalFiles = 0;
   int extractedFiles = 0;
+  int compressedSize = 0;
+  int uncompressedSize = 0;
   List<String> createdFiles = [];
 
   DecompressBlock({super.fileSystem, super.eventBus});
@@ -121,9 +123,10 @@ class DecompressBlock extends ActionBlock {
 
     try {
       emitEvent(
-        StatusUpdateEvent(
+        ProgressEvent(
           moduleId: id,
-          level: StatusEvent.info,
+          current: 0,
+          total: 1,
           message: 'Reading archive...',
         ),
       );
@@ -132,15 +135,27 @@ class DecompressBlock extends ActionBlock {
         source,
         fileSystem: fileSystem,
       );
+      compressedSize = data.length;
       final archive = _decodeArchive(data, format);
       totalFiles = archive.files.length;
 
       await _extractArchive(archive);
 
+      final deflationPct = uncompressedSize > 0
+          ? ((1 - compressedSize / uncompressedSize) * 100).toStringAsFixed(1)
+          : 'N/A';
       emitEvent(
         CompletedEvent(
           moduleId: id,
-          message: 'Decompression completed. Extracted $extractedFiles files.',
+          message:
+              'Decompression completed. Extracted $extractedFiles files (deflated $deflationPct%).',
+        ),
+      );
+      emitEvent(
+        StatusUpdateEvent(
+          moduleId: id,
+          level: StatusEvent.info,
+          message: 'Extracted $extractedFiles files (deflated $deflationPct%)',
         ),
       );
     } catch (e, _) {
@@ -199,16 +214,22 @@ class DecompressBlock extends ActionBlock {
           );
           createdFiles.add(filePath);
           extractedFiles++;
+          uncompressedSize += file.size;
         } else {
           await FileUtils.createDirectory(filePath, fileSystem: fileSystem);
         }
 
         if (extractedFiles % 10 == 0 || extractedFiles == totalFiles) {
+          final pct = uncompressedSize > 0
+              ? ((1 - compressedSize / uncompressedSize) * 100)
+                  .toStringAsFixed(1)
+              : 'N/A';
           emitEvent(
-            StatusUpdateEvent(
+            ProgressEvent(
               moduleId: id,
-              level: StatusEvent.info,
-              message: 'Extracted $extractedFiles of $totalFiles files...',
+              current: extractedFiles,
+              total: totalFiles,
+              message: 'Extracting files... ($pct% deflated)',
             ),
           );
         }
