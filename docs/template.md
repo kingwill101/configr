@@ -16,6 +16,8 @@ The template module provides advanced file generation from templates using the L
 
 ### Basic Template Processing
 
+**Inside a resource (v1 style):**
+
 ```
 resource {
   id "config-template"
@@ -33,6 +35,43 @@ resource {
   }
 }
 ```
+
+### Standalone Template Block (v2 flat syntax)
+
+```
+template {
+  source = "my_file.template"
+  destination = "/etc/myapp/config.conf"
+  vars {
+    app_name "MyApp"
+    port 8080
+    debug true
+  }
+}
+```
+
+### In-Memory Templating (v2 resource-scoped)
+
+When `template { }` is placed directly inside a `resource { }` (not under `actions { }`), it renders in-memory without writing to disk. Child actions (like `copy { }`) inherit the rendered content:
+
+```
+resource {
+  source = "my_file.template"
+  destination = "output.txt"
+  template {
+    vars {
+      name "susan"
+    }
+  }
+  actions {
+    copy {
+      destination = "output.txt"
+    }
+  }
+}
+```
+
+This avoids writing the rendered template to disk and then re-reading it — the rendered string is passed directly through the context.
 
 ### Advanced Template Processing
 

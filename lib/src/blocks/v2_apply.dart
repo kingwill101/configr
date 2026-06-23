@@ -538,6 +538,7 @@ Future<void> _registerAllBlocks(
   // Store processor reference so handlers (e.g. PluginBlockHandler)
   // can access it to register additional blocks during config processing.
   processor.context.options['_processor'] = processor;
+  processor.context.options['_dryRun'] = dryRun;
 
   final actionBlockMap = <String, ActionBlock>{
     'apt': AptBlock(),
@@ -567,7 +568,6 @@ Future<void> _registerAllBlocks(
     'symlink': SymlinkBlock(),
     'sync': SyncBlock(),
     'systemd': SystemdBlock(),
-    'template': TemplateBlock(),
     'touch': TouchBlock(),
     'validate': ValidateBlock(),
     'yum': YumBlock(),
@@ -587,17 +587,21 @@ Future<void> _registerAllBlocks(
   // Create v2-aware resource handlers to pass to both global and scoped
   // registrations, so `resource { ... }` works both as a top-level block
   // AND nested under `resources { ... }`.
+  final v2TemplateHandler = TemplateBlock();
   final v2ResourceHandler = ResourceBlockHandler(
     customActionsHandler: v2ActionsHandler,
+    customTemplateHandler: v2TemplateHandler,
     eventBus: eventBus,
   );
   final v2FileHandler = InlineResourceTypeHandler(
     'file',
     customActionsHandler: v2ActionsHandler,
+    customTemplateHandler: v2TemplateHandler,
   );
   final v2DirectoryHandler = InlineResourceTypeHandler(
     'directory',
     customActionsHandler: v2ActionsHandler,
+    customTemplateHandler: v2TemplateHandler,
   );
 
   processor.registerBlockHandler(
@@ -640,6 +644,9 @@ Future<void> _registerAllBlocks(
   for (final block in actionBlockMap.values) {
     processor.registerBlockHandler(block);
   }
+  // TemplateBlock is not in actionBlockMap (it's not a child of `actions`),
+  // but it needs a global registration for standalone template blocks.
+  processor.registerBlockHandler(v2TemplateHandler);
 
   // -----------------------------------------------------------------------
   // 5. Register plugin blocks after built-ins so plugins can override

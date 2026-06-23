@@ -44,6 +44,7 @@ abstract class BasePackageBlock extends ActionBlock {
     i3.Context context,
   ) async {
     await super.readAdditionalProperties(block, context);
+    packageManager = blockType;
     operation = (context.getVariable('operation') as String?) ?? 'install';
     scope = (context.getVariable('scope') as String?) ?? 'local';
     packages = source.isNotEmpty ? source : '';

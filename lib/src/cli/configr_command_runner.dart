@@ -23,6 +23,7 @@ import 'package:configr/src/cli/commands/diff.dart';
 import 'package:configr/src/cli/commands/edit.dart';
 import 'package:configr/src/cli/commands/format.dart';
 import 'package:configr/src/cli/commands/init.dart';
+import 'package:configr/src/cli/commands/package.dart';
 import 'package:configr/src/cli/commands/rollback.dart';
 import 'package:configr/src/cli/commands/status.dart';
 import 'package:configr/src/cli/commands/watch.dart';
@@ -104,6 +105,7 @@ class ConfigrCommandRunner extends CommandRunner<void> {
     addCommand(StatusCommand());
     addCommand(RollbackCommand());
     addCommand(WatchCommand());
+    addCommand(PackageCommand());
   }
 
   @override

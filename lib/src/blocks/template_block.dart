@@ -1,6 +1,8 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
+import 'package:configr/src/reader/handlers/configr_handlers.dart'
+    show TemplateVarsBlockHandler;
 import 'package:i3config/i3config_v2.dart' as i3;
 import 'package:liquify/liquify.dart' as liquify;
 
@@ -38,13 +40,39 @@ class TemplateBlock extends ActionBlock {
 
   String? originalContent;
   String? templateContent;
-  String? renderedContent;
+
+  /// When true, the template is rendered in-memory for a parent resource
+  /// instead of writing to disk.
+  bool _insideResource = false;
+
+  /// The parent resource context to store rendered content on.
+  i3.Context? _resourceContext;
 
   TemplateBlock();
 
   // ---------------------------------------------------------------------------
   // Handler pipeline
   // ---------------------------------------------------------------------------
+
+  @override
+  void resetState() {
+    super.resetState();
+    _insideResource = false;
+    _resourceContext = null;
+    originalContent = null;
+    templateContent = null;
+    templateVars = {};
+    validateTemplate = true;
+    backupOriginal = false;
+    backupSuffix = '.backup';
+    format = 'mustache';
+  }
+
+  @override
+  void registerScopedCommands(i3.BlockHandlerRegistry registry) {
+    registry.registerCommand('template', _TemplatePathHandler());
+    registry.registerScopedBlockHandler('vars', TemplateVarsBlockHandler());
+  }
 
   @override
   Map<String, String> get additionalProperties => {
@@ -65,11 +93,36 @@ class TemplateBlock extends ActionBlock {
   ) async {
     await super.readAdditionalProperties(block, context);
 
+    // Detect if this template block is inside a resource — if so, render
+    // in-memory and store rendered content for child actions to consume.
+    _insideResource = false;
+    _resourceContext = null;
+    var ctx = context.parentContext;
+    while (ctx != null) {
+      if (ctx.options.containsKey('resourceBuilder')) {
+        _insideResource = true;
+        _resourceContext = ctx;
+        break;
+      }
+      ctx = ctx.parentContext;
+    }
+
+    // Support both source (v2) and template_str (v1 compat) for the
+    // template file path. template_str is set by the `template` command
+    // handler when using `template = "..."` syntax.
+    // This must override any value set by the base class's backward-compat
+    // shim (which sets source = destination when source is empty).
+    final templateStr = context.getVariable('template_str') as String?;
+    if (templateStr != null) {
+      source = templateStr;
+    }
+
     format = (context.getVariable('format') as String?) ?? format;
-    // Collect template variables from context
-    // Template vars can be set individually or as a map
-    final vars = context.getVariable('template_vars');
-    if (vars is Map) {
+    // Collect template variables from context.
+    // TemplateVarsBlockHandler stores them in context.options['templateVars'],
+    // not as a context variable (setVariable/getVariable).
+    final vars = context.options['templateVars'] as Map<String, dynamic>?;
+    if (vars != null) {
       templateVars = vars.cast<String, dynamic>();
     }
 
@@ -112,12 +165,6 @@ class TemplateBlock extends ActionBlock {
       );
     }
 
-    // Store original content for rollback
-    final destFile = fileSystem.file(destination);
-    if (await destFile.exists()) {
-      originalContent = await destFile.readAsString();
-    }
-
     try {
       // Read template
       templateContent = await sourceFile.readAsString();
@@ -130,24 +177,45 @@ class TemplateBlock extends ActionBlock {
       // Render template
       renderedContent = await _renderTemplate(templateContent!, templateVars);
 
-      // Ensure destination directory exists
-      final destDir = destFile.parent;
-      if (!await destDir.exists()) {
-        await destDir.create(recursive: true);
+      if (_insideResource) {
+        // In-memory mode: store rendered content on the resource context
+        // so child actions (copy, permissions, etc.) can consume it.
+        _resourceContext!.setVariable('_rendered_content', renderedContent);
+        emitEvent(
+          CompletedEvent(
+            moduleId: id,
+            message: 'Template rendered in-memory for resource actions',
+          ),
+        );
+      } else {
+        // File mode: write rendered content to destination
+        final destFile = fileSystem.file(destination);
+        if (await destFile.exists()) {
+          originalContent = await destFile.readAsString();
+        }
+
+        // Ensure destination directory exists
+        final destDir = destFile.parent;
+        if (!await destDir.exists()) {
+          await destDir.create(recursive: true);
+        }
+
+        // Backup original if exists
+        if (await destFile.exists() && backupOriginal) {
+          final backupFile = fileSystem.file('${destFile.path}$backupSuffix');
+          await destFile.copy(backupFile.path);
+        }
+
+        // Write rendered content
+        await destFile.writeAsString(renderedContent!);
+
+        emitEvent(
+          CompletedEvent(
+            moduleId: id,
+            message: 'Template processing completed',
+          ),
+        );
       }
-
-      // Backup original if exists
-      if (await destFile.exists() && backupOriginal) {
-        final backupFile = fileSystem.file('${destFile.path}$backupSuffix');
-        await destFile.copy(backupFile.path);
-      }
-
-      // Write rendered content
-      await destFile.writeAsString(renderedContent!);
-
-      emitEvent(
-        CompletedEvent(moduleId: id, message: 'Template processing completed'),
-      );
     } catch (e, _) {
       emitEvent(
         FailedEvent(moduleId: id, message: 'Template processing failed: $e'),
@@ -164,6 +232,11 @@ class TemplateBlock extends ActionBlock {
 
   @override
   Future<void> rollback() async {
+    if (_insideResource) {
+      // In-memory mode: nothing was written to disk, so no rollback needed.
+      return;
+    }
+
     emitEvent(
       StartedEvent(moduleId: id, message: 'Rolling back template processing'),
     );
@@ -222,5 +295,20 @@ class TemplateBlock extends ActionBlock {
         moduleId: id,
       );
     }
+  }
+}
+
+/// Command handler for `template = "..."` syntax inside a template block.
+///
+/// Sets the `template_str` context variable to the provided file path.
+class _TemplatePathHandler extends i3.BaseCommandHandler<String> {
+  @override
+  String get commandName => 'template';
+
+  @override
+  String? handle(i3.Command command, i3.Context context) {
+    final value = getArgAsString(command, 0, context);
+    context.setVariable('template_str', value);
+    return value;
   }
 }

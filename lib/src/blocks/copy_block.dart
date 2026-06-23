@@ -111,6 +111,9 @@ class CopyBlock extends ActionBlock {
 
   @override
   String dryRunSummary() {
+    if (renderedContent != null && !sourceWasExplicitlySet) {
+      return '$blockType: [rendered template] → $destination';
+    }
     if (recursive) {
       return '$blockType: $source/ → $destination/ (recursive)';
     }
@@ -122,6 +125,14 @@ class CopyBlock extends ActionBlock {
 
   @override
   Future<void> execute() async {
+    // If rendered content is available from a parent template and source
+    // wasn't explicitly set, write the rendered string instead of copying
+    // from a source file.
+    if (renderedContent != null && !sourceWasExplicitlySet) {
+      await _writeRenderedContent();
+      return;
+    }
+
     emitEvent(
       StartedEvent(
         moduleId: id,
@@ -273,6 +284,65 @@ class CopyBlock extends ActionBlock {
   // ---------------------------------------------------------------------------
   // Internal helpers
   // ---------------------------------------------------------------------------
+
+  /// Write rendered template content to destination instead of copying a file.
+  Future<void> _writeRenderedContent() async {
+    emitEvent(
+      StartedEvent(
+        moduleId: id,
+        message: 'Copying rendered template content to $destination',
+      ),
+    );
+    destination = resolveHomeDirectory(destination);
+
+    final destDir = path.dirname(destination);
+    if (!await FileUtils.directoryExists(destDir, fileSystem: fileSystem)) {
+      await FileUtils.createDirectory(destDir, fileSystem: fileSystem);
+      hadToCreateDstDir = true;
+      destinationDir = destDir;
+    }
+
+    // Track original content for rollback
+    final existsResult =
+        await FileUtils.pathExists(destination, fileSystem: fileSystem);
+    if (existsResult.exists) {
+      destinationFileExisted = true;
+      try {
+        final content = await FileUtils.readFile(
+          destination,
+          fileSystem: fileSystem,
+        );
+        originalContent = content;
+      } catch (e, st) {
+        logger.warning('Failed to read original content for rollback', e, st);
+      }
+    }
+
+    try {
+      await FileUtils.writeFile(
+        destination,
+        renderedContent!,
+        fileSystem: fileSystem,
+      );
+      copiedFiles = 1;
+
+      emitEvent(
+        CompletedEvent(
+          moduleId: id,
+          message: 'Copy completed — wrote rendered template content',
+        ),
+      );
+    } catch (e, _) {
+      emitEvent(FailedEvent(moduleId: id, message: 'Copy failed: $e'));
+      throw ActionFailedException(
+        'Failed to copy rendered content to $destination',
+        cause: e,
+        moduleId: id,
+      );
+    }
+
+    status = 'completed';
+  }
 
   Future<void> _copyFileWithProgress() async {
     emitEvent(

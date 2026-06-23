@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/models/action.dart';
@@ -265,11 +266,20 @@ class ResourceBlockHandler extends i3.BaseBlockHandler {
   /// The v2 pipeline provides one that registers real [ActionBlock] subclasses.
   final ActionsBlockHandler? customActionsHandler;
 
+  /// Optional custom template block handler to register instead of the
+  /// default [TemplateBlockHandler]. The v2 pipeline passes a [TemplateBlock]
+  /// (ActionBlock) that renders in-memory for child actions to consume.
+  final i3.BlockHandler? customTemplateHandler;
+
   /// Event bus for emitting resource-level lifecycle events.
   /// When set, [ResourceCompletedEvent] is emitted.
   final EventBus? eventBus;
 
-  ResourceBlockHandler({this.customActionsHandler, this.eventBus});
+  ResourceBlockHandler({
+    this.customActionsHandler,
+    this.customTemplateHandler,
+    this.eventBus,
+  });
 
   @override
   String get blockType => 'resource';
@@ -288,7 +298,10 @@ class ResourceBlockHandler extends i3.BaseBlockHandler {
             customActionHandlers: _v1ActionCollectorHandlers(),
           ),
     );
-    registry.registerScopedBlockHandler('template', TemplateBlockHandler());
+    registry.registerScopedBlockHandler(
+      'template',
+      customTemplateHandler ?? TemplateBlockHandler(),
+    );
     registry.registerScopedBlockHandler(
       'subcommands',
       SubCommandsBlockHandler(),
@@ -352,7 +365,15 @@ class InlineResourceTypeHandler extends i3.BaseBlockHandler {
   /// Optional custom [ActionsBlockHandler] to use instead of the default.
   final ActionsBlockHandler? customActionsHandler;
 
-  InlineResourceTypeHandler(this.blockType, {this.customActionsHandler});
+  /// Optional custom template block handler to register instead of the
+  /// default [TemplateBlockHandler].
+  final i3.BlockHandler? customTemplateHandler;
+
+  InlineResourceTypeHandler(
+    this.blockType, {
+    this.customActionsHandler,
+    this.customTemplateHandler,
+  });
 
   @override
   void handle(i3.Block block, i3.Context context) {
@@ -368,7 +389,10 @@ class InlineResourceTypeHandler extends i3.BaseBlockHandler {
             customActionHandlers: _v1ActionCollectorHandlers(),
           ),
     );
-    registry.registerScopedBlockHandler('template', TemplateBlockHandler());
+    registry.registerScopedBlockHandler(
+      'template',
+      customTemplateHandler ?? TemplateBlockHandler(),
+    );
     registry.registerScopedBlockHandler(
       'subcommands',
       SubCommandsBlockHandler(),
@@ -464,7 +488,9 @@ class TemplateBlockHandler extends i3.BaseBlockHandler {
       var parentCtx = context.parentContext;
       while (parentCtx != null) {
         if (parentCtx.options['resourceBuilder'] is ResourceBuilder) {
-          (parentCtx.options['resourceBuilder'] as ResourceBuilder).template =
+          final builder =
+              parentCtx.options['resourceBuilder'] as ResourceBuilder;
+          builder.template =
               Template(template: templateStr, vars: Map.from(vars));
           break;
         }
@@ -491,10 +517,19 @@ class TemplateVarsBlockHandler extends i3.BaseBlockHandler {
   ) async {
     final vars = <String, dynamic>{};
     for (final element in block.body) {
-      if (element is i3.Assignment) {
-        vars[element.variable] = element.values
-            .map((v) => expandValue(v, context))
-            .join(' ');
+      switch (element) {
+        case i3.Assignment():
+          vars[element.variable] = element.values
+              .map((v) => expandValue(v, context))
+              .join(' ');
+        case i3.Command():
+          // Support command syntax: `name susan` (without `=`).
+          // The head is the variable name, first arg is the value.
+          if (element.args.isNotEmpty) {
+            vars[element.head] = expandValue(element.args.first, context);
+          }
+        default:
+          break;
       }
     }
     // Push vars up to the template handler's context.

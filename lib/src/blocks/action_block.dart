@@ -50,6 +50,8 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
   String? type;
   String? status;
   String? sha256;
+  String? renderedContent;
+  bool sourceWasExplicitlySet = false;
   Map<String, dynamic> properties = const {};
   List<ActionBlock> children = [];
 
@@ -122,6 +124,7 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
     // ----- 1. Read common properties -----
     id = (context.getVariable('id') as String?) ?? '';
     source = (context.getVariable('source') as String?) ?? '';
+    sourceWasExplicitlySet = source.isNotEmpty;
     destination = (context.getVariable('destination') as String?) ?? '';
     // Backward compat: if source is empty, fall back to destination.
     // Many v1 configs set 'destination' at the resource level but action
@@ -131,6 +134,7 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
     }
     status = context.getVariable('status') as String?;
     sha256 = context.getVariable('sha256') as String?;
+    renderedContent = context.getVariable('_rendered_content') as String?;
     children = [];
 
     final rawProps = <String, dynamic>{?context.getVariable('type'): 'type'};
@@ -260,6 +264,8 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
     type = null;
     status = null;
     sha256 = null;
+    renderedContent = null;
+    sourceWasExplicitlySet = false;
     properties = const {};
     children = [];
   }
