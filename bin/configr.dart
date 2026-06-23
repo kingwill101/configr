@@ -20,16 +20,16 @@ import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:file/local.dart';
 
-import '../cli/commands/add.dart';
-import '../cli/commands/apply.dart';
-import '../cli/commands/base_command.dart';
-import '../cli/commands/diff.dart';
-import '../cli/commands/edit.dart';
-import '../cli/commands/format.dart';
-import '../cli/commands/init.dart';
-import '../cli/commands/rollback.dart';
-import '../cli/commands/status.dart';
-import '../cli/commands/watch.dart';
+import 'package:configr/src/cli/commands/add.dart';
+import 'package:configr/src/cli/commands/apply.dart';
+import 'package:configr/src/cli/commands/base_command.dart';
+import 'package:configr/src/cli/commands/diff.dart';
+import 'package:configr/src/cli/commands/edit.dart';
+import 'package:configr/src/cli/commands/format.dart';
+import 'package:configr/src/cli/commands/init.dart';
+import 'package:configr/src/cli/commands/rollback.dart';
+import 'package:configr/src/cli/commands/status.dart';
+import 'package:configr/src/cli/commands/watch.dart';
 
 class ConfigrCommandRunner extends CommandRunner<void> {
   ConfigrCommandRunner()

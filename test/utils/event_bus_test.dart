@@ -21,7 +21,7 @@ void main() {
       message: 'Test started',
     );
 
-    emitEvent(testEvent);
+    eventBus.emit(testEvent);
 
     await Future.delayed(Duration.zero);
 
@@ -44,7 +44,7 @@ void main() {
       total: 100,
     );
 
-    emitEvent(testEvent);
+    eventBus.emit(testEvent);
 
     await Future.delayed(Duration.zero);
 

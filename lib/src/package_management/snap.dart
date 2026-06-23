@@ -1,7 +1,8 @@
 import 'package:configr/src/package_management/package_manger.dart';
 import 'package:configr/src/utils/logging.dart';
 
-class SnapPackageManager extends PackageManager {
+class SnapPackageManager extends PackageManager
+    with GlobalInstallCapability {
   SnapPackageManager(super.privilegeEscalation);
 
   @override
@@ -15,6 +16,11 @@ class SnapPackageManager extends PackageManager {
       args.add('--channel=$version');
     }
     await runCommand('snap', args);
+  }
+
+  @override
+  Future<void> installGlobally(String packageName, {String? version}) async {
+    await install(packageName, version: version);
   }
 
   @override

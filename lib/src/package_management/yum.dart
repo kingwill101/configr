@@ -1,7 +1,8 @@
 import 'package:configr/src/package_management/package_manger.dart';
 import 'package:configr/src/utils/logging.dart';
 
-class YumPackageManager extends PackageManager {
+class YumPackageManager extends PackageManager
+    with GlobalInstallCapability {
   YumPackageManager(super.privilegeEscalation);
 
   @override
@@ -12,6 +13,11 @@ class YumPackageManager extends PackageManager {
     logger.info('Installing yum package: $packageName');
     final args = ['install', '-y', packageName];
     await runCommand('yum', args);
+  }
+
+  @override
+  Future<void> installGlobally(String packageName, {String? version}) async {
+    await install(packageName, version: version);
   }
 
   @override

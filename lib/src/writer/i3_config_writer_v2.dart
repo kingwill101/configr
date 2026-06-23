@@ -279,13 +279,5 @@ class I3ConfigWriterV2 {
     buf.writeln('$prefix# ${comment.content}');
   }
 
-  String _valueToString(i3.Value value) {
-    return switch (value) {
-      i3.Quoted q => '"${q.value}"',
-      i3.BareArg b => b.value,
-      i3.VariableRef v => '\$${v.name}',
-      i3.ArrayValue a =>
-        '[${a.items.map((e) => _valueToString(e)).join(', ')}]',
-    };
-  }
+  String _valueToString(i3.Value value) => value.toConfigString();
 }

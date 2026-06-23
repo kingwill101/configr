@@ -1,7 +1,8 @@
 import 'package:configr/src/package_management/package_manger.dart';
 import 'package:configr/src/utils/logging.dart';
 
-class BrewPackageManager extends PackageManager {
+class BrewPackageManager extends PackageManager
+    with GlobalInstallCapability {
   BrewPackageManager(super.privilegeEscalation);
 
   @override
@@ -11,7 +12,15 @@ class BrewPackageManager extends PackageManager {
   Future<void> install(String packageName, {String? version}) async {
     logger.info('Installing brew package: $packageName');
     final args = ['install', packageName];
+    if (version != null) {
+      args.add('$packageName@$version');
+    }
     await runCommand('brew', args);
+  }
+
+  @override
+  Future<void> installGlobally(String packageName, {String? version}) async {
+    await install(packageName, version: version);
   }
 
   @override

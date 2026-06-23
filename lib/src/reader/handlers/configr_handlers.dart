@@ -146,7 +146,7 @@ class _V1ActionCollectorHandler extends i3.BaseBlockHandler {
         final key = element.variable;
         if (!reserved.contains(key)) {
           builder.properties[key] = element.values
-              .map((v) => _expandValue(v, context))
+              .map((v) => expandValue(v, context))
               .join(' ');
         }
       }
@@ -493,7 +493,7 @@ class TemplateVarsBlockHandler extends i3.BaseBlockHandler {
     for (final element in block.body) {
       if (element is i3.Assignment) {
         vars[element.variable] = element.values
-            .map((v) => _expandValue(v, context))
+            .map((v) => expandValue(v, context))
             .join(' ');
       }
     }
@@ -628,7 +628,7 @@ class CommandsBlockHandler extends i3.BaseBlockHandler {
         //   command install-dependencies { ... }
         //   → head='command', args[0]=BareArg('install-dependencies')
         final name = element.args.isNotEmpty
-            ? _expandValue(element.args[0], context)
+            ? expandValue(element.args[0], context)
             : element.head;
 
         // Store the name as a context variable before processing the entry.
@@ -792,12 +792,12 @@ class ScriptsBlockHandler extends i3.BaseBlockHandler {
       switch (element) {
         case i3.Command cmd:
           for (final arg in cmd.args) {
-            final value = _expandValue(arg, context);
+            final value = expandValue(arg, context);
             if (value.isNotEmpty) scripts.add(value);
           }
         case i3.Assignment assign:
           for (final value in assign.values) {
-            final s = _expandValue(value, context);
+            final s = expandValue(value, context);
             if (s.isNotEmpty) scripts.add(s);
           }
         default:
@@ -815,16 +815,3 @@ class ScriptsBlockHandler extends i3.BaseBlockHandler {
   }
 }
 
-// ===========================================================================
-// Helpers
-// ===========================================================================
-
-/// Expands a value by resolving variable references via the context.
-String _expandValue(i3.Value value, i3.Context context) {
-  return switch (value) {
-    i3.Quoted q => context.expandVariables(q.value),
-    i3.VariableRef v => context.getVariable(v.name) ?? '\$${v.name}',
-    i3.BareArg b => context.expandVariables(b.value),
-    i3.ArrayValue a => a.items.map((e) => _expandValue(e, context)).join(', '),
-  };
-}

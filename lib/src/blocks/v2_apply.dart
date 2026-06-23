@@ -683,13 +683,13 @@ List<String> _collectScriptsFromConfig(i3.Config config, String blockType) {
         switch (element) {
           case i3.Command cmd:
             for (final arg in cmd.args) {
-              final value = _extractValue(arg);
-              if (value.isNotEmpty) scripts.add(value);
+              final raw = arg.toConfigString();
+              if (raw.isNotEmpty) scripts.add(_unquote(raw));
             }
           case i3.Assignment assign:
-            for (final value in assign.values) {
-              final s = _extractValue(value);
-              if (s.isNotEmpty) scripts.add(s);
+            for (final v in assign.values) {
+              final raw = v.toConfigString();
+              if (raw.isNotEmpty) scripts.add(_unquote(raw));
             }
           default:
             break;
@@ -700,12 +700,9 @@ List<String> _collectScriptsFromConfig(i3.Config config, String blockType) {
   return scripts;
 }
 
-/// Extracts a plain string from an i3 AST value node.
-String _extractValue(i3.Value value) {
-  return switch (value) {
-    i3.Quoted q => q.value,
-    i3.BareArg b => b.value,
-    i3.VariableRef v => v.name, // Will be expanded at runtime
-    i3.ArrayValue a => a.items.map((e) => _extractValue(e)).join(', '),
-  };
+String _unquote(String s) {
+  if (s.length >= 2 && s.startsWith('"') && s.endsWith('"')) {
+    return s.substring(1, s.length - 1);
+  }
+  return s;
 }

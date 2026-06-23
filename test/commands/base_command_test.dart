@@ -1,5 +1,4 @@
-// CLI commands are in cli/commands/ - using relative imports
-import '../../cli/commands/base_command.dart';
+import 'package:configr/src/cli/commands/base_command.dart';
 import 'package:configr/configr.dart';
 import 'package:test/test.dart';
 

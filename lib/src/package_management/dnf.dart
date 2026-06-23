@@ -1,7 +1,8 @@
 import 'package:configr/src/package_management/package_manger.dart';
 import 'package:configr/src/utils/logging.dart';
 
-class DnfPackageManager extends PackageManager {
+class DnfPackageManager extends PackageManager
+    with GlobalInstallCapability {
   DnfPackageManager(super.privilegeEscalation);
 
   @override
@@ -12,6 +13,11 @@ class DnfPackageManager extends PackageManager {
     logger.info('Installing dnf package: $packageName');
     final args = ['install', '-y', packageName];
     await runCommand('dnf', args);
+  }
+
+  @override
+  Future<void> installGlobally(String packageName, {String? version}) async {
+    await install(packageName, version: version);
   }
 
   @override
