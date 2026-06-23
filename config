@@ -1,0 +1,10 @@
+file {
+  destination = "~/.bashrc"
+  content = """
+
+  This is a multi line file?
+  """
+  operation = "edit"
+  edit_mode = "append"
+  backup_original = true
+}

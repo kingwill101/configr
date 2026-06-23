@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     procps \
     iproute2 \
     apt-utils \
+    cron \
     git \
     python3-pip \
     nodejs npm \
@@ -29,7 +30,11 @@ RUN curl -fsSL https://storage.googleapis.com/download.dartlang.org/linux/debian
     && rm -rf /var/lib/apt/lists/*
 
 ENV PATH="$PATH:/usr/lib/dart/bin:$HOME/.pub-cache/bin"
+
+# Generate en_US.UTF-8 locale
 RUN locale-gen en_US.UTF-8
 
 WORKDIR /app
+
+# Default: run tests (overridden by docker-compose or CI)
 CMD ["dart", "test"]

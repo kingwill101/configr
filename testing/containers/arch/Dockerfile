@@ -12,6 +12,7 @@ RUN pacman -Syu --noconfirm \
     glibc \
     procps-ng \
     iproute2 \
+    cronie \
     git \
     python-pip \
     nodejs npm \
@@ -28,4 +29,6 @@ ENV HOME=/root
 ENV PATH="$PATH:/usr/lib/dart-sdk/bin:$HOME/.pub-cache/bin"
 
 WORKDIR /app
+
+# Default: run tests (overridden by docker-compose or CI)
 CMD ["dart", "test"]

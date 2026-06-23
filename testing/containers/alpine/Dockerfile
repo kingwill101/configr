@@ -11,6 +11,7 @@ RUN apk add --no-cache \
     musl-locales \
     procps \
     iproute2 \
+    crond \
     git \
     python3 py3-pip \
     nodejs npm
@@ -25,4 +26,6 @@ ENV HOME=/root
 ENV PATH="$PATH:/usr/lib/dart-sdk/bin:$HOME/.pub-cache/bin"
 
 WORKDIR /app
+
+# Default: run tests (overridden by docker-compose or CI)
 CMD ["dart", "test"]

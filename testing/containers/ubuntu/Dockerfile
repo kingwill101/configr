@@ -19,6 +19,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-utils \
     snapd \
     flatpak \
+    cron \
+    software-properties-common \
     git \
     python3-pip \
     nodejs npm \
