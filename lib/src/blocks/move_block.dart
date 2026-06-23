@@ -53,6 +53,14 @@ class MoveBlock extends ActionBlock {
   }
 
   @override
+  String dryRunSummary() {
+    if (source.isNotEmpty && destination.isNotEmpty) {
+      return '$blockType: $source → $destination';
+    }
+    return super.dryRunSummary();
+  }
+
+  @override
   Future<void> execute() async {
     emitEvent(
       StartedEvent(

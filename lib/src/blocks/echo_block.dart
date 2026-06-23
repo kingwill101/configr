@@ -58,6 +58,11 @@ class EchoBlock extends ActionBlock {
   }
 
   @override
+  String dryRunSummary() => message.isNotEmpty
+      ? '$blockType[$level]: $message'
+      : '$blockType: id=$id';
+
+  @override
   Future<void> execute() async {
     final statusLevel = switch (level) {
       'warning' => StatusEvent.warning,

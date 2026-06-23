@@ -6,6 +6,7 @@ import 'package:configr/src/models/command.dart';
 import 'package:configr/src/models/v2_lockfile_data.dart';
 import 'package:configr/src/utils/command_executor.dart';
 import 'package:configr/src/utils/event_bus.dart';
+
 import 'package:configr/src/utils/privilege_escalation.dart'
     show NoPrivilegeEscalation, PrivilegeEscalation;
 import 'package:file/file.dart' show FileSystem;
@@ -191,8 +192,14 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
               'Skipping $blockType block (fail-fast mode — previous block failed)',
         ),
       );
-    } else if (!dryRun) {
-      // ----- 6. Execute (unless dry-run) -----
+    } else if (dryRun) {
+      // ----- 6. Dry-run: print what would happen -----
+      final summary = dryRunSummary();
+      if (summary.isNotEmpty) {
+        print('  [DRY-RUN] $summary');
+      }
+    } else {
+      // ----- 7. Execute (unless dry-run) -----
       try {
         await execute();
         // Record this block in the lockfile collector (if present).
@@ -277,6 +284,20 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
     i3.Context context,
   ) async {
     // Subclasses override this.
+  }
+
+  /// Override this to provide a description of what this block would do
+  /// during a dry-run. Called when `--dry-run` is active and `execute()`
+  /// is skipped. Return an empty string to suppress output.
+  ///
+  /// The default shows the block type, id, source, and destination.
+  String dryRunSummary() {
+    final parts = <String>[];
+    if (id.isNotEmpty) parts.add('id=$id');
+    if (source.isNotEmpty) parts.add('source=$source');
+    if (destination.isNotEmpty) parts.add('destination=$destination');
+    if (parts.isEmpty) return '';
+    return '$blockType: ${parts.join(', ')}';
   }
 
   /// Override this to provide additional properties for serialization.

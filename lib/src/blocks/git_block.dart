@@ -88,6 +88,16 @@ class GitBlock extends ActionBlock {
   // ---------------------------------------------------------------------------
 
   @override
+  String dryRunSummary() {
+    final repo = repositoryUrl ?? source;
+    if (repo.isNotEmpty && destination.isNotEmpty) {
+      final branchInfo = branch != null ? ' branch=$branch' : '';
+      return '$blockType[$operation]: $repo → $destination$branchInfo';
+    }
+    return super.dryRunSummary();
+  }
+
+  @override
   Future<void> execute() async {
     emitEvent(
       StartedEvent(

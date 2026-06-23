@@ -99,6 +99,15 @@ class FileBlock extends ActionBlock {
   // ---------------------------------------------------------------------------
 
   @override
+  String dryRunSummary() {
+    if (source.isNotEmpty) {
+      final size = content.length;
+      return '$blockType: $source ($size bytes)';
+    }
+    return super.dryRunSummary();
+  }
+
+  @override
   Future<void> execute() async {
     emitEvent(
       StartedEvent(

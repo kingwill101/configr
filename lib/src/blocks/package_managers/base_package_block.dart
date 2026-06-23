@@ -65,6 +65,14 @@ abstract class BasePackageBlock extends ActionBlock {
   }
 
   @override
+  String dryRunSummary() {
+    if (packages.isNotEmpty) {
+      return '$blockType[$operation]: $packages';
+    }
+    return '$blockType[$operation]';
+  }
+
+  @override
   void resetState() {
     super.resetState();
     packageManager = 'apt';

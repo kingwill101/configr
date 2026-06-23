@@ -117,6 +117,19 @@ class DeleteBlock extends ActionBlock {
     backupPath = context.getVariable('backup_path') as String?;
   }
 
+  @override
+  String dryRunSummary() {
+    if (source.isNotEmpty) {
+      final flags = <String>[];
+      if (recursive) flags.add('recursive');
+      if (backup) flags.add('backup');
+      if (useTrash) flags.add('trash');
+      final suffix = flags.isNotEmpty ? ' (${flags.join(', ')})' : '';
+      return '$blockType: $source$suffix';
+    }
+    return super.dryRunSummary();
+  }
+
   // ---------------------------------------------------------------------------
   // Execution
   // ---------------------------------------------------------------------------

@@ -78,6 +78,11 @@ class ExecuteBlock extends ActionBlock {
   }
 
   @override
+  String dryRunSummary() => command.isNotEmpty
+      ? '$blockType: $command'
+      : super.dryRunSummary();
+
+  @override
   Future<void> execute() async {
     emitEvent(StartedEvent(moduleId: id, message: 'Executing: $command'));
 

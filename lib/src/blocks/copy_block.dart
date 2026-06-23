@@ -110,6 +110,17 @@ class CopyBlock extends ActionBlock {
   // ---------------------------------------------------------------------------
 
   @override
+  String dryRunSummary() {
+    if (recursive) {
+      return '$blockType: $source/ → $destination/ (recursive)';
+    }
+    if (source.isNotEmpty && destination.isNotEmpty) {
+      return '$blockType: $source → $destination';
+    }
+    return super.dryRunSummary();
+  }
+
+  @override
   Future<void> execute() async {
     emitEvent(
       StartedEvent(

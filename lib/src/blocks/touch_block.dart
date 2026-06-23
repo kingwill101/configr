@@ -49,6 +49,11 @@ class TouchBlock extends ActionBlock {
   }
 
   @override
+  String dryRunSummary() => source.isNotEmpty
+      ? '$blockType: $source${createIfMissing ? ' (create if missing)' : ''}'
+      : super.dryRunSummary();
+
+  @override
   Future<void> execute() async {
     emitEvent(
       StartedEvent(

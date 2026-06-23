@@ -166,15 +166,19 @@ Future<void> applyV2(
     }
   }
 
-  // Create processor and register block handlers + plugins
-  final processor = i3.ConfigProcessor();
+  final configDir = p.dirname(p.absolute(configPath));
+
+  // Create processor with a filesystem that resolves includes relative to the
+  // config file's directory, and expose $cwd so configs can reference it.
+  final processor = i3.ConfigProcessor(
+    fileSystem: _ConfigrFileSystem(configDir),
+  );
+  processor.context.setVariable('cwd', configDir);
   final appliedBlocks = <AppliedBlockRecord>[];
   processor.context.options['_appliedBlocks'] = appliedBlocks;
   if (failFast) {
     processor.context.options['_failFast'] = true;
   }
-
-  final configDir = p.dirname(p.absolute(configPath));
 
   // Discover .configr/ directory alongside the config file
   final dotConfigrPath = p.join(configDir, '.configr');
@@ -676,7 +680,11 @@ Future<List<BlockSnapshot>> _parseConfigBlocks(
 }) async {
   final contents = await configFile.readAsString();
   final config = i3.Config.parse(contents);
-  final processor = i3.ConfigProcessor();
+  final configDir = p.dirname(configFile.path);
+  final processor = i3.ConfigProcessor(
+    fileSystem: _ConfigrFileSystem(configDir),
+  );
+  processor.context.setVariable('cwd', configDir);
   // Mutable collector for tests.
   processor.context.options['_actionBlocks'] = <ActionBlock>[];
   // Snapshot collector for CLI consumers.
@@ -742,4 +750,21 @@ String _unquote(String s) {
     return s.substring(1, s.length - 1);
   }
   return s;
+}
+
+/// Custom i3config [FileSystem] that resolves include paths relative to the
+/// config file's directory instead of the process working directory.
+///
+/// Absolute paths and virtual files are passed through unchanged.
+class _ConfigrFileSystem implements i3.FileSystem {
+  final String configDir;
+  const _ConfigrFileSystem(this.configDir);
+
+  @override
+  Future<String?> readFile(String path) async {
+    final resolved = p.isAbsolute(path)
+        ? path
+        : p.normalize(p.join(configDir, path));
+    return const i3.PhysicalFileSystem().readFile(resolved);
+  }
 }
