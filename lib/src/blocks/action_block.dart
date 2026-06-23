@@ -353,6 +353,10 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
   // Event helpers
   // ---------------------------------------------------------------------------
 
+  /// Override to attach block-specific metadata to the lockfile record
+  /// (e.g. installed package versions).
+  Map<String, dynamic>? get lockfileMetadata => null;
+
   /// Record this block in the lockfile collector if one is active.
   void _recordApplied(i3.Context context) {
     final collector =
@@ -368,6 +372,7 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
           appliedAt: DateTime.now().toUtc().toIso8601String(),
           status: 'completed',
           sha256: sha256,
+          metadata: lockfileMetadata,
         ),
       );
     }

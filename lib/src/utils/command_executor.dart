@@ -126,15 +126,24 @@ class CommandExecutor {
       runInShell: runInShell,
     );
 
+    final stdoutBuf = StringBuffer();
+    final stderrBuf = StringBuffer();
+
     final stdoutDone = process.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())
-        .forEach((line) => onOutput(line, false));
+        .forEach((line) {
+      stdoutBuf.writeln(line);
+      onOutput(line, false);
+    });
 
     final stderrDone = process.stderr
         .transform(utf8.decoder)
         .transform(const LineSplitter())
-        .forEach((line) => onOutput(line, true));
+        .forEach((line) {
+      stderrBuf.writeln(line);
+      onOutput(line, true);
+    });
 
     await Future.wait([stdoutDone, stderrDone]);
     final exitCode = await process.exitCode;
@@ -142,8 +151,8 @@ class CommandExecutor {
     return ProcessResult(
       process.pid,
       exitCode,
-      '',
-      '',
+      stdoutBuf.toString(),
+      stderrBuf.toString(),
     );
   }
 }

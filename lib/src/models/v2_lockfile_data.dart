@@ -59,6 +59,9 @@ class AppliedBlockRecord {
   /// Optional SHA-256 of the source file at apply time (for drift detection).
   final String? sha256;
 
+  /// Optional block-specific metadata (e.g. installed package versions).
+  final Map<String, dynamic>? metadata;
+
   const AppliedBlockRecord({
     required this.blockType,
     required this.id,
@@ -67,6 +70,7 @@ class AppliedBlockRecord {
     required this.appliedAt,
     this.status = 'completed',
     this.sha256,
+    this.metadata,
   });
 
   factory AppliedBlockRecord.fromJson(Map<String, dynamic> json) {
@@ -78,6 +82,7 @@ class AppliedBlockRecord {
       appliedAt: json['applied_at'] as String? ?? '',
       status: json['status'] as String? ?? 'completed',
       sha256: json['sha256'] as String?,
+      metadata: json['metadata'] as Map<String, dynamic>?,
     );
   }
 
@@ -89,5 +94,6 @@ class AppliedBlockRecord {
     'applied_at': appliedAt,
     'status': status,
     if (sha256 != null) 'sha256': sha256,
+    if (metadata != null) 'metadata': metadata!,
   };
 }

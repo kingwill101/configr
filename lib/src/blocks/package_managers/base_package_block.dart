@@ -16,7 +16,6 @@ abstract class BasePackageBlock extends ActionBlock {
   bool updateCache = true;
   List<String> repositories = [];
 
-  List<Map<String, dynamic>> operationResults = [];
   int packagesProcessed = 0;
   int packagesSkipped = 0;
   int errorsEncountered = 0;
@@ -65,6 +64,19 @@ abstract class BasePackageBlock extends ActionBlock {
     };
   }
 
+  Map<String, String?> _installedVersions = {};
+  List<String> _packageList = [];
+
+  @override
+  Map<String, dynamic>? get lockfileMetadata {
+    if (_installedVersions.isEmpty) return null;
+    return {
+      'installed_packages': _installedVersions.map(
+        (key, value) => MapEntry(key, value),
+      ),
+    };
+  }
+
   @override
   String dryRunSummary() {
     if (packages.isNotEmpty) {
@@ -88,6 +100,8 @@ abstract class BasePackageBlock extends ActionBlock {
     packagesSkipped = 0;
     errorsEncountered = 0;
     operationSuccess = false;
+    _installedVersions = {};
+    _packageList = [];
   }
 
   PackageManager createManager();
@@ -146,6 +160,15 @@ abstract class BasePackageBlock extends ActionBlock {
           'Package $operation failed: $packages',
           moduleId: id,
         );
+      }
+      // Collect installed version info for lockfile metadata
+      if (operation == 'install' || operation == 'reinstall') {
+        for (final pkg in _packageList) {
+          final version = await pm.getInstalledVersion(pkg);
+          if (version != null) {
+            _installedVersions[pkg] = version;
+          }
+        }
       }
       operationSuccess = true;
       emitEvent(
@@ -209,11 +232,11 @@ abstract class BasePackageBlock extends ActionBlock {
   }
 
   Future<void> _performPackageOperations(PackageManager pm) async {
-    final pkgList = packages
+    _packageList = packages
         .split(RegExp(r'\s+'))
         .where((s) => s.isNotEmpty)
         .toList();
-    for (final pkg in pkgList) {
+    for (final pkg in _packageList) {
       try {
         switch (operation) {
           case 'install':
@@ -233,12 +256,6 @@ abstract class BasePackageBlock extends ActionBlock {
       } catch (e) {
         errorsEncountered++;
         logger.severe('Failed to $operation package $pkg: $e');
-        operationResults.add({
-          'package': pkg,
-          'operation': operation,
-          'success': false,
-          'error': e.toString(),
-        });
       }
     }
   }
@@ -260,11 +277,6 @@ abstract class BasePackageBlock extends ActionBlock {
     } else {
       await pm.install(pkg);
     }
-    operationResults.add({
-      'package': pkg,
-      'operation': 'install',
-      'success': true,
-    });
   }
 
   Future<void> _uninstallPackage(PackageManager pm, String pkg) async {
@@ -273,72 +285,15 @@ abstract class BasePackageBlock extends ActionBlock {
     } else {
       await pm.uninstall(pkg);
     }
-    operationResults.add({
-      'package': pkg,
-      'operation': 'uninstall',
-      'success': true,
-    });
   }
 
   Future<void> _upgradePackage(PackageManager pm, String pkg) async {
     await pm.install(pkg);
-    operationResults.add({
-      'package': pkg,
-      'operation': 'upgrade',
-      'success': true,
-    });
   }
 
   Future<void> _reinstallPackage(PackageManager pm, String pkg) async {
     await pm.uninstall(pkg);
     await pm.install(pkg);
-    operationResults.add({
-      'package': pkg,
-      'operation': 'reinstall',
-      'success': true,
-    });
   }
 
-  Future<void> _rollbackPackages() async {
-    for (final result in operationResults.reversed) {
-      final pkg = result['package'] as String;
-      final op = result['operation'] as String;
-      try {
-        switch (op) {
-          case 'install':
-            await _rollbackInstall(pkg);
-            break;
-          case 'upgrade':
-            await _rollbackUpgrade(pkg);
-            break;
-          case 'uninstall':
-            await _rollbackUninstall(pkg);
-            break;
-          case 'reinstall':
-            await _rollbackReinstall(pkg);
-            break;
-        }
-      } catch (e) {
-        logger.severe('Failed to rollback $op for $pkg: $e');
-      }
-    }
-  }
-
-  Future<void> _rollbackInstall(String pkg) async {
-    final pm = createManager();
-    await pm.uninstall(pkg);
-  }
-
-  Future<void> _rollbackUpgrade(String pkg) async {
-    logger.warning('Cannot fully rollback upgrade of $pkg');
-  }
-
-  Future<void> _rollbackReinstall(String pkg) async {
-    logger.warning('Rollback of reinstall for $pkg not fully supported');
-  }
-
-  Future<void> _rollbackUninstall(String pkg) async {
-    final pm = createManager();
-    await pm.install(pkg);
-  }
 }
