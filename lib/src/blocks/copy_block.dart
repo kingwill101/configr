@@ -7,7 +7,7 @@ import 'package:file/file.dart' show File;
 import 'package:glob/glob.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 import 'package:path/path.dart' as path;
-import 'package:configr/src/utils/fs.dart' show fs;
+import 'package:configr/src/utils/fs.dart' show fs, resolveHomeDirectory;
 
 /// Block handler for the `copy` config action.
 ///
@@ -117,6 +117,9 @@ class CopyBlock extends ActionBlock {
         message: 'Starting copy of $source to $destination',
       ),
     );
+
+    source = resolveHomeDirectory(source);
+    destination = resolveHomeDirectory(destination);
 
     final existCheck = await FileUtils.pathExists(
       source,

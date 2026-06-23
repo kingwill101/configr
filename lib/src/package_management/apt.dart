@@ -49,6 +49,19 @@ class AptPackageManager extends PackageManager with GlobalInstallCapability {
   }
 
   @override
+  Future<void> updateCache() async {
+    logger.info('Updating apt cache');
+    await runCommand('apt-get', ['update']);
+  }
+
+  @override
+  Future<void> addRepository(String url) async {
+    logger.info('Adding apt repository: $url');
+    await runCommand('add-apt-repository', ['-y', url]);
+    await updateCache();
+  }
+
+  @override
   Future<bool> isAvailable() async {
     try {
       final result = await runCommand('apt-get', ['--version']);

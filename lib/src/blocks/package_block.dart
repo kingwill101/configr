@@ -1,12 +1,13 @@
-import 'dart:io';
 
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/models/command.dart' as cmd_model;
-import 'package:configr/src/security/input_sanitizer.dart';
-import 'package:configr/src/security/security_manager.dart';
-import 'package:configr/src/utils/command_executor.dart';
+import 'package:configr/src/package_management/package_manger.dart'
+    show
+        GlobalInstallCapability,
+        GlobalLocalContextCapability,
+        PackageManager;
+import 'package:configr/src/package_management/package_management_factory.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/privilege_escalation.dart'
     show NoPrivilegeEscalation;
@@ -14,7 +15,7 @@ import 'package:i3config/i3config_v2.dart' as i3;
 
 /// Block handler for the `package` config action.
 ///
-/// Manages system packages via package managers (apt, brew, etc.).
+/// Manages system packages via package managers (apt, brew, flatpak, etc.).
 ///
 /// ```i3
 /// package {
@@ -37,6 +38,7 @@ class PackageBlock extends ActionBlock {
   String packageManager = 'apt';
   String operation = 'install';
   String packages = '';
+  String scope = 'local';
   bool force = false;
   bool skipIfInstalled = true;
   bool updateCache = true;
@@ -63,6 +65,7 @@ class PackageBlock extends ActionBlock {
     'package_manager': ?manager,
     if (packageManager != 'apt') 'package_manager': packageManager,
     if (operation != 'install') 'operation': operation,
+    if (scope != 'local') 'scope': scope,
     if (packages.isNotEmpty) 'packages': packages,
     if (repositories.isNotEmpty) 'repositories': repositories.join(', '),
   };
@@ -86,7 +89,8 @@ class PackageBlock extends ActionBlock {
         (context.getVariable('package_manager') as String?) ?? 'apt';
     operation = (context.getVariable('operation') as String?) ?? 'install';
 
-    // Packages can be from source or the variable
+    scope = (context.getVariable('scope') as String?) ?? 'local';
+
     packages = source.isNotEmpty ? source : '';
     final pkgVar = context.getVariable('packages');
     if (pkgVar is String && packages.isEmpty) packages = pkgVar;
@@ -129,17 +133,26 @@ class PackageBlock extends ActionBlock {
     }
 
     try {
-      final resolvedManager = _getPackageManager();
+      final pm = _createPackageManager();
 
       if (updateCache) {
-        await _updatePackageCache(resolvedManager);
+        emitEvent(
+          StatusUpdateEvent(
+            moduleId: id,
+            level: StatusEvent.info,
+            message: 'Updating package cache ($packageManager)',
+          ),
+        );
+        await pm.updateCache();
       }
 
       if (repositories.isNotEmpty) {
-        await _addRepositories(resolvedManager);
+        for (final repo in repositories) {
+          await pm.addRepository(repo);
+        }
       }
 
-      await _performPackageOperations(resolvedManager);
+      await _performPackageOperations(pm);
 
       operationSuccess = true;
       emitEvent(
@@ -189,79 +202,12 @@ class PackageBlock extends ActionBlock {
   // Internal helpers
   // ---------------------------------------------------------------------------
 
-  String _getPackageManager() {
-    switch (packageManager.toLowerCase()) {
-      case 'apt':
-      case 'apt-get':
-        return 'apt-get';
-      case 'brew':
-      case 'homebrew':
-        return 'brew';
-      case 'yum':
-        return 'yum';
-      case 'dnf':
-        return 'dnf';
-      case 'pacman':
-        return 'pacman';
-      case 'snap':
-        return 'snap';
-      case 'flatpak':
-        return 'flatpak';
-      case 'pip':
-      case 'pip3':
-        return 'pip3';
-      case 'npm':
-        return 'npm';
-      default:
-        return packageManager.toLowerCase();
-    }
+  PackageManager _createPackageManager() {
+    final escalation = privilegeEscalation ?? NoPrivilegeEscalation();
+    return PackageManagerFactory.create(packageManager, escalation);
   }
 
-  String _getPrivilegeEscalation() {
-    switch (packageManager.toLowerCase()) {
-      case 'apt':
-      case 'apt-get':
-      case 'yum':
-      case 'dnf':
-      case 'pacman':
-        return 'sudo';
-      default:
-        return '';
-    }
-  }
-
-  Future<void> _updatePackageCache(String manager) async {
-    final escalate = _getPrivilegeEscalation();
-
-    emitEvent(
-      StatusUpdateEvent(
-        moduleId: id,
-        level: StatusEvent.info,
-        message: 'Updating package cache ($manager)',
-      ),
-    );
-
-    if (manager == 'apt-get') {
-      await _runCommand(
-        [escalate, 'apt-get', 'update'].where((s) => s.isNotEmpty).toList(),
-      );
-    }
-  }
-
-  Future<void> _addRepositories(String manager) async {
-    if (manager == 'apt-get') {
-      for (final repo in repositories) {
-        await _runCommand(['sudo', 'add-apt-repository', '-y', repo]);
-      }
-      await _updatePackageCache(manager);
-    } else if (manager == 'brew') {
-      for (final repo in repositories) {
-        await _runCommand(['brew', 'tap', repo]);
-      }
-    }
-  }
-
-  Future<void> _performPackageOperations(String manager) async {
+  Future<void> _performPackageOperations(PackageManager pm) async {
     final pkgList = packages
         .split(RegExp(r'\s+'))
         .where((s) => s.isNotEmpty)
@@ -271,16 +217,16 @@ class PackageBlock extends ActionBlock {
       try {
         switch (operation) {
           case 'install':
-            await _installPackage(manager, pkg);
+            await _installPackage(pm, pkg);
             break;
           case 'uninstall':
-            await _uninstallPackage(manager, pkg);
+            await _uninstallPackage(pm, pkg);
             break;
           case 'upgrade':
-            await _upgradePackage(manager, pkg);
+            await _upgradePackage(pm, pkg);
             break;
           case 'reinstall':
-            await _reinstallPackage(manager, pkg);
+            await _reinstallPackage(pm, pkg);
             break;
         }
         packagesProcessed++;
@@ -297,70 +243,23 @@ class PackageBlock extends ActionBlock {
     }
   }
 
-  Future<bool> _isPackageInstalled(String manager, String pkg) async {
-    try {
-      switch (manager) {
-        case 'apt-get':
-          final result = await _runCommand(['dpkg', '-l', pkg]);
-          return result.exitCode == 0;
-        case 'brew':
-          final result = await _runCommand(['brew', 'list', pkg]);
-          return result.exitCode == 0;
-        case 'pip3':
-          final result = await _runCommand(['pip3', 'show', pkg]);
-          return result.exitCode == 0;
-        case 'npm':
-          final result = await _runCommand(['npm', 'list', '-g', pkg]);
-          return result.exitCode == 0;
-        default:
-          return false;
+  Future<void> _installPackage(PackageManager pm, String pkg) async {
+    if (skipIfInstalled) {
+      if (scope == 'global' && pm is GlobalLocalContextCapability) {
+        if (await pm.isInstalledGlobally(pkg)) {
+          packagesSkipped++;
+          return;
+        }
+      } else if (await pm.isInstalled(pkg)) {
+        packagesSkipped++;
+        return;
       }
-    } catch (_) {
-      return false;
     }
-  }
-
-  Future<void> _installPackage(String manager, String pkg) async {
-    if (skipIfInstalled && await _isPackageInstalled(manager, pkg)) {
-      packagesSkipped++;
-      return;
+    if (scope == 'global' && pm is GlobalInstallCapability) {
+      await pm.installGlobally(pkg);
+    } else {
+      await pm.install(pkg);
     }
-
-    final escalate = _getPrivilegeEscalation();
-    List<String> args;
-
-    switch (manager) {
-      case 'apt-get':
-        args = [escalate, 'apt-get', 'install', '-y'];
-        if (force) args.add('--force-yes');
-        args.add(pkg);
-        break;
-      case 'brew':
-        args = ['brew', 'install'];
-        if (force) args.add('--force');
-        args.add(pkg);
-        break;
-      case 'pip3':
-        args = ['pip3', 'install'];
-        if (force) args.add('--force-reinstall');
-        args.add(pkg);
-        break;
-      case 'npm':
-        args = ['npm', 'install', '-g'];
-        if (force) args.add('--force');
-        args.add(pkg);
-        break;
-      default:
-        args = [
-          escalate,
-          manager,
-          'install',
-          '-y',
-          pkg,
-        ].where((s) => s.isNotEmpty).toList();
-    }
-
-    await _runCommand(args.where((s) => s.isNotEmpty).toList());
     operationResults.add({
       'package': pkg,
       'operation': 'install',
@@ -368,40 +267,12 @@ class PackageBlock extends ActionBlock {
     });
   }
 
-  Future<void> _uninstallPackage(String manager, String pkg) async {
-    final escalate = _getPrivilegeEscalation();
-    List<String> args;
-
-    switch (manager) {
-      case 'apt-get':
-        args = [
-          escalate,
-          'apt-get',
-          'remove',
-          '-y',
-          pkg,
-        ].where((s) => s.isNotEmpty).toList();
-        break;
-      case 'brew':
-        args = ['brew', 'uninstall', pkg];
-        break;
-      case 'pip3':
-        args = ['pip3', 'uninstall', '-y', pkg];
-        break;
-      case 'npm':
-        args = ['npm', 'uninstall', '-g', pkg];
-        break;
-      default:
-        args = [
-          escalate,
-          manager,
-          'remove',
-          '-y',
-          pkg,
-        ].where((s) => s.isNotEmpty).toList();
+  Future<void> _uninstallPackage(PackageManager pm, String pkg) async {
+    if (scope == 'global' && pm is GlobalLocalContextCapability) {
+      await pm.uninstallGlobally(pkg);
+    } else {
+      await pm.uninstall(pkg);
     }
-
-    await _runCommand(args);
     operationResults.add({
       'package': pkg,
       'operation': 'uninstall',
@@ -409,40 +280,8 @@ class PackageBlock extends ActionBlock {
     });
   }
 
-  Future<void> _upgradePackage(String manager, String pkg) async {
-    final escalate = _getPrivilegeEscalation();
-    List<String> args;
-
-    switch (manager) {
-      case 'apt-get':
-        args = [
-          escalate,
-          'apt-get',
-          'upgrade',
-          '-y',
-          pkg,
-        ].where((s) => s.isNotEmpty).toList();
-        break;
-      case 'brew':
-        args = ['brew', 'upgrade', pkg];
-        break;
-      case 'pip3':
-        args = ['pip3', 'install', '--upgrade', pkg];
-        break;
-      case 'npm':
-        args = ['npm', 'update', '-g', pkg];
-        break;
-      default:
-        args = [
-          escalate,
-          manager,
-          'upgrade',
-          '-y',
-          pkg,
-        ].where((s) => s.isNotEmpty).toList();
-    }
-
-    await _runCommand(args);
+  Future<void> _upgradePackage(PackageManager pm, String pkg) async {
+    await pm.install(pkg);
     operationResults.add({
       'package': pkg,
       'operation': 'upgrade',
@@ -450,9 +289,14 @@ class PackageBlock extends ActionBlock {
     });
   }
 
-  Future<void> _reinstallPackage(String manager, String pkg) async {
-    await _uninstallPackage(manager, pkg);
-    await _installPackage(manager, pkg);
+  Future<void> _reinstallPackage(PackageManager pm, String pkg) async {
+    await pm.uninstall(pkg);
+    await pm.install(pkg);
+    operationResults.add({
+      'package': pkg,
+      'operation': 'reinstall',
+      'success': true,
+    });
   }
 
   Future<void> _rollbackPackages() async {
@@ -482,54 +326,20 @@ class PackageBlock extends ActionBlock {
   }
 
   Future<void> _rollbackInstall(String pkg) async {
-    await _uninstallPackage(packageManager, pkg);
+    final pm = _createPackageManager();
+    await pm.uninstall(pkg);
   }
 
   Future<void> _rollbackUpgrade(String pkg) async {
-    // Cannot easily rollback upgrades — log warning
     logger.warning('Cannot fully rollback upgrade of $pkg');
   }
 
   Future<void> _rollbackReinstall(String pkg) async {
-    // Reinstall is essentially re-doing, rollback is reinstall previous version
     logger.warning('Rollback of reinstall for $pkg not fully supported');
   }
 
   Future<void> _rollbackUninstall(String pkg) async {
-    await _installPackage(packageManager, pkg);
-  }
-
-  Future<ProcessResult> _runCommand(List<String> args) async {
-    final executable = args.first;
-    final cmdArgs = args.length > 1 ? args.sublist(1) : <String>[];
-
-    // Strip privilege escalation prefix — let CommandExecutor /
-    // PrivilegeEscalation handle it through the proper channel.
-    final strippedExecutable =
-        executable == 'sudo' && cmdArgs.isNotEmpty ? cmdArgs.removeAt(0) : executable;
-
-    final command = cmd_model.Command(
-      name: 'package_${operation}_$id',
-      id: id,
-      command: strippedExecutable,
-      parameters: cmdArgs,
-    );
-
-    final escalation = privilegeEscalation ?? NoPrivilegeEscalation();
-    final result = await CommandExecutor.execute(
-      command,
-      escalation,
-      securityManager: SecurityManager(),
-      inputSanitizer: InputSanitizer(),
-    );
-
-    if (result.exitCode != 0) {
-      throw ActionFailedException(
-        'Command failed: ${args.join(' ')}\n${result.stderr}',
-        moduleId: id,
-      );
-    }
-
-    return result;
+    final pm = _createPackageManager();
+    await pm.install(pkg);
   }
 }

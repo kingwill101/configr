@@ -14,6 +14,14 @@ abstract class PackageManager {
   Future<String?> getInstalledVersion(String packageName);
   Future<bool> isAvailable();
 
+  /// Update the local package cache.
+  /// Default no-op — override for managers that maintain a cache (e.g. apt).
+  Future<void> updateCache() async {}
+
+  /// Add a repository source.
+  /// Default no-op — override for managers that support repositories.
+  Future<void> addRepository(String url) async {}
+
   Future<ProcessResult> runCommand(String command, List<String> args) {
     return privilegeEscalation.runWithElevatedPrivileges(command, args);
   }
