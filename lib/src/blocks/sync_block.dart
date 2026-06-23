@@ -256,7 +256,7 @@ class SyncBlock extends ActionBlock {
     String toPath,
     String direction,
   ) async {
-    final fromDir = fileSystem!.directory(fromPath);
+    final fromDir = fileSystem.directory(fromPath);
 
     await for (final entity in fromDir.list(recursive: true)) {
       if (entity is File) {
@@ -277,7 +277,7 @@ class SyncBlock extends ActionBlock {
     String direction,
   ) async {
     final relativePath = path.relative(sourceFile.path, from: fromPath);
-    final destFile = fileSystem!.file(path.join(toPath, relativePath));
+    final destFile = fileSystem.file(path.join(toPath, relativePath));
 
     // Check exclude patterns
     for (final pattern in excludePatterns) {
@@ -354,13 +354,13 @@ class SyncBlock extends ActionBlock {
     String toPath,
     String direction,
   ) async {
-    final toDir = fileSystem!.directory(toPath);
+    final toDir = fileSystem.directory(toPath);
     if (!await toDir.exists()) return;
 
     await for (final entity in toDir.list(recursive: true)) {
       if (entity is File) {
         final relativePath = path.relative(entity.path, from: toPath);
-        final sourceFile = fileSystem!.file(path.join(fromPath, relativePath));
+        final sourceFile = fileSystem.file(path.join(fromPath, relativePath));
 
         if (!await sourceFile.exists()) {
           try {

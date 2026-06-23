@@ -3,7 +3,6 @@ import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
-import 'package:file/local.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
 /// Block handler for the `touch` config action.
@@ -72,8 +71,7 @@ class TouchBlock extends ActionBlock {
 
     try {
       if (fileExists) {
-        final fs = fileSystem ?? const LocalFileSystem();
-        final file = fs.file(source);
+        final file = fileSystem.file(source);
         originalModificationTime = await file.lastModified();
       } else {
         emitEvent(
@@ -86,8 +84,7 @@ class TouchBlock extends ActionBlock {
         fileCreated = true;
       }
 
-      final fs = fileSystem ?? const LocalFileSystem();
-      final file = fs.file(source);
+      final file = fileSystem.file(source);
       await file.create(recursive: true);
       await file.setLastModified(DateTime.now());
 
@@ -126,8 +123,7 @@ class TouchBlock extends ActionBlock {
         await FileUtils.deleteFile(source, fileSystem: fileSystem);
       } else if (originalModificationTime != null) {
         logger.info('Restoring original modification time for: $source');
-        final fs = fileSystem ?? const LocalFileSystem();
-        final file = fs.file(source);
+        final file = fileSystem.file(source);
         await file.setLastModified(originalModificationTime!);
       }
     } catch (e) {

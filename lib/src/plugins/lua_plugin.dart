@@ -19,7 +19,6 @@ class LuaPlugin implements ConfigrPlugin {
   final Map<String, Value> _registeredBlocks = {};
 
   i3.Context? _currentContext;
-  i3.ConfigProcessor? _processor;
   EventBus? _eventBus;
   bool _initialized = false;
 
@@ -169,7 +168,6 @@ class LuaPlugin implements ConfigrPlugin {
 
   @override
   void registerBlocks(i3.ConfigProcessor processor, {EventBus? eventBus}) {
-    _processor = processor;
     _eventBus = eventBus;
 
     _registeredBlocks.forEach((blockType, callbacks) {

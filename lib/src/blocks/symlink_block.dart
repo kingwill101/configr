@@ -7,7 +7,6 @@ import 'package:file/file.dart' show File;
 import 'package:glob/glob.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 import 'package:path/path.dart' as path;
-import 'package:configr/src/utils/fs.dart' show fs;
 
 /// Block handler for the `symlink` config action.
 ///
@@ -209,7 +208,7 @@ class SymlinkBlock extends ActionBlock {
       }
       for (final dir in createdDirs) {
         if (await FileUtils.directoryExists(dir, fileSystem: fileSystem)) {
-          final dirEntity = fileSystem?.directory(dir) ?? fs.directory(dir);
+          final dirEntity = fileSystem.directory(dir);
           final isEmpty = await dirEntity.list().isEmpty;
           if (isEmpty) {
             await FileUtils.deleteDirectory(
@@ -444,7 +443,7 @@ class SymlinkBlock extends ActionBlock {
       return;
     }
 
-    final dir = fileSystem?.directory(dirPath) ?? fs.directory(dirPath);
+    final dir = fileSystem.directory(dirPath);
     await for (final entity in dir.list(recursive: true, followLinks: false)) {
       if (entity is File) {
         files.add(entity.path);

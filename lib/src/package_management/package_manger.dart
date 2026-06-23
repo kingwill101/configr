@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:configr/src/models/command.dart';
+import 'package:configr/src/utils/command_executor.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
 
 abstract class PackageManager {
@@ -23,7 +25,12 @@ abstract class PackageManager {
   Future<void> addRepository(String url) async {}
 
   Future<ProcessResult> runCommand(String command, List<String> args) {
-    return privilegeEscalation.runWithElevatedPrivileges(command, args);
+    final cmd = Command(
+      name: command,
+      command: command,
+      parameters: args,
+    );
+    return CommandExecutor.execute(cmd, privilegeEscalation);
   }
 }
 

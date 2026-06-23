@@ -3,7 +3,6 @@ import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/file_utils.dart';
-import 'package:configr/src/utils/fs.dart' show fs;
 import 'package:file/file.dart' show File;
 import 'package:glob/glob.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
@@ -170,7 +169,7 @@ class CompressBlock extends ActionBlock {
         await FileUtils.deleteFile(destination, fileSystem: fileSystem);
       }
 
-      await (fileSystem ?? fs).file(destination).writeAsBytes(compressedData);
+      await fileSystem.file(destination).writeAsBytes(compressedData);
 
       emitEvent(CompletedEvent(moduleId: id, message: 'Compression completed'));
     } catch (e, _) {
@@ -291,7 +290,7 @@ class CompressBlock extends ActionBlock {
   }
 
   Future<void> _addDirectoryToArchive(String dirPath, Archive archive) async {
-    final dir = fileSystem!.directory(dirPath);
+    final dir = fileSystem.directory(dirPath);
     await for (final entity in dir.list(recursive: recursive)) {
       if (entity is File && _shouldIncludeFile(entity.path)) {
         final relativePath = preserveStructure

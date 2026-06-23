@@ -16,14 +16,12 @@ class InteractiveHandler implements UIHandler {
   final Map<String, Completer<TaskResult>> _pendingTasks = {};
 
   InteractiveHandler({
-    required EventBus eventBus,
+    required this._eventBus,
     Console? console,
     bool verboseMode = false,
-    bool debugMode = false,
+    this._debugMode = false,
     bool interactiveMode = true,
-  }) : _eventBus = eventBus,
-       _console = console ?? Console(interactive: interactiveMode),
-       _debugMode = debugMode,
+  }) : _console = console ?? Console(interactive: interactiveMode),
        _interactiveMode = interactiveMode {
     _setupEventListeners();
   }

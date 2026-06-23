@@ -322,7 +322,7 @@ class DeleteBlock extends ActionBlock {
 
   Future<List<String>> _scanDirectoryForFiles(String dirPath) async {
     final files = <String>[];
-    final dir = fileSystem!.directory(dirPath);
+    final dir = fileSystem.directory(dirPath);
     await for (final entity in dir.list(recursive: recursive)) {
       if (entity is File) {
         files.add(entity.path);

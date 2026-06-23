@@ -104,8 +104,8 @@ class TemplateBlock extends ActionBlock {
       ),
     );
 
-    final sourceFile = fileSystem?.file(source);
-    if (sourceFile == null || !await sourceFile.exists()) {
+    final sourceFile = fileSystem.file(source);
+    if (!await sourceFile.exists()) {
       throw ActionFailedException(
         'Template file does not exist: $source',
         moduleId: id,
@@ -113,8 +113,8 @@ class TemplateBlock extends ActionBlock {
     }
 
     // Store original content for rollback
-    final destFile = fileSystem?.file(destination);
-    if (destFile != null && await destFile.exists()) {
+    final destFile = fileSystem.file(destination);
+    if (await destFile.exists()) {
       originalContent = await destFile.readAsString();
     }
 
@@ -131,21 +131,19 @@ class TemplateBlock extends ActionBlock {
       renderedContent = await _renderTemplate(templateContent!, templateVars);
 
       // Ensure destination directory exists
-      if (destFile != null) {
-        final destDir = destFile.parent;
-        if (!await destDir.exists()) {
-          await destDir.create(recursive: true);
-        }
-
-        // Backup original if exists
-        if (await destFile.exists() && backupOriginal) {
-          final backupFile = fileSystem!.file('${destFile.path}$backupSuffix');
-          await destFile.copy(backupFile.path);
-        }
-
-        // Write rendered content
-        await destFile.writeAsString(renderedContent!);
+      final destDir = destFile.parent;
+      if (!await destDir.exists()) {
+        await destDir.create(recursive: true);
       }
+
+      // Backup original if exists
+      if (await destFile.exists() && backupOriginal) {
+        final backupFile = fileSystem.file('${destFile.path}$backupSuffix');
+        await destFile.copy(backupFile.path);
+      }
+
+      // Write rendered content
+      await destFile.writeAsString(renderedContent!);
 
       emitEvent(
         CompletedEvent(moduleId: id, message: 'Template processing completed'),
@@ -171,17 +169,17 @@ class TemplateBlock extends ActionBlock {
     );
 
     try {
-      final destFile = fileSystem?.file(destination);
+      final destFile = fileSystem.file(destination);
 
-      if (originalContent != null && destFile != null) {
+      if (originalContent != null) {
         await destFile.writeAsString(originalContent!);
-      } else if (destFile != null && await destFile.exists()) {
+      } else if (await destFile.exists()) {
         await destFile.delete();
       }
 
       // Remove backup file
-      final backupFile = fileSystem?.file('$destination$backupSuffix');
-      if (backupFile != null && await backupFile.exists()) {
+      final backupFile = fileSystem.file('$destination$backupSuffix');
+      if (await backupFile.exists()) {
         await backupFile.delete();
       }
 

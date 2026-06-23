@@ -182,7 +182,7 @@ class BackupBlock extends ActionBlock {
       if (hadToCreateDstDir) {
         final destDir = path.dirname(destination);
         if (await FileUtils.directoryExists(destDir, fileSystem: fileSystem)) {
-          final dir = fileSystem!.directory(destDir);
+          final dir = fileSystem.directory(destDir);
           final contents = await dir.list().toList();
           if (contents.isEmpty) {
             await FileUtils.deleteDirectory(
@@ -234,11 +234,11 @@ class BackupBlock extends ActionBlock {
         );
       }
       // Copy directory contents manually using FileUtils
-      final srcDir = fileSystem!.directory(source);
+      final srcDir = fileSystem.directory(source);
       await for (final entity in srcDir.list(recursive: true)) {
         final relPath = path.relative(entity.path, from: source);
         final destPath = path.join(destination, relPath);
-        final destParent = fileSystem!.directory(path.dirname(destPath));
+        final destParent = fileSystem.directory(path.dirname(destPath));
         if (!await destParent.exists()) {
           await destParent.create(recursive: true);
         }
@@ -336,7 +336,7 @@ class BackupBlock extends ActionBlock {
     if (await FileUtils.fileExists(destPath, fileSystem: fileSystem)) {
       await FileUtils.deleteFile(destPath, fileSystem: fileSystem);
     }
-    await fileSystem!.file(destPath).writeAsBytes(encoded);
+    await fileSystem.file(destPath).writeAsBytes(encoded);
   }
 
   Future<void> _createIncrementalBackup(
@@ -376,11 +376,11 @@ class BackupBlock extends ActionBlock {
       encoded = _encryptData(encoded);
     }
 
-    await fileSystem!.file(destPath).writeAsBytes(encoded);
+    await fileSystem.file(destPath).writeAsBytes(encoded);
   }
 
   Future<void> _addDirectoryToArchive(String dirPath, Archive archive) async {
-    final dir = fileSystem!.directory(dirPath);
+    final dir = fileSystem.directory(dirPath);
     await for (final entity in dir.list(recursive: true)) {
       if (entity is File) {
         final relativePath = path.relative(entity.path, from: dirPath);
@@ -410,7 +410,7 @@ class BackupBlock extends ActionBlock {
     );
 
     if (isDir) {
-      final dir = fileSystem!.directory(sourcePath);
+      final dir = fileSystem.directory(sourcePath);
       await for (final entity in dir.list(recursive: true)) {
         if (entity is File) {
           final relativePath = path.relative(entity.path, from: sourcePath);

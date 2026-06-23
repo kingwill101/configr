@@ -18,9 +18,8 @@ class CLIHandler implements UIHandler {
   bool _verboseMode = false;
   bool _debugMode = false;
 
-  CLIHandler({Console? console, required EventBus eventBus})
-    : _console = console ?? Console(interactive: false),
-      _eventBus = eventBus {
+  CLIHandler({Console? console, required this._eventBus})
+    : _console = console ?? Console(interactive: false) {
     _isActive = true;
     _eventSubscription = _eventBus.stream.listen(handleEvent);
   }

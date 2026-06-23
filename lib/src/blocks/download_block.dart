@@ -5,7 +5,6 @@ import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/file_utils.dart';
-import 'package:configr/src/utils/fs.dart' show fs;
 import 'package:crypto/crypto.dart' show sha256, md5, sha1;
 import 'package:http/http.dart' as http;
 import 'package:i3config/i3config_v2.dart' as i3;
@@ -231,7 +230,7 @@ class DownloadBlock extends ActionBlock {
     String destinationPath,
   ) async {
     final client = http.Client();
-    final fSys = fileSystem ?? fs;
+    final fSys = fileSystem;
     try {
       final request = http.Request('GET', Uri.parse(url));
       _addAuthenticationHeaders(request);

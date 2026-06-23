@@ -298,8 +298,10 @@ class PersistentSudoEscalation implements PrivilegeEscalation {
   @override
   Future<ProcessResult> runWithElevatedPrivileges(
     String command,
-    List<String> arguments,
-  ) async {
+    List<String> arguments, {
+    String? workingDirectory,
+    bool runInShell = false,
+  }) async {
     final lock = PersistentPrivilegeLock.instance;
 
     // If privilege lock is enabled and active, use the persistent shell

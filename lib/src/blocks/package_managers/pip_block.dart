@@ -48,7 +48,7 @@ class PipBlock extends BasePackageBlock {
   @override
   Map<String, String> get additionalProperties => {
     ...super.additionalProperties,
-    if (venv != null) 'venv': venv!,
-    if (requirements != null) 'requirements': requirements!,
+    'venv': ?venv,
+    'requirements': ?requirements,
   };
 }

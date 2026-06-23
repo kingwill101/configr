@@ -4,7 +4,6 @@ import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:file/file.dart' show File;
-import 'package:file/local.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
 /// Block handler for the `permissions` config action.
@@ -188,8 +187,7 @@ class PermissionsBlock extends ActionBlock {
   }
 
   Future<void> _collectFiles(String dirPath, List<String> files) async {
-    final fs = fileSystem ?? const LocalFileSystem();
-    final dir = fs.directory(dirPath);
+    final dir = fileSystem.directory(dirPath);
     await for (final entity in dir.list(recursive: true)) {
       if (entity is File) {
         files.add(entity.path);

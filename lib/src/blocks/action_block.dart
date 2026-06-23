@@ -2,10 +2,12 @@ import 'dart:io' as io;
 
 import 'package:configr/src/di.dart';
 import 'package:configr/src/events/module_events.dart';
+import 'package:configr/src/models/command.dart';
 import 'package:configr/src/models/v2_lockfile_data.dart';
+import 'package:configr/src/utils/command_executor.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/privilege_escalation.dart'
-    show PrivilegeEscalation;
+    show NoPrivilegeEscalation, PrivilegeEscalation;
 import 'package:file/file.dart' show FileSystem;
 import 'package:i3config/i3config_v2.dart' as i3;
 
@@ -364,33 +366,21 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
     String? workingDirectory,
     bool checkExitCode = true,
   }) async {
-    if (requireElevation) {
-      final result = await privilegeEscalation.runWithElevatedPrivileges(
-        command,
-        args,
-      );
-      if (checkExitCode && result.exitCode != 0) {
-        throw Exception(
-          'Command failed with exit code ${result.exitCode}: '
-          '$command ${args.join(' ')}\n${result.stderr}',
-        );
-      }
-      return result;
-    }
-
-    final result = await io.Process.run(
-      command,
-      args,
+    final cmd = Command(
+      name: command,
+      command: command,
+      parameters: args,
+    );
+    final escalation = requireElevation
+        ? privilegeEscalation
+        : NoPrivilegeEscalation();
+    return CommandExecutor.execute(
+      cmd,
+      escalation,
       workingDirectory: workingDirectory,
       runInShell: true,
+      checkExitCode: checkExitCode,
     );
-    if (checkExitCode && result.exitCode != 0) {
-      throw Exception(
-        'Command failed with exit code ${result.exitCode}: '
-        '$command ${args.join(' ')}\n${result.stderr}',
-      );
-    }
-    return result;
   }
 }
 

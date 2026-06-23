@@ -199,11 +199,11 @@ class DecompressBlock extends ActionBlock {
     for (final file in archive) {
       if (_shouldExtractFile(file.name)) {
         final filePath = preserveStructure
-            ? fileSystem!.path.join(destination, file.name)
-            : fileSystem!.path.join(destination, path.basename(file.name));
+            ? fileSystem.path.join(destination, file.name)
+            : fileSystem.path.join(destination, path.basename(file.name));
 
         if (file.isFile) {
-          final dir = fileSystem!.path.dirname(filePath);
+          final dir = fileSystem.path.dirname(filePath);
           if (!await FileUtils.directoryExists(dir, fileSystem: fileSystem)) {
             await FileUtils.createDirectory(dir, fileSystem: fileSystem);
           }

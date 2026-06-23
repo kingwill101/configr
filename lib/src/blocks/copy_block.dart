@@ -7,7 +7,7 @@ import 'package:file/file.dart' show File;
 import 'package:glob/glob.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 import 'package:path/path.dart' as path;
-import 'package:configr/src/utils/fs.dart' show fs, resolveHomeDirectory;
+import 'package:configr/src/utils/fs.dart' show resolveHomeDirectory;
 
 /// Block handler for the `copy` config action.
 ///
@@ -233,9 +233,7 @@ class CopyBlock extends ActionBlock {
 
         if (hadToCreateDstDir && destinationDir != null) {
           if (await FileUtils.directoryExists(destinationDir!)) {
-            final dir =
-                fileSystem?.directory(destinationDir) ??
-                fs.directory(destinationDir!);
+            final dir = fileSystem.directory(destinationDir);
             final contents = await dir.list().toList();
             if (contents.isEmpty) {
               await FileUtils.deleteDirectory(
@@ -362,7 +360,7 @@ class CopyBlock extends ActionBlock {
 
   Future<List<String>> _scanDirectory(String dirPath) async {
     final files = <String>[];
-    final dir = fileSystem?.directory(dirPath) ?? fs.directory(dirPath);
+    final dir = fileSystem.directory(dirPath);
     await for (final entity in dir.list(recursive: recursive)) {
       if (entity is File) {
         files.add(entity.path);

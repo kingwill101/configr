@@ -13,6 +13,9 @@ class CommandExecutor {
     PrivilegeEscalation privilegeEscalation, {
     SecurityManager? securityManager,
     InputSanitizer? inputSanitizer,
+    String? workingDirectory,
+    bool runInShell = false,
+    bool checkExitCode = true,
   }) async {
     if (command.command == null || command.command!.isEmpty) {
       throw Exception("missing command");
@@ -56,6 +59,8 @@ class CommandExecutor {
     final result = await privilegeEscalation.runWithElevatedPrivileges(
       sanitizedCommand,
       sanitizedParams,
+      workingDirectory: workingDirectory,
+      runInShell: runInShell,
     );
 
     manager.audit(
@@ -82,7 +87,7 @@ class CommandExecutor {
       logger.warning(err);
     }
 
-    if (result.exitCode != 0) {
+    if (checkExitCode && result.exitCode != 0) {
       throw Exception('Command failed: $err');
     }
 

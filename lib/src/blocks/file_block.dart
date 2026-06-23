@@ -207,7 +207,7 @@ class FileBlock extends ActionBlock {
 
     // Create parent directories if needed
     if (createDirectories) {
-      final dir = fileSystem!.file(filePath).parent;
+      final dir = fileSystem.file(filePath).parent;
       if (!await dir.exists()) {
         await dir.create(recursive: true);
       }
