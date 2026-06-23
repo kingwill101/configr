@@ -19,16 +19,6 @@ import 'package:configr/src/utils/package_lock_manager.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
 import 'package:artisanal/args.dart';
 
-/// Discovered package information from parsing the config.
-class _PackageBlockInfo {
-  final String blockType;
-  final List<String> packages;
-  const _PackageBlockInfo({
-    required this.blockType,
-    required this.packages,
-  });
-}
-
 // ---------------------------------------------------------------------------
 // PackageCommand — top-level `configr package`
 // ---------------------------------------------------------------------------
@@ -84,26 +74,8 @@ PackageManager? _createManager(String blockType) {
   };
 }
 
-/// Return the package blocks in the config via the snapshot pipeline.
-Future<List<_PackageBlockInfo>> _discoverPackages(
-  ConfigrRuntime runtime,
-) async {
-  final result = <_PackageBlockInfo>[];
-  final blocks = await runtime.parseAndCollect();
-  for (final block in blocks) {
-    if (_createManager(block.blockType) == null) continue;
-    final pkgList = block.source
-        .split(RegExp(r'\s+'))
-        .where((s) => s.isNotEmpty)
-        .toList();
-    if (pkgList.isEmpty) continue;
-    result.add(_PackageBlockInfo(
-      blockType: block.blockType,
-      packages: pkgList,
-    ));
-  }
-  return result;
-}
+List<String> _packagesFromSource(String source) =>
+    source.split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
 
 /// Compute a content hash for the config file.
 String _contentHash(String content) {
@@ -134,8 +106,16 @@ class PackageListCommand extends Command<void> {
     final runtime = _runtimeFor(this);
     io.title('Configured Packages');
 
-    final packages = await _discoverPackages(runtime);
-    if (packages.isEmpty) {
+    final blocks = await runtime.parseAndCollect();
+    final managers = <_ManagerBlock>[];
+    for (final block in blocks) {
+      if (_createManager(block.blockType) == null) continue;
+      final pkgs = _packagesFromSource(block.source);
+      if (pkgs.isEmpty) continue;
+      managers.add(_ManagerBlock(block.blockType, pkgs));
+    }
+
+    if (managers.isEmpty) {
       io.warn('No package blocks found in configuration.');
       io.line('');
       io.line('Define packages in your config file, e.g.:');
@@ -146,14 +126,14 @@ class PackageListCommand extends Command<void> {
     }
 
     var totalPkgs = 0;
-    for (final mgr in packages) {
+    for (final mgr in managers) {
       totalPkgs += mgr.packages.length;
     }
 
     io.section(
-      '${packages.length} manager(s), $totalPkgs package(s) configured:',
+      '${managers.length} manager(s), $totalPkgs package(s) configured:',
     );
-    for (final mgr in packages) {
+    for (final mgr in managers) {
       io.line('  ${mgr.blockType}:');
       for (final pkg in mgr.packages) {
         io.line('    - $pkg');
@@ -178,22 +158,24 @@ class PackageUpdateCommand extends Command<void> {
     final runtime = _runtimeFor(this);
     io.title('Package Cache Update');
 
-    final packages = await _discoverPackages(runtime);
-    if (packages.isEmpty) {
-      io.warn('No package blocks found in configuration.');
-      return;
+    final blocks = await runtime.parseAndCollect();
+    final managerTypes = <String>{};
+    for (final block in blocks) {
+      if (_createManager(block.blockType) != null &&
+          _packagesFromSource(block.source).isNotEmpty) {
+        managerTypes.add(block.blockType);
+      }
     }
 
-    final managers = <String>[];
-    for (final mgr in packages) {
-      final t = mgr.blockType;
-      if (!managers.contains(t)) managers.add(t);
+    if (managerTypes.isEmpty) {
+      io.warn('No package blocks found in configuration.');
+      return;
     }
 
     var successCount = 0;
     var failCount = 0;
 
-    for (final mgrType in managers) {
+    for (final mgrType in managerTypes) {
       final pm = _createManager(mgrType);
       if (pm == null) {
         io.warn('  $mgrType: no manager implementation available');
@@ -227,6 +209,12 @@ class PackageUpdateCommand extends Command<void> {
 // Subcommand: upgrade
 // ===========================================================================
 
+class _ManagerBlock {
+  final String blockType;
+  final List<String> packages;
+  const _ManagerBlock(this.blockType, this.packages);
+}
+
 class PackageUpgradeCommand extends Command<void> {
   PackageUpgradeCommand() {
     argParser.addFlag(
@@ -249,8 +237,16 @@ class PackageUpgradeCommand extends Command<void> {
 
     io.title('Package Upgrade');
 
-    final packages = await _discoverPackages(runtime);
-    if (packages.isEmpty) {
+    final blocks = await runtime.parseAndCollect();
+    final managers = <_ManagerBlock>[];
+    for (final block in blocks) {
+      if (_createManager(block.blockType) == null) continue;
+      final pkgs = _packagesFromSource(block.source);
+      if (pkgs.isEmpty) continue;
+      managers.add(_ManagerBlock(block.blockType, pkgs));
+    }
+
+    if (managers.isEmpty) {
       io.warn('No package blocks found in configuration.');
       return;
     }
@@ -260,7 +256,7 @@ class PackageUpgradeCommand extends Command<void> {
     var totalSkipped = 0;
     var totalErrors = 0;
 
-    for (final mgr in packages) {
+    for (final mgr in managers) {
       final pm = _createManager(mgr.blockType);
       if (pm == null) {
         io.warn('  ${mgr.blockType}: no manager implementation available');
@@ -345,8 +341,16 @@ class PackageLockCommand extends Command<void> {
     final runtime = _runtimeFor(this);
     io.title('Package Lock');
 
-    final packages = await _discoverPackages(runtime);
-    if (packages.isEmpty) {
+    final blocks = await runtime.parseAndCollect();
+    final managers = <_ManagerBlock>[];
+    for (final block in blocks) {
+      if (_createManager(block.blockType) == null) continue;
+      final pkgs = _packagesFromSource(block.source);
+      if (pkgs.isEmpty) continue;
+      managers.add(_ManagerBlock(block.blockType, pkgs));
+    }
+
+    if (managers.isEmpty) {
       io.warn('No package blocks found in configuration.');
       return;
     }
@@ -355,7 +359,7 @@ class PackageLockCommand extends Command<void> {
     var successCount = 0;
     var errorCount = 0;
 
-    for (final mgr in packages) {
+    for (final mgr in managers) {
       final pm = _createManager(mgr.blockType);
       if (pm == null) {
         io.warn('  ${mgr.blockType}: no manager implementation available');
