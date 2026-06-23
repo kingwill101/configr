@@ -1,0 +1,89 @@
+# Configr container test matrix
+# Usage:
+#   docker compose -f testing/docker-compose.yml build
+#   docker compose -f testing/docker-compose.yml run --rm ubuntu-test
+#   docker compose -f testing/docker-compose.yml run --rm fedora-test
+#   docker compose -f testing/docker-compose.yml --profile all up --abort-on-container-exit
+
+services:
+  ubuntu-test:
+    profiles: ["all", "ubuntu"]
+    build:
+      context: ..
+      dockerfile: testing/containers/ubuntu/Dockerfile
+    working_dir: /app
+    volumes:
+      - ..:/app
+      - pub-cache:/root/.pub-cache
+    environment:
+      - CONFIGR_TEST_ENV=ubuntu
+    cap_add:
+      - SYS_ADMIN
+      - NET_ADMIN
+    command: >
+      sh -c "dart pub get && dart test --tags debian"
+
+  debian-test:
+    profiles: ["all", "debian"]
+    build:
+      context: ..
+      dockerfile: testing/containers/debian/Dockerfile
+    working_dir: /app
+    volumes:
+      - ..:/app
+      - pub-cache:/root/.pub-cache
+    environment:
+      - CONFIGR_TEST_ENV=debian
+    cap_add:
+      - SYS_ADMIN
+    command: >
+      sh -c "dart pub get && dart test --tags debian"
+
+  fedora-test:
+    profiles: ["all", "fedora"]
+    build:
+      context: ..
+      dockerfile: testing/containers/fedora/Dockerfile
+    working_dir: /app
+    volumes:
+      - ..:/app
+      - pub-cache:/root/.pub-cache
+    environment:
+      - CONFIGR_TEST_ENV=fedora
+    cap_add:
+      - SYS_ADMIN
+    command: >
+      sh -c "dart pub get && dart test --tags fedora"
+
+  arch-test:
+    profiles: ["all", "arch"]
+    build:
+      context: ..
+      dockerfile: testing/containers/arch/Dockerfile
+    working_dir: /app
+    volumes:
+      - ..:/app
+      - pub-cache:/root/.pub-cache
+    environment:
+      - CONFIGR_TEST_ENV=arch
+    cap_add:
+      - SYS_ADMIN
+    command: >
+      sh -c "dart pub get && dart test --tags arch"
+
+  alpine-test:
+    profiles: ["all", "alpine"]
+    build:
+      context: ..
+      dockerfile: testing/containers/alpine/Dockerfile
+    working_dir: /app
+    volumes:
+      - ..:/app
+      - pub-cache:/root/.pub-cache
+    environment:
+      - CONFIGR_TEST_ENV=alpine
+    command: >
+      sh -c "dart pub get && dart test --tags alpine"
+
+volumes:
+  pub-cache:

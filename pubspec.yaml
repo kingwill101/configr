@@ -34,6 +34,8 @@ dev_dependencies:
   test: ^1.26.3
   mockito: ^5.5.1
   build_runner: ^2.8.0
+  testcontainers_core: ^1.0.14
+  testcontainers_compose: ^1.0.14
 dependency_overrides:
   intl: ^0.20.2
 executables:

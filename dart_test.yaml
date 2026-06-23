@@ -1,33 +1,16 @@
-# timeout: 120s
+# Configr test configuration
 
-# coverage_presets:
-#   all:
-#     include:
-#       - lib/**
-#     exclude:
-#       - test/**
-#       - lib/**/*.g.dart
-
-# # Set concurrency for parallel test execution
-# concurrency: 4
-
-# # Configure test output formats
-# file_reporters:
-#   json: coverage/tests.json
-
-# # Platform configuration
-# platforms:
-#   - vm
-
-# # Test directory configuration
-# filename: "*_test.dart"
-# paths:
-#   - test
-#   - test/modules/resource
-#   - test/helpers
-
-# # Test ordering
-# test_randomize_ordering: true
-
-# # Reporter configuration
-# reporter: expanded
+# Custom test tags for container-based testing
+tags:
+  debian:
+    description: "Tests that require Debian/Ubuntu environment"
+  fedora:
+    description: "Tests that require Fedora/RHEL environment"
+  arch:
+    description: "Tests that require Arch Linux environment"
+  alpine:
+    description: "Tests that require Alpine Linux environment"
+  needs-docker:
+    description: "Tests that require Docker-in-Docker or Docker socket"
+  needs-systemd:
+    description: "Tests that require systemd (needs privileged container)"
