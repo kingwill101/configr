@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:configr/src/events/module_events.dart';
@@ -6,6 +8,8 @@ import 'package:configr/src/security/input_sanitizer.dart';
 import 'package:configr/src/security/security_manager.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
+
+typedef CommandOutputHandler = void Function(String line, bool isStderr);
 
 class CommandExecutor {
   static Future<ProcessResult> execute(
@@ -16,6 +20,7 @@ class CommandExecutor {
     String? workingDirectory,
     bool runInShell = false,
     bool checkExitCode = true,
+    CommandOutputHandler? onOutput,
   }) async {
     if (command.command == null || command.command!.isEmpty) {
       throw Exception("missing command");
@@ -56,12 +61,23 @@ class CommandExecutor {
       ),
     );
 
-    final result = await privilegeEscalation.runWithElevatedPrivileges(
-      sanitizedCommand,
-      sanitizedParams,
-      workingDirectory: workingDirectory,
-      runInShell: runInShell,
-    );
+    ProcessResult result;
+    if (onOutput != null) {
+      result = await _runStreaming(
+        sanitizedCommand,
+        sanitizedParams,
+        onOutput,
+        workingDirectory: workingDirectory,
+        runInShell: runInShell,
+      );
+    } else {
+      result = await privilegeEscalation.runWithElevatedPrivileges(
+        sanitizedCommand,
+        sanitizedParams,
+        workingDirectory: workingDirectory,
+        runInShell: runInShell,
+      );
+    }
 
     manager.audit(
       SecurityEvent(
@@ -80,11 +96,13 @@ class CommandExecutor {
     final out = result.stdout.toString().trim();
     final err = result.stderr.toString().trim();
 
-    if (out.isNotEmpty) {
-      print(out);
-    }
-    if (err.isNotEmpty) {
-      logger.warning(err);
+    if (onOutput == null) {
+      if (out.isNotEmpty) {
+        print(out);
+      }
+      if (err.isNotEmpty) {
+        logger.warning(err);
+      }
     }
 
     if (checkExitCode && result.exitCode != 0) {
@@ -92,5 +110,40 @@ class CommandExecutor {
     }
 
     return result;
+  }
+
+  static Future<ProcessResult> _runStreaming(
+    String command,
+    List<String> arguments,
+    CommandOutputHandler onOutput, {
+    String? workingDirectory,
+    bool runInShell = false,
+  }) async {
+    final process = await Process.start(
+      command,
+      arguments,
+      workingDirectory: workingDirectory,
+      runInShell: runInShell,
+    );
+
+    final stdoutDone = process.stdout
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .forEach((line) => onOutput(line, false));
+
+    final stderrDone = process.stderr
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .forEach((line) => onOutput(line, true));
+
+    await Future.wait([stdoutDone, stderrDone]);
+    final exitCode = await process.exitCode;
+
+    return ProcessResult(
+      process.pid,
+      exitCode,
+      '',
+      '',
+    );
   }
 }

@@ -7,6 +7,7 @@ import 'package:configr/src/utils/privilege_escalation.dart';
 abstract class PackageManager {
   String get name;
   PrivilegeEscalation privilegeEscalation;
+  CommandOutputHandler? onOutput;
 
   PackageManager(this.privilegeEscalation);
 
@@ -24,13 +25,21 @@ abstract class PackageManager {
   /// Default no-op — override for managers that support repositories.
   Future<void> addRepository(String url) async {}
 
-  Future<ProcessResult> runCommand(String command, List<String> args) {
+  Future<ProcessResult> runCommand(
+    String command,
+    List<String> args, {
+    CommandOutputHandler? onOutput,
+  }) {
     final cmd = Command(
       name: command,
       command: command,
       parameters: args,
     );
-    return CommandExecutor.execute(cmd, privilegeEscalation);
+    return CommandExecutor.execute(
+      cmd,
+      privilegeEscalation,
+      onOutput: onOutput ?? this.onOutput,
+    );
   }
 }
 

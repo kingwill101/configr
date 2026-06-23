@@ -14,7 +14,7 @@ class FlatpakPackageManager extends PackageManager
   @override
   Future<void> install(String packageName, {String? version}) async {
     logger.info('Installing flatpak: $packageName');
-    final args = ['install', '--noninteractive', packageName];
+    final args = ['install', '--user', '--noninteractive', packageName];
     await runCommand('flatpak', args);
   }
 

@@ -84,7 +84,6 @@ abstract class BasePackageBlock extends ActionBlock {
     skipIfInstalled = true;
     updateCache = true;
     repositories = [];
-    operationResults = [];
     packagesProcessed = 0;
     packagesSkipped = 0;
     errorsEncountered = 0;
@@ -109,6 +108,15 @@ abstract class BasePackageBlock extends ActionBlock {
     }
     try {
       final pm = createManager();
+      pm.onOutput = (line, isStderr) {
+        emitEvent(
+          StatusUpdateEvent(
+            moduleId: id,
+            level: isStderr ? StatusEvent.warning : StatusEvent.info,
+            message: line,
+          ),
+        );
+      };
       if (updateCache) {
         emitEvent(
           StatusUpdateEvent(
@@ -125,6 +133,20 @@ abstract class BasePackageBlock extends ActionBlock {
         }
       }
       await _performPackageOperations(pm);
+      if (errorsEncountered > 0) {
+        emitEvent(
+          FailedEvent(
+            moduleId: id,
+            message:
+                'Package $operation completed with $errorsEncountered error(s): '
+                '$packagesProcessed processed, $packagesSkipped skipped',
+          ),
+        );
+        throw ActionFailedException(
+          'Package $operation failed: $packages',
+          moduleId: id,
+        );
+      }
       operationSuccess = true;
       emitEvent(
         CompletedEvent(
@@ -149,14 +171,34 @@ abstract class BasePackageBlock extends ActionBlock {
 
   @override
   Future<void> rollback() async {
-    if (!operationSuccess) return;
     emitEvent(
       StartedEvent(moduleId: id, message: 'Rolling back package $operation'),
     );
     try {
-      await _rollbackPackages();
+      final pm = createManager();
+      pm.onOutput = (line, isStderr) {
+        emitEvent(
+          StatusUpdateEvent(
+            moduleId: id,
+            level: isStderr ? StatusEvent.warning : StatusEvent.info,
+            message: line,
+          ),
+        );
+      };
+      final pkgList = source
+          .split(RegExp(r'\s+'))
+          .where((s) => s.isNotEmpty)
+          .toList();
+      var uninstalled = 0;
+      for (final pkg in pkgList) {
+        await pm.uninstall(pkg);
+        uninstalled++;
+      }
       emitEvent(
-        CompletedEvent(moduleId: id, message: 'Package rollback completed'),
+        CompletedEvent(
+          moduleId: id,
+          message: 'Package rollback completed: $uninstalled uninstalled',
+        ),
       );
     } catch (e, _) {
       emitEvent(
