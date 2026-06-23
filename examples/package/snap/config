@@ -1,0 +1,19 @@
+# Snap Package Manager — Ubuntu / cross-distribution
+#
+# Usage:
+#   configr apply -n --dry-run        # preview
+#   configr apply -n                   # execute (requires sudo)
+
+# Core snaps
+snap {
+  source = "core20 core22"
+  operation = "install"
+  skip_if_installed = true
+}
+
+# Applications
+snap {
+  source = "firefox vlc gimp krita"
+  operation = "install"
+  skip_if_installed = true
+}

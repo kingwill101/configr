@@ -27,6 +27,7 @@ dependencies:
   git: ^2.2.0
   artisanal: ^0.3.0
   lualike: ^0.2.2
+  get_it: ^9.2.1
 
 dev_dependencies:
   lints: ^6.0.0

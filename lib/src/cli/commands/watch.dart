@@ -21,7 +21,7 @@ class WatchCommand extends BaseCommand {
       'Watch configuration files and apply changes automatically';
 
   @override
-  void executeCommand() async {
+  Future<void> executeCommand() async {
     final once = argResults?['once'] as bool? ?? false;
 
     io.title('Configuration Watch');

@@ -45,7 +45,7 @@ class FileBlock extends ActionBlock {
   String? backupPath;
   bool operationSuccess = false;
 
-  FileBlock({super.fileSystem, super.eventBus});
+  FileBlock();
 
   // ---------------------------------------------------------------------------
   // Handler pipeline

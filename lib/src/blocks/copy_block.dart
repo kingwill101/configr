@@ -48,7 +48,7 @@ class CopyBlock extends ActionBlock {
   int skippedFiles = 0;
   int overwrittenFiles = 0;
 
-  CopyBlock({super.fileSystem, super.eventBus});
+  CopyBlock();
 
   // ---------------------------------------------------------------------------
   // Handler pipeline

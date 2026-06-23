@@ -49,7 +49,7 @@ class SyncBlock extends ActionBlock {
   int errorsEncountered = 0;
   Map<String, String> syncResults = {};
 
-  SyncBlock({super.fileSystem, super.eventBus});
+  SyncBlock();
 
   // ---------------------------------------------------------------------------
   // Handler pipeline

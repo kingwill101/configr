@@ -9,7 +9,7 @@ class StatusCommand extends BaseCommand {
   String get description => 'Show configuration status';
 
   @override
-  void executeCommand() async {
+  Future<void> executeCommand() async {
     await _executeV2();
   }
 

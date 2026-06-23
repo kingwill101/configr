@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:configr/src/cli/cli_exit_exception.dart';
 import 'base_command.dart';
 import 'package:path/path.dart' as p;
 
@@ -26,11 +25,11 @@ class AddCommand extends BaseCommand {
   String get description => 'Add a file to the configuration';
 
   @override
-  void executeCommand() async {
+  Future<void> executeCommand() async {
     final files = argResults?['file'] as List<String>?;
     if (files == null || files.isEmpty) {
       io.error('Please specify a file to add.');
-      exit(1);
+      throw CliExitException(1);
     }
 
     for (final file in files) {

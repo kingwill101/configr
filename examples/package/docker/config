@@ -1,200 +1,21 @@
-resources {
-  # Docker installation and setup
-  resource {
-    id "docker-install"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      before {
-        echo {
-          message "Installing Docker and related tools"
-          level "info"
-          color true
-        }
-      }
-      
-      package {
-        packages ["docker.io", "docker-compose", "docker-doc"]
-        operation "install"
-        package_manager "docker"
-        update_cache true
-        skip_if_installed true
-      }
-      
-      after {
-        execute {
-          command "systemctl start docker"
-          on_success true
-        }
-      }
-      
-      after {
-        execute {
-          command "systemctl enable docker"
-          on_success true
-        }
-      }
-    }
-  }
+# Docker Package Manager — Container images
+#
+# Usage:
+#   configr apply -n --dry-run        # preview
+#   configr apply -n                   # execute (requires Docker daemon)
+#
+# The docker block maps `install` to `docker pull`.
 
-  # Docker user group setup
-  resource {
-    id "docker-user-setup"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      before {
-        echo {
-          message "Setting up Docker user group"
-          level "info"
-        }
-      }
-      
-      execute {
-        command "sudo usermod -aG docker $USER"
-        on_success true
-      }
-      
-      after {
-        echo {
-          message "Docker user group setup complete. Please log out and back in for changes to take effect."
-          level "warning"
-        }
-      }
-    }
-  }
+# Pull base images
+docker {
+  source = "hello-world alpine"
+  operation = "install"
+  skip_if_installed = true
+}
 
-  # Docker Compose services
-  resource {
-    id "docker-compose-setup"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      before {
-        echo {
-          message "Setting up Docker Compose services"
-          level "info"
-        }
-      }
-      
-      # Create docker-compose.yml for testing
-      copy {
-        source "docker-compose.yml"
-        destination "docker-compose.yml"
-        create_directories true
-      }
-      
-      after {
-        execute {
-          command "docker-compose up -d"
-          on_success true
-        }
-      }
-    }
-  }
-
-  # Docker image management
-  resource {
-    id "docker-images"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      before {
-        echo {
-          message "Managing Docker images"
-          level "info"
-        }
-      }
-      
-      execute {
-        command "docker pull nginx:alpine"
-        on_success true
-      }
-      
-      execute {
-        command "docker pull redis:alpine"
-        on_success true
-      }
-      
-      execute {
-        command "docker pull postgres:13"
-        on_success true
-      }
-      
-      after {
-        execute {
-          command "docker images"
-          on_success true
-        }
-      }
-    }
-  }
-
-  # Docker container management
-  resource {
-    id "docker-containers"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      before {
-        echo {
-          message "Managing Docker containers"
-          level "info"
-        }
-      }
-      
-      execute {
-        command "docker run -d --name test-nginx -p 8080:80 nginx:alpine"
-        on_success true
-      }
-      
-      execute {
-        command "docker run -d --name test-redis -p 6379:6379 redis:alpine"
-        on_success true
-      }
-      
-      after {
-        execute {
-          command "docker ps"
-          on_success true
-        }
-      }
-    }
-  }
-
-  # Docker cleanup
-  resource {
-    id "docker-cleanup"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      before {
-        echo {
-          message "Cleaning up Docker resources"
-          level "info"
-        }
-      }
-      
-      execute {
-        command "docker stop test-nginx test-redis"
-        on_success true
-      }
-      
-      execute {
-        command "docker rm test-nginx test-redis"
-        on_success true
-      }
-      
-      execute {
-        command "docker system prune -f"
-        on_success true
-      }
-    }
-  }
+# Pull service images
+docker {
+  source = "nginx:alpine redis:alpine postgres:16-alpine"
+  operation = "install"
+  skip_if_installed = true
 }

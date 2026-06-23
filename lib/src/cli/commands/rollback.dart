@@ -22,7 +22,7 @@ class RollbackCommand extends BaseCommand {
   String get description => 'Rollback configuration changes';
 
   @override
-  void executeCommand() async {
+  Future<void> executeCommand() async {
     final count = argResults?['count'] != null
         ? int.tryParse(argResults!['count'])
         : null;

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:configr/src/cli/cli_exit_exception.dart';
 import 'base_command.dart';
 
 class EditCommand extends BaseCommand {
@@ -10,7 +11,7 @@ class EditCommand extends BaseCommand {
   String get description => 'Edit configuration file';
 
   @override
-  void executeCommand() async {
+  Future<void> executeCommand() async {
     final editor =
         Platform.environment['EDITOR'] ?? Platform.environment['VISUAL'];
 
@@ -42,7 +43,7 @@ class EditCommand extends BaseCommand {
       }
     } catch (e) {
       io.error('Error opening editor: $e');
-      exit(1);
+      throw CliExitException(1);
     }
   }
 }

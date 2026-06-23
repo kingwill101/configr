@@ -22,7 +22,7 @@ class EchoBlock extends ActionBlock {
   bool verbose = false;
   String level = 'info';
 
-  EchoBlock({super.fileSystem, super.eventBus});
+  EchoBlock();
 
   @override
   Map<String, String> get additionalProperties => {

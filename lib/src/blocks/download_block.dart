@@ -59,7 +59,7 @@ class DownloadBlock extends ActionBlock {
   int downloadSpeed = 0;
   int downloadDurationMs = 0;
 
-  DownloadBlock({super.fileSystem, super.eventBus});
+  DownloadBlock();
 
   // ---------------------------------------------------------------------------
   // Handler pipeline

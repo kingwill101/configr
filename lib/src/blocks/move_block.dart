@@ -29,7 +29,7 @@ class MoveBlock extends ActionBlock {
   bool destinationFileExisted = false;
   String? originalPath;
 
-  MoveBlock({super.fileSystem, super.eventBus});
+  MoveBlock();
 
   @override
   Map<String, String> get additionalProperties => const {};

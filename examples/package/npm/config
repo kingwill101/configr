@@ -1,0 +1,21 @@
+# npm Package Manager — Node.js packages
+#
+# Usage:
+#   configr apply -n --dry-run        # preview
+#   configr apply -n                   # execute
+
+# Global tools
+npm {
+  source = "typescript prettier eslint nodemon"
+  operation = "install"
+  scope = "global"
+  skip_if_installed = true
+}
+
+# Local project dependencies
+npm {
+  source = "express lodash axios"
+  operation = "install"
+  scope = "local"
+  skip_if_installed = true
+}

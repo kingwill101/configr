@@ -178,8 +178,6 @@ class LuaPlugin implements ConfigrPlugin {
         _luaLike,
         this,
         callbacks,
-        fileSystem: _fileSystem,
-        eventBus: _eventBus,
       );
       processor.registerBlockHandler(block);
     });
@@ -218,10 +216,8 @@ class LuaActionBlock extends ActionBlock {
     this.blockType,
     this._luaLike,
     this._plugin,
-    this._luaCallbacks, {
-    super.fileSystem,
-    super.eventBus,
-  });
+    this._luaCallbacks,
+  );
 
   @override
   Future<void> readAdditionalProperties(i3.Block block, i3.Context context) async {

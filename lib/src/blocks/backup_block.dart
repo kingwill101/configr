@@ -53,7 +53,7 @@ class BackupBlock extends ActionBlock {
   String? manifestPath;
   String? backupPath;
 
-  BackupBlock({super.fileSystem, super.eventBus});
+  BackupBlock();
 
   // ---------------------------------------------------------------------------
   // Handler pipeline

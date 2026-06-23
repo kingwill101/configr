@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io' as dart_io;
 
+import 'package:configr/src/cli/cli_exit_exception.dart';
 import 'package:configr/src/watch/config_watcher.dart';
 import 'base_command.dart';
 
@@ -37,7 +38,7 @@ class ApplyCommand extends BaseCommand {
   String get description => 'Apply configuration changes';
 
   @override
-  void executeCommand() async {
+  Future<void> executeCommand() async {
     final force = argResults?['force'] as bool? ?? false;
     final watch = argResults?['watch'] as bool? ?? false;
 
@@ -88,7 +89,7 @@ class ApplyCommand extends BaseCommand {
       }
     } catch (e) {
       io.error('Apply failed: $e');
-      dart_io.exit(1);
+      throw CliExitException(1);
     }
   }
 

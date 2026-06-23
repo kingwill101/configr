@@ -34,7 +34,7 @@ class PermissionsBlock extends ActionBlock {
   String? originalPermissions;
   List<Map<String, dynamic>> originalStates = [];
 
-  PermissionsBlock({super.fileSystem, super.eventBus});
+  PermissionsBlock();
 
   @override
   Map<String, String> get additionalProperties => {

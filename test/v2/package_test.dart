@@ -10,14 +10,14 @@ void main() {
 
   test('should initialize with default values', () async {
     final blocks = await helper.processConfig('''
-      package {
+      apt {
         source = "curl"
       }
     ''');
 
     expect(blocks, hasLength(1));
     final block = blocks.first;
-    expect(block.blockType, equals('package'));
+    expect(block.blockType, equals('apt'));
     expect((block as dynamic).packageManager, equals('apt'));
     expect((block as dynamic).operation, equals('install'));
     expect((block as dynamic).force, isFalse);
@@ -26,10 +26,9 @@ void main() {
 
   test('should load configuration from properties', () async {
     final blocks = await helper.processConfig('''
-      package {
+      apt {
         source = "vim git curl"
         operation = "install"
-        package_manager = "apt"
         force = true
         skip_if_installed = false
       }

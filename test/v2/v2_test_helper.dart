@@ -11,8 +11,19 @@ import 'package:configr/src/blocks/file_block.dart';
 import 'package:configr/src/blocks/git_block.dart';
 import 'package:configr/src/blocks/move_block.dart';
 import 'package:configr/src/blocks/network_block.dart';
-import 'package:configr/src/blocks/package_block.dart';
+import 'package:configr/src/blocks/package_managers/apt_block.dart';
+import 'package:configr/src/blocks/package_managers/brew_block.dart';
+import 'package:configr/src/blocks/package_managers/dnf_block.dart';
+import 'package:configr/src/blocks/package_managers/docker_block.dart';
+import 'package:configr/src/blocks/package_managers/flatpak_block.dart';
+import 'package:configr/src/blocks/package_managers/npm_block.dart';
+import 'package:configr/src/blocks/package_managers/pacman_block.dart';
+import 'package:configr/src/blocks/package_managers/pamac_block.dart';
+import 'package:configr/src/blocks/package_managers/pip_block.dart';
+import 'package:configr/src/blocks/package_managers/snap_block.dart';
+import 'package:configr/src/blocks/package_managers/yum_block.dart';
 import 'package:configr/src/blocks/permissions_block.dart';
+import 'package:configr/src/di.dart';
 import 'package:configr/src/blocks/rename_block.dart';
 import 'package:configr/src/blocks/symlink_block.dart';
 import 'package:configr/src/blocks/sync_block.dart';
@@ -24,6 +35,7 @@ import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/reader/handlers/configr_handlers.dart';
 import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/event_bus.dart';
+import 'package:configr/src/utils/privilege_escalation.dart';
 import 'package:file/memory.dart';
 import 'package:file/file.dart' show FileSystem;
 import 'package:i3config/i3config_v2.dart' as i3;
@@ -166,36 +178,48 @@ class V2TestHelper {
 
   void _registerAllBlocks(i3.ConfigProcessor processor, {bool dryRun = false}) {
     // -----------------------------------------------------------------------
-    // 1. Create ActionBlock instances, inject filesystem and dryRun
+    // 1. Register DI dependencies before creating blocks
     // -----------------------------------------------------------------------
-    ActionBlock make<T extends ActionBlock>(T block) {
-      block.fileSystem = fileSystem;
-      block.dryRun = dryRun;
-      return block;
-    }
+    di
+      ..allowReassignment = true
+      ..registerSingleton<DryRunFlag>(DryRunFlag(dryRun))
+      ..registerSingleton<EventBus>(eventBus)
+      ..registerSingleton<PrivilegeEscalation>(NoPrivilegeEscalation())
+      ..registerSingleton<FileSystem>(fileSystem)
+      ..allowReassignment = false;
 
     final actionBlockMap = <String, ActionBlock>{
-      'backup': make(BackupBlock(eventBus: eventBus)),
-      'compress': make(CompressBlock(eventBus: eventBus)),
-      'copy': make(CopyBlock(eventBus: eventBus)),
-      'decompress': make(DecompressBlock(eventBus: eventBus)),
-      'delete': make(DeleteBlock(eventBus: eventBus)),
-      'download': make(DownloadBlock(eventBus: eventBus)),
-      'echo': make(EchoBlock(eventBus: eventBus)),
-      'execute': make(ExecuteBlock(eventBus: eventBus)),
-      'file': make(FileBlock(eventBus: eventBus)),
-      'git': make(GitBlock(eventBus: eventBus)),
-      'move': make(MoveBlock(eventBus: eventBus)),
-      'network': make(NetworkBlock(eventBus: eventBus)),
-      'package': make(PackageBlock(eventBus: eventBus)),
-      'permissions': make(PermissionsBlock(eventBus: eventBus)),
-      'rename': make(RenameBlock(eventBus: eventBus)),
-      'symlink': make(SymlinkBlock(eventBus: eventBus)),
-      'sync': make(SyncBlock(eventBus: eventBus)),
-      'systemd': make(SystemdBlock(eventBus: eventBus)),
-      'template': make(TemplateBlock(eventBus: eventBus)),
-      'touch': make(TouchBlock(eventBus: eventBus)),
-      'validate': make(ValidateBlock(eventBus: eventBus)),
+      'apt': AptBlock(),
+      'backup': BackupBlock(),
+      'brew': BrewBlock(),
+      'compress': CompressBlock(),
+      'copy': CopyBlock(),
+      'decompress': DecompressBlock(),
+      'delete': DeleteBlock(),
+      'dnf': DnfBlock(),
+      'docker': DockerBlock(),
+      'download': DownloadBlock(),
+      'echo': EchoBlock(),
+      'execute': ExecuteBlock(),
+      'file': FileBlock(),
+      'flatpak': FlatpakBlock(),
+      'git': GitBlock(),
+      'move': MoveBlock(),
+      'network': NetworkBlock(),
+      'npm': NpmBlock(),
+      'pacman': PacmanBlock(),
+      'pamac': PamacBlock(),
+      'permissions': PermissionsBlock(),
+      'pip': PipBlock(),
+      'rename': RenameBlock(),
+      'snap': SnapBlock(),
+      'symlink': SymlinkBlock(),
+      'sync': SyncBlock(),
+      'systemd': SystemdBlock(),
+      'template': TemplateBlock(),
+      'touch': TouchBlock(),
+      'validate': ValidateBlock(),
+      'yum': YumBlock(),
     };
 
     // -----------------------------------------------------------------------

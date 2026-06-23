@@ -26,7 +26,7 @@ class TouchBlock extends ActionBlock {
   DateTime? originalModificationTime;
   bool fileCreated = false;
 
-  TouchBlock({super.fileSystem, super.eventBus});
+  TouchBlock();
 
   @override
   Map<String, String> get additionalProperties => const {};

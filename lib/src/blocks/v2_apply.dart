@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart' show sha256;
 import 'package:path/path.dart' as p;
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/blocks/backup_block.dart';
+import 'package:configr/src/di.dart';
 import 'package:configr/src/cli/ui/handlers/base_handler.dart';
 import 'package:configr/src/blocks/compress_block.dart';
 import 'package:configr/src/blocks/copy_block.dart';
@@ -17,7 +18,17 @@ import 'package:configr/src/blocks/file_block.dart';
 import 'package:configr/src/blocks/git_block.dart';
 import 'package:configr/src/blocks/move_block.dart';
 import 'package:configr/src/blocks/network_block.dart';
-import 'package:configr/src/blocks/package_block.dart';
+import 'package:configr/src/blocks/package_managers/apt_block.dart';
+import 'package:configr/src/blocks/package_managers/brew_block.dart';
+import 'package:configr/src/blocks/package_managers/dnf_block.dart';
+import 'package:configr/src/blocks/package_managers/docker_block.dart';
+import 'package:configr/src/blocks/package_managers/flatpak_block.dart';
+import 'package:configr/src/blocks/package_managers/npm_block.dart';
+import 'package:configr/src/blocks/package_managers/pacman_block.dart';
+import 'package:configr/src/blocks/package_managers/pamac_block.dart';
+import 'package:configr/src/blocks/package_managers/pip_block.dart';
+import 'package:configr/src/blocks/package_managers/snap_block.dart';
+import 'package:configr/src/blocks/package_managers/yum_block.dart';
 import 'package:configr/src/blocks/permissions_block.dart';
 import 'package:configr/src/blocks/rename_block.dart';
 import 'package:configr/src/blocks/symlink_block.dart';
@@ -35,10 +46,10 @@ import 'package:configr/src/reader/handlers/configr_handlers.dart';
 import 'package:configr/src/reader/handlers/plugin_block_handler.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/logging.dart';
-import 'package:configr/src/utils/privilege_escalation.dart'
-    show PrivilegeEscalation;
+import 'package:configr/src/utils/privilege_escalation.dart';
 import 'package:configr/src/utils/v2_lockfile_manager.dart';
 
+import 'package:file/file.dart' show FileSystem;
 import 'package:file/local.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
@@ -340,36 +351,49 @@ Future<void> rollbackV2(
     '(${allRecords.length} total recorded).',
   );
 
-  // 2. Build the same ActionBlock map used during apply so we can look up
-  //    block instances by type.
-  final actionBlockMap = <String, ActionBlock>{};
-  ActionBlock make<T extends ActionBlock>(T block) {
-    block.fileSystem ??= fs;
-    actionBlockMap[block.blockType] = block;
-    return block;
-  }
+  // 2. Register DI dependencies and build the same ActionBlock map used
+  //    during apply so we can look up block instances by type.
+  di
+    ..allowReassignment = true
+    ..registerSingleton<DryRunFlag>(DryRunFlag(false))
+    ..registerSingleton<EventBus>(eventBus ?? EventBus())
+    ..registerSingleton<PrivilegeEscalation>(NonInteractiveSudoEscalation())
+    ..registerSingleton<FileSystem>(fs)
+    ..allowReassignment = false;
 
-  make(BackupBlock(eventBus: eventBus));
-  make(CompressBlock(eventBus: eventBus));
-  make(CopyBlock(eventBus: eventBus));
-  make(DecompressBlock(eventBus: eventBus));
-  make(DeleteBlock(eventBus: eventBus));
-  make(DownloadBlock(eventBus: eventBus));
-  make(EchoBlock(eventBus: eventBus));
-  make(ExecuteBlock(eventBus: eventBus));
-  make(FileBlock(eventBus: eventBus));
-  make(GitBlock(eventBus: eventBus));
-  make(MoveBlock(eventBus: eventBus));
-  make(NetworkBlock(eventBus: eventBus));
-  make(PackageBlock(eventBus: eventBus));
-  make(PermissionsBlock(eventBus: eventBus));
-  make(RenameBlock(eventBus: eventBus));
-  make(SymlinkBlock(eventBus: eventBus));
-  make(SyncBlock(eventBus: eventBus));
-  make(SystemdBlock(eventBus: eventBus));
-  make(TemplateBlock(eventBus: eventBus));
-  make(TouchBlock(eventBus: eventBus));
-  make(ValidateBlock(eventBus: eventBus));
+  final actionBlockMap = <String, ActionBlock>{
+    'apt': AptBlock(),
+    'backup': BackupBlock(),
+    'brew': BrewBlock(),
+    'compress': CompressBlock(),
+    'copy': CopyBlock(),
+    'decompress': DecompressBlock(),
+    'delete': DeleteBlock(),
+    'dnf': DnfBlock(),
+    'docker': DockerBlock(),
+    'download': DownloadBlock(),
+    'echo': EchoBlock(),
+    'execute': ExecuteBlock(),
+    'file': FileBlock(),
+    'flatpak': FlatpakBlock(),
+    'git': GitBlock(),
+    'move': MoveBlock(),
+    'network': NetworkBlock(),
+    'npm': NpmBlock(),
+    'pacman': PacmanBlock(),
+    'pamac': PamacBlock(),
+    'permissions': PermissionsBlock(),
+    'pip': PipBlock(),
+    'rename': RenameBlock(),
+    'snap': SnapBlock(),
+    'symlink': SymlinkBlock(),
+    'sync': SyncBlock(),
+    'systemd': SystemdBlock(),
+    'template': TemplateBlock(),
+    'touch': TouchBlock(),
+    'validate': ValidateBlock(),
+    'yum': YumBlock(),
+  };
 
   // 3. For each record, look up the block by type, set properties from
   //    the record, and rollback.
@@ -495,41 +519,54 @@ Future<void> _registerAllBlocks(
   String configDir = '.',
 }) async {
   // -----------------------------------------------------------------------
-  // 1. Create ActionBlock instances and inject dependencies
+  // 1. Register DI dependencies before creating blocks
   // -----------------------------------------------------------------------
-  ActionBlock make<T extends ActionBlock>(T block) {
-    block.dryRun = dryRun;
-    block.privilegeEscalation = privilegeEscalation;
-    block.fileSystem ??= const LocalFileSystem();
-    return block;
-  }
+  di
+    ..allowReassignment = true
+    ..registerSingleton<DryRunFlag>(DryRunFlag(dryRun))
+    ..registerSingleton<EventBus>(eventBus ?? EventBus())
+    ..registerSingleton<PrivilegeEscalation>(
+      privilegeEscalation ?? NonInteractiveSudoEscalation(),
+    )
+    ..registerSingleton<FileSystem>(const LocalFileSystem())
+    ..allowReassignment = false;
 
   // Store processor reference so handlers (e.g. PluginBlockHandler)
   // can access it to register additional blocks during config processing.
   processor.context.options['_processor'] = processor;
 
   final actionBlockMap = <String, ActionBlock>{
-    'backup': make(BackupBlock(eventBus: eventBus)),
-    'compress': make(CompressBlock(eventBus: eventBus)),
-    'copy': make(CopyBlock(eventBus: eventBus)),
-    'decompress': make(DecompressBlock(eventBus: eventBus)),
-    'delete': make(DeleteBlock(eventBus: eventBus)),
-    'download': make(DownloadBlock(eventBus: eventBus)),
-    'echo': make(EchoBlock(eventBus: eventBus)),
-    'execute': make(ExecuteBlock(eventBus: eventBus)),
-    'file': make(FileBlock(eventBus: eventBus)),
-    'git': make(GitBlock(eventBus: eventBus)),
-    'move': make(MoveBlock(eventBus: eventBus)),
-    'network': make(NetworkBlock(eventBus: eventBus)),
-    'package': make(PackageBlock(eventBus: eventBus)),
-    'permissions': make(PermissionsBlock(eventBus: eventBus)),
-    'rename': make(RenameBlock(eventBus: eventBus)),
-    'symlink': make(SymlinkBlock(eventBus: eventBus)),
-    'sync': make(SyncBlock(eventBus: eventBus)),
-    'systemd': make(SystemdBlock(eventBus: eventBus)),
-    'template': make(TemplateBlock(eventBus: eventBus)),
-    'touch': make(TouchBlock(eventBus: eventBus)),
-    'validate': make(ValidateBlock(eventBus: eventBus)),
+    'apt': AptBlock(),
+    'backup': BackupBlock(),
+    'brew': BrewBlock(),
+    'compress': CompressBlock(),
+    'copy': CopyBlock(),
+    'decompress': DecompressBlock(),
+    'delete': DeleteBlock(),
+    'dnf': DnfBlock(),
+    'docker': DockerBlock(),
+    'download': DownloadBlock(),
+    'echo': EchoBlock(),
+    'execute': ExecuteBlock(),
+    'file': FileBlock(),
+    'flatpak': FlatpakBlock(),
+    'git': GitBlock(),
+    'move': MoveBlock(),
+    'network': NetworkBlock(),
+    'npm': NpmBlock(),
+    'pacman': PacmanBlock(),
+    'pamac': PamacBlock(),
+    'permissions': PermissionsBlock(),
+    'pip': PipBlock(),
+    'rename': RenameBlock(),
+    'snap': SnapBlock(),
+    'symlink': SymlinkBlock(),
+    'sync': SyncBlock(),
+    'systemd': SystemdBlock(),
+    'template': TemplateBlock(),
+    'touch': TouchBlock(),
+    'validate': ValidateBlock(),
+    'yum': YumBlock(),
   };
 
   // -----------------------------------------------------------------------

@@ -31,7 +31,7 @@ block-specific properties.
 | [Move](move.md) | Moves/renames files and directories |
 | [Network](network.md) | Network connectivity testing |
 | [Systemd](systemd.md) | Manages systemd services |
-| [Package](package.md) | Package management (apt, pacman, etc.) |
+| [Package](package.md) | Package management (apt, brew, dnf, docker, flatpak, npm, pacman, pamac, pip, snap, yum) |
 | [Permissions](permissions.md) | Sets file permissions and ownership |
 | [Rename](rename.md) | Renames files and directories |
 | [Symlink](symlink.md) | Creates/manages symbolic links |

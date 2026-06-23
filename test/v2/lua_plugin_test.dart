@@ -1,8 +1,11 @@
 import 'package:configr/src/blocks/action_block.dart';
+import 'package:configr/src/di.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/plugins/configr_plugin.dart';
 import 'package:configr/src/plugins/lua_plugin.dart';
 import 'package:configr/src/utils/event_bus.dart';
+import 'package:configr/src/utils/privilege_escalation.dart';
+import 'package:file/file.dart' show FileSystem;
 import 'package:file/memory.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 import 'package:lualike/lualike.dart';
@@ -19,6 +22,14 @@ void main() {
       eventBus = EventBus();
       emittedEvents = [];
       eventBus.stream.listen(emittedEvents.add);
+
+      di
+        ..allowReassignment = true
+        ..registerSingleton<DryRunFlag>(DryRunFlag(false))
+        ..registerSingleton<EventBus>(eventBus)
+        ..registerSingleton<PrivilegeEscalation>(NoPrivilegeEscalation())
+        ..registerSingleton<FileSystem>(fileSystem)
+        ..allowReassignment = false;
     });
 
     test('metadata extraction from Lua globals', () async {

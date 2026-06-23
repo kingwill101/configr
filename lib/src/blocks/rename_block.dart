@@ -28,7 +28,7 @@ class RenameBlock extends ActionBlock {
   bool destinationFileExisted = false;
   bool didRename = false;
 
-  RenameBlock({super.fileSystem, super.eventBus});
+  RenameBlock();
 
   @override
   Map<String, String> get additionalProperties => const {};

@@ -1,0 +1,13 @@
+# Flatpak Package Manager — Cross-distribution
+#
+# Usage:
+#   configr apply -n --dry-run        # preview
+#   configr apply -n                   # execute
+
+# Applications from Flathub
+flatpak {
+  source = "org.mozilla.firefox org.gimp.GIMP org.videolan.VLC"
+  operation = "install"
+  repository = "flathub"
+  skip_if_installed = true
+}

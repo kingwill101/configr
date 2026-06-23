@@ -38,7 +38,7 @@ class ValidateBlock extends ActionBlock {
   String? actualChecksum;
   bool sourceExists = false;
 
-  ValidateBlock({super.fileSystem, super.eventBus});
+  ValidateBlock();
 
   @override
   Map<String, String> get additionalProperties => {

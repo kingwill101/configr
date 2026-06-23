@@ -45,7 +45,7 @@ class DecompressBlock extends ActionBlock {
   int uncompressedSize = 0;
   List<String> createdFiles = [];
 
-  DecompressBlock({super.fileSystem, super.eventBus});
+  DecompressBlock();
 
   // ---------------------------------------------------------------------------
   // Handler pipeline

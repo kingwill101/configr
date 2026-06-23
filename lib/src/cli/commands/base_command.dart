@@ -20,18 +20,18 @@ abstract class BaseCommand extends Command<void> {
   ConfigrConfig get configrConfig => runtime.config;
 
   @override
-  void run() {
+  Future<void> run() async {
     if (_runtime == null) {
       throw StateError('ConfigrRuntime not set. Call setRuntime() first.');
     }
 
     try {
-      executeCommand();
+      await executeCommand();
     } catch (e) {
       rethrow;
     }
   }
 
   /// Override this in subcommands to implement specific command logic.
-  void executeCommand();
+  Future<void> executeCommand();
 }

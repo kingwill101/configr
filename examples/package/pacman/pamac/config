@@ -1,140 +1,53 @@
-resources {
-  # Basic development tools installation
-  resource {
-    id "dev-tools"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      package {
-        packages ["git", "curl", "wget", "vim", "nano", "htop", "tree", "base-devel"]
-        operation "install"
-        package_manager "pamac"
-        update_cache true
-        skip_if_installed true
-      }
-    }
-  }
+# Pamac Package Manager — Manjaro Linux
+#
+# Usage:
+#   configr apply -n --dry-run        # preview
+#   configr apply -n                   # execute (requires sudo)
 
-  # Web server stack
-  resource {
-    id "web-stack"
-    
-    actions {
-      package {
-        packages ["nginx", "php-fpm", "mariadb", "redis"]
-        operation "install"
-        package_manager "pamac"
-        update_cache true
-        skip_if_installed false
-      }
-    }
-  }
+# Development tools
+pamac {
+  source = "git curl wget vim nano htop tree base-devel"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
 
-  # Docker environment setup
-  resource {
-    id "docker-setup"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      before {
-        echo {
-          message "Setting up Docker environment on Manjaro"
-          level "info"
-          color true
-        }
-      }
-      
-      package {
-        packages ["docker", "docker-compose", "docker-buildx"]
-        operation "install"
-        package_manager "pamac"
-        update_cache true
-        skip_if_installed true
-      }
-      
-      after {
-        execute {
-          command "systemctl start docker"
-          on_success true
-        }
-      }
-    }
-  }
+# Web server stack
+pamac {
+  source = "nginx php-fpm mariadb redis"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = false
+}
 
-  # AUR packages with Pamac
-  resource {
-    id "aur-packages"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      before {
-        echo {
-          message "Installing AUR packages with Pamac"
-          level "info"
-        }
-      }
-      
-      package {
-        packages ["google-chrome", "visual-studio-code-bin", "spotify"]
-        operation "install"
-        package_manager "pamac"
-        update_cache true
-        skip_if_installed true
-      }
-    }
-  }
+# AUR packages (Pamac has built-in AUR support)
+pamac {
+  source = "google-chrome visual-studio-code-bin spotify"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
 
-  # Security tools
-  resource {
-    id "security-tools"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      package {
-        packages ["fail2ban", "ufw", "clamav", "rkhunter"]
-        operation "install"
-        package_manager "pamac"
-        update_cache true
-        skip_if_installed true
-      }
-    }
-  }
+# Security tools
+pamac {
+  source = "fail2ban ufw clamav rkhunter"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
 
-  # System utilities
-  resource {
-    id "system-utils"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      package {
-        packages ["htop", "iotop", "ncdu", "rsync", "zip", "unzip", "jq", "yq"]
-        operation "install"
-        package_manager "pamac"
-        update_cache true
-        skip_if_installed true
-      }
-    }
-  }
+# System utilities
+pamac {
+  source = "htop iotop ncdu rsync zip unzip jq yq"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
 
-  # Manjaro-specific packages
-  resource {
-    id "manjaro-packages"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      package {
-        packages ["manjaro-tools", "mhwd", "pamac-gtk", "pamac-tray-applet"]
-        operation "install"
-        package_manager "pamac"
-        update_cache true
-        skip_if_installed true
-      }
-    }
-  }
+# Manjaro-specific packages
+pamac {
+  source = "manjaro-tools mhwd pamac-gtk pamac-tray-applet"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
 }

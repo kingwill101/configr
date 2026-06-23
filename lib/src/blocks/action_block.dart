@@ -1,5 +1,6 @@
 import 'dart:io' as io;
 
+import 'package:configr/src/di.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/models/v2_lockfile_data.dart';
 import 'package:configr/src/utils/event_bus.dart';
@@ -50,22 +51,18 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
   List<ActionBlock> children = [];
 
   // ---------------------------------------------------------------------------
-  // Injected dependencies
+  // Dependencies — resolved from the DI container
   // ---------------------------------------------------------------------------
 
-  FileSystem? fileSystem;
-  final EventBus? eventBus;
-
-  /// Privilege escalation service for elevated operations.
-  /// When set, blocks that require privilege escalation can use this
-  /// to run commands with sudo or equivalent.
-  PrivilegeEscalation? privilegeEscalation;
+  EventBus get eventBus => di<EventBus>();
+  PrivilegeEscalation get privilegeEscalation => di<PrivilegeEscalation>();
+  FileSystem get fileSystem => di<FileSystem>();
 
   /// When true, [execute] is skipped during processing.
   /// Used by tests that only want to verify property parsing.
-  bool dryRun = false;
+  bool get dryRun => di<DryRunFlag>().value;
 
-  ActionBlock({this.fileSystem, this.eventBus});
+  ActionBlock();
 
   // ---------------------------------------------------------------------------
   // i3config v2 handler lifecycle
@@ -348,7 +345,7 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
   }
 
   void emitEvent(ModuleEvent event) {
-    eventBus?.emit(event);
+    eventBus.emit(event);
   }
 
   // ---------------------------------------------------------------------------
@@ -367,8 +364,8 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
     String? workingDirectory,
     bool checkExitCode = true,
   }) async {
-    if (requireElevation && privilegeEscalation != null) {
-      final result = await privilegeEscalation!.runWithElevatedPrivileges(
+    if (requireElevation) {
+      final result = await privilegeEscalation.runWithElevatedPrivileges(
         command,
         args,
       );

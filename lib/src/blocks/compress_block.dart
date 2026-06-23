@@ -46,7 +46,7 @@ class CompressBlock extends ActionBlock {
 
   bool destinationFileExisted = false;
 
-  CompressBlock({super.fileSystem, super.eventBus});
+  CompressBlock();
 
   // ---------------------------------------------------------------------------
   // Handler pipeline

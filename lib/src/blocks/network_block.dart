@@ -55,7 +55,7 @@ class NetworkBlock extends ActionBlock {
   String? resolvedIP;
   int dnsResolutionTimeMs = 0;
 
-  NetworkBlock({super.fileSystem, super.eventBus});
+  NetworkBlock();
 
   // ---------------------------------------------------------------------------
   // Handler pipeline

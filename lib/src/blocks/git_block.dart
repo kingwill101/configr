@@ -47,7 +47,7 @@ class GitBlock extends ActionBlock {
   String? operationError;
   bool operationSuccess = false;
 
-  GitBlock({super.fileSystem, super.eventBus});
+  GitBlock();
 
   // ---------------------------------------------------------------------------
   // Handler pipeline

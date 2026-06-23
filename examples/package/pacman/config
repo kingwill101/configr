@@ -1,142 +1,45 @@
-resources {
-  # Basic development tools installation
-  resource {
-    id "dev-tools"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      package {
-        packages ["git", "curl", "wget", "vim", "nano", "htop", "tree", "base-devel"]
-        operation "install"
-        package_manager "pacman"
-        update_cache true
-        skip_if_installed true
-      }
-    }
-  }
+# Pacman Package Manager — Arch Linux
+#
+# Usage:
+#   configr apply -n --dry-run        # preview
+#   configr apply -n                   # execute (requires sudo)
 
-  # Web server stack
-  resource {
-    id "web-stack"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      package {
-        packages ["nginx", "php-fpm", "mariadb", "redis"]
-        operation "install"
-        package_manager "pacman"
-        update_cache true
-        skip_if_installed false
-      }
-    }
-  }
+# Development tools
+pacman {
+  source = "git curl wget vim nano htop tree base-devel"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
 
-  # Docker environment setup
-  resource {
-    id "docker-setup"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      before {
-        echo {
-          message "Setting up Docker environment on Arch Linux"
-          level "info"
-          color true
-        }
-      }
-      
-      package {
-        packages ["docker", "docker-compose", "docker-buildx"]
-        operation "install"
-        package_manager "pacman"
-        update_cache true
-        skip_if_installed true
-      }
-      
-      after {
-        execute {
-          command "systemctl start docker"
-          on_success true
-        }
-      }
-    }
-  }
+# Web server stack
+pacman {
+  source = "nginx php-fpm mariadb redis"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = false
+}
 
-  # AUR packages (requires yay or paru)
-  resource {
-    id "aur-packages"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      before {
-        echo {
-          message "Installing AUR packages (requires yay or paru)"
-          level "info"
-        }
-      }
-      
-      package {
-        packages ["yay", "google-chrome", "visual-studio-code-bin"]
-        operation "install"
-        package_manager "pacman"
-        update_cache true
-        skip_if_installed true
-      }
-    }
-  }
+# Security tools
+pacman {
+  source = "fail2ban ufw clamav rkhunter"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
 
-  # Security tools
-  resource {
-    id "security-tools"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      package {
-        packages ["fail2ban", "ufw", "clamav", "rkhunter"]
-        operation "install"
-        package_manager "pacman"
-        update_cache true
-        skip_if_installed true
-      }
-    }
-  }
+# System utilities
+pacman {
+  source = "htop iotop ncdu rsync zip unzip jq yq"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
 
-  # System utilities
-  resource {
-    id "system-utils"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      package {
-        packages ["htop", "iotop", "ncdu", "rsync", "zip", "unzip", "jq", "yq"]
-        operation "install"
-        package_manager "pacman"
-        update_cache true
-        skip_if_installed true
-      }
-    }
-  }
-
-  # Gaming and multimedia
-  resource {
-    id "multimedia"
-    source "/tmp"
-    destination "/tmp"
-    
-    actions {
-      package {
-        packages ["steam", "vlc", "gimp", "krita", "obs-studio"]
-        operation "install"
-        package_manager "pacman"
-        update_cache true
-        skip_if_installed true
-      }
-    }
-  }
+# Multimedia
+pacman {
+  source = "steam vlc gimp krita obs-studio"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
 }

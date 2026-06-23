@@ -52,7 +52,7 @@ class DeleteBlock extends ActionBlock {
   int skippedFiles = 0;
   int trashedFiles = 0;
 
-  DeleteBlock({super.fileSystem, super.eventBus});
+  DeleteBlock();
 
   // ---------------------------------------------------------------------------
   // Handler pipeline

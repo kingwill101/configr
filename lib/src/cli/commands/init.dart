@@ -10,7 +10,7 @@ class InitCommand extends BaseCommand {
   String get description => 'Initialize a new configuration repository';
 
   @override
-  void executeCommand() async {
+  Future<void> executeCommand() async {
     final configDir =
         runtime.config.localPath ?? runtime.fileSystem.currentDirectory.path;
     final configFile = join(configDir, 'config');

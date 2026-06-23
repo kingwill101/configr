@@ -9,7 +9,7 @@ class FormatCommand extends BaseCommand {
   String get description => 'Format configuration file';
 
   @override
-  void executeCommand() async {
+  Future<void> executeCommand() async {
     await _executeV2();
   }
 

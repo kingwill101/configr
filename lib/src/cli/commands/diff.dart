@@ -9,7 +9,7 @@ class DiffCommand extends BaseCommand {
   String get description => 'Show configuration differences';
 
   @override
-  void executeCommand() async {
+  Future<void> executeCommand() async {
     await _executeV2();
   }
 

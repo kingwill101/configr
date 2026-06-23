@@ -94,7 +94,7 @@ class SystemdBlock extends ActionBlock {
   String? serviceFilePath;
   bool operationSuccess = false;
 
-  SystemdBlock({super.fileSystem, super.eventBus});
+  SystemdBlock();
 
   // ---------------------------------------------------------------------------
   // Handler pipeline

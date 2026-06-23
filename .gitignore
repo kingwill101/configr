@@ -11,3 +11,4 @@ AGENTS.md
 .doc/
 build/
 kingwill101/
+*.log

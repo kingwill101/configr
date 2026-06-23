@@ -37,7 +37,7 @@ class ExecuteBlock extends ActionBlock {
   String? stderr;
   int exitCode = -1;
 
-  ExecuteBlock({super.fileSystem, super.eventBus});
+  ExecuteBlock();
 
   @override
   Map<String, String> get additionalProperties => {

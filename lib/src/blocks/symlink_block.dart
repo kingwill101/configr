@@ -54,7 +54,7 @@ class SymlinkBlock extends ActionBlock {
   List<String> skippedPaths = [];
   List<String> failedPaths = [];
 
-  SymlinkBlock({super.fileSystem, super.eventBus});
+  SymlinkBlock();
 
   // ---------------------------------------------------------------------------
   // Handler pipeline

@@ -1,0 +1,29 @@
+# Homebrew Package Manager — macOS / Linux
+#
+# Usage:
+#   configr apply -n --dry-run        # preview
+#   configr apply -n                   # execute
+
+# CLI tools
+brew {
+  source = "git curl wget htop tree jq yq"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
+
+# Formulae
+brew {
+  source = "python node postgresql redis"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
+
+# Cask applications (macOS only)
+brew {
+  source = "visual-studio-code firefox iterm2"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}

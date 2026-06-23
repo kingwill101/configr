@@ -15,7 +15,7 @@ class TestCommand extends BaseCommand {
   String get description => 'A test command';
 
   @override
-  void executeCommand() {}
+  Future<void> executeCommand() async {}
 }
 
 void main() {
@@ -36,13 +36,13 @@ void main() {
       expect(command.description, equals('A test command'));
     });
 
-    test('should throw error when runtime is not set', () {
+    test('should throw error when runtime is not set', () async {
       expect(() => command.run(), throwsStateError);
     });
 
-    test('should work when runtime is set', () {
+    test('should work when runtime is set', () async {
       command.runtime = runtime;
-      expect(() => command.run(), returnsNormally);
+      await expectLater(command.run(), completes);
     });
 
     test('should allow setting and getting runtime', () {

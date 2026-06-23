@@ -40,7 +40,7 @@ class TemplateBlock extends ActionBlock {
   String? templateContent;
   String? renderedContent;
 
-  TemplateBlock({super.fileSystem, super.eventBus});
+  TemplateBlock();
 
   // ---------------------------------------------------------------------------
   // Handler pipeline
