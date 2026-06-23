@@ -1,8 +1,8 @@
   resource {
-    source 
-    destination .myconfig/template/susan.txt
+    source
+    destination $cwd/.myconfig/template/susan.txt
     template {
-      template my_file.template
+      template $cwd/my_file.template
       vars {
         name susan
       }
@@ -12,4 +12,3 @@
       }
     }
   }
-

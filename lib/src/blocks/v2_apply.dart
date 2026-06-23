@@ -16,6 +16,7 @@ import 'package:configr/src/blocks/echo_block.dart';
 import 'package:configr/src/blocks/execute_block.dart';
 import 'package:configr/src/blocks/file_block.dart';
 import 'package:configr/src/blocks/git_block.dart';
+import 'package:configr/src/blocks/dynamic_block.dart';
 import 'package:configr/src/blocks/move_block.dart';
 import 'package:configr/src/blocks/network_block.dart';
 import 'package:configr/src/blocks/package_managers/apt_block.dart';
@@ -47,6 +48,7 @@ import 'package:configr/src/reader/handlers/plugin_block_handler.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
+import 'package:configr/src/utils/system_info.dart';
 import 'package:configr/src/utils/v2_lockfile_manager.dart';
 
 import 'package:file/file.dart' show FileSystem;
@@ -169,20 +171,29 @@ Future<void> applyV2(
   final configDir = p.dirname(p.absolute(configPath));
 
   // Create processor with a filesystem that resolves includes relative to the
-  // config file's directory, and expose $cwd so configs can reference it.
+  // config file's directory, and expose built-in system variables
+  // (os, host, user, date, env) plus $cwd so configs can reference them.
   final processor = i3.ConfigProcessor(
     fileSystem: _ConfigrFileSystem(configDir),
   );
-  processor.context.setVariable('cwd', configDir);
+
+  // Discover .configr/ directory alongside the config file
+  final dotConfigrPath = p.join(configDir, '.configr');
+  final configrDirs = ConfigrDirectories(projectConfigrPath: dotConfigrPath);
+
+  // Set all built-in variables on the processor context
+  SystemInfo(
+    configDir: configDir,
+    configrVersion: '1.0.0',
+    configrCacheDir: configrDirs.cacheDir,
+    configrBackupDir: configrDirs.backupDir,
+  ).applyToContext(processor.context);
+
   final appliedBlocks = <AppliedBlockRecord>[];
   processor.context.options['_appliedBlocks'] = appliedBlocks;
   if (failFast) {
     processor.context.options['_failFast'] = true;
   }
-
-  // Discover .configr/ directory alongside the config file
-  final dotConfigrPath = p.join(configDir, '.configr');
-  final configrDirs = ConfigrDirectories(projectConfigrPath: dotConfigrPath);
 
   // Auto-add .configr/plugins/ as a plugin directory if it exists
   if (pluginLoader != null) {
@@ -624,6 +635,7 @@ Future<void> _registerAllBlocks(
   processor.registerBlockHandler(SubCommandsBlockHandler());
   processor.registerBlockHandler(CommandEntryBlockHandler());
   processor.registerBlockHandler(PackageEntryBlockHandler());
+  processor.registerBlockHandler(DynamicBlockHandler());
 
   // Register the plugin block handler so config files can declare plugins
   // via `plugin { lua = "..." }` blocks.
@@ -691,7 +703,10 @@ Future<List<BlockSnapshot>> _parseConfigBlocks(
   final processor = i3.ConfigProcessor(
     fileSystem: _ConfigrFileSystem(configDir),
   );
-  processor.context.setVariable('cwd', configDir);
+
+  // Set built-in system variables for the dry-run preview too
+  SystemInfo(configDir: configDir).applyToContext(processor.context);
+
   // Mutable collector for tests.
   processor.context.options['_actionBlocks'] = <ActionBlock>[];
   // Snapshot collector for CLI consumers.
