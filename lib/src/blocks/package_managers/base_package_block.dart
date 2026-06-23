@@ -1,6 +1,7 @@
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/package_management/package_manger.dart';
+import 'package:configr/src/utils/command_executor.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
@@ -106,6 +107,30 @@ abstract class BasePackageBlock extends ActionBlock {
 
   PackageManager createManager();
 
+  CommandOutputHandler? _pmOutput;
+
+  CommandOutputHandler _makeOutputHandler() {
+    return (line, isStderr) {
+      emitEvent(
+        StatusUpdateEvent(
+          moduleId: id,
+          level: isStderr ? StatusEvent.warning : StatusEvent.info,
+          message: line,
+        ),
+      );
+    };
+  }
+
+  void _attachOutput(PackageManager pm) {
+    _pmOutput = _makeOutputHandler();
+    pm.onOutput = _pmOutput;
+  }
+
+  void _detachOutput(PackageManager pm) {
+    pm.onOutput = null;
+    _pmOutput = null;
+  }
+
   @override
   Future<void> execute() async {
     emitEvent(
@@ -122,15 +147,6 @@ abstract class BasePackageBlock extends ActionBlock {
     }
     try {
       final pm = createManager();
-      pm.onOutput = (line, isStderr) {
-        emitEvent(
-          StatusUpdateEvent(
-            moduleId: id,
-            level: isStderr ? StatusEvent.warning : StatusEvent.info,
-            message: line,
-          ),
-        );
-      };
       if (updateCache) {
         emitEvent(
           StatusUpdateEvent(
@@ -161,7 +177,6 @@ abstract class BasePackageBlock extends ActionBlock {
           moduleId: id,
         );
       }
-      // Collect installed version info for lockfile metadata
       if (operation == 'install' || operation == 'reinstall') {
         for (final pkg in _packageList) {
           final version = await pm.getInstalledVersion(pkg);
@@ -199,22 +214,18 @@ abstract class BasePackageBlock extends ActionBlock {
     );
     try {
       final pm = createManager();
-      pm.onOutput = (line, isStderr) {
-        emitEvent(
-          StatusUpdateEvent(
-            moduleId: id,
-            level: isStderr ? StatusEvent.warning : StatusEvent.info,
-            message: line,
-          ),
-        );
-      };
       final pkgList = source
           .split(RegExp(r'\s+'))
           .where((s) => s.isNotEmpty)
           .toList();
       var uninstalled = 0;
       for (final pkg in pkgList) {
-        await pm.uninstall(pkg);
+        _attachOutput(pm);
+        try {
+          await pm.uninstall(pkg);
+        } finally {
+          _detachOutput(pm);
+        }
         uninstalled++;
       }
       emitEvent(
@@ -272,28 +283,48 @@ abstract class BasePackageBlock extends ActionBlock {
         return;
       }
     }
-    if (scope == 'global' && pm is GlobalInstallCapability) {
-      await pm.installGlobally(pkg);
-    } else {
-      await pm.install(pkg);
+    _attachOutput(pm);
+    try {
+      if (scope == 'global' && pm is GlobalInstallCapability) {
+        await pm.installGlobally(pkg);
+      } else {
+        await pm.install(pkg);
+      }
+    } finally {
+      _detachOutput(pm);
     }
   }
 
   Future<void> _uninstallPackage(PackageManager pm, String pkg) async {
-    if (scope == 'global' && pm is GlobalLocalContextCapability) {
-      await pm.uninstallGlobally(pkg);
-    } else {
-      await pm.uninstall(pkg);
+    _attachOutput(pm);
+    try {
+      if (scope == 'global' && pm is GlobalLocalContextCapability) {
+        await pm.uninstallGlobally(pkg);
+      } else {
+        await pm.uninstall(pkg);
+      }
+    } finally {
+      _detachOutput(pm);
     }
   }
 
   Future<void> _upgradePackage(PackageManager pm, String pkg) async {
-    await pm.install(pkg);
+    _attachOutput(pm);
+    try {
+      await pm.install(pkg);
+    } finally {
+      _detachOutput(pm);
+    }
   }
 
   Future<void> _reinstallPackage(PackageManager pm, String pkg) async {
-    await pm.uninstall(pkg);
-    await pm.install(pkg);
+    _attachOutput(pm);
+    try {
+      await pm.uninstall(pkg);
+      await pm.install(pkg);
+    } finally {
+      _detachOutput(pm);
+    }
   }
 
 }

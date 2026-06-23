@@ -6,7 +6,6 @@ import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/models/command.dart';
 import 'package:configr/src/security/input_sanitizer.dart';
 import 'package:configr/src/security/security_manager.dart';
-import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
 
 typedef CommandOutputHandler = void Function(String line, bool isStderr);
@@ -71,9 +70,10 @@ class CommandExecutor {
         runInShell: runInShell,
       );
     } else {
-      result = await privilegeEscalation.runWithElevatedPrivileges(
+      result = await _runStreaming(
         sanitizedCommand,
         sanitizedParams,
+        null,
         workingDirectory: workingDirectory,
         runInShell: runInShell,
       );
@@ -93,19 +93,8 @@ class CommandExecutor {
       ),
     );
 
-    final out = result.stdout.toString().trim();
-    final err = result.stderr.toString().trim();
-
-    if (onOutput == null) {
-      if (out.isNotEmpty) {
-        print(out);
-      }
-      if (err.isNotEmpty) {
-        logger.warning(err);
-      }
-    }
-
     if (checkExitCode && result.exitCode != 0) {
+      final err = result.stderr.toString().trim();
       throw Exception('Command failed: $err');
     }
 
@@ -115,7 +104,7 @@ class CommandExecutor {
   static Future<ProcessResult> _runStreaming(
     String command,
     List<String> arguments,
-    CommandOutputHandler onOutput, {
+    CommandOutputHandler? onOutput, {
     String? workingDirectory,
     bool runInShell = false,
   }) async {
@@ -129,21 +118,31 @@ class CommandExecutor {
     final stdoutBuf = StringBuffer();
     final stderrBuf = StringBuffer();
 
-    final stdoutDone = process.stdout
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .forEach((line) {
-      stdoutBuf.writeln(line);
-      onOutput(line, false);
-    });
+    final stdoutDone = onOutput != null
+        ? process.stdout
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())
+            .forEach((line) {
+            stdoutBuf.writeln(line);
+            onOutput(line, false);
+          })
+        : process.stdout
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())
+            .forEach((line) => stdoutBuf.writeln(line));
 
-    final stderrDone = process.stderr
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .forEach((line) {
-      stderrBuf.writeln(line);
-      onOutput(line, true);
-    });
+    final stderrDone = onOutput != null
+        ? process.stderr
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())
+            .forEach((line) {
+            stderrBuf.writeln(line);
+            onOutput(line, true);
+          })
+        : process.stderr
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())
+            .forEach((line) => stderrBuf.writeln(line));
 
     await Future.wait([stdoutDone, stderrDone]);
     final exitCode = await process.exitCode;
