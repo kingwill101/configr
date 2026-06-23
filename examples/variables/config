@@ -1,0 +1,17 @@
+# Built-in Variables Example
+#
+# Demonstrates all built-in variables Configr exposes.
+# Run: configr apply
+
+echo { message = "Config directory: $cwd" }
+echo { message = "Cache dir (dot-notation): $configrDirs.cacheDir" }
+echo { message = "Cache dir (shortcut):     $configrCacheDir" }
+echo { message = "Backup dir (dot-notation): $configrDirs.backupDir" }
+echo { message = "Backup dir (shortcut):     $configrBackupDir" }
+echo { message = "Project .configr path:     $configrDirs.projectConfigrPath" }
+
+# Variables also resolve inside block properties
+copy {
+  source = "$cwd/some_file.txt"
+  destination = "$configrCacheDir/some_file.txt"
+}

@@ -46,6 +46,7 @@ block-specific properties.
 - **Rollback** — All operations are reversible via lockfile
 - **Lockfile** — SHA-256 checksums prevent redundant applies
 - **Privilege escalation** — Sudo integration with persistent lock
+- [**Built-in variables**](variables.md) — `$cwd`, `$configrDirs`, and dot-notation support
 - [**Plugin system**](plugin-system.md) — Extend with custom block handlers (Dart + Lua)
 - **Watch mode** — Auto-apply on file changes
 - [**Terminal UI**](terminal-ui.md) — Task widgets, spinners, styled output, interactive prompts
