@@ -5,8 +5,6 @@ import 'package:crypto/crypto.dart' show sha256;
 import 'package:path/path.dart' as p;
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/blocks/backup_block.dart';
-import 'package:configr/src/di.dart';
-import 'package:configr/src/cli/ui/handlers/base_handler.dart';
 import 'package:configr/src/blocks/compress_block.dart';
 import 'package:configr/src/blocks/copy_block.dart';
 import 'package:configr/src/blocks/decompress_block.dart';
@@ -15,6 +13,7 @@ import 'package:configr/src/blocks/download_block.dart';
 import 'package:configr/src/blocks/echo_block.dart';
 import 'package:configr/src/blocks/execute_block.dart';
 import 'package:configr/src/blocks/file_block.dart';
+import 'package:configr/src/blocks/gather_facts_block.dart';
 import 'package:configr/src/blocks/git_block.dart';
 import 'package:configr/src/blocks/dynamic_block.dart';
 import 'package:configr/src/blocks/move_block.dart';
@@ -32,6 +31,8 @@ import 'package:configr/src/blocks/package_managers/snap_block.dart';
 import 'package:configr/src/blocks/package_managers/yum_block.dart';
 import 'package:configr/src/blocks/permissions_block.dart';
 import 'package:configr/src/blocks/rename_block.dart';
+import 'package:configr/src/blocks/set_fact_block.dart';
+import 'package:configr/src/blocks/stat_block.dart';
 import 'package:configr/src/blocks/symlink_block.dart';
 import 'package:configr/src/blocks/sync_block.dart';
 import 'package:configr/src/blocks/systemd_block.dart';
@@ -51,6 +52,8 @@ import 'package:configr/src/blocks/cron_block.dart';
 import 'package:configr/src/blocks/locale_gen_block.dart';
 import 'package:configr/src/blocks/alternatives_block.dart';
 import 'package:configr/src/blocks/wait_for_block.dart';
+import 'package:configr/src/cli/ui/handlers/base_handler.dart';
+import 'package:configr/src/di.dart';
 import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/models/v2_lockfile_data.dart';
 import 'package:configr/src/configr_directories.dart';
@@ -577,51 +580,54 @@ Future<void> _registerAllBlocks(
   processor.context.options['_processor'] = processor;
   processor.context.options['_dryRun'] = dryRun;
 
-  final actionBlockMap = <String, ActionBlock>{
-    'apt': AptBlock(),
-    'backup': BackupBlock(),
-    'brew': BrewBlock(),
-    'compress': CompressBlock(),
-    'copy': CopyBlock(),
-    'decompress': DecompressBlock(),
-    'delete': DeleteBlock(),
-    'dnf': DnfBlock(),
-    'docker': DockerBlock(),
-    'download': DownloadBlock(),
-    'echo': EchoBlock(),
-    'execute': ExecuteBlock(),
-    'file': FileBlock(),
-    'flatpak': FlatpakBlock(),
-    'git': GitBlock(),
-    'move': MoveBlock(),
-    'network': NetworkBlock(),
-    'npm': NpmBlock(),
-    'pacman': PacmanBlock(),
-    'pamac': PamacBlock(),
-    'permissions': PermissionsBlock(),
-    'pip': PipBlock(),
-    'rename': RenameBlock(),
-    'snap': SnapBlock(),
-    'symlink': SymlinkBlock(),
-    'sync': SyncBlock(),
-    'systemd': SystemdBlock(),
-    'touch': TouchBlock(),
-    'validate': ValidateBlock(),
-    'yum': YumBlock(),
-    'lineinfile': LineInFileBlock(),
-    'blockinfile': BlockInFileBlock(),
-    'replace': ReplaceBlock(),
-    'assert': AssertBlock(),
-    'user': UserBlock(),
-    'group': GroupBlock(),
-    'hostname': HostnameBlock(),
-    'timezone': TimezoneBlock(),
-    'sysctl': SysctlBlock(),
-    'cron': CronBlock(),
-    'locale_gen': LocaleGenBlock(),
-    'alternatives': AlternativesBlock(),
-    'wait_for': WaitForBlock(),
-  };
+final actionBlockMap = <String, ActionBlock>{
+     'apt': AptBlock(),
+     'backup': BackupBlock(),
+     'brew': BrewBlock(),
+     'compress': CompressBlock(),
+     'copy': CopyBlock(),
+     'decompress': DecompressBlock(),
+     'delete': DeleteBlock(),
+     'dnf': DnfBlock(),
+     'docker': DockerBlock(),
+     'download': DownloadBlock(),
+     'echo': EchoBlock(),
+     'execute': ExecuteBlock(),
+     'file': FileBlock(),
+     'flatpak': FlatpakBlock(),
+     'gather_facts': GatherFactsBlock(),
+     'git': GitBlock(),
+     'move': MoveBlock(),
+     'network': NetworkBlock(),
+     'npm': NpmBlock(),
+     'pacman': PacmanBlock(),
+     'pamac': PamacBlock(),
+     'permissions': PermissionsBlock(),
+     'pip': PipBlock(),
+     'rename': RenameBlock(),
+     'set_fact': SetFactBlock(),
+     'snap': SnapBlock(),
+     'stat': StatBlock(),
+     'symlink': SymlinkBlock(),
+     'sync': SyncBlock(),
+     'systemd': SystemdBlock(),
+     'touch': TouchBlock(),
+     'validate': ValidateBlock(),
+     'yum': YumBlock(),
+     'lineinfile': LineInFileBlock(),
+     'blockinfile': BlockInFileBlock(),
+     'replace': ReplaceBlock(),
+     'assert': AssertBlock(),
+     'user': UserBlock(),
+     'group': GroupBlock(),
+     'hostname': HostnameBlock(),
+     'timezone': TimezoneBlock(),
+     'sysctl': SysctlBlock(),
+     'cron': CronBlock(),
+     'locale_gen': LocaleGenBlock(),
+     'alternatives': AlternativesBlock(),
+     'wait_for': WaitForBlock(),
+   };
 
   // -----------------------------------------------------------------------
   // 2. Create a v2-aware ActionsBlockHandler that dispatches to real

@@ -8,7 +8,9 @@ import 'package:configr/src/blocks/download_block.dart';
 import 'package:configr/src/blocks/echo_block.dart';
 import 'package:configr/src/blocks/execute_block.dart';
 import 'package:configr/src/blocks/file_block.dart';
+import 'package:configr/src/blocks/gather_facts_block.dart';
 import 'package:configr/src/blocks/git_block.dart';
+import 'package:configr/src/blocks/debug_block.dart';
 import 'package:configr/src/blocks/move_block.dart';
 import 'package:configr/src/blocks/network_block.dart';
 import 'package:configr/src/blocks/package_managers/apt_block.dart';
@@ -23,8 +25,9 @@ import 'package:configr/src/blocks/package_managers/pip_block.dart';
 import 'package:configr/src/blocks/package_managers/snap_block.dart';
 import 'package:configr/src/blocks/package_managers/yum_block.dart';
 import 'package:configr/src/blocks/permissions_block.dart';
-import 'package:configr/src/di.dart';
 import 'package:configr/src/blocks/rename_block.dart';
+import 'package:configr/src/blocks/set_fact_block.dart';
+import 'package:configr/src/blocks/stat_block.dart';
 import 'package:configr/src/blocks/symlink_block.dart';
 import 'package:configr/src/blocks/sync_block.dart';
 import 'package:configr/src/blocks/systemd_block.dart';
@@ -44,7 +47,6 @@ import 'package:configr/src/blocks/cron_block.dart';
 import 'package:configr/src/blocks/locale_gen_block.dart';
 import 'package:configr/src/blocks/alternatives_block.dart';
 import 'package:configr/src/blocks/wait_for_block.dart';
-import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/reader/handlers/configr_handlers.dart';
 import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/event_bus.dart';
@@ -53,6 +55,9 @@ import 'package:file/memory.dart';
 import 'package:file/file.dart' show FileSystem;
 import 'package:i3config/i3config_v2.dart' as i3;
 import 'package:test/test.dart';
+
+import 'package:configr/src/di.dart';
+import 'package:configr/src/events/module_events.dart';
 
 /// Test helper for v2 ActionBlock tests.
 ///
@@ -205,52 +210,56 @@ class V2TestHelper {
       ..registerSingleton<FileSystem>(fileSystem)
       ..allowReassignment = false;
 
-    final actionBlockMap = <String, ActionBlock>{
-      'apt': AptBlock(),
-      'backup': BackupBlock(),
-      'brew': BrewBlock(),
-      'compress': CompressBlock(),
-      'copy': CopyBlock(),
-      'decompress': DecompressBlock(),
-      'delete': DeleteBlock(),
-      'dnf': DnfBlock(),
-      'docker': DockerBlock(),
-      'download': DownloadBlock(),
-      'echo': EchoBlock(),
-      'execute': ExecuteBlock(),
-      'file': FileBlock(),
-      'flatpak': FlatpakBlock(),
-      'git': GitBlock(),
-      'move': MoveBlock(),
-      'network': NetworkBlock(),
-      'npm': NpmBlock(),
-      'pacman': PacmanBlock(),
-      'pamac': PamacBlock(),
-      'permissions': PermissionsBlock(),
-      'pip': PipBlock(),
-      'rename': RenameBlock(),
-      'snap': SnapBlock(),
-      'symlink': SymlinkBlock(),
-      'sync': SyncBlock(),
-      'systemd': SystemdBlock(),
-      'template': TemplateBlock(),
-      'touch': TouchBlock(),
-      'validate': ValidateBlock(),
-      'yum': YumBlock(),
-      'lineinfile': LineInFileBlock(),
-      'blockinfile': BlockInFileBlock(),
-      'replace': ReplaceBlock(),
-      'assert': AssertBlock(),
-      'user': UserBlock(),
-      'group': GroupBlock(),
-      'hostname': HostnameBlock(),
-      'timezone': TimezoneBlock(),
-      'sysctl': SysctlBlock(),
-      'cron': CronBlock(),
-      'locale_gen': LocaleGenBlock(),
-      'alternatives': AlternativesBlock(),
-      'wait_for': WaitForBlock(),
-    };
+final actionBlockMap = <String, ActionBlock>{
+       'apt': AptBlock(),
+       'backup': BackupBlock(),
+       'brew': BrewBlock(),
+       'compress': CompressBlock(),
+       'copy': CopyBlock(),
+       'decompress': DecompressBlock(),
+       'delete': DeleteBlock(),
+       'dnf': DnfBlock(),
+       'docker': DockerBlock(),
+       'download': DownloadBlock(),
+       'echo': EchoBlock(),
+       'execute': ExecuteBlock(),
+       'file': FileBlock(),
+       'flatpak': FlatpakBlock(),
+       'gather_facts': GatherFactsBlock(),
+       'git': GitBlock(),
+       'debug': DebugBlock(),
+       'set_fact': SetFactBlock(),
+       'stat': StatBlock(),
+       'move': MoveBlock(),
+       'network': NetworkBlock(),
+       'npm': NpmBlock(),
+       'pacman': PacmanBlock(),
+       'pamac': PamacBlock(),
+       'permissions': PermissionsBlock(),
+       'pip': PipBlock(),
+       'rename': RenameBlock(),
+       'snap': SnapBlock(),
+       'symlink': SymlinkBlock(),
+       'sync': SyncBlock(),
+       'systemd': SystemdBlock(),
+       'template': TemplateBlock(),
+       'touch': TouchBlock(),
+       'validate': ValidateBlock(),
+       'yum': YumBlock(),
+       'lineinfile': LineInFileBlock(),
+       'blockinfile': BlockInFileBlock(),
+       'replace': ReplaceBlock(),
+       'assert': AssertBlock(),
+       'user': UserBlock(),
+       'group': GroupBlock(),
+       'hostname': HostnameBlock(),
+       'timezone': TimezoneBlock(),
+       'sysctl': SysctlBlock(),
+       'cron': CronBlock(),
+       'locale_gen': LocaleGenBlock(),
+       'alternatives': AlternativesBlock(),
+       'wait_for': WaitForBlock(),
+     };
 
     // -----------------------------------------------------------------------
     // 2. Create v2-aware ActionsBlockHandler

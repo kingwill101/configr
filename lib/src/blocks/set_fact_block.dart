@@ -35,15 +35,12 @@ class SetFactBlock extends ActionBlock {
     i3.Context context,
   ) async {
     await super.readAdditionalProperties(block, context);
-    for (final child in block.childBlocks) {
-      if (child.blockType == 'assignment') {
-        for (final element in child.body) {
-          if (element is i3.Assignment) {
-            final values = element.values.map((v) => v.toString()).join(', ');
-            context.setVariable(element.variable, values);
-            _facts[element.variable] = values;
-          }
-        }
+    // Assignments inside set_fact block populate the facts
+    for (final element in block.body) {
+      if (element is i3.Assignment) {
+        final values = element.values.map((v) => v.toString()).join(', ');
+        context.setVariable(element.variable, values);
+        _facts[element.variable] = values;
       }
     }
   }
