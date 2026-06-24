@@ -16,6 +16,8 @@ RUN pacman -Syu --noconfirm \
     git \
     python-pip \
     nodejs npm \
+    sudo \
+    unzip \
     && pacman -Scc --noconfirm
 
 # Install Dart SDK from AUR or official tarball
@@ -23,10 +25,13 @@ RUN curl -fsSL https://storage.googleapis.com/dart-archive/channels/stable/relea
     && unzip /tmp/dart.zip -d /usr/lib \
     && rm /tmp/dart.zip \
     && ln -s /usr/lib/dart-sdk/bin/dart /usr/local/bin/dart \
-    && ln -s /usr/lib/dart-sdk/bin/dart2native /usr/local/bin/dart2native 2>/dev/null || true
+    && ln -s /usr/lib/dart-sdk/bin/dart2native /usr/local/bin/dart2native 2>/dev/null; true
 
 ENV HOME=/root
 ENV PATH="$PATH:/usr/lib/dart-sdk/bin:$HOME/.pub-cache/bin"
+
+# Allow root to use sudo without password (for configr's NonInteractiveSudoEscalation)
+RUN echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 WORKDIR /app
 

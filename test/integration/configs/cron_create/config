@@ -1,0 +1,6 @@
+cron {
+  name = "configr_test_job"
+  job = "/bin/true"
+  minute = "0"
+  hour = "5"
+}

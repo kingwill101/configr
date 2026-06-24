@@ -31,6 +31,19 @@ import 'package:configr/src/blocks/systemd_block.dart';
 import 'package:configr/src/blocks/template_block.dart';
 import 'package:configr/src/blocks/touch_block.dart';
 import 'package:configr/src/blocks/validate_block.dart';
+import 'package:configr/src/blocks/lineinfile_block.dart';
+import 'package:configr/src/blocks/blockinfile_block.dart';
+import 'package:configr/src/blocks/replace_block.dart';
+import 'package:configr/src/blocks/assert_block.dart';
+import 'package:configr/src/blocks/user_block.dart';
+import 'package:configr/src/blocks/group_block.dart';
+import 'package:configr/src/blocks/hostname_block.dart';
+import 'package:configr/src/blocks/timezone_block.dart';
+import 'package:configr/src/blocks/sysctl_block.dart';
+import 'package:configr/src/blocks/cron_block.dart';
+import 'package:configr/src/blocks/locale_gen_block.dart';
+import 'package:configr/src/blocks/alternatives_block.dart';
+import 'package:configr/src/blocks/wait_for_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/reader/handlers/configr_handlers.dart';
 import 'package:configr/src/utils/file_utils.dart';
@@ -173,6 +186,10 @@ class V2TestHelper {
 
     await processor.process(parsed);
 
+    // Flush stream events (StreamController.broadcast() delivers events
+    // asynchronously unless sync: true is used).
+    await Future(() {});
+
     return actionBlocks;
   }
 
@@ -220,6 +237,19 @@ class V2TestHelper {
       'touch': TouchBlock(),
       'validate': ValidateBlock(),
       'yum': YumBlock(),
+      'lineinfile': LineInFileBlock(),
+      'blockinfile': BlockInFileBlock(),
+      'replace': ReplaceBlock(),
+      'assert': AssertBlock(),
+      'user': UserBlock(),
+      'group': GroupBlock(),
+      'hostname': HostnameBlock(),
+      'timezone': TimezoneBlock(),
+      'sysctl': SysctlBlock(),
+      'cron': CronBlock(),
+      'locale_gen': LocaleGenBlock(),
+      'alternatives': AlternativesBlock(),
+      'wait_for': WaitForBlock(),
     };
 
     // -----------------------------------------------------------------------

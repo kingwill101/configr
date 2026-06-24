@@ -1,0 +1,5 @@
+user {
+  name = "testusr_rm"
+  status = "absent"
+  remove = true
+}

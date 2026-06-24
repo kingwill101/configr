@@ -50,24 +50,72 @@ dart test --tags debian
 dart test --tags fedora
 ```
 
-## Adding Container Tests
+## Test Patterns (Ansible-Style)
 
-Mark test files with appropriate tags:
+### 1. Idempotency
+
+Every test verifies that running the same config twice produces no changes:
 
 ```dart
-@TestOn('vm')
-import 'package:test/test.dart';
+test('creates a user and is idempotent', () async {
+  final first = await configrApply(config);
+  expect(first.isSuccess, isTrue);
 
-void main() {
-  test('apt install should work', () {
-    // Test that requires apt
-  }, tags: 'debian');
-
-  test('systemd service management', () {
-    // Requires privileged container
-  }, tags: 'needs-systemd');
-}
+  final second = await configrApply(config);
+  expect(second.isChanged, isFalse);
+}, tags: needsRootTag);
 ```
+
+### 2. Check-Mode / Dry-Run
+
+Tests verify `--dry-run` shows correct output without modifying state:
+
+```dart
+final dry = await configrApply(config, dryRun: true);
+expect(dry.isDryRun, isTrue);
+```
+
+### 3. Distro-Specific Tests
+
+Tag tests with the distro they run on and set up/tear down accordingly:
+
+```dart
+test('apt install works', () {
+  // Runs on Ubuntu/Debian only
+}, tags: 'debian');
+
+test('systemd service', () {
+  // Requires privileged container
+}, tags: 'needs-systemd');
+```
+
+### 4. Clean State
+
+Each test cleans up state in `teardown`/`finally` blocks. Tests should
+be independently runnable.
+
+### 5. Shared Utilities
+
+The `helpers/configr_test_utils.dart` file provides:
+
+- `configrApply(config)` — runs `configr apply --v2`, returns `ConfigrResult`
+- `assertIdempotent(config)` — runs twice, asserts no change on second
+- `assertCheckMode(config)` — runs `--dry-run`, asserts dry-run output
+- `shell(command)` — runs shell command, returns trimmed stdout
+- `shellLines(command)` — runs shell command, returns lines as list
+
+### 6. Test Tags
+
+| Tag | Description |
+|-----|-------------|
+| `debian` | Debian/Ubuntu environment required |
+| `fedora` | Fedora/RHEL environment required |
+| `arch` | Arch Linux environment required |
+| `alpine` | Alpine Linux environment required |
+| `needs-systemd` | Requires privileged container with systemd |
+| `needs-root` | Requires root privileges (useradd, groupdel, etc.) |
+| `destructive` | Modifies system state, run in isolation |
+| `container` | Requires Docker-in-Docker (testcontainers) |
 
 ## CI Integration
 

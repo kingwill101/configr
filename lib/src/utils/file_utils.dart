@@ -486,7 +486,7 @@ class FileUtils {
   }
 
   /// Checks if a path is a symbolic link
-  static Future<bool> isSymlink(symlinkPath, {FileSystem? fileSystem}) async {
+  static Future<bool> isSymlink(dynamic symlinkPath, {FileSystem? fileSystem}) async {
     return await (fileSystem ?? fs).isLink(symlinkPath);
   }
 

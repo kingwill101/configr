@@ -17,6 +17,8 @@ const debianTag = 'debian';
 const fedoraTag = 'fedora';
 const archTag = 'arch';
 const alpineTag = 'alpine';
+const needsRootTag = 'needs-root';
+const destructiveTag = 'destructive';
 
 /// Returns true when running inside the expected test environment.
 ///

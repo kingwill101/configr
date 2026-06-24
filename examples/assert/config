@@ -1,0 +1,65 @@
+# Assert block: verify conditions before proceeding
+# Mirrors ansible.builtin.assert behavior
+
+resources {
+  # === Simple condition check ===
+
+  resource {
+    type "file"
+    destination "examples/assert/simple"
+
+    actions {
+      assert {
+        that "\"{{ ansible_os_family }}\" == \"Debian\""
+        fail_msg "This playbook only supports Debian-based systems"
+        success_msg "Confirmed: running on Debian-based system"
+      }
+    }
+  }
+
+  # === File existence check ===
+
+  resource {
+    type "file"
+    destination "examples/assert/file_check"
+
+    actions {
+      assert {
+        that "\"{{ lookup('file', '/etc/os-release') }}\" != \"\""
+        fail_msg "Cannot determine OS — /etc/os-release is missing"
+      }
+    }
+  }
+
+  # === Version constraint ===
+
+  resource {
+    type "file"
+    destination "examples/assert/version_check"
+
+    actions {
+      assert {
+        that "ansible_version.major >= 2"
+        fail_msg "Requires Ansible 2.x or later"
+        quiet "true"
+      }
+    }
+  }
+
+  # === Multiple conditions (all must pass) ===
+
+  resource {
+    type "file"
+    destination "examples/assert/multi_condition"
+
+    actions {
+      assert {
+        that """
+ansible_os_family == "RedHat"
+ansible_distribution_version is version("8", ">=")
+"""
+        fail_msg "This playbook requires RHEL 8+"
+      }
+    }
+  }
+}

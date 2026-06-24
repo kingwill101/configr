@@ -1,0 +1,7 @@
+alternatives {
+  name = "editor"
+  path = "/bin/nano"
+  link = "/usr/bin/editor"
+  priority = 50
+  state = "selected"
+}

@@ -1,0 +1,76 @@
+# Blockinfile block: insert/update/remove multi-line blocks in a file
+# Mirrors ansible.builtin.blockinfile behavior
+
+resources {
+  # === INSERT: add a marker block to a config file ===
+
+  resource {
+    type "file"
+    destination "examples/blockinfile/hosts"
+
+    actions {
+      blockinfile {
+        path "/etc/hosts"
+        block """
+192.168.1.10  web01
+192.168.1.11  web02
+192.168.1.12  db01
+"""
+        marker "# {mark} ANSIBLE MANAGED BLOCK - WEB CLUSTER"
+        state "present"
+        backup "true"
+      }
+    }
+  }
+
+  # === UPDATE: content changes within the markers ===
+
+  resource {
+    type "file"
+    destination "examples/blockinfile/sshd_config"
+
+    actions {
+      blockinfile {
+        path "/etc/ssh/sshd_config"
+        block """
+Match Address 10.0.0.0/8
+    PermitRootLogin yes
+"""
+        marker "# {mark} SSH ROOT ACCESS - MANAGEMENT NETWORK"
+        insertafter "EOF"
+      }
+    }
+  }
+
+  # === ABSENT: remove a marker block ===
+
+  resource {
+    type "file"
+    destination "examples/blockinfile/remove_example"
+
+    actions {
+      blockinfile {
+        path "/etc/ntp.conf"
+        marker "# {mark} CUSTOM NTP SERVERS"
+        state "absent"
+      }
+    }
+  }
+
+  # === Insert before a specific line ===
+
+  resource {
+    type "file"
+    destination "examples/blockinfile/insertbefore_example"
+
+    actions {
+      blockinfile {
+        path "/etc/nginx/nginx.conf"
+        block """
+limit_conn_zone $binary_remote_addr zone=addr:10m;
+"""
+        insertbefore "http"
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+cron {
+  name = "configr_test_job_rm"
+  job = "/bin/true"
+  status = "absent"
+}

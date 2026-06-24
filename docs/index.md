@@ -18,7 +18,10 @@ block-specific properties.
 
 | Block | Description |
 |-------|-------------|
+| [Alternatives](modules/alternatives-module.md) | Manages command alternatives (`update-alternatives`) |
+| [Assert](modules/assert-module.md) | Validates conditions via shell commands |
 | [Backup](backup.md) | Creates backup copies before modifications |
+| [BlockInFile](modules/blockinfile-module.md) | Manages multi-line blocks in files |
 | [Compress](compress.md) | Compresses files/directories into archives |
 | [Copy](copy.md) | Copies files/directories to new locations |
 | [Decompress](decompress.md) | Extracts files from archives |
@@ -28,16 +31,24 @@ block-specific properties.
 | [Execute](execute.md) | Executes shell commands |
 | [File](file.md) | Creates/edits files with content |
 | [Git](git.md) | Git repository operations |
+| [Group](modules/group-module.md) | Manages system groups |
+| [Hostname](modules/hostname-module.md) | Sets the system hostname |
+| [LineInFile](modules/lineinfile-module.md) | Ensures a specific line in a file |
+| [LocaleGen](modules/locale_gen-module.md) | Generates system locales |
 | [Move](move.md) | Moves/renames files and directories |
 | [Network](network.md) | Network connectivity testing |
-| [Systemd](systemd.md) | Manages systemd services |
 | [Package](package.md) | Package management (apt, brew, dnf, docker, flatpak, npm, pacman, pamac, pip, snap, yum) |
 | [Permissions](permissions.md) | Sets file permissions and ownership |
 | [Rename](rename.md) | Renames files and directories |
+| [Replace](modules/replace-module.md) | Replaces text using regular expressions |
 | [Symlink](symlink.md) | Creates/manages symbolic links |
 | [Sync](sync.md) | Bidirectional file synchronization |
+| [Sysctl](modules/sysctl-module.md) | Manages kernel parameters |
+| [Systemd](systemd.md) | Manages systemd services |
 | [Template](template.md) | Renders template files with Liquid |
+| [Timezone](modules/timezone-module.md) | Sets the system timezone |
 | [Touch](touch.md) | Updates file timestamps |
+| [User](modules/user-module.md) | Manages system user accounts |
 | [Validate](validate.md) | Validates file contents and formats |
 
 ## Features

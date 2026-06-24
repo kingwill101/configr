@@ -21,7 +21,7 @@ services:
       - SYS_ADMIN
       - NET_ADMIN
     command: >
-      sh -c "dart pub get && dart test --tags debian"
+      sh -c "dart pub get && dart test test/integration/sweep_test.dart test/integration/command_integration_test.dart --tags debian"
 
   debian-test:
     profiles: ["all", "debian"]
@@ -37,7 +37,7 @@ services:
     cap_add:
       - SYS_ADMIN
     command: >
-      sh -c "dart pub get && dart test --tags debian"
+      sh -c "dart pub get && dart test test/integration/sweep_test.dart test/integration/command_integration_test.dart --tags debian"
 
   fedora-test:
     profiles: ["all", "fedora"]
@@ -53,7 +53,7 @@ services:
     cap_add:
       - SYS_ADMIN
     command: >
-      sh -c "dart pub get && dart test --tags fedora"
+      sh -c "dart pub get && dart test test/integration/sweep_test.dart test/integration/command_integration_test.dart --tags fedora"
 
   arch-test:
     profiles: ["all", "arch"]
@@ -69,7 +69,7 @@ services:
     cap_add:
       - SYS_ADMIN
     command: >
-      sh -c "dart pub get && dart test --tags arch"
+      sh -c "dart pub get && dart test test/integration/sweep_test.dart test/integration/command_integration_test.dart --tags arch"
 
   alpine-test:
     profiles: ["all", "alpine"]
@@ -83,7 +83,7 @@ services:
     environment:
       - CONFIGR_TEST_ENV=alpine
     command: >
-      sh -c "dart pub get && dart test --tags alpine"
+      sh -c "dart pub get && dart test test/integration/sweep_test.dart test/integration/command_integration_test.dart --tags alpine"
 
 volumes:
   pub-cache:

@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - run: dart analyze
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - run: dart test --exclude-tags container --exclude-tags integration
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distro: [ubuntu, debian, fedora, arch, alpine]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build ${{ matrix.distro }} container
+        run: docker compose -f testing/docker-compose.yml build ${{ matrix.distro }}-test
+      - name: Run ${{ matrix.distro }} integration tests
+        run: docker compose -f testing/docker-compose.yml run --rm ${{ matrix.distro }}-test

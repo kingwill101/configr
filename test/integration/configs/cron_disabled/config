@@ -1,0 +1,6 @@
+cron {
+  name = "configr_test_job_disabled"
+  job = "/bin/false"
+  disabled = true
+  minute = "*/5"
+}

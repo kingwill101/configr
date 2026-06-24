@@ -18,7 +18,8 @@ esac
 echo "=== CI Test Run: $DISTRO (tag: $TAG) ==="
 
 # Run only tests tagged for this distro
+# Exclude container-backed tests (they require Docker-in-Docker)
 dart pub get
-dart test --tags "$TAG" --reporter expanded
+dart test --tags "$TAG" --exclude-tags container --reporter expanded
 
 echo "=== $DISTRO tests completed ==="

@@ -1,0 +1,5 @@
+user {
+  name = "testusr"
+  shell = "/bin/bash"
+  create_home = true
+}

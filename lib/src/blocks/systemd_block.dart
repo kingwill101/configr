@@ -5,6 +5,7 @@ import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
+import 'package:configr/src/utils/platform.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 import 'package:path/path.dart' as path;
 
@@ -260,6 +261,8 @@ class SystemdBlock extends ActionBlock {
         moduleId: id,
       );
     }
+
+    OsFacts.detect().requireLinux('systemd');
 
     emitEvent(
       StartedEvent(

@@ -67,6 +67,10 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
   /// Used by tests that only want to verify property parsing.
   bool get dryRun => di<DryRunFlag>().value;
 
+  /// Context for the current block being processed.
+  /// Available during [execute] after [afterChildrenProcessed] is called.
+  i3.Context get context => _context!;
+
   ActionBlock();
 
   // ---------------------------------------------------------------------------
@@ -204,6 +208,7 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
       }
     } else {
       // ----- 7. Execute (unless dry-run) -----
+      _context = context;
       try {
         await execute();
         // Record this block in the lockfile collector (if present).
@@ -268,29 +273,34 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
     sourceWasExplicitlySet = false;
     properties = const {};
     children = [];
+    _context = null;
   }
 
-  /// Override this to read type-specific properties from the context.
-  ///
-  /// Called by [afterChildrenProcessed] after common properties have been
-  /// read and before [execute] is called.
-  ///
-  /// Example:
-  /// ```dart
-  /// @override
-  /// Future<void> readAdditionalProperties(
-  ///   i3.Block block,
-  ///   i3.Context context,
-  /// ) async {
-  ///   message = (context.getVariable('message') as String?) ?? message;
-  /// }
-  /// ```
-  Future<void> readAdditionalProperties(
-    i3.Block block,
-    i3.Context context,
-  ) async {
-    // Subclasses override this.
-  }
+/// Override this to read type-specific properties from the context.
+   ///
+   /// Called by [afterChildrenProcessed] after common properties have been
+   /// read and before [execute] is called.
+   ///
+   /// Example:
+   /// ```dart
+   /// @override
+   /// Future<void> readAdditionalProperties(
+   ///   i3.Block block,
+   ///   i3.Context context,
+   /// ) async {
+   ///   message = (context.getVariable('message') as String?) ?? message;
+   /// }
+   /// ```
+   Future<void> readAdditionalProperties(
+     i3.Block block,
+     i3.Context context,
+   ) async {
+     // Subclasses override this.
+   }
+
+   /// Context for the current block being processed.
+   /// Set during [afterChildrenProcessed] before calling [execute].
+   i3.Context? _context;
 
   /// Override this to provide a description of what this block would do
   /// during a dry-run. Called when `--dry-run` is active and `execute()`

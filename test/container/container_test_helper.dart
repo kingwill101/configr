@@ -81,8 +81,17 @@ class ContainerTestHelper {
   }
 
   /// Executes a command inside the container.
-  Future<ContainerProcessResult> runCommand(List<String> command) async {
-    return _runCommand(['sh', '-c', command.join(' ')]);
+  ///
+  /// [command] can be a `String` (run via `sh -c`) or a `List<String>`
+  /// (executed directly as a process with no shell interpretation).
+  Future<ContainerProcessResult> runCommand(Object command) async {
+    if (command is String) {
+      return _runCommand(['sh', '-c', command]);
+    }
+    if (command is List<String>) {
+      return _runCommand(command);
+    }
+    throw ArgumentError('command must be a String or List<String>');
   }
 
   Future<ContainerProcessResult> _runCommand(List<String> command) async {

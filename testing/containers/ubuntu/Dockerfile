@@ -24,16 +24,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     python3-pip \
     nodejs npm \
+    sudo \
+    nano \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Dart SDK
-RUN curl -fsSL https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_stable.list > /etc/apt/sources.list.d/dart_stable.list \
-    && curl -fsSL https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_linux_signing_key.asc | gpg --dearmor -o /usr/share/keyrings/dart.gpg \
-    && sed -i 's|https://storage.googleapis.com|signed-by=/usr/share/keyrings/dart.gpg https://storage.googleapis.com|g' /etc/apt/sources.list.d/dart_stable.list \
+RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/dart.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main" > /etc/apt/sources.list.d/dart_stable.list \
     && apt-get update && apt-get install -y dart \
     && rm -rf /var/lib/apt/lists/*
 
 ENV PATH="$PATH:/usr/lib/dart/bin:$HOME/.pub-cache/bin"
+
+# Allow root to use sudo without password (for configr's NonInteractiveSudoEscalation)
+RUN echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 # Generate en_US.UTF-8 locale
 RUN locale-gen en_US.UTF-8

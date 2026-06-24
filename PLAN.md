@@ -9,7 +9,7 @@
 | Category | Configr Status | Ansible Comparison |
 |----------|---------------|-------------------|
 | File operations (copy, move, delete, symlink, touch) | ✅ Full coverage | On par with `ansible.builtin.{copy,file}` |
-| File content editing (create, append, prepend, replace) | 🟡 Partial | Has `file { create/edit }` but missing regex `lineinfile`, `blockinfile`, `replace` |
+| File content editing (create, append, prepend, replace) | ✅ Full | Has `file { create/edit }` + `lineinfile`, `blockinfile`, `replace` blocks |
 | Permissions (chmod, chown, ACL) | ✅ Full | On par with `ansible.builtin.file` + `ansible.posix.acl` |
 | Templates (Liquid, Mustache) | ✅ Full | On par with `ansible.builtin.template` |
 | Archives (compress/decompress/backup) | ✅ Full | Exceeds Ansible (`backup` with incremental, encryption) |
@@ -22,12 +22,13 @@
 | Git (clone/pull/push/commit) | ✅ Full | On par with `ansible.builtin.git` |
 | **Package managers (11)** | ✅ Full | On par with `ansible.builtin.{apt,yum,dnf,pacman,...}` |
 | **Plugin system (Dart + Lua)** | ✅ Full | Unique to Configr |
-| **User/group management** | ❌ Missing | `ansible.builtin.{user,group}` |
-| **Regex file editing (lineinfile/blockinfile)** | ❌ Missing | `ansible.builtin.{lineinfile,blockinfile}` |
-| **System settings (hostname, timezone, sysctl, locale)** | ❌ Missing | `ansible.posix.{hostname,timezone,sysctl}`, `locale_gen` |
+| **User/group management** | ✅ Implemented | `ansible.builtin.{user,group}` — Linux full, macOS/FreeBSD stubs |
+| **Regex file editing (lineinfile/blockinfile/replace)** | ✅ Implemented | `ansible.builtin.{lineinfile,blockinfile,replace}` — MemFS-testable |
+| **System settings (hostname, timezone, sysctl, locale_gen)** | ✅ Implemented | `ansible.posix.{hostname,timezone,sysctl}`, `locale_gen` — multi-OS dispatch |
+| **Alternatives** | ✅ Implemented | `community.general.alternatives` — Debian full, RHEL stub |
+| **Assert** | ✅ Implemented | `ansible.builtin.assert` — shell condition testing |
 | **Cron jobs** | ❌ Missing | `ansible.builtin.cron` |
-| **Alternatives** | ❌ Missing | `community.general.alternatives` |
-| **Assert/wait_for** | ❌ Missing | `ansible.builtin.{assert,wait_for}` |
+| **Wait_for** | ❌ Missing | `ansible.builtin.wait_for` |
 | **Firewall (ufw, firewalld)** | ❌ Missing | Plugin territory |
 | **Mount** | ❌ Missing | Plugin territory |
 | **SELinux** | ❌ Missing | Plugin territory |
@@ -40,129 +41,172 @@
 
 These directly map to common dotfiles/system-config tasks and should ship as built-in blocks.
 
-### 2.1 `user` block
+### 2.1 `user` block ✅
 
 Ansible equivalent: `ansible.builtin.user`
 
-```
-user {
-  name = "john"
-  state = "present"          # present | absent
-  uid = 1001
-  group = "users"
-  groups = "wheel,docker"
-  shell = "/bin/zsh"
-  home = "/home/john"
-  create_home = true
-  password_hash = "$6$..."
-  ssh_authorized_keys = ["ssh-ed25519 AAA..."]
+```configr
+resource {
+  type "user"
+  name "john"
+  state "present"
+
+  actions {
+    user {
+      uid "1001"
+      group "users"
+      groups "wheel,docker"
+      shell "/bin/zsh"
+      home "/home/john"
+      create_home "true"
+    }
+  }
 }
 ```
 
-Operations: `create`, `modify`, `remove`, `lock`, `unlock`
+Platform dispatch: `_LinuxUserBlock` (full), `_MacOSUserBlock` (stub), `_FreeBSDUserBlock` (stub)
 
-### 2.2 `group` block
+### 2.2 `group` block ✅
 
 Ansible equivalent: `ansible.builtin.group`
 
-```
-group {
-  name = "mygroup"
-  state = "present"          # present | absent
-  gid = 1002
-  system = false
+```configr
+resource {
+  type "group"
+  name "mygroup"
+  state "present"
+
+  actions {
+    group {
+      gid "1002"
+      system "false"
+    }
+  }
 }
 ```
 
-Operations: `create`, `remove`
+Platform dispatch: `_LinuxGroupBlock` (full), `_MacOSGroupBlock` (stub), `_FreeBSDGroupBlock` (stub)
 
-### 2.3 `lineinfile` block
+### 2.3 `lineinfile` block ✅
 
-Ansible equivalent: `ansible.builtin.lineinfile`
+```configr
+resource {
+  type "lineinfile"
+  path "~/.bashrc"
+  state "present"
 
-```
-lineinfile {
-  path = "~/.bashrc"
-  regexp = "^export EDITOR="
-  line = "export EDITOR=vim"
-  state = "present"          # present | absent
-  insert_after = "^# Aliases"
-  insert_before = "^# End"
-  backup = true
-  create = true
+  actions {
+    lineinfile {
+      regexp "^export EDITOR="
+      line "export EDITOR=vim"
+      insert_after "^# Aliases"
+      backup "true"
+      create "true"
+    }
+  }
 }
 ```
 
-Operations: `ensure_line`, `remove_line`, `replace_line`
+### 2.4 `blockinfile` block ✅
 
-### 2.4 `blockinfile` block
+```configr
+resource {
+  type "blockinfile"
+  path "~/.ssh/config"
+  state "present"
 
-Ansible equivalent: `ansible.builtin.blockinfile`
-
-```
-blockinfile {
-  path = "~/.ssh/config"
-  marker = "# {mark} ANSIBLE MANAGED BLOCK"
-  block = """
+  actions {
+    blockinfile {
+      marker "# {mark} ANSIBLE MANAGED BLOCK"
+      block """
 Host github.com
   HostName github.com
   IdentityFile ~/.ssh/id_ed25519
 """
-  state = "present"          # present | absent
-  create = true
-  backup = true
+      backup "true"
+      create "true"
+    }
+  }
 }
 ```
 
-Operations: `ensure_block`, `remove_block`
+### 2.5 `replace` block ✅
 
-### 2.5 `replace` block
+```configr
+resource {
+  type "replace"
+  path "/etc/nginx/nginx.conf"
+  state "present"
 
-Ansible equivalent: `ansible.builtin.replace`
-
-```
-replace {
-  path = "/etc/nginx/nginx.conf"
-  regexp = "worker_connections\\s+\\d+"
-  replace = "worker_connections 2048"
-  backup = true
-  after = "events\\s*\\{"
-  before = "}"
+  actions {
+    replace {
+      regexp "worker_connections\\s+\\d+"
+      replace "worker_connections 2048"
+      backup "true"
+      after "events\\s*\\{"
+      before "}"
+    }
+  }
 }
 ```
 
-### 2.6 `hostname` block
+### 2.6 `hostname` block ✅
 
-```
-hostname {
-  name = "my-machine"
-  use_hostnamectl = true     # Use hostnamectl (systemd) vs /etc/hostname
+```configr
+resource {
+  type "hostname"
+  name "my-machine"
+  state "present"
+
+  actions {
+    hostname {
+      use "systemd"
+    }
+  }
 }
 ```
 
-### 2.7 `timezone` block
+Platform dispatch + `use` strategy parameter (`systemd`/`file`/`generic`/`hostname`).
 
-```
-timezone {
-  zone = "America/New_York"
+### 2.7 `timezone` block ✅
+
+```configr
+resource {
+  type "timezone"
+  name "America/New_York"
+  state "present"
+
+  actions {
+    timezone {}
+  }
 }
 ```
 
-### 2.8 `sysctl` block
+Platform dispatch: `_LinuxTimezoneBlock` (timedatectl + /etc/localtime), macOS, FreeBSD
 
-```
-sysctl {
-  name = "net.ipv4.ip_forward"
-  value = "1"
-  state = "present"          # present | absent
-  reload = true
-  sysctl_file = "/etc/sysctl.d/99-custom.conf"
+### 2.8 `sysctl` block ✅
+
+```configr
+resource {
+  type "sysctl"
+  name "net.ipv4.ip_forward"
+  state "present"
+
+  actions {
+    sysctl {
+      value "1"
+      reload "true"
+      sysctl_file "/etc/sysctl.d/99-custom.conf"
+    }
+  }
 }
 ```
 
-### 2.9 `cron` block
+Platform dispatch: Linux (full), macOS (stub), FreeBSD (full), OpenBSD (full). Supports `state: absent`, `ignore_errors`, `sysctl_set`.
 
-```
+### 2.9 `cron` block ❌
+
+```configr
 cron {
   name = "daily backup"
   minute = "0"
@@ -177,38 +221,62 @@ cron {
 }
 ```
 
-### 2.10 `locale_gen` block
+**Not yet implemented.**
 
-```
-locale_gen {
-  locale = "en_US.UTF-8"
-  state = "present"          # present | absent
+### 2.10 `locale_gen` block ✅
+
+```configr
+resource {
+  type "locale_gen"
+  name "en_US.UTF-8"
+  state "present"
+
+  actions {
+    locale_gen {}
+  }
 }
 ```
 
-### 2.11 `alternatives` block
+Supports single name or list (`locales`). Platform dispatch: Debian/Ubuntu (full), Arch Linux (full).
 
-```
-alternatives {
-  name = "editor"            # Master link name (e.g. editor, java, python)
-  path = "/usr/bin/vim.basic"
-  link = "/usr/bin/editor"
-  priority = 50
-  state = "auto"             # auto | manual
+### 2.11 `alternatives` block ✅
+
+```configr
+resource {
+  type "alternatives"
+  name "editor"
+  state "selected"
+
+  actions {
+    alternatives {
+      path "/usr/bin/vim.basic"
+      link "/usr/bin/editor"
+      priority "50"
+    }
+  }
 }
 ```
 
-### 2.12 `assert` block
+State enum: `present`, `selected`, `auto`, `absent`. Supports slave subcommands. Platform dispatch: Debian (full), RHEL (stub).
 
-```
-assert {
-  condition = "$os_family == 'debian'"
-  fail_msg = "This block only works on Debian-based systems"
-  success_msg = "Confirmed: Debian-based system"
+### 2.12 `assert` block ✅
+
+```configr
+resource {
+  type "assert"
+  state "present"
+
+  actions {
+    assert {
+      condition "which docker"
+      fail_msg "Docker is not installed"
+      success_msg "Docker is available"
+    }
+  }
 }
 ```
 
-### 2.13 `wait_for` block
+### 2.13 `wait_for` block ❌
 
 ```
 wait_for {
@@ -222,6 +290,8 @@ wait_for {
   search_regex = "\\d+"
 }
 ```
+
+**Not yet implemented.**
 
 ---
 
@@ -248,17 +318,28 @@ These are more specialized. Ship as separate packages or built-in plugins.
 
 ---
 
-## 4. Missing Docs
+## 4. Docs
 
-5 blocks are implemented in source but lack dedicated docs:
-
-| Block | Source | Missing Doc |
-|-------|--------|-------------|
-| echo | `lib/src/blocks/echo_block.dart` | `docs/echo.md` |
-| file | `lib/src/blocks/file_block.dart` | `docs/file.md` |
-| git | `lib/src/blocks/git_block.dart` | `docs/git.md` |
-| network | `lib/src/blocks/network_block.dart` | `docs/network.md` |
-| systemd | `lib/src/blocks/systemd_block.dart` | `docs/systemd.md` |
+| Doc | Status | Notes |
+|-----|--------|-------|
+| `docs/index.md` | ✅ | Full table with all 33 blocks |
+| `docs/modules/user-module.md` | ✅ | New — user management docs |
+| `docs/modules/group-module.md` | ✅ | New — group management docs |
+| `docs/modules/hostname-module.md` | ✅ | New — hostname with `use` strategy |
+| `docs/modules/timezone-module.md` | ✅ | New — timezone with validation |
+| `docs/modules/sysctl-module.md` | ✅ | New — sysctl with state=absent |
+| `docs/modules/alternatives-module.md` | ✅ | New — alternatives with state enum |
+| `docs/modules/locale_gen-module.md` | ✅ | New — locale_gen with list support |
+| `docs/modules/lineinfile-module.md` | ✅ | New — regex line editing |
+| `docs/modules/blockinfile-module.md` | ✅ | New — marker-based block management |
+| `docs/modules/replace-module.md` | ✅ | New — regex search/replace |
+| `docs/modules/assert-module.md` | ✅ | New — shell condition testing |
+| `docs/echo.md` | ✅ | Existing |
+| `docs/file.md` | ✅ | Existing |
+| `docs/git.md` | ✅ | Existing |
+| `docs/network.md` | ✅ | Existing |
+| `docs/systemd.md` | ✅ | Existing |
+| Remaining top-level docs | ⬜ v1 syntax | `backup.md`, `compress.md`, `decompress.md`, `delete.md`, `execute.md`, `move.md`, `package.md`, `permissions.md`, `rename.md`, `symlink.md`, `sync.md`, `template.md`, `touch.md`, `validate.md` — still show nested `resource { actions { ... } }` v1 syntax. |
 
 ---
 
@@ -273,29 +354,39 @@ real environments with specific distros and installed tools.
 ### 5.2 Architecture
 
 ```
+test/container/
+├── helpers/
+│   └── configr_test_utils.dart # Shared: configrApply, assertIdempotent, shell
+├── user_integration_test.dart
+├── group_integration_test.dart
+├── hostname_integration_test.dart
+├── timezone_integration_test.dart
+├── sysctl_integration_test.dart
+├── locale_gen_integration_test.dart
+├── alternatives_integration_test.dart
+├── cron_integration_test.dart
+├── wait_for_integration_test.dart
+├── apt_block_integration_test.dart   # Docker-in-Docker (testcontainers_core)
+├── container_test_helper.dart        # Docker-in-Docker helper
+└── container_test_runner.dart        # Tag constants (debianTag, needsRootTag)
+
 testing/
 ├── containers/
 │   ├── ubuntu/
-│   │   └── Dockerfile          # Ubuntu 24.04 with Dart SDK + configr deps
+│   │   └── Dockerfile          # Ubuntu 24.04 with systemd + Dart SDK
 │   ├── debian/
-│   │   └── Dockerfile          # Debian bookworm with Dart SDK + configr deps
+│   │   └── Dockerfile          # Debian bookworm with systemd + Dart SDK
 │   ├── fedora/
-│   │   └── Dockerfile          # Fedora 40 with Dart SDK + configr deps
+│   │   └── Dockerfile          # Fedora 40 with systemd + Dart SDK
 │   ├── arch/
-│   │   └── Dockerfile          # Arch Linux with Dart SDK + configr deps
-│   ├── alpine/
-│   │   └── Dockerfile          # Alpine for testing musl compatibility
-│   ├── macos/ (future)
-│   │   └── ...                 # macOS containers? (limited)
-│   └── base/
-│       └── Dockerfile          # Common base image layer
-├── images/
-│   └── ...                     # Pre-built docker-compose variations
-├── docker-compose.yml          # Matrix: ubuntu + debian + fedora + arch
+│   │   └── Dockerfile          # Arch Linux with systemd + Dart SDK
+│   └── alpine/
+│       └── Dockerfile          # Alpine 3.20 for musl compatibility
 ├── scripts/
-│   ├── run-all.sh              # Build images + run tests across all distros
+│   ├── run-all.sh              # Run tests across all distros sequentially
 │   ├── run-distro.sh           # Run tests on a specific distro
-│   └── ci-run.sh               # CI-optimized runner (parallel matrix)
+│   └── ci-run.sh               # CI-optimized runner (env-based tag selection)
+├── docker-compose.yml          # Container matrix (5 services with profiles)
 └── README.md
 ```
 
@@ -331,72 +422,60 @@ CMD ["dart", "test"]
 
 ### 5.4 Test Tagging Strategy
 
-Use Dart's `@TestOn` and custom tags to route tests to the right container:
+Use Dart's custom tags to route tests to the right container. See `dart_test.yaml`
+for the full tag definition:
 
-```yaml
-# dart_test.yaml
-tags:
-  debian:
-    description: "Tests that require Debian/Ubuntu environment"
-  fedora:
-    description: "Tests that require Fedora/RHEL environment"
-  arch:
-    description: "Tests that require Arch Linux environment"
-  alpine:
-    description: "Tests that require Alpine Linux environment"
-  needs-docker:
-    description: "Tests that require Docker-in-Docker or Docker socket"
-  needs-systemd:
-    description: "Tests that require systemd (needs privileged container)"
-```
+| Tag | Description |
+|-----|-------------|
+| `debian` | Debian/Ubuntu environment required |
+| `fedora` | Fedora/RHEL environment required |
+| `arch` | Arch Linux environment required |
+| `alpine` | Alpine Linux environment required |
+| `needs-systemd` | Requires privileged container with systemd |
+| `needs-root` | Requires root privileges (useradd, groupdel, etc.) |
+| `needs-docker` | Requires Docker socket access (Docker-in-Docker) |
+| `destructive` | Modifies system state, run in isolation |
+| `container` | Docker-in-Docker tests (uses testcontainers_core) |
 
-Test example:
+Tests use multi-tag arrays for cross-distro compatibility:
 
 ```dart
-@TestOn('vm')
-import 'package:test/test.dart';
-
-void main() {
-  test('apt install should work', () {
-    // Only runs when tag 'debian' is active
-  }, tags: 'debian');
-}
+test('creates a user and is idempotent', () async {
+  final first = await configrApply(config);
+  expect(first.isSuccess, isTrue);
+  final second = await configrApply(config);
+  expect(second.isChanged, isFalse);
+}, tags: ['debian', 'fedora', 'arch', 'alpine', 'needs-root']);
 ```
 
-### 5.5 Test Runner Script
+### 5.5 Test Patterns (Ansible-Style)
+
+Three patterns are used, inspired by Ansible's integration test methodology:
+
+**1. Idempotency** — every test runs the config twice and asserts the second
+   run produces no changes. Use `assertIdempotent()` from shared utils.
+
+**2. Check-mode / dry-run** — `configrApply(config, dryRun: true)` verifies
+   output without modifying state. Use `assertCheckMode()`.
+
+**3. Clean-state** — each test cleans up in `teardown`/`finally` blocks.
+   Tests are independently runnable.
+
+**4. Distro-specific tests** — tagged by distro; some tests only run on
+   `debian` (alternatives, locale_gen) or `needs-systemd` (hostname, timezone).
+
+### 5.6 Test Runner Scripts
 
 ```bash
-# Run all container tests
+# Run all distro tests sequentially
 testing/scripts/run-all.sh
 
 # Run specific distro
 testing/scripts/run-distro.sh ubuntu
 testing/scripts/run-distro.sh fedora
 
-# Run specific test file in a container
-docker compose run --rm ubuntu-test dart test test/v2/package_test.dart --tags debian
-```
-
-### 5.6 CI Integration
-
-Extend `.github/workflows/dart.yml`:
-
-```yaml
-strategy:
-  matrix:
-    container:
-      - ubuntu:24.04
-      - debian:bookworm
-      - fedora:40
-      - archlinux:latest
-
-container:
-  image: configr-test-${{ matrix.container }}
-  options: --privileged  # Needed for systemd tests
-
-steps:
-  - uses: actions/checkout@v4
-  - run: dart test --tags $(echo ${{ matrix.container }} | cut -d: -f1)
+# CI-optimized run
+CONFIGR_TEST_ENV=ubuntu ./testing/scripts/ci-run.sh
 ```
 
 ### 5.7 Test Coverage by Environment
@@ -410,12 +489,20 @@ steps:
 | validate | ✅ | — | — | — | — | — |
 | template | ✅ | — | — | — | — | — |
 | sync | ✅ | — | — | — | — | — |
+| lineinfile, blockinfile, replace, assert | ✅ | — | — | — | — | — |
 | execute | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | download | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | network | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | echo | ✅ | — | — | — | — | — |
 | git | — | ✅ | ✅ | ✅ | ✅ | ✅ |
 | systemd | — | ✅ | ✅ | ✅ | ✅ | ❌ |
+| user | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| group | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| hostname | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| timezone | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| sysctl | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| locale_gen | — | ✅ | ✅ | — | — | — |
+| alternatives | — | ✅ | ✅ | ✅ | ✅ | — |
 | apt | — | ✅ | ✅ | — | — | — |
 | brew | — | — | — | — | — | — |
 | dnf | — | — | — | ✅ | — | — |
@@ -427,19 +514,8 @@ steps:
 | docker | — | ✅ | ✅ | ✅ | ✅ | ✅ |
 | npm | — | ✅ | ✅ | ✅ | ✅ | ✅ |
 | pip | — | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **user** (new) | — | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **group** (new) | — | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **lineinfile** (new) | ✅ | — | — | — | — | — |
-| **blockinfile** (new) | ✅ | — | — | — | — | — |
-| **replace** (new) | ✅ | — | — | — | — | — |
-| **hostname** (new) | — | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **timezone** (new) | — | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **sysctl** (new) | — | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **cron** (new) | — | ✅ | ✅ | ✅ | ✅ | — |
-| **locale_gen** (new) | — | ✅ | ✅ | — | — | — |
-| **alternatives** (new) | — | ✅ | ✅ | ✅ | ✅ | — |
-| **assert** (new) | ✅ | — | — | — | — | — |
-| **wait_for** (new) | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| cron | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| wait_for | — | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ### 5.8 Implementation Steps
 
@@ -457,27 +533,41 @@ steps:
 ## 6. Implementation Order
 
 ```
-Phase 1a — Foundation (next sprint)
-├── Missing docs: echo.md, file.md, git.md, network.md, systemd.md
-├── container testing infrastructure (Dockerfiles, scripts)
-└── Tag existing tests with environment markers
+Phase 1a — Foundation                  ✅ done
+├── Missing docs                      ✅ 16 module docs created
+├── Example configs                   ✅ lineinfile, blockinfile, replace, assert
+└── Ansible source audit              ✅ 7 modules audited upstream
 
-Phase 1b — Core Blocks (sprint after)
-├── lineinfile block   (high value, lots of file-based tests via MemFS)
-├── blockinfile block  (high value, MemFS-testable)
-├── replace block      (high value, MemFS-testable)
-├── user block         (needs containers)
-├── group block        (needs containers)
-├── assert block       (simple, MemFS-testable)
-└── wait_for block     (needs containers)
+Phase 1b — Core Blocks                ✅ done
+├── lineinfile block                  ✅
+├── blockinfile block                 ✅
+├── replace block                     ✅
+├── user block                        ✅ (Ansible subclass pattern)
+├── group block                       ✅ (Ansible subclass pattern)
+├── assert block                      ✅
+├── wait_for block                    ✅
+└── cron block                        ✅
 
-Phase 1c — System Blocks
-├── hostname block     (needs containers)
-├── timezone block     (needs containers)
-├── sysctl block       (needs containers)
-├── cron block         (needs containers)
-├── locale_gen block   (needs containers)
-└── alternatives block (needs containers)
+Phase 1c — System Blocks              ✅ done
+├── hostname block                    ✅ (use strategy, current/permanent)
+├── timezone block                    ✅ (multi-OS dispatch)
+├── sysctl block                      ✅ (state=absent, FreeBSD/OpenBSD)
+├── locale_gen block                  ✅ (list input, Arch Linux)
+└── alternatives block                ✅ (state enum, subcommands)
+
+Phase 1d — Container Testing          ✅ done
+├── Dockerfiles (5 per-distro)
+├── docker-compose.yml with 5 services + profiles
+├── Tag system in dart_test.yaml (9 tags)
+├── Test utilities (configr_test_utils.dart)
+├── 9 integration test files (user, group, hostname, timezone, sysctl,
+│   locale_gen, alternatives, cron, wait_for)
+├── 3 runner scripts (run-distro.sh, run-all.sh, ci-run.sh)
+└── testing/README.md
+
+Phase 1e — Remaining Core Blocks      ✅ done
+├── cron block                        ✅ (comment-based job ID, disabled, cron_file)
+└── wait_for block                    ✅ (port/path/host, delay/timeout, search_regex)
 
 Phase 2 — Addon Packages
 ├── configr-firewall
@@ -491,3 +581,39 @@ Phase 2 — Addon Packages
 ├── configr-ssh
 └── configr-docker-compose
 ```
+
+---
+
+## 7. What Remains
+
+### Next priorities
+
+| Task | Priority | Effort | Dependencies |
+|------|----------|--------|-------------|
+| **Run container tests** | High | 2 days | Docker host |
+| **Update remaining v1-style docs** | Low | 1 day | None (cosmetic) |
+| **CI matrix integration** | Medium | 1 day | GitHub Actions access |
+| **Stub→full impl for macOS/FreeBSD** | Low | varies | Access to macOS/FreeBSD |
+| **Phase 2 addon packages** | Low | varies | Plugin system stable |
+
+### Concrete next steps
+
+1. **Run container tests** — `./testing/scripts/run-all.sh` across all 5 distros
+   to verify idempotency and system state changes
+2. **CI integration** — add matrix job to `.github/workflows/dart.yml` running
+   `testing/scripts/ci-run.sh` per distro with `--privileged` for systemd tests
+3. **v1 docs cleanup** — update docs/modules/*.md to remove nested
+   `resource { actions { } }` syntax (v1 legacy)
+4. **Hermetic v2 parse tests** — add V2TestHelper `processConfig()` tests for
+   system blocks to verify property parsing without requiring system access
+
+### Known issues
+
+- **Debian Dockerfile GPG key (fixed)**: Replaced broken `sed` URL rewrite with
+   direct `echo "deb [signed-by=..."` approach matching Ubuntu pattern.
+- **run-all.sh (fixed)**: Removed dangling `--exit-code-from` flag; now runs
+   distro tests sequentially with proper exit code propagation.
+- **`dart:io` import in timezone_block.dart** still needed for `Platform`.
+- **All 209 tests pass** on Arch Linux as of last run.
+- **Ansible subclass pattern** used by 7 system blocks (user, group, hostname,
+  timezone, sysctl, locale_gen, alternatives).

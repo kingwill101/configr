@@ -284,7 +284,7 @@ class PackageUpgradeCommand extends Command<void> {
 
           await pm.install(pkg);
           newVersion = await pm.getInstalledVersion(pkg) ?? '(unknown)';
-          io.line('$newVersion');
+          io.line(newVersion);
 
           records.add(PackageLockRecord(
             name: pkg,

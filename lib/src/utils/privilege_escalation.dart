@@ -207,9 +207,13 @@ class NonInteractiveSudoEscalation implements PrivilegeEscalation {
       }
     }
 
-    // Try running sudo with -n (non-interactive) to see if we have passwordless sudo
+    // Try running sudo with -n (non-interactive) to see if we have passwordless sudo.
+    // We must distinguish between sudo itself failing (no passwordless access) and
+    // the *command* sudo ran returning a non-zero exit (e.g. `id nonexistent_user`).
     var result = await Process.run('sudo', ['-n', command, ...arguments],
         workingDirectory: workingDirectory);
+
+    // exitCode == 0 -> everything succeeded
     if (result.exitCode == 0) {
       if (usePrivilegeLock && privilegeLock != null) {
         privilegeLock!.acquire();
@@ -217,10 +221,20 @@ class NonInteractiveSudoEscalation implements PrivilegeEscalation {
       return result;
     }
 
-    // If passwordless sudo is not available, throw an error instead of prompting
-    throw Exception(
-      'Passwordless sudo required but not available. Please configure passwordless sudo or run with appropriate privileges.',
-    );
+    // If stderr contains a sudo-specific message, sudo itself is the problem.
+    final stderrStr = result.stderr is String
+        ? result.stderr as String
+        : String.fromCharCodes(result.stderr as List<int>);
+    if (stderrStr.contains('sudo:') || stderrStr.contains('sorry')) {
+      throw Exception(
+        'Passwordless sudo required but not available. '
+        'Please configure passwordless sudo or run with appropriate privileges.',
+      );
+    }
+
+    // The command itself failed - return the result as-is so the caller
+    // can inspect the exit code and stderr.
+    return result;
   }
 }
 
