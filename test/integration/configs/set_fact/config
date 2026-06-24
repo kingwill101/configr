@@ -1,0 +1,3 @@
+set_fact {
+  test_var = "hello_world"
+}

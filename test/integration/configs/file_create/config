@@ -1,0 +1,5 @@
+file {
+  source = "/tmp/configr_file_test.txt"
+  content = "test file content"
+  operation = "create"
+}

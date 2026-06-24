@@ -1,0 +1,4 @@
+symlink {
+  source = "/tmp/configr_symlink_target.txt"
+  destination = "/tmp/configr_symlink_link.txt"
+}

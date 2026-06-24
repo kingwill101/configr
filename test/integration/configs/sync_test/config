@@ -1,0 +1,5 @@
+sync {
+  source = "/tmp/configr_sync_src"
+  destination = "/tmp/configr_sync_dest"
+  mode = "source_to_dest"
+}

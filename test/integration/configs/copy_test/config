@@ -1,0 +1,4 @@
+copy {
+  source = "/tmp/configr_copy_source.txt"
+  destination = "/tmp/configr_copy_dest.txt"
+}

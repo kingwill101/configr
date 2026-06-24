@@ -33,6 +33,7 @@ import 'package:configr/src/blocks/sync_block.dart';
 import 'package:configr/src/blocks/systemd_block.dart';
 import 'package:configr/src/blocks/template_block.dart';
 import 'package:configr/src/blocks/touch_block.dart';
+import 'package:configr/src/blocks/pause_block.dart';
 import 'package:configr/src/blocks/validate_block.dart';
 import 'package:configr/src/blocks/lineinfile_block.dart';
 import 'package:configr/src/blocks/blockinfile_block.dart';
@@ -243,8 +244,9 @@ final actionBlockMap = <String, ActionBlock>{
        'sync': SyncBlock(),
        'systemd': SystemdBlock(),
        'template': TemplateBlock(),
-       'touch': TouchBlock(),
-       'validate': ValidateBlock(),
+'touch': TouchBlock(),
+        'pause': PauseBlock(),
+        'validate': ValidateBlock(),
        'yum': YumBlock(),
        'lineinfile': LineInFileBlock(),
        'blockinfile': BlockInFileBlock(),

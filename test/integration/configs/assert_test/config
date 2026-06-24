@@ -1,0 +1,4 @@
+assert {
+  condition = "true == true"
+  success_msg = "Assertion passed"
+}
