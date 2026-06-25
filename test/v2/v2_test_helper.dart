@@ -62,6 +62,8 @@ import 'package:configr/src/blocks/ufw_block.dart';
 import 'package:configr/src/blocks/unarchive_block.dart';
 import 'package:configr/src/blocks/uri_block.dart';
 import 'package:configr/src/reader/handlers/configr_handlers.dart';
+import 'package:configr/src/utils/command_runner.dart';
+import 'package:configr/src/utils/file_service.dart';
 import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
@@ -222,6 +224,8 @@ class V2TestHelper {
       ..registerSingleton<EventBus>(eventBus)
       ..registerSingleton<PrivilegeEscalation>(NoPrivilegeEscalation())
       ..registerSingleton<FileSystem>(fileSystem)
+      ..registerSingleton<FileService>(LocalFileService())
+      ..registerSingleton<CommandRunner>(LocalCommandRunner())
       ..allowReassignment = false;
 
 final actionBlockMap = <String, ActionBlock>{

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/platform.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
@@ -429,10 +428,10 @@ class SystemdBlock extends ActionBlock {
 
   Future<void> _captureExistingContent() async {
     serviceFilePath = _getServiceFilePath();
-    if (await FileUtils.fileExists(serviceFilePath!, fileSystem: fileSystem)) {
-      previousContent = await FileUtils.readFile(
+    if (await fileService.fileExists(serviceFilePath!)) {
+      previousContent = await fileService.readFile(
         serviceFilePath!,
-        fileSystem: fileSystem,
+
       );
     }
   }
@@ -456,14 +455,14 @@ class SystemdBlock extends ActionBlock {
 
     // Ensure directory exists
     final dir = path.dirname(serviceFilePath!);
-    if (!await FileUtils.directoryExists(dir, fileSystem: fileSystem)) {
-      await FileUtils.createDirectory(dir, fileSystem: fileSystem);
+    if (!await fileService.directoryExists(dir)) {
+      await fileService.createDirectory(dir);
     }
 
-    await FileUtils.writeFile(
+    await fileService.writeFile(
       serviceFilePath!,
       content,
-      fileSystem: fileSystem,
+
     );
 
     // Reload systemd daemon
@@ -489,10 +488,10 @@ class SystemdBlock extends ActionBlock {
       await _validateServiceFile(content);
     }
 
-    await FileUtils.writeFile(
+    await fileService.writeFile(
       serviceFilePath!,
       content,
-      fileSystem: fileSystem,
+
     );
     await _runSystemctl('daemon-reload');
   }
@@ -514,30 +513,30 @@ class SystemdBlock extends ActionBlock {
       await _runSystemctl('disable');
     } catch (_) {}
 
-    await FileUtils.deleteFile(serviceFilePath!, fileSystem: fileSystem);
+    await fileService.deleteFile(serviceFilePath!);
     await _runSystemctl('daemon-reload');
   }
 
   Future<void> _rollbackCreate() async {
     if (previousContent != null) {
       // Restore previous content
-      await FileUtils.writeFile(
+      await fileService.writeFile(
         serviceFilePath!,
         previousContent!,
-        fileSystem: fileSystem,
+
       );
     } else if (serviceFilePath != null &&
-        await FileUtils.fileExists(serviceFilePath!, fileSystem: fileSystem)) {
-      await FileUtils.deleteFile(serviceFilePath!, fileSystem: fileSystem);
+        await fileService.fileExists(serviceFilePath!)) {
+      await fileService.deleteFile(serviceFilePath!);
     }
   }
 
   Future<void> _rollbackEdit() async {
     if (previousContent != null) {
-      await FileUtils.writeFile(
+      await fileService.writeFile(
         serviceFilePath!,
         previousContent!,
-        fileSystem: fileSystem,
+
       );
       await _runSystemctl('daemon-reload');
     }
@@ -547,13 +546,13 @@ class SystemdBlock extends ActionBlock {
     if (previousContent != null) {
       // Ensure directory exists
       final dir = path.dirname(serviceFilePath!);
-      if (!await FileUtils.directoryExists(dir, fileSystem: fileSystem)) {
-        await FileUtils.createDirectory(dir, fileSystem: fileSystem);
+      if (!await fileService.directoryExists(dir)) {
+        await fileService.createDirectory(dir);
       }
-      await FileUtils.writeFile(
+      await fileService.writeFile(
         serviceFilePath!,
         previousContent!,
-        fileSystem: fileSystem,
+
       );
       await _runSystemctl('daemon-reload');
     }

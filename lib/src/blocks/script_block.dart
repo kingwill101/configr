@@ -1,7 +1,6 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
 class ScriptBlock extends ActionBlock {
@@ -60,7 +59,7 @@ class ScriptBlock extends ActionBlock {
       throw ActionFailedException('script is required', moduleId: id);
     }
 
-    if (creates.isNotEmpty && await FileUtils.pathExists(creates, fileSystem: fileSystem).then((r) => r.exists)) {
+    if (creates.isNotEmpty && await fileService.pathExists(creates).then((r) => r.exists)) {
       emitEvent(StatusUpdateEvent(
         moduleId: id,
         message: 'Skip script: $creates already exists',
@@ -70,7 +69,7 @@ class ScriptBlock extends ActionBlock {
       return;
     }
 
-    if (removes.isNotEmpty && !(await FileUtils.pathExists(removes, fileSystem: fileSystem)).exists) {
+    if (removes.isNotEmpty && !(await fileService.pathExists(removes)).exists) {
       emitEvent(StatusUpdateEvent(
         moduleId: id,
         message: 'Skip script: $removes does not exist',
@@ -88,7 +87,7 @@ class ScriptBlock extends ActionBlock {
     try {
       final tempDir = fileSystem.systemTempDirectory;
       final tempFile = tempDir.childFile('configr_script_${DateTime.now().millisecondsSinceEpoch}');
-      await FileUtils.copyFile(script, tempFile.path);
+      await fileService.copyFile(script, tempFile.path);
       await runCommand('chmod', ['+x', tempFile.path], requireElevation: true);
 
       final argList = args.isNotEmpty ? args.split(' ') : <String>[];

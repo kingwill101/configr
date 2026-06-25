@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
 class SlurpBlock extends ActionBlock {
@@ -46,7 +45,7 @@ class SlurpBlock extends ActionBlock {
       throw ActionFailedException('src is required for slurp', moduleId: id);
     }
 
-    if (!await FileUtils.fileExists(src, fileSystem: fileSystem)) {
+    if (!await fileService.fileExists(src)) {
       throw ActionFailedException(
         'File not found: $src', moduleId: id,
       );
@@ -58,7 +57,7 @@ class SlurpBlock extends ActionBlock {
     ));
 
     try {
-      final content = await FileUtils.readBinaryFile(src, fileSystem: fileSystem);
+      final content = await fileService.readBinaryFile(src);
       final encoded = base64Encode(content);
 
       context.setVariable('slurp_content', encoded);

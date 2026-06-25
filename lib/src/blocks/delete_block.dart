@@ -1,7 +1,6 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:file/file.dart' show File;
 import 'package:glob/glob.dart';
@@ -141,14 +140,8 @@ class DeleteBlock extends ActionBlock {
     );
 
     // Check if source exists
-    final fileExists = await FileUtils.fileExists(
-      source,
-      fileSystem: fileSystem,
-    );
-    final dirExists = await FileUtils.directoryExists(
-      source,
-      fileSystem: fileSystem,
-    );
+    final fileExists = await fileService.fileExists(source);
+    final dirExists = await fileService.directoryExists(source);
     final exists = fileExists || dirExists;
     fileExisted = exists;
     isDirectorySource = dirExists;
@@ -171,7 +164,7 @@ class DeleteBlock extends ActionBlock {
       // Handle backup if configured
       if (backup && backupPath != null) {
         logger.info('Backing up file $source to $backupPath');
-        await FileUtils.copyFile(source, backupPath!, fileSystem: fileSystem);
+        await fileService.copyFile(source, backupPath!);
         backupCreated = true;
       }
 
@@ -211,8 +204,8 @@ class DeleteBlock extends ActionBlock {
     try {
       if (fileExisted && backupPath != null && backupCreated) {
         logger.info('Restoring file from $backupPath to $source');
-        await FileUtils.copyFile(backupPath!, source, fileSystem: fileSystem);
-        await FileUtils.deleteFile(backupPath!, fileSystem: fileSystem);
+        await fileService.copyFile(backupPath!, source);
+        await fileService.deleteFile(backupPath!);
       }
 
       for (final child in children) {
@@ -254,7 +247,7 @@ class DeleteBlock extends ActionBlock {
         await _moveToTrash(source);
         trashedFiles++;
       } else {
-        await FileUtils.deleteFile(source, fileSystem: fileSystem);
+        await fileService.deleteFile(source);
         deletedFiles++;
       }
     } catch (e) {
@@ -297,10 +290,9 @@ class DeleteBlock extends ActionBlock {
     // Delete the directory itself if empty
     if (recursive) {
       try {
-        await FileUtils.deleteDirectory(
+        await fileService.deleteDirectory(
           source,
           recursive: false,
-          fileSystem: fileSystem,
         );
       } catch (_) {
         // Directory might not be empty
@@ -319,7 +311,7 @@ class DeleteBlock extends ActionBlock {
         await _moveToTrash(filePath);
         trashedFiles++;
       } else {
-        await FileUtils.deleteFile(filePath, fileSystem: fileSystem);
+        await fileService.deleteFile(filePath);
         deletedFiles++;
       }
     } catch (e) {
@@ -378,6 +370,6 @@ class DeleteBlock extends ActionBlock {
   Future<void> _moveToTrash(String filePath) async {
     // Simple implementation — delete the file
     // In a real implementation this would use system trash
-    await FileUtils.deleteFile(filePath, fileSystem: fileSystem);
+    await fileService.deleteFile(filePath);
   }
 }

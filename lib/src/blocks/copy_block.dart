@@ -1,7 +1,6 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:file/file.dart' show File;
 import 'package:glob/glob.dart';
@@ -143,10 +142,7 @@ class CopyBlock extends ActionBlock {
     source = resolveHomeDirectory(source);
     destination = resolveHomeDirectory(destination);
 
-    final existCheck = await FileUtils.pathExists(
-      source,
-      fileSystem: fileSystem,
-    );
+    final existCheck = await fileService.pathExists(source);
     if (!existCheck.exists) {
       throw SourceNotFoundException(source);
     }
@@ -162,33 +158,24 @@ class CopyBlock extends ActionBlock {
         ? destination
         : path.dirname(destination);
 
-    if (!await FileUtils.directoryExists(
-      destinationDir!,
-      fileSystem: fileSystem,
-    )) {
+    if (!await fileService.directoryExists(destinationDir!)) {
       logger.info('Creating directory $destinationDir');
-      await FileUtils.createDirectory(destinationDir!, fileSystem: fileSystem);
+      await fileService.createDirectory(destinationDir!);
       hadToCreateDstDir = true;
     }
 
     final exists = await (isDirectorySource
-        ? FileUtils.directoryExists(destination, fileSystem: fileSystem)
-        : FileUtils.fileExists(destination, fileSystem: fileSystem));
+        ? fileService.directoryExists(destination)
+        : fileService.fileExists(destination));
 
     try {
       if (exists) {
-        final content = await FileUtils.readFile(
-          destination,
-          fileSystem: fileSystem,
-        );
+        final content = await fileService.readFile(destination);
         originalContent = content;
         destinationFileExisted = true;
       }
 
-      sourceHash = await FileUtils.computeFileHash(
-        source,
-        fileSystem: fileSystem,
-      );
+      sourceHash = await fileService.computeFileHash(source);
     } catch (e, st) {
       logger.warning('Failed to read state for copy', e, st);
     }
@@ -230,39 +217,24 @@ class CopyBlock extends ActionBlock {
 
     try {
       if (isDirectorySource) {
-        if (await FileUtils.directoryExists(
-          destination,
-          fileSystem: fileSystem,
-        )) {
-          await FileUtils.deleteDirectory(
-            destination,
-            recursive: true,
-            fileSystem: fileSystem,
-          );
+        if (await fileService.directoryExists(destination)) {
+          await fileService.deleteDirectory(destination, recursive: true);
         }
       } else {
-        if (await FileUtils.fileExists(destination, fileSystem: fileSystem)) {
+        if (await fileService.fileExists(destination)) {
           if (!destinationFileExisted) {
-            await FileUtils.deleteFile(destination, fileSystem: fileSystem);
+            await fileService.deleteFile(destination);
           } else if (originalContent != null) {
-            await FileUtils.writeFile(
-              destination,
-              originalContent!,
-              fileSystem: fileSystem,
-            );
+            await fileService.writeFile(destination, originalContent!);
           }
         }
 
         if (hadToCreateDstDir && destinationDir != null) {
-          if (await FileUtils.directoryExists(destinationDir!)) {
+          if (await fileService.directoryExists(destinationDir!)) {
             final dir = fileSystem.directory(destinationDir);
             final contents = await dir.list().toList();
             if (contents.isEmpty) {
-              await FileUtils.deleteDirectory(
-                destinationDir!,
-                recursive: true,
-                fileSystem: fileSystem,
-              );
+              await fileService.deleteDirectory(destinationDir!, recursive: true);
             }
           }
         }
@@ -296,22 +268,19 @@ class CopyBlock extends ActionBlock {
     destination = resolveHomeDirectory(destination);
 
     final destDir = path.dirname(destination);
-    if (!await FileUtils.directoryExists(destDir, fileSystem: fileSystem)) {
-      await FileUtils.createDirectory(destDir, fileSystem: fileSystem);
+    if (!await fileService.directoryExists(destDir)) {
+      await fileService.createDirectory(destDir);
       hadToCreateDstDir = true;
       destinationDir = destDir;
     }
 
     // Track original content for rollback
     final existsResult =
-        await FileUtils.pathExists(destination, fileSystem: fileSystem);
+        await fileService.pathExists(destination);
     if (existsResult.exists) {
       destinationFileExisted = true;
       try {
-        final content = await FileUtils.readFile(
-          destination,
-          fileSystem: fileSystem,
-        );
+        final content = await fileService.readFile(destination);
         originalContent = content;
       } catch (e, st) {
         logger.warning('Failed to read original content for rollback', e, st);
@@ -319,11 +288,7 @@ class CopyBlock extends ActionBlock {
     }
 
     try {
-      await FileUtils.writeFile(
-        destination,
-        renderedContent!,
-        fileSystem: fileSystem,
-      );
+      await fileService.writeFile(destination, renderedContent!);
       copiedFiles = 1;
 
       emitEvent(
@@ -358,10 +323,7 @@ class CopyBlock extends ActionBlock {
       return;
     }
 
-    final destExists = await FileUtils.fileExists(
-      destination,
-      fileSystem: fileSystem,
-    );
+    final destExists = await fileService.fileExists(destination);
     if (destExists) {
       switch (conflictResolution) {
         case 'skip':
@@ -374,7 +336,7 @@ class CopyBlock extends ActionBlock {
       }
     }
 
-    await FileUtils.copyFile(source, destination, fileSystem: fileSystem);
+    await fileService.copyFile(source, destination);
     copiedFiles++;
   }
 
@@ -408,8 +370,8 @@ class CopyBlock extends ActionBlock {
       }
 
       final destDir = path.dirname(destPath);
-      if (!await FileUtils.directoryExists(destDir, fileSystem: fileSystem)) {
-        await FileUtils.createDirectory(destDir, fileSystem: fileSystem);
+      if (!await fileService.directoryExists(destDir)) {
+        await fileService.createDirectory(destDir);
       }
 
       await _copyFileEntry(filePath, destPath);
@@ -422,7 +384,7 @@ class CopyBlock extends ActionBlock {
       return;
     }
 
-    final exists = await FileUtils.fileExists(dst, fileSystem: fileSystem);
+    final exists = await fileService.fileExists(dst);
     if (exists) {
       switch (conflictResolution) {
         case 'skip':
@@ -435,7 +397,7 @@ class CopyBlock extends ActionBlock {
       }
     }
 
-    await FileUtils.copyFile(src, dst, fileSystem: fileSystem);
+    await fileService.copyFile(src, dst);
     copiedFiles++;
   }
 

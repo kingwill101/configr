@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:configr/src/di.dart';
 import 'package:configr/src/utils/fs.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
@@ -54,13 +55,32 @@ abstract class FileService {
     String? workingDirectory,
     Map<String, String>? environment,
   });
+  Future<void> writeFileWithPermissions(
+    String path,
+    String content, {
+    bool requireElevation = false,
+  });
+  Future<void> createDirectoryWithPermissions(
+    String path, {
+    bool requireElevation = false,
+  });
 }
 
-/// Concrete [FileService] backed by the real local file system.
+/// Concrete [FileService] backed by a [FileSystem].
+///
+/// Resolves [FileSystem] from the DI container lazily on first access, so the
+/// same filesystem (local, memory, remote) is used everywhere and survives
+/// DI reassignment in tests.
 class LocalFileService implements FileService {
-  final FileSystem _fs;
+  final FileSystem? _explicitFs;
 
-  LocalFileService({FileSystem? fileSystem}) : _fs = fileSystem ?? fs;
+  LocalFileService({FileSystem? fileSystem}) : _explicitFs = fileSystem;
+
+  FileSystem get _fs {
+    if (_explicitFs != null) return _explicitFs;
+    if (di.isRegistered<FileSystem>()) return di<FileSystem>();
+    return fs;
+  }
 
   @override
   Future<bool> fileExists(String path) async {
@@ -316,6 +336,89 @@ class LocalFileService implements FileService {
     return Process.run(command, arguments,
         workingDirectory: workingDirectory, environment: environment);
   }
+
+  @override
+  Future<void> writeFileWithPermissions(
+    String path,
+    String content, {
+    bool requireElevation = false,
+  }) async {
+    final escalation = _escalation;
+    final dir = p.dirname(path);
+    if (!await directoryExists(dir)) {
+      if (escalation != null) {
+        await createDirectoryWithPermissions(dir, requireElevation: requireElevation);
+      } else {
+        await createDirectory(dir, recursive: true);
+      }
+    }
+    if (!requireElevation) {
+      try {
+        await _fs.file(path).writeAsString(content);
+        return;
+      } catch (e) {
+        if (_isPermissionException(e) && escalation != null) {
+          requireElevation = true;
+        } else {
+          rethrow;
+        }
+      }
+    }
+    if (escalation == null) {
+      throw Exception('Permission denied and no privilege escalation available for: $path');
+    }
+    final tempFile = _fs.systemTempDirectory
+        .createTempSync()
+        .childFile('configr_temp_${DateTime.now().millisecondsSinceEpoch}');
+    tempFile.writeAsStringSync(content);
+    try {
+      await escalation.runWithElevatedPrivileges('cp', [tempFile.path, path]);
+      await escalation.runWithElevatedPrivileges('chmod', ['644', path]);
+    } finally {
+      if (await tempFile.exists()) tempFile.deleteSync();
+    }
+  }
+
+  @override
+  Future<void> createDirectoryWithPermissions(
+    String path, {
+    bool requireElevation = false,
+  }) async {
+    final dir = _fs.directory(path);
+    if (await dir.exists()) return;
+    if (!requireElevation) {
+      try {
+        await dir.create(recursive: true);
+        return;
+      } catch (e) {
+        if (_isPermissionException(e)) {
+          requireElevation = true;
+        } else {
+          rethrow;
+        }
+      }
+    }
+    if (!requireElevation) return;
+    final escalation = _escalation;
+    if (escalation == null) {
+      throw Exception('Permission denied and no privilege escalation available for: $path');
+    }
+    await escalation.runWithElevatedPrivileges('mkdir', ['-p', path]);
+  }
+
+  PrivilegeEscalation? get _escalation =>
+      di.isRegistered<PrivilegeEscalation>() ? di<PrivilegeEscalation>() : null;
+}
+
+bool _isPermissionException(dynamic e) {
+  if (e is ProcessException) {
+    final msg = e.message.toLowerCase();
+    return msg.contains('permission denied') || msg.contains('access denied');
+  }
+  if (e is FileSystemException) {
+    return e.osError?.errorCode == 13;
+  }
+  return false;
 }
 
 /// [FileService] backed by a [MemoryFileSystem] for testing.

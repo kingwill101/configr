@@ -1,7 +1,6 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
@@ -212,7 +211,7 @@ class FileBlock extends ActionBlock {
   // ---------------------------------------------------------------------------
 
   Future<void> _executeCreate() async {
-    fileExisted = await FileUtils.fileExists(filePath, fileSystem: fileSystem);
+    fileExisted = await fileService.fileExists(filePath);
 
     // Create parent directories if needed
     if (createDirectories) {
@@ -225,19 +224,16 @@ class FileBlock extends ActionBlock {
     // Backup original if it exists
     if (fileExisted && backupOriginal) {
       backupPath = '$filePath$backupSuffix';
-      await FileUtils.copyFile(filePath, backupPath!, fileSystem: fileSystem);
+      await fileService.copyFile(filePath, backupPath!);
     }
 
     // Store original content for rollback
     if (fileExisted) {
-      originalContent = await FileUtils.readFile(
-        filePath,
-        fileSystem: fileSystem,
-      );
+      originalContent = await fileService.readFile(filePath);
     }
 
     // Write content
-    await FileUtils.writeFile(filePath, content, fileSystem: fileSystem);
+    await fileService.writeFile(filePath, content);
   }
 
   // ---------------------------------------------------------------------------
@@ -245,7 +241,7 @@ class FileBlock extends ActionBlock {
   // ---------------------------------------------------------------------------
 
   Future<void> _executeEdit() async {
-    final exists = await FileUtils.fileExists(filePath, fileSystem: fileSystem);
+    final exists = await fileService.fileExists(filePath);
     if (!exists) {
       throw ActionFailedException(
         'File does not exist for edit operation: $filePath',
@@ -254,15 +250,12 @@ class FileBlock extends ActionBlock {
     }
 
     fileExisted = true;
-    originalContent = await FileUtils.readFile(
-      filePath,
-      fileSystem: fileSystem,
-    );
+    originalContent = await fileService.readFile(filePath);
 
     // Backup if enabled
     if (backupOriginal) {
       backupPath = '$filePath$backupSuffix';
-      await FileUtils.copyFile(filePath, backupPath!, fileSystem: fileSystem);
+      await fileService.copyFile(filePath, backupPath!);
     }
 
     String newContent;
@@ -283,7 +276,7 @@ class FileBlock extends ActionBlock {
         );
     }
 
-    await FileUtils.writeFile(filePath, newContent, fileSystem: fileSystem);
+    await fileService.writeFile(filePath, newContent);
   }
 
   // ---------------------------------------------------------------------------
@@ -291,7 +284,7 @@ class FileBlock extends ActionBlock {
   // ---------------------------------------------------------------------------
 
   Future<void> _executeRemove() async {
-    fileExisted = await FileUtils.fileExists(filePath, fileSystem: fileSystem);
+    fileExisted = await fileService.fileExists(filePath);
 
     if (!fileExisted) {
       logger.info('File does not exist, nothing to remove: $filePath');
@@ -299,19 +292,16 @@ class FileBlock extends ActionBlock {
     }
 
     // Store original content for rollback
-    originalContent = await FileUtils.readFile(
-      filePath,
-      fileSystem: fileSystem,
-    );
+    originalContent = await fileService.readFile(filePath);
 
     // Backup if enabled
     if (backupOriginal) {
       backupPath = '$filePath$backupSuffix';
-      await FileUtils.copyFile(filePath, backupPath!, fileSystem: fileSystem);
+      await fileService.copyFile(filePath, backupPath!);
     }
 
     // Remove file
-    await FileUtils.deleteFile(filePath, fileSystem: fileSystem);
+    await fileService.deleteFile(filePath);
   }
 
   // ---------------------------------------------------------------------------
@@ -320,55 +310,40 @@ class FileBlock extends ActionBlock {
 
   Future<void> _rollbackCreate() async {
     if (fileExisted && originalContent != null) {
-      await FileUtils.writeFile(
-        filePath,
-        originalContent!,
-        fileSystem: fileSystem,
-      );
-    } else if (await FileUtils.fileExists(filePath, fileSystem: fileSystem)) {
-      await FileUtils.deleteFile(filePath, fileSystem: fileSystem);
+      await fileService.writeFile(filePath, originalContent!);
+    } else if (await fileService.fileExists(filePath)) {
+      await fileService.deleteFile(filePath);
     }
 
     if (backupPath != null &&
-        await FileUtils.fileExists(backupPath!, fileSystem: fileSystem)) {
-      await FileUtils.deleteFile(backupPath!, fileSystem: fileSystem);
+        await fileService.fileExists(backupPath!)) {
+      await fileService.deleteFile(backupPath!);
     }
   }
 
   Future<void> _rollbackEdit() async {
     if (originalContent != null) {
-      await FileUtils.writeFile(
-        filePath,
-        originalContent!,
-        fileSystem: fileSystem,
-      );
+      await fileService.writeFile(filePath, originalContent!);
     }
 
     if (backupPath != null &&
-        await FileUtils.fileExists(backupPath!, fileSystem: fileSystem)) {
-      await FileUtils.deleteFile(backupPath!, fileSystem: fileSystem);
+        await fileService.fileExists(backupPath!)) {
+      await fileService.deleteFile(backupPath!);
     }
   }
 
   Future<void> _rollbackRemove() async {
     if (originalContent != null) {
-      await FileUtils.writeFile(
-        filePath,
-        originalContent!,
-        fileSystem: fileSystem,
-      );
+      await fileService.writeFile(filePath, originalContent!);
     } else if (backupPath != null &&
-        await FileUtils.fileExists(backupPath!, fileSystem: fileSystem)) {
-      final content = await FileUtils.readFile(
-        backupPath!,
-        fileSystem: fileSystem,
-      );
-      await FileUtils.writeFile(filePath, content, fileSystem: fileSystem);
+        await fileService.fileExists(backupPath!)) {
+      final content = await fileService.readFile(backupPath!);
+      await fileService.writeFile(filePath, content);
     }
 
     if (backupPath != null &&
-        await FileUtils.fileExists(backupPath!, fileSystem: fileSystem)) {
-      await FileUtils.deleteFile(backupPath!, fileSystem: fileSystem);
+        await fileService.fileExists(backupPath!)) {
+      await fileService.deleteFile(backupPath!);
     }
   }
 }

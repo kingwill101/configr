@@ -1,7 +1,6 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:file/file.dart' show File;
 import 'package:i3config/i3config_v2.dart' as i3;
@@ -69,14 +68,13 @@ class PermissionsBlock extends ActionBlock {
       StartedEvent(moduleId: id, message: 'Changing permissions on $source'),
     );
 
-    if (!await FileUtils.fileExists(source, fileSystem: fileSystem)) {
+    if (!await fileService.fileExists(source)) {
       throw SourceNotFoundException(source);
     }
 
     try {
-      final isDir = await FileUtils.directoryExists(
+      final isDir = await fileService.directoryExists(
         source,
-        fileSystem: fileSystem,
       );
 
       if (isDir && recursive) {
@@ -117,31 +115,28 @@ class PermissionsBlock extends ActionBlock {
               fileState['originalOwnership'] as Map<String, String>?;
           final origPerm = fileState['originalPermissions'] as String?;
           if (origOwn != null) {
-            await FileUtils.chown(
+            await fileService.chown(
               path,
               origOwn['owner'],
               origOwn['group'],
-              fileSystem: fileSystem,
             );
           }
           if (origPerm != null) {
-            await FileUtils.chmod(path, origPerm, fileSystem: fileSystem);
+            await fileService.chmod(path, origPerm);
           }
         }
       } else {
         if (originalOwnership != null) {
-          await FileUtils.chown(
+          await fileService.chown(
             source,
             originalOwnership!['owner'],
             originalOwnership!['group'],
-            fileSystem: fileSystem,
           );
         }
         if (originalPermissions != null) {
-          await FileUtils.chmod(
+          await fileService.chmod(
             source,
             originalPermissions!,
-            fileSystem: fileSystem,
           );
         }
       }
@@ -158,8 +153,8 @@ class PermissionsBlock extends ActionBlock {
   }
 
   Future<void> _processSingleFile(String filePath) async {
-    final currentOwn = await FileUtils.getOwnership(filePath);
-    final currentPerm = await FileUtils.getPermissions(filePath);
+    final currentOwn = await fileService.getOwnership(filePath);
+    final currentPerm = await fileService.getPermissions(filePath);
     originalOwnership = currentOwn;
     originalPermissions = currentPerm;
 
@@ -172,8 +167,8 @@ class PermissionsBlock extends ActionBlock {
 
     for (final filePath in files) {
       try {
-        final currentOwn = await FileUtils.getOwnership(filePath);
-        final currentPerm = await FileUtils.getPermissions(filePath);
+        final currentOwn = await fileService.getOwnership(filePath);
+        final currentPerm = await fileService.getPermissions(filePath);
         originalStates.add({
           'path': filePath,
           'originalOwnership': currentOwn,
@@ -202,11 +197,11 @@ class PermissionsBlock extends ActionBlock {
   ) async {
     if (owner != null || group != null) {
       logger.info('Setting ownership on $filePath to $owner:$group');
-      await FileUtils.chown(filePath, owner, group, fileSystem: fileSystem);
+      await fileService.chown(filePath, owner, group);
     }
     if (mode != null) {
       logger.info('Setting permissions on $filePath to $mode');
-      await FileUtils.chmod(filePath, mode!, fileSystem: fileSystem);
+      await fileService.chmod(filePath, mode!);
     }
   }
 }

@@ -1,7 +1,6 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:file/file.dart' show File;
 import 'package:glob/glob.dart';
@@ -175,35 +174,32 @@ class SymlinkBlock extends ActionBlock {
     try {
       // Remove created symlinks
       for (final createdPath in createdPaths) {
-        if (await FileUtils.isSymlink(createdPath, fileSystem: fileSystem)) {
+        if (await fileService.isSymlink(createdPath)) {
           logger.info('Deleting symlink $createdPath');
-          await FileUtils.deleteFile(createdPath, fileSystem: fileSystem);
+          await fileService.deleteFile(createdPath);
         }
       }
 
       // Restore original symlink if it existed
       if (symlinkExisted && originalTarget != null) {
-        if (await FileUtils.isSymlink(destination, fileSystem: fileSystem)) {
-          await FileUtils.deleteFile(destination, fileSystem: fileSystem);
+        if (await fileService.isSymlink(destination)) {
+          await fileService.deleteFile(destination);
         }
-        await FileUtils.createSymlink(
+        await fileService.createSymlink(
           originalTarget!,
           destination,
-          fileSystem: fileSystem,
         );
       }
 
       // Clean up created directories
       if (hadToCreateDstDir) {
         final symlinkDir = path.dirname(destination);
-        if (await FileUtils.directoryExists(
+        if (await fileService.directoryExists(
           symlinkDir,
-          fileSystem: fileSystem,
         )) {
-          await FileUtils.deleteDirectory(
+          await fileService.deleteDirectory(
             symlinkDir,
             recursive: true,
-            fileSystem: fileSystem,
           );
         }
       }
@@ -215,14 +211,13 @@ class SymlinkBlock extends ActionBlock {
         if (dir != destination) createdDirs.add(dir);
       }
       for (final dir in createdDirs) {
-        if (await FileUtils.directoryExists(dir, fileSystem: fileSystem)) {
+        if (await fileService.directoryExists(dir)) {
           final dirEntity = fileSystem.directory(dir);
           final isEmpty = await dirEntity.list().isEmpty;
           if (isEmpty) {
-            await FileUtils.deleteDirectory(
+            await fileService.deleteDirectory(
               dir,
               recursive: false,
-              fileSystem: fileSystem,
             );
           }
         }
@@ -248,9 +243,8 @@ class SymlinkBlock extends ActionBlock {
   // ---------------------------------------------------------------------------
 
   Future<bool> _isDirectoryOperation() async {
-    final existCheck = await FileUtils.pathExists(
+    final existCheck = await fileService.pathExists(
       source,
-      fileSystem: fileSystem,
     );
     return existCheck.isDir;
   }
@@ -260,7 +254,7 @@ class SymlinkBlock extends ActionBlock {
 
     // Validate source exists
     if (validateTargets) {
-      final exists = await FileUtils.fileExists(source, fileSystem: fileSystem);
+      final exists = await fileService.fileExists(source);
       sourceExists = exists;
       if (!exists) {
         throw SourceNotFoundException(source);
@@ -269,28 +263,26 @@ class SymlinkBlock extends ActionBlock {
 
     // Create destination directory if needed
     if (createDirectories &&
-        !await FileUtils.directoryExists(symlinkDir, fileSystem: fileSystem)) {
+        !await fileService.directoryExists(symlinkDir)) {
       logger.info('Creating directory $symlinkDir');
-      await FileUtils.createDirectory(symlinkDir, fileSystem: fileSystem);
+      await fileService.createDirectory(symlinkDir);
       hadToCreateDstDir = true;
     }
 
     // Handle existing symlink
-    if (await FileUtils.isSymlink(destination, fileSystem: fileSystem)) {
-      originalTarget = await FileUtils.readSymlink(
+    if (await fileService.isSymlink(destination)) {
+      originalTarget = await fileService.readSymlink(
         destination,
-        fileSystem: fileSystem,
       );
       symlinkExisted = true;
 
       switch (conflictResolution) {
         case 'overwrite':
           logger.info('Overwriting existing symlink $destination');
-          await FileUtils.deleteFile(destination, fileSystem: fileSystem);
-          await FileUtils.createSymlink(
+          await fileService.deleteFile(destination);
+          await fileService.createSymlink(
             source,
             destination,
-            fileSystem: fileSystem,
           );
           overwrittenSymlinks++;
           createdPaths.add(destination);
@@ -308,10 +300,9 @@ class SymlinkBlock extends ActionBlock {
       }
     } else {
       logger.info('Creating symlink from $source to $destination');
-      await FileUtils.createSymlink(
+      await fileService.createSymlink(
         source,
         destination,
-        fileSystem: fileSystem,
       );
       createdSymlinks++;
       createdPaths.add(destination);
@@ -360,19 +351,18 @@ class SymlinkBlock extends ActionBlock {
 
     // Create target directory if needed
     if (createDirectories &&
-        !await FileUtils.directoryExists(targetDir, fileSystem: fileSystem)) {
-      await FileUtils.createDirectory(targetDir, fileSystem: fileSystem);
+        !await fileService.directoryExists(targetDir)) {
+      await fileService.createDirectory(targetDir);
     }
 
     // Handle existing symlink
-    if (await FileUtils.isSymlink(targetPath, fileSystem: fileSystem)) {
+    if (await fileService.isSymlink(targetPath)) {
       switch (conflictResolution) {
         case 'overwrite':
-          await FileUtils.deleteFile(targetPath, fileSystem: fileSystem);
-          await FileUtils.createSymlink(
+          await fileService.deleteFile(targetPath);
+          await fileService.createSymlink(
             filePath,
             targetPath,
-            fileSystem: fileSystem,
           );
           overwrittenSymlinks++;
           createdPaths.add(targetPath);
@@ -388,10 +378,9 @@ class SymlinkBlock extends ActionBlock {
           );
       }
     } else {
-      await FileUtils.createSymlink(
+      await fileService.createSymlink(
         filePath,
         targetPath,
-        fileSystem: fileSystem,
       );
       createdSymlinks++;
       createdPaths.add(targetPath);
@@ -402,16 +391,15 @@ class SymlinkBlock extends ActionBlock {
     final files = <String>[];
 
     if (includePatterns.isEmpty) {
-      if (await FileUtils.directoryExists(sourcePath, fileSystem: fileSystem)) {
+      if (await fileService.directoryExists(sourcePath)) {
         await _collectFilesRecursively(sourcePath, files);
-      } else if (await FileUtils.fileExists(
+      } else if (await fileService.fileExists(
         sourcePath,
-        fileSystem: fileSystem,
       )) {
         files.add(sourcePath);
       }
     } else {
-      if (await FileUtils.directoryExists(sourcePath, fileSystem: fileSystem)) {
+      if (await fileService.directoryExists(sourcePath)) {
         await _collectFilesRecursively(sourcePath, files);
       }
 
@@ -447,7 +435,7 @@ class SymlinkBlock extends ActionBlock {
     String dirPath,
     List<String> files,
   ) async {
-    if (!await FileUtils.directoryExists(dirPath, fileSystem: fileSystem)) {
+    if (!await fileService.directoryExists(dirPath)) {
       return;
     }
 

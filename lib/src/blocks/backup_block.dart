@@ -5,7 +5,6 @@ import 'package:archive/archive.dart';
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:crypto/crypto.dart' show sha256;
 import 'package:i3config/i3config_v2.dart' as i3;
@@ -114,22 +113,21 @@ class BackupBlock extends ActionBlock {
     );
 
     // Check source exists
-    final exists = await FileUtils.pathExists(source, fileSystem: fileSystem);
+    final exists = await fileService.pathExists(source);
     if (!exists.exists) {
       throw SourceNotFoundException(source);
     }
 
     // Ensure destination directory exists
     final destDir = path.dirname(destination);
-    if (!await FileUtils.directoryExists(destDir, fileSystem: fileSystem)) {
-      await FileUtils.createDirectory(destDir, fileSystem: fileSystem);
+    if (!await fileService.directoryExists(destDir)) {
+      await fileService.createDirectory(destDir);
       hadToCreateDstDir = true;
     }
 
     // Check if destination already exists
-    final destExists = await FileUtils.fileExists(
+    final destExists = await fileService.fileExists(
       destination,
-      fileSystem: fileSystem,
     );
     destinationFileExisted = destExists;
 
@@ -169,26 +167,25 @@ class BackupBlock extends ActionBlock {
 
     try {
       if (!destinationFileExisted) {
-        if (await FileUtils.fileExists(destination, fileSystem: fileSystem)) {
-          await FileUtils.deleteFile(destination, fileSystem: fileSystem);
+        if (await fileService.fileExists(destination)) {
+          await fileService.deleteFile(destination);
         }
       }
 
       if (manifestPath != null &&
-          await FileUtils.fileExists(manifestPath!, fileSystem: fileSystem)) {
-        await FileUtils.deleteFile(manifestPath!, fileSystem: fileSystem);
+          await fileService.fileExists(manifestPath!)) {
+        await fileService.deleteFile(manifestPath!);
       }
 
       if (hadToCreateDstDir) {
         final destDir = path.dirname(destination);
-        if (await FileUtils.directoryExists(destDir, fileSystem: fileSystem)) {
+        if (await fileService.directoryExists(destDir)) {
           final dir = fileSystem.directory(destDir);
           final contents = await dir.list().toList();
           if (contents.isEmpty) {
-            await FileUtils.deleteDirectory(
+            await fileService.deleteDirectory(
               destDir,
               recursive: true,
-              fileSystem: fileSystem,
             );
           }
         }
@@ -214,23 +211,20 @@ class BackupBlock extends ActionBlock {
   // ---------------------------------------------------------------------------
 
   Future<void> _performFullBackup() async {
-    final isDir = await FileUtils.directoryExists(
+    final isDir = await fileService.directoryExists(
       source,
-      fileSystem: fileSystem,
     );
 
     if (compression) {
       await _createCompressedBackup(source, destination);
     } else if (isDir) {
       // Copy entire directory
-      if (await FileUtils.directoryExists(
+      if (await fileService.directoryExists(
         destination,
-        fileSystem: fileSystem,
       )) {
-        await FileUtils.deleteDirectory(
+        await fileService.deleteDirectory(
           destination,
           recursive: true,
-          fileSystem: fileSystem,
         );
       }
       // Copy directory contents manually using FileUtils
@@ -242,11 +236,11 @@ class BackupBlock extends ActionBlock {
         if (!await destParent.exists()) {
           await destParent.create(recursive: true);
         }
-        await FileUtils.copyFile(entity.path, destPath, fileSystem: fileSystem);
+        await fileService.copyFile(entity.path, destPath);
       }
     } else {
       // Copy single file
-      await FileUtils.copyFile(source, destination, fileSystem: fileSystem);
+      await fileService.copyFile(source, destination);
     }
   }
 
@@ -278,10 +272,10 @@ class BackupBlock extends ActionBlock {
         final dst = path.join(destination, relativePath);
         final dstDir = path.dirname(dst);
 
-        if (!await FileUtils.directoryExists(dstDir, fileSystem: fileSystem)) {
-          await FileUtils.createDirectory(dstDir, fileSystem: fileSystem);
+        if (!await fileService.directoryExists(dstDir)) {
+          await fileService.createDirectory(dstDir);
         }
-        await FileUtils.copyFile(src, dst, fileSystem: fileSystem);
+        await fileService.copyFile(src, dst);
       }
     }
 
@@ -294,17 +288,15 @@ class BackupBlock extends ActionBlock {
   ) async {
     final archive = Archive();
 
-    final isDir = await FileUtils.directoryExists(
+    final isDir = await fileService.directoryExists(
       sourcePath,
-      fileSystem: fileSystem,
     );
 
     if (isDir) {
       await _addDirectoryToArchive(sourcePath, archive);
     } else {
-      final content = await FileUtils.readFile(
+      final content = await fileService.readFile(
         sourcePath,
-        fileSystem: fileSystem,
       );
       archive.addFile(
         ArchiveFile(
@@ -333,8 +325,8 @@ class BackupBlock extends ActionBlock {
       encoded = _encryptData(encoded);
     }
 
-    if (await FileUtils.fileExists(destPath, fileSystem: fileSystem)) {
-      await FileUtils.deleteFile(destPath, fileSystem: fileSystem);
+    if (await fileService.fileExists(destPath)) {
+      await fileService.deleteFile(destPath);
     }
     await fileSystem.file(destPath).writeAsBytes(encoded);
   }
@@ -348,10 +340,9 @@ class BackupBlock extends ActionBlock {
 
     for (final relativePath in changedFiles) {
       final fullPath = path.join(sourcePath, relativePath);
-      if (await FileUtils.fileExists(fullPath, fileSystem: fileSystem)) {
-        final content = await FileUtils.readFile(
+      if (await fileService.fileExists(fullPath)) {
+        final content = await fileService.readFile(
           fullPath,
-          fileSystem: fileSystem,
         );
         archive.addFile(
           ArchiveFile(relativePath, content.length, content.codeUnits),
@@ -384,9 +375,8 @@ class BackupBlock extends ActionBlock {
     await for (final entity in dir.list(recursive: true)) {
       if (entity is File) {
         final relativePath = path.relative(entity.path, from: dirPath);
-        final content = await FileUtils.readFile(
+        final content = await fileService.readFile(
           entity.path,
-          fileSystem: fileSystem,
         );
         archive.addFile(
           ArchiveFile(relativePath, content.length, content.codeUnits),
@@ -404,9 +394,8 @@ class BackupBlock extends ActionBlock {
 
   Future<Map<String, String>> _calculateFileHashes(String sourcePath) async {
     final hashes = <String, String>{};
-    final isDir = await FileUtils.directoryExists(
+    final isDir = await fileService.directoryExists(
       sourcePath,
-      fileSystem: fileSystem,
     );
 
     if (isDir) {
@@ -414,9 +403,8 @@ class BackupBlock extends ActionBlock {
       await for (final entity in dir.list(recursive: true)) {
         if (entity is File) {
           final relativePath = path.relative(entity.path, from: sourcePath);
-          final content = await FileUtils.readFile(
+          final content = await fileService.readFile(
             entity.path,
-            fileSystem: fileSystem,
           );
           hashes[relativePath] = sha256
               .convert(utf8.encode(content))
@@ -424,9 +412,8 @@ class BackupBlock extends ActionBlock {
         }
       }
     } else {
-      final content = await FileUtils.readFile(
+      final content = await fileService.readFile(
         sourcePath,
-        fileSystem: fileSystem,
       );
       hashes[path.basename(sourcePath)] = sha256
           .convert(utf8.encode(content))
@@ -449,20 +436,18 @@ class BackupBlock extends ActionBlock {
       'file_hashes': fileHashes,
     };
 
-    await FileUtils.writeFile(
+    await fileService.writeFile(
       manifestPath!,
       jsonEncode(manifest),
-      fileSystem: fileSystem,
     );
   }
 
   Future<Map<String, String>> _loadManifest() async {
     final manifestFile = '$destination.manifest.json';
-    if (await FileUtils.fileExists(manifestFile, fileSystem: fileSystem)) {
+    if (await fileService.fileExists(manifestFile)) {
       try {
-        final content = await FileUtils.readFile(
+        final content = await fileService.readFile(
           manifestFile,
-          fileSystem: fileSystem,
         );
         final data = jsonDecode(content) as Map<String, dynamic>;
         final hashes = data['file_hashes'];

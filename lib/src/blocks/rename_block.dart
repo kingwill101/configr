@@ -1,7 +1,6 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 import 'package:path/path.dart' as path;
@@ -60,14 +59,13 @@ class RenameBlock extends ActionBlock {
       ),
     );
 
-    if (!await FileUtils.fileExists(source, fileSystem: fileSystem)) {
+    if (!await fileService.fileExists(source)) {
       logger.severe('Source file $source does not exist');
       throw SourceNotFoundException(source);
     }
 
-    final exists = await FileUtils.fileExists(
+    final exists = await fileService.fileExists(
       destination,
-      fileSystem: fileSystem,
     );
     destinationFileExisted = exists;
 
@@ -90,7 +88,7 @@ class RenameBlock extends ActionBlock {
     originalName = path.basename(source);
     logger.info('Renaming $source → $destination');
     try {
-      await FileUtils.moveFile(source, destination, fileSystem: fileSystem);
+      await fileService.moveFile(source, destination);
       didRename = true;
       emitEvent(
         CompletedEvent(
@@ -125,10 +123,9 @@ class RenameBlock extends ActionBlock {
     try {
       final originalPath = path.join(path.dirname(source), originalName!);
       logger.info('Renaming back: $destination → $originalPath');
-      await FileUtils.moveFile(
+      await fileService.moveFile(
         destination,
         originalPath,
-        fileSystem: fileSystem,
       );
       emitEvent(
         CompletedEvent(moduleId: id, message: 'Rename rollback completed'),

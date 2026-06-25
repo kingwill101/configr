@@ -2,7 +2,6 @@ import 'package:archive/archive.dart';
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:file/file.dart' show File;
 import 'package:glob/glob.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
@@ -123,18 +122,12 @@ class CompressBlock extends ActionBlock {
       );
     }
 
-    final pathExists = await FileUtils.pathExists(
-      source,
-      fileSystem: fileSystem,
-    );
+    final pathExists = await fileService.pathExists(source);
     if (!pathExists.exists) {
       throw SourceNotFoundException(source);
     }
 
-    final exists = await FileUtils.fileExists(
-      destination,
-      fileSystem: fileSystem,
-    );
+    final exists = await fileService.fileExists(destination);
     destinationFileExisted = exists;
 
     // Execute child blocks
@@ -161,12 +154,12 @@ class CompressBlock extends ActionBlock {
 
       // Ensure destination parent dir exists
       final destDir = path.dirname(destination);
-      if (!await FileUtils.directoryExists(destDir, fileSystem: fileSystem)) {
-        await FileUtils.createDirectory(destDir, fileSystem: fileSystem);
+      if (!await fileService.directoryExists(destDir)) {
+        await fileService.createDirectory(destDir);
       }
 
       if (exists) {
-        await FileUtils.deleteFile(destination, fileSystem: fileSystem);
+        await fileService.deleteFile(destination);
       }
 
       await fileSystem.file(destination).writeAsBytes(compressedData);
@@ -187,8 +180,8 @@ class CompressBlock extends ActionBlock {
   @override
   Future<void> rollback() async {
     if (!destinationFileExisted) {
-      if (await FileUtils.fileExists(destination, fileSystem: fileSystem)) {
-        await FileUtils.deleteFile(destination, fileSystem: fileSystem);
+      if (await fileService.fileExists(destination)) {
+        await fileService.deleteFile(destination);
       }
     }
 
@@ -215,7 +208,7 @@ class CompressBlock extends ActionBlock {
       );
     }
 
-    final content = await FileUtils.readFile(filePath, fileSystem: fileSystem);
+    final content = await fileService.readFile(filePath);
     final archive = Archive();
     final fileName = path.basename(filePath);
 
@@ -296,10 +289,7 @@ class CompressBlock extends ActionBlock {
         final relativePath = preserveStructure
             ? path.relative(entity.path, from: dirPath)
             : path.basename(entity.path);
-        final content = await FileUtils.readFile(
-          entity.path,
-          fileSystem: fileSystem,
-        );
+        final content = await fileService.readFile(entity.path);
 
         final archiveFile = ArchiveFile(
           relativePath,

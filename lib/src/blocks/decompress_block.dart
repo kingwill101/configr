@@ -2,7 +2,6 @@ import 'package:archive/archive.dart';
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:glob/glob.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 import 'package:path/path.dart' as path;
@@ -110,7 +109,7 @@ class DecompressBlock extends ActionBlock {
       );
     }
 
-    final exists = await FileUtils.fileExists(source, fileSystem: fileSystem);
+    final exists = await fileService.fileExists(source);
     sourceExists = exists;
     if (!exists) {
       throw SourceNotFoundException(source);
@@ -131,10 +130,7 @@ class DecompressBlock extends ActionBlock {
         ),
       );
 
-      final data = await FileUtils.readBinaryFile(
-        source,
-        fileSystem: fileSystem,
-      );
+      final data = await fileService.readBinaryFile(source);
       compressedSize = data.length;
       final archive = _decodeArchive(data, format);
       totalFiles = archive.files.length;
@@ -173,11 +169,10 @@ class DecompressBlock extends ActionBlock {
   @override
   Future<void> rollback() async {
     // Remove the entire destination directory
-    if (await FileUtils.directoryExists(destination, fileSystem: fileSystem)) {
-      await FileUtils.deleteDirectory(
+    if (await fileService.directoryExists(destination)) {
+      await fileService.deleteDirectory(
         destination,
         recursive: true,
-        fileSystem: fileSystem,
       );
     }
 
@@ -192,8 +187,8 @@ class DecompressBlock extends ActionBlock {
 
   Future<void> _extractArchive(Archive archive) async {
     // Ensure destination directory exists
-    if (!await FileUtils.directoryExists(destination, fileSystem: fileSystem)) {
-      await FileUtils.createDirectory(destination, fileSystem: fileSystem);
+    if (!await fileService.directoryExists(destination)) {
+      await fileService.createDirectory(destination);
     }
 
     for (final file in archive) {
@@ -204,19 +199,18 @@ class DecompressBlock extends ActionBlock {
 
         if (file.isFile) {
           final dir = fileSystem.path.dirname(filePath);
-          if (!await FileUtils.directoryExists(dir, fileSystem: fileSystem)) {
-            await FileUtils.createDirectory(dir, fileSystem: fileSystem);
+          if (!await fileService.directoryExists(dir)) {
+            await fileService.createDirectory(dir);
           }
-          await FileUtils.writeFile(
+          await fileService.writeFile(
             filePath,
             String.fromCharCodes(file.content),
-            fileSystem: fileSystem,
           );
           createdFiles.add(filePath);
           extractedFiles++;
           uncompressedSize += file.size;
         } else {
-          await FileUtils.createDirectory(filePath, fileSystem: fileSystem);
+          await fileService.createDirectory(filePath);
         }
 
         if (extractedFiles % 10 == 0 || extractedFiles == totalFiles) {

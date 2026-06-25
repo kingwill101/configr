@@ -1,7 +1,6 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/platform.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
@@ -127,8 +126,8 @@ abstract class MountBlock extends ActionBlock {
   String get fstabPath => '/etc/fstab';
 
   Future<List<String>> _readFstabLines() async {
-    if (!await FileUtils.fileExists(fstabPath)) return [];
-    final content = await FileUtils.readFile(fstabPath);
+    if (!await fileService.fileExists(fstabPath)) return [];
+    final content = await fileService.readFile(fstabPath);
     return content.split('\n');
   }
 

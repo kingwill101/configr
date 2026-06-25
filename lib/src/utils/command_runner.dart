@@ -1,12 +1,23 @@
 import 'dart:io';
 
+import 'package:configr/src/di.dart';
+import 'package:configr/src/models/command.dart';
+import 'package:configr/src/utils/command_executor.dart';
+import 'package:configr/src/utils/privilege_escalation.dart'
+    show PrivilegeEscalation;
+
 /// Injectable command runner that abstracts execution of system commands.
 ///
-/// Blocks that shell out to system tools should depend on this interface
-/// instead of calling `Process.run` directly, so execution can be swapped
-/// for dry-run mode, logging wrappers, or remote SSH execution.
+/// All implementations route through [CommandExecutor] so that security
+/// checks (input sanitization, security manager validation, audit events)
+/// are always applied. Blocks should depend on this interface instead of
+/// calling [CommandExecutor] or [Process.run] directly.
 abstract class CommandRunner {
   /// Run [command] with [arguments] and return the result.
+  ///
+  /// Delegates to [CommandExecutor.execute] for the actual execution.
+  /// [environment] is passed directly to [Process.run] when set (the
+  /// executor does not support custom env vars).
   Future<ProcessResult> run(
     String command,
     List<String> arguments, {
@@ -16,6 +27,7 @@ abstract class CommandRunner {
   });
 
   /// Run a command and capture stdout as a trimmed string.
+  /// Throws if the exit code is non-zero.
   Future<String> runAndCapture(
     String command,
     List<String> arguments, {
@@ -28,10 +40,14 @@ abstract class CommandRunner {
   Future<bool> commandExists(String command);
 }
 
-/// Concrete [CommandRunner] that delegates to [Process.run] on the local
-/// machine.
+/// Concrete [CommandRunner] that delegates to [CommandExecutor] for security-
+/// checked local command execution.
+///
+/// Resolves [PrivilegeEscalation] from the DI container so the same escalation
+/// strategy (e.g. sudo, non-interactive) is used everywhere.
 class LocalCommandRunner implements CommandRunner {
   const LocalCommandRunner();
+  PrivilegeEscalation get _privilegeEscalation => di<PrivilegeEscalation>();
 
   @override
   Future<ProcessResult> run(
@@ -41,11 +57,27 @@ class LocalCommandRunner implements CommandRunner {
     Map<String, String>? environment,
     bool runInShell = false,
   }) async {
-    return Process.run(
-      command,
-      arguments,
+    // CommandExecutor.execute does not support environment overrides.
+    // Fall back to bare Process.run when env vars are needed.
+    if (environment != null && environment.isNotEmpty) {
+      return Process.run(
+        command,
+        arguments,
+        workingDirectory: workingDirectory,
+        environment: environment,
+        runInShell: runInShell,
+      );
+    }
+
+    final cmd = Command(
+      name: command,
+      command: command,
+      parameters: arguments,
+    );
+    return CommandExecutor.execute(
+      cmd,
+      _privilegeEscalation,
       workingDirectory: workingDirectory,
-      environment: environment,
       runInShell: runInShell,
     );
   }
@@ -58,7 +90,7 @@ class LocalCommandRunner implements CommandRunner {
     Map<String, String>? environment,
     bool runInShell = false,
   }) async {
-    final result = await Process.run(
+    final result = await run(
       command,
       arguments,
       workingDirectory: workingDirectory,

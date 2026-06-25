@@ -1,7 +1,6 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/platform.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
@@ -76,7 +75,7 @@ class PackageBlock extends ActionBlock {
       '/opt/bin',
     ];
     for (final p in paths) {
-      if (await FileUtils.fileExists('$p/$cmd')) return true;
+      if (await fileService.fileExists('$p/$cmd')) return true;
     }
     return false;
   }

@@ -1,7 +1,6 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:file/file.dart' show File;
 import 'package:i3config/i3config_v2.dart' as i3;
@@ -160,7 +159,7 @@ class SyncBlock extends ActionBlock {
     final destPath = path.absolute(destination);
 
     // Validate source exists
-    if (!await FileUtils.directoryExists(sourcePath, fileSystem: fileSystem)) {
+    if (!await fileService.directoryExists(sourcePath)) {
       throw ActionFailedException(
         'Source path does not exist: $sourcePath',
         moduleId: id,
@@ -168,8 +167,8 @@ class SyncBlock extends ActionBlock {
     }
 
     // Create destination if it doesn't exist
-    if (!await FileUtils.directoryExists(destPath, fileSystem: fileSystem)) {
-      await FileUtils.createDirectory(destPath, fileSystem: fileSystem);
+    if (!await fileService.directoryExists(destPath)) {
+      await fileService.createDirectory(destPath);
     }
 
     try {

@@ -1,7 +1,6 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 import 'package:path/path.dart' as path;
@@ -69,19 +68,16 @@ class MoveBlock extends ActionBlock {
       ),
     );
 
-    if (!await FileUtils.fileExists(source, fileSystem: fileSystem)) {
+    if (!await fileService.fileExists(source)) {
       throw SourceNotFoundException(source);
     }
 
     final destinationDir = path.dirname(destination);
 
-    if (!await FileUtils.directoryExists(
-      destinationDir,
-      fileSystem: fileSystem,
-    )) {
+    if (!await fileService.directoryExists(destinationDir)) {
       logger.info('Creating directory $destinationDir');
       try {
-        await FileUtils.createDirectory(destinationDir, fileSystem: fileSystem);
+        await fileService.createDirectory(destinationDir);
         hadToCreateDstDir = true;
       } catch (e, st) {
         throw ActionFailedException(
@@ -93,10 +89,7 @@ class MoveBlock extends ActionBlock {
       }
     }
 
-    final exists = await FileUtils.fileExists(
-      destination,
-      fileSystem: fileSystem,
-    );
+    final exists = await fileService.fileExists(destination);
     destinationFileExisted = exists;
     originalPath = source;
 
@@ -109,7 +102,7 @@ class MoveBlock extends ActionBlock {
 
     logger.info('Moving $source → $destination');
     try {
-      await FileUtils.moveFile(source, destination, fileSystem: fileSystem);
+      await fileService.moveFile(source, destination);
       emitEvent(
         CompletedEvent(
           moduleId: id,
@@ -138,21 +131,19 @@ class MoveBlock extends ActionBlock {
     try {
       if (originalPath != null) {
         logger.info('Moving back: $destination → $originalPath');
-        await FileUtils.moveFile(
+        await fileService.moveFile(
           destination,
           originalPath!,
-          fileSystem: fileSystem,
         );
       }
 
       if (hadToCreateDstDir) {
         final destinationDir = path.dirname(destination);
-        if (await FileUtils.directoryExists(destinationDir)) {
+        if (await fileService.directoryExists(destinationDir)) {
           logger.info('Deleting created directory $destinationDir');
-          await FileUtils.deleteDirectory(
+          await fileService.deleteDirectory(
             destinationDir,
             recursive: true,
-            fileSystem: fileSystem,
           );
         }
       }

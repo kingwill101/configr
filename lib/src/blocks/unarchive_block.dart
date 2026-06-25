@@ -1,7 +1,6 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:i3config/i3config_v2.dart' as i3;
 
@@ -89,7 +88,7 @@ class UnarchiveBlock extends ActionBlock {
       );
     }
 
-    if (creates.isNotEmpty && await FileUtils.pathExists(creates, fileSystem: fileSystem).then((r) => r.exists)) {
+    if (creates.isNotEmpty && await fileService.pathExists(creates).then((r) => r.exists)) {
       emitEvent(StatusUpdateEvent(
         moduleId: id,
         message: 'Skip unarchive: $creates already exists',
@@ -105,8 +104,8 @@ class UnarchiveBlock extends ActionBlock {
     ));
 
     try {
-      if (!await FileUtils.directoryExists(dest, fileSystem: fileSystem)) {
-        await FileUtils.createDirectory(dest, fileSystem: fileSystem, recursive: true);
+      if (!await fileService.directoryExists(dest)) {
+        await fileService.createDirectory(dest, recursive: true);
       }
 
       var archivePath = src;
@@ -116,7 +115,7 @@ class UnarchiveBlock extends ActionBlock {
         final tempFile = tempDir.childFile(
           'configr_archive_${DateTime.now().millisecondsSinceEpoch}_${p.basename(src)}',
         );
-        await FileUtils.copyFile(src, tempFile.path);
+        await fileService.copyFile(src, tempFile.path);
         archivePath = tempFile.path;
       }
 

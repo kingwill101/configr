@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 import 'package:path/path.dart' as path;
@@ -182,15 +181,15 @@ class GitBlock extends ActionBlock {
     }
 
     // Check if destination already exists
-    if (await FileUtils.directoryExists(destination, fileSystem: fileSystem)) {
+    if (await fileService.directoryExists(destination)) {
       logger.info('Repository already exists at $destination, skipping clone');
       return;
     }
 
     // Ensure parent directory exists
     final parentDir = path.dirname(destination);
-    if (!await FileUtils.directoryExists(parentDir, fileSystem: fileSystem)) {
-      await FileUtils.createDirectory(parentDir, fileSystem: fileSystem);
+    if (!await fileService.directoryExists(parentDir)) {
+      await fileService.createDirectory(parentDir);
     }
 
     final startTime = DateTime.now();
@@ -204,12 +203,11 @@ class GitBlock extends ActionBlock {
   }
 
   Future<void> _rollbackClone() async {
-    if (await FileUtils.directoryExists(destination, fileSystem: fileSystem)) {
+    if (await fileService.directoryExists(destination)) {
       logger.info('Removing cloned repository at $destination');
-      await FileUtils.deleteDirectory(
+      await fileService.deleteDirectory(
         destination,
         recursive: true,
-        fileSystem: fileSystem,
       );
     }
   }

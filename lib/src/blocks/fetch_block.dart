@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
+
 import 'package:path/path.dart' as p;
 import 'package:i3config/i3config_v2.dart' as i3;
 
@@ -70,7 +70,7 @@ class FetchBlock extends ActionBlock {
       );
     }
 
-    if (!await FileUtils.fileExists(src, fileSystem: fileSystem)) {
+    if (!await fileService.fileExists(src)) {
       if (failOnMissing) {
         throw ActionFailedException(
           'src file not found: $src', moduleId: id,
@@ -92,17 +92,17 @@ class FetchBlock extends ActionBlock {
 
     try {
       final targetPath = flat
-          ? (await FileUtils.pathExists(dest)).isDir
+          ? (await fileService.pathExists(dest)).isDir
               ? p.join(dest, p.basename(src))
               : dest
           : p.join(dest, _hostname, src);
 
       final targetDir = p.dirname(targetPath);
-      if (!await FileUtils.directoryExists(targetDir)) {
-        await FileUtils.createDirectoryWithPermissions(targetDir, requireElevation: false);
+      if (!await fileService.directoryExists(targetDir)) {
+        await fileService.createDirectoryWithPermissions(targetDir, requireElevation: false);
       }
 
-      await FileUtils.copyFile(src, targetPath);
+      await fileService.copyFile(src, targetPath);
 
       emitEvent(CompletedEvent(
         moduleId: id,

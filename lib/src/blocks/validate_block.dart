@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:crypto/crypto.dart' show sha256;
 import 'package:i3config/i3config_v2.dart' as i3;
@@ -90,10 +89,7 @@ class ValidateBlock extends ActionBlock {
     );
 
     final sourcePath = source;
-    sourceExists = await FileUtils.fileExists(
-      sourcePath,
-      fileSystem: fileSystem,
-    );
+    sourceExists = await fileService.fileExists(sourcePath);
     if (!sourceExists) {
       throw SourceNotFoundException(sourcePath);
     }
@@ -182,7 +178,7 @@ class ValidateBlock extends ActionBlock {
     String filePath,
     String expectedChecksum,
   ) async {
-    final content = await FileUtils.readFile(filePath, fileSystem: fileSystem);
+    final content = await fileService.readFile(filePath);
     final computed = sha256.convert(utf8.encode(content)).toString();
     actualChecksum = computed;
 
@@ -201,7 +197,7 @@ class ValidateBlock extends ActionBlock {
   }
 
   Future<void> _validateFormat(String filePath, String fmt) async {
-    final content = await FileUtils.readFile(filePath, fileSystem: fileSystem);
+    final content = await fileService.readFile(filePath);
 
     try {
       switch (fmt.toLowerCase()) {
@@ -221,14 +217,8 @@ class ValidateBlock extends ActionBlock {
   }
 
   Future<void> _validateSchema(String filePath, String schemaPath) async {
-    final fileContent = await FileUtils.readFile(
-      filePath,
-      fileSystem: fileSystem,
-    );
-    final schemaContent = await FileUtils.readFile(
-      schemaPath,
-      fileSystem: fileSystem,
-    );
+    final fileContent = await fileService.readFile(filePath);
+    final schemaContent = await fileService.readFile(schemaPath);
 
     try {
       // Determine format from file extension or explicit format
@@ -346,7 +336,7 @@ class ValidateBlock extends ActionBlock {
   }
 
   Future<void> _validateCustomRules(String filePath, List<String> rules) async {
-    final content = await FileUtils.readFile(filePath, fileSystem: fileSystem);
+    final content = await fileService.readFile(filePath);
     for (final rule in rules) {
       await _applyCustomRule(filePath, content, rule);
     }
@@ -357,7 +347,7 @@ class ValidateBlock extends ActionBlock {
     String filePath,
     List<String> fields,
   ) async {
-    final content = await FileUtils.readFile(filePath, fileSystem: fileSystem);
+    final content = await fileService.readFile(filePath);
 
     // Determine data type from format or content
     dynamic data;

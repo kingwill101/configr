@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:crypto/crypto.dart' show sha256, md5, sha1;
 import 'package:http/http.dart' as http;
 import 'package:i3config/i3config_v2.dart' as i3;
@@ -126,10 +125,7 @@ class DownloadBlock extends ActionBlock {
     );
 
     // Check destination
-    final exists = await FileUtils.fileExists(
-      destination,
-      fileSystem: fileSystem,
-    );
+    final exists = await fileService.fileExists(destination);
     destinationFileExisted = exists;
 
     if (exists && !overwrite) {
@@ -137,12 +133,9 @@ class DownloadBlock extends ActionBlock {
     }
 
     if (exists) {
-      final content = await FileUtils.readFile(
-        destination,
-        fileSystem: fileSystem,
-      );
+      final content = await fileService.readFile(destination);
       originalContent = content;
-      await FileUtils.deleteFile(destination, fileSystem: fileSystem);
+      await fileService.deleteFile(destination);
     }
 
     // Execute child blocks
@@ -162,7 +155,7 @@ class DownloadBlock extends ActionBlock {
 
       // Verify checksum if expected
       if (expectedChecksum != null && checksum != expectedChecksum) {
-        await FileUtils.deleteFile(destination, fileSystem: fileSystem);
+        await fileService.deleteFile(destination);
         throw ActionFailedException(
           'Checksum validation failed: expected $expectedChecksum, got $checksum',
           moduleId: id,
@@ -203,14 +196,10 @@ class DownloadBlock extends ActionBlock {
 
     try {
       if (destinationFileExisted && originalContent != null) {
-        await FileUtils.writeFile(
-          destination,
-          originalContent!,
-          fileSystem: fileSystem,
-        );
+        await fileService.writeFile(destination, originalContent!);
       } else {
-        if (await FileUtils.fileExists(destination, fileSystem: fileSystem)) {
-          await FileUtils.deleteFile(destination, fileSystem: fileSystem);
+        if (await fileService.fileExists(destination)) {
+          await fileService.deleteFile(destination);
         }
       }
 

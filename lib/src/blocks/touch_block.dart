@@ -1,7 +1,6 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
@@ -62,10 +61,7 @@ class TouchBlock extends ActionBlock {
       ),
     );
 
-    final fileExists = await FileUtils.fileExists(
-      source,
-      fileSystem: fileSystem,
-    );
+    final fileExists = await fileService.fileExists(source);
 
     if (!fileExists && !createIfMissing) {
       logger.severe(
@@ -125,7 +121,7 @@ class TouchBlock extends ActionBlock {
     try {
       if (fileCreated) {
         logger.info('Deleting created file: $source');
-        await FileUtils.deleteFile(source, fileSystem: fileSystem);
+        await fileService.deleteFile(source);
       } else if (originalModificationTime != null) {
         logger.info('Restoring original modification time for: $source');
         final file = fileSystem.file(source);
