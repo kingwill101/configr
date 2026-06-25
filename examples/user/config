@@ -1,0 +1,18 @@
+# User block: manage user accounts
+
+user {
+  name = "deploy"
+  uid = "2001"
+  group = "deploy"
+  groups = "docker,www-data"
+  comment = "Deployment user"
+  home = "/home/deploy"
+  shell = "/bin/bash"
+  create_home = true
+}
+
+user {
+  name = "temp-user"
+  status = "absent"
+  remove = true
+}

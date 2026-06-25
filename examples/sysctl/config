@@ -1,0 +1,14 @@
+# Sysctl block: manage kernel parameters
+
+sysctl {
+  name = "net.ipv4.ip_forward"
+  value = "1"
+  reload = true
+  sysctl_set = true
+}
+
+sysctl {
+  name = "vm.swappiness"
+  value = "10"
+  sysctl_file = "/etc/sysctl.d/99-tuning.conf"
+}

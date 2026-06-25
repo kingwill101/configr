@@ -1,0 +1,26 @@
+# Sync block: bidirectional file synchronization
+
+resource {
+  source /opt/app/config
+  destination /backups/config
+  actions {
+    sync {
+      mode = "source_to_dest"
+      conflict_resolution = "newer"
+      delete_orphans = false
+      preserve_permissions = true
+    }
+  }
+}
+
+resource {
+  source /shared/photos
+  destination /mnt/backup/photos
+  actions {
+    sync {
+      mode = "bidirectional"
+      conflict_resolution = "larger"
+      delete_orphans = true
+    }
+  }
+}

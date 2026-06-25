@@ -1,0 +1,19 @@
+# Mount block: manage filesystem mounts and fstab entries
+
+mount {
+  path = "/mnt/data"
+  src = "/dev/sdb1"
+  fstype = "ext4"
+  opts = "defaults,noatime"
+  dump = 0
+  passno = 2
+  state = "present"
+}
+
+mount {
+  path = "/mnt/backup"
+  src = "192.168.1.100:/exports/backup"
+  fstype = "nfs"
+  opts = "defaults"
+  state = "mounted"
+}

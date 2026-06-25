@@ -94,6 +94,6 @@ class AppliedBlockRecord {
     'applied_at': appliedAt,
     'status': status,
     if (sha256 != null) 'sha256': sha256,
-    if (metadata != null) 'metadata': ?metadata,
+    if (metadata != null) 'metadata': metadata,
   };
 }

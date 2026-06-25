@@ -64,7 +64,6 @@ import 'package:configr/src/blocks/uri_block.dart';
 import 'package:configr/src/reader/handlers/configr_handlers.dart';
 import 'package:configr/src/utils/command_runner.dart';
 import 'package:configr/src/utils/file_service.dart';
-import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
 import 'package:file/memory.dart';
@@ -103,6 +102,7 @@ import 'package:configr/src/events/module_events.dart';
 class V2TestHelper {
   late final FileSystem fileSystem;
   late final EventBus eventBus;
+  late final FileService fileService;
   final List<ModuleEvent> emittedEvents = [];
 
   int _testIdCounter = 0;
@@ -111,6 +111,7 @@ class V2TestHelper {
   V2TestHelper() {
     fileSystem = MemoryFileSystem();
     eventBus = EventBus();
+    fileService = LocalFileService(fileSystem: fileSystem);
     eventBus.stream.listen(emittedEvents.add);
 
     fileSystem.currentDirectory = fileSystem.directory('/');
@@ -118,41 +119,32 @@ class V2TestHelper {
 
   /// Creates a file at [path] with [content] in the memory filesystem.
   Future<void> createFile(String path, String content) {
-    return FileUtils.writeFile(
-      path,
-      content,
-      fileSystem: fileSystem,
-      recursive: true,
-    );
+    return fileService.writeFile(path, content, recursive: true);
   }
 
   /// Creates a directory at [path] in the memory filesystem.
   Future<void> createDir(String path) {
-    return FileUtils.createDirectory(
-      path,
-      fileSystem: fileSystem,
-      recursive: true,
-    );
+    return fileService.createDirectory(path, recursive: true);
   }
 
   /// Returns true if [path] exists and is a file.
   Future<bool> fileExists(String path) {
-    return FileUtils.fileExists(path, fileSystem: fileSystem);
+    return fileService.fileExists(path);
   }
 
   /// Returns true if [path] exists and is a directory.
   Future<bool> dirExists(String path) {
-    return FileUtils.directoryExists(path, fileSystem: fileSystem);
+    return fileService.directoryExists(path);
   }
 
   /// Reads the content of [path].
   Future<String> readFile(String path) {
-    return FileUtils.readFile(path, fileSystem: fileSystem);
+    return fileService.readFile(path);
   }
 
   /// Deletes [path].
   Future<void> deleteFile(String path) {
-    return FileUtils.deleteFile(path, fileSystem: fileSystem);
+    return fileService.deleteFile(path);
   }
 
   /// Parses [configText] as i3config and processes it through the v2

@@ -2,6 +2,7 @@ import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/platform.dart';
+
 import 'package:i3config/i3config_v2.dart' as i3;
 
 class _FstabEntry {
@@ -132,10 +133,9 @@ abstract class MountBlock extends ActionBlock {
   }
 
   Future<void> _writeFstabLines(List<String> lines) async {
-    await FileUtils.writeFileWithPermissions(
+    await fileService.writeFileWithPermissions(
       fstabPath,
       '${lines.join('\n')}\n',
-      privilegeEscalation: privilegeEscalation,
       requireElevation: true,
     );
   }

@@ -1,0 +1,7 @@
+# Timezone block: manage system timezone
+
+timezone {
+  timezone = "America/New_York"
+}
+
+# On Linux uses timedatectl set-timezone; falls back to /etc/localtime symlink

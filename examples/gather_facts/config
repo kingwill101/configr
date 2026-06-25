@@ -1,0 +1,9 @@
+# Gather_facts block: detect OS and system facts
+
+gather_facts {
+  gather_subset = "all"
+}
+
+# Facts are now available for subsequent blocks:
+# {{ os_family }}, {{ distribution }}, {{ distribution_version }},
+# {{ architecture }}, {{ hostname }}, {{ kernel }}, {{ memtotal_mb }}

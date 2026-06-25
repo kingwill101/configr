@@ -1,0 +1,25 @@
+# Systemd block: manage systemd units and services
+
+# Start and enable a service
+systemd {
+  source = "nginx"
+  operation = "enable"
+}
+
+# Create a custom service unit
+systemd {
+  source = "myapp"
+  operation = "create"
+  exec_start = "/opt/myapp/bin/start"
+  working_directory = "/opt/myapp"
+  user = "myapp"
+  restart_policy = "always"
+  wanted_by = "multi-user.target"
+  description = "My Application Service"
+}
+
+# Reload a daemon
+systemd {
+  source = "myapp"
+  operation = "reload"
+}

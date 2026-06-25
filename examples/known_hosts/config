@@ -1,0 +1,16 @@
+# Known_hosts block: manage SSH known hosts entries
+
+known_hosts {
+  name = "github.com"
+  key = "github.com ssh-ed25519 AAAAC3...="
+}
+
+known_hosts {
+  name = "gitlab.com"
+  key = "gitlab.com ssh-rsa AAAAB3...="
+}
+
+known_hosts {
+  name = "old-server.example.com"
+  status = "absent"
+}

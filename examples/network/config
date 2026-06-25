@@ -1,0 +1,31 @@
+# Network block: perform network connectivity checks
+
+resource {
+  actions {
+    network {
+      source = "https://api.example.com/health"
+      operation = "http"
+      expected_status = 200
+      timeout = 10
+    }
+  }
+}
+
+resource {
+  actions {
+    network {
+      source = "database.internal"
+      operation = "tcp"
+      port = 5432
+    }
+  }
+}
+
+resource {
+  actions {
+    network {
+      source = "google.com"
+      operation = "connectivity"
+    }
+  }
+}

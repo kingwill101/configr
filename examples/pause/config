@@ -1,0 +1,18 @@
+# Pause block: wait or prompt before continuing
+
+resource {
+  actions {
+    pause {
+      seconds = 10
+    }
+  }
+}
+
+resource {
+  actions {
+    pause {
+      minutes = 1
+      prompt = "Ready to continue?"
+    }
+  }
+}

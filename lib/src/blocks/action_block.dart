@@ -216,7 +216,7 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
       try {
         await execute();
         // Record this block in the lockfile collector (if present).
-        _recordApplied(context);
+        await _recordApplied(context);
       } catch (e) {
         emitEvent(
           FailedEvent(moduleId: id, message: 'Failed $blockType block: $e'),
@@ -372,24 +372,40 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
   Map<String, dynamic>? get lockfileMetadata => null;
 
   /// Record this block in the lockfile collector if one is active.
-  void _recordApplied(i3.Context context) {
+  ///
+  /// If [sha256] was not explicitly set by the block but [destination] points
+  /// to a file, the checksum is computed automatically for drift detection.
+  Future<void> _recordApplied(i3.Context context) async {
     final collector =
         context.globalContext.options['_appliedBlocks']
             as List<AppliedBlockRecord>?;
-    if (collector != null) {
-      collector.add(
-        AppliedBlockRecord(
-          blockType: blockType,
-          id: id,
-          source: source,
-          destination: destination,
-          appliedAt: DateTime.now().toUtc().toIso8601String(),
-          status: 'completed',
-          sha256: sha256,
-          metadata: lockfileMetadata,
-        ),
-      );
+    if (collector == null) return;
+
+    var autoSha256 = sha256;
+    if (autoSha256 == null || autoSha256.isEmpty) {
+      if (destination.isNotEmpty) {
+        try {
+          if (await fileService.fileExists(destination)) {
+            autoSha256 = await fileService.computeFileHash(destination);
+          }
+        } catch (_) {
+          // Non-critical — drift detection just won't have a baseline.
+        }
+      }
     }
+
+    collector.add(
+      AppliedBlockRecord(
+        blockType: blockType,
+        id: id,
+        source: source,
+        destination: destination,
+        appliedAt: DateTime.now().toUtc().toIso8601String(),
+        status: 'completed',
+        sha256: autoSha256,
+        metadata: lockfileMetadata,
+      ),
+    );
   }
 
   void emitEvent(ModuleEvent event) {

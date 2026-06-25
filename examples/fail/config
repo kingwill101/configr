@@ -1,0 +1,10 @@
+# Fail block: halt execution with a message
+# Mirrors ansible.builtin.fail behavior
+
+resource {
+  actions {
+    fail {
+      msg = "Required condition not met — aborting deployment"
+    }
+  }
+}

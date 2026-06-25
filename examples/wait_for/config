@@ -1,0 +1,21 @@
+# Wait_for block: wait for a condition before continuing
+
+resource {
+  actions {
+    wait_for {
+      port = 8080
+      host = "localhost"
+      timeout = 60
+      delay = 5
+    }
+  }
+}
+
+resource {
+  actions {
+    wait_for {
+      path = "/tmp/deployment-complete"
+      timeout = 120
+    }
+  }
+}

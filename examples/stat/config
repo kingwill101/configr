@@ -1,0 +1,12 @@
+# Stat block: collect file metadata
+
+resource {
+  source /var/log/syslog
+  actions {
+    stat {
+      path = "/var/log/syslog"
+      follow = true
+      checksum_algorithm = "sha256"
+    }
+  }
+}
