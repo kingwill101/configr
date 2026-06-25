@@ -1,6 +1,6 @@
 # Group Module
 
-Manages system groups — Ansible-style `group` module.
+Manages system groups.
 
 ## Overview
 

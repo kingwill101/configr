@@ -4,12 +4,12 @@ import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/platform.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
-/// Generates or removes system locales — Ansible-style platform dispatch.
+/// Generates or removes system locales.
 ///
 /// Supports a single locale name (`String`) or a list of locale names.
 /// Currently implemented for Debian/Ubuntu and Arch Linux.
 ///
-/// Ansible reference: community.general.locale_gen — supports list input,
+/// Supports list input and single-locale config.
 /// /etc/locale.gen editing, locale-gen or localedef invocation.
 abstract class LocaleGenBlock extends ActionBlock {
   @override

@@ -1,0 +1,4 @@
+fetch {
+  src = "/etc/hostname"
+  dest = "/tmp/fetch_test"
+}

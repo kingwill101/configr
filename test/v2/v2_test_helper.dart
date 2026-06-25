@@ -48,6 +48,19 @@ import 'package:configr/src/blocks/cron_block.dart';
 import 'package:configr/src/blocks/locale_gen_block.dart';
 import 'package:configr/src/blocks/alternatives_block.dart';
 import 'package:configr/src/blocks/wait_for_block.dart';
+import 'package:configr/src/blocks/authorized_key_block.dart';
+import 'package:configr/src/blocks/fail_block.dart';
+import 'package:configr/src/blocks/fetch_block.dart';
+import 'package:configr/src/blocks/firewalld_block.dart';
+import 'package:configr/src/blocks/known_hosts_block.dart';
+import 'package:configr/src/blocks/mount_block.dart';
+import 'package:configr/src/blocks/raw_block.dart';
+import 'package:configr/src/blocks/script_block.dart';
+import 'package:configr/src/blocks/service_block.dart';
+import 'package:configr/src/blocks/slurp_block.dart';
+import 'package:configr/src/blocks/ufw_block.dart';
+import 'package:configr/src/blocks/unarchive_block.dart';
+import 'package:configr/src/blocks/uri_block.dart';
 import 'package:configr/src/reader/handlers/configr_handlers.dart';
 import 'package:configr/src/utils/file_utils.dart';
 import 'package:configr/src/utils/event_bus.dart';
@@ -261,6 +274,19 @@ final actionBlockMap = <String, ActionBlock>{
        'locale_gen': LocaleGenBlock(),
        'alternatives': AlternativesBlock(),
        'wait_for': WaitForBlock(),
+       'authorized_key': AuthorizedKeyBlock(),
+       'fail': FailBlock(),
+       'fetch': FetchBlock(),
+       'firewalld': FirewalldBlock(),
+       'known_hosts': KnownHostsBlock(),
+       'mount': MountBlock(),
+       'raw': RawBlock(),
+       'script': ScriptBlock(),
+       'service': ServiceBlock(),
+       'slurp': SlurpBlock(),
+       'ufw': UfwBlock(),
+       'unarchive': UnarchiveBlock(),
+       'uri': UriBlock(),
      };
 
     // -----------------------------------------------------------------------

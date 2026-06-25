@@ -1,6 +1,6 @@
 # Timezone Module
 
-Sets the system timezone — Ansible-style `timezone` module.
+Sets the system timezone.
 
 ## Overview
 

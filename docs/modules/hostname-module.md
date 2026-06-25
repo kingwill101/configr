@@ -1,10 +1,10 @@
 # Hostname Module
 
-Sets the system hostname — Ansible-style `hostname` module.
+Sets the system hostname.
 
 ## Overview
 
-The Hostname Module manages the system's hostname, separating **current** (transient/runtime) from **permanent** (persistent across reboot) hostnames. It supports multiple strategies matching Ansible's `use` parameter.
+The Hostname Module manages the system's hostname, separating **current** (transient/runtime) from **permanent** (persistent across reboot) hostnames. It supports multiple strategies via the `use` parameter.
 
 ## Features
 

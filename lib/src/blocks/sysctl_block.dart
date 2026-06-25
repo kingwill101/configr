@@ -4,9 +4,9 @@ import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/platform.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
-/// Manages kernel parameters via sysctl — Ansible-style platform dispatch.
+/// Manages kernel parameters via sysctl.
 ///
-/// Ansible reference: ansible.posix.sysctl — supports state=absent,
+/// Supports state=absent and value assignment.
 /// ignoreerrors, sysctl_set, reload, and FreeBSD/OpenBSD specifics.
 abstract class SysctlBlock extends ActionBlock {
   @override

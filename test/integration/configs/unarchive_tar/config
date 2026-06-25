@@ -1,0 +1,4 @@
+unarchive {
+  src = "/tmp/test_archive.tar.gz"
+  dest = "/tmp/unarchive_test"
+}

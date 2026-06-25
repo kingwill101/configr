@@ -4,20 +4,36 @@ import 'dart:io';
 import 'package:crypto/crypto.dart' show sha256;
 import 'package:path/path.dart' as p;
 import 'package:configr/src/blocks/action_block.dart';
+import 'package:configr/src/blocks/alternatives_block.dart';
+import 'package:configr/src/blocks/assert_block.dart';
+import 'package:configr/src/blocks/authorized_key_block.dart';
 import 'package:configr/src/blocks/backup_block.dart';
+import 'package:configr/src/blocks/blockinfile_block.dart';
 import 'package:configr/src/blocks/compress_block.dart';
 import 'package:configr/src/blocks/copy_block.dart';
+import 'package:configr/src/blocks/cron_block.dart';
+import 'package:configr/src/blocks/debug_block.dart';
 import 'package:configr/src/blocks/decompress_block.dart';
 import 'package:configr/src/blocks/delete_block.dart';
 import 'package:configr/src/blocks/download_block.dart';
+import 'package:configr/src/blocks/dynamic_block.dart';
 import 'package:configr/src/blocks/echo_block.dart';
 import 'package:configr/src/blocks/execute_block.dart';
+import 'package:configr/src/blocks/fail_block.dart';
+import 'package:configr/src/blocks/fetch_block.dart';
 import 'package:configr/src/blocks/file_block.dart';
+import 'package:configr/src/blocks/firewalld_block.dart';
 import 'package:configr/src/blocks/gather_facts_block.dart';
 import 'package:configr/src/blocks/git_block.dart';
-import 'package:configr/src/blocks/dynamic_block.dart';
+import 'package:configr/src/blocks/group_block.dart';
+import 'package:configr/src/blocks/hostname_block.dart';
+import 'package:configr/src/blocks/known_hosts_block.dart';
+import 'package:configr/src/blocks/lineinfile_block.dart';
+import 'package:configr/src/blocks/locale_gen_block.dart';
+import 'package:configr/src/blocks/mount_block.dart';
 import 'package:configr/src/blocks/move_block.dart';
 import 'package:configr/src/blocks/network_block.dart';
+import 'package:configr/src/blocks/package_block.dart';
 import 'package:configr/src/blocks/package_managers/apt_block.dart';
 import 'package:configr/src/blocks/package_managers/brew_block.dart';
 import 'package:configr/src/blocks/package_managers/dnf_block.dart';
@@ -29,28 +45,28 @@ import 'package:configr/src/blocks/package_managers/pamac_block.dart';
 import 'package:configr/src/blocks/package_managers/pip_block.dart';
 import 'package:configr/src/blocks/package_managers/snap_block.dart';
 import 'package:configr/src/blocks/package_managers/yum_block.dart';
+import 'package:configr/src/blocks/pause_block.dart';
 import 'package:configr/src/blocks/permissions_block.dart';
+import 'package:configr/src/blocks/raw_block.dart';
 import 'package:configr/src/blocks/rename_block.dart';
+import 'package:configr/src/blocks/replace_block.dart';
+import 'package:configr/src/blocks/script_block.dart';
+import 'package:configr/src/blocks/service_block.dart';
 import 'package:configr/src/blocks/set_fact_block.dart';
+import 'package:configr/src/blocks/slurp_block.dart';
 import 'package:configr/src/blocks/stat_block.dart';
 import 'package:configr/src/blocks/symlink_block.dart';
 import 'package:configr/src/blocks/sync_block.dart';
+import 'package:configr/src/blocks/sysctl_block.dart';
 import 'package:configr/src/blocks/systemd_block.dart';
 import 'package:configr/src/blocks/template_block.dart';
-import 'package:configr/src/blocks/touch_block.dart';
-import 'package:configr/src/blocks/validate_block.dart';
-import 'package:configr/src/blocks/lineinfile_block.dart';
-import 'package:configr/src/blocks/blockinfile_block.dart';
-import 'package:configr/src/blocks/replace_block.dart';
-import 'package:configr/src/blocks/assert_block.dart';
-import 'package:configr/src/blocks/user_block.dart';
-import 'package:configr/src/blocks/group_block.dart';
-import 'package:configr/src/blocks/hostname_block.dart';
 import 'package:configr/src/blocks/timezone_block.dart';
-import 'package:configr/src/blocks/sysctl_block.dart';
-import 'package:configr/src/blocks/cron_block.dart';
-import 'package:configr/src/blocks/locale_gen_block.dart';
-import 'package:configr/src/blocks/alternatives_block.dart';
+import 'package:configr/src/blocks/touch_block.dart';
+import 'package:configr/src/blocks/ufw_block.dart';
+import 'package:configr/src/blocks/unarchive_block.dart';
+import 'package:configr/src/blocks/uri_block.dart';
+import 'package:configr/src/blocks/user_block.dart';
+import 'package:configr/src/blocks/validate_block.dart';
 import 'package:configr/src/blocks/wait_for_block.dart';
 import 'package:configr/src/cli/ui/handlers/base_handler.dart';
 import 'package:configr/src/di.dart';
@@ -393,11 +409,16 @@ Future<void> rollbackV2(
     ..allowReassignment = false;
 
   final actionBlockMap = <String, ActionBlock>{
+    'alternatives': AlternativesBlock(),
     'apt': AptBlock(),
+    'authorized_key': AuthorizedKeyBlock(),
     'backup': BackupBlock(),
+    'blockinfile': BlockInFileBlock(),
     'brew': BrewBlock(),
     'compress': CompressBlock(),
     'copy': CopyBlock(),
+    'cron': CronBlock(),
+    'debug': DebugBlock(),
     'decompress': DecompressBlock(),
     'delete': DeleteBlock(),
     'dnf': DnfBlock(),
@@ -405,38 +426,51 @@ Future<void> rollbackV2(
     'download': DownloadBlock(),
     'echo': EchoBlock(),
     'execute': ExecuteBlock(),
+    'fail': FailBlock(),
+    'fetch': FetchBlock(),
     'file': FileBlock(),
+    'firewalld': FirewalldBlock(),
     'flatpak': FlatpakBlock(),
+    'gather_facts': GatherFactsBlock(),
     'git': GitBlock(),
+    'group': GroupBlock(),
+    'hostname': HostnameBlock(),
+    'known_hosts': KnownHostsBlock(),
+    'lineinfile': LineInFileBlock(),
+    'locale_gen': LocaleGenBlock(),
+    'mount': MountBlock(),
     'move': MoveBlock(),
     'network': NetworkBlock(),
     'npm': NpmBlock(),
+    'package': PackageBlock(),
     'pacman': PacmanBlock(),
     'pamac': PamacBlock(),
+    'pause': PauseBlock(),
     'permissions': PermissionsBlock(),
     'pip': PipBlock(),
+    'raw': RawBlock(),
     'rename': RenameBlock(),
+    'replace': ReplaceBlock(),
+    'script': ScriptBlock(),
+    'service': ServiceBlock(),
+    'set_fact': SetFactBlock(),
+    'slurp': SlurpBlock(),
     'snap': SnapBlock(),
+    'stat': StatBlock(),
     'symlink': SymlinkBlock(),
     'sync': SyncBlock(),
+    'sysctl': SysctlBlock(),
     'systemd': SystemdBlock(),
     'template': TemplateBlock(),
-    'touch': TouchBlock(),
-    'validate': ValidateBlock(),
-    'yum': YumBlock(),
-    'lineinfile': LineInFileBlock(),
-    'blockinfile': BlockInFileBlock(),
-    'replace': ReplaceBlock(),
-    'assert': AssertBlock(),
-    'user': UserBlock(),
-    'group': GroupBlock(),
-    'hostname': HostnameBlock(),
     'timezone': TimezoneBlock(),
-    'sysctl': SysctlBlock(),
-    'cron': CronBlock(),
-    'locale_gen': LocaleGenBlock(),
-    'alternatives': AlternativesBlock(),
+    'touch': TouchBlock(),
+    'ufw': UfwBlock(),
+    'unarchive': UnarchiveBlock(),
+    'uri': UriBlock(),
+    'user': UserBlock(),
+    'validate': ValidateBlock(),
     'wait_for': WaitForBlock(),
+    'yum': YumBlock(),
   };
 
   // 3. For each record, look up the block by type, set properties from
@@ -581,11 +615,17 @@ Future<void> _registerAllBlocks(
   processor.context.options['_dryRun'] = dryRun;
 
 final actionBlockMap = <String, ActionBlock>{
+     'alternatives': AlternativesBlock(),
      'apt': AptBlock(),
+     'assert': AssertBlock(),
+     'authorized_key': AuthorizedKeyBlock(),
      'backup': BackupBlock(),
+     'blockinfile': BlockInFileBlock(),
      'brew': BrewBlock(),
      'compress': CompressBlock(),
      'copy': CopyBlock(),
+     'cron': CronBlock(),
+     'debug': DebugBlock(),
      'decompress': DecompressBlock(),
      'delete': DeleteBlock(),
      'dnf': DnfBlock(),
@@ -593,40 +633,50 @@ final actionBlockMap = <String, ActionBlock>{
      'download': DownloadBlock(),
      'echo': EchoBlock(),
      'execute': ExecuteBlock(),
+     'fail': FailBlock(),
+     'fetch': FetchBlock(),
      'file': FileBlock(),
+     'firewalld': FirewalldBlock(),
      'flatpak': FlatpakBlock(),
      'gather_facts': GatherFactsBlock(),
      'git': GitBlock(),
+     'group': GroupBlock(),
+     'hostname': HostnameBlock(),
+     'known_hosts': KnownHostsBlock(),
+     'lineinfile': LineInFileBlock(),
+     'locale_gen': LocaleGenBlock(),
+     'mount': MountBlock(),
      'move': MoveBlock(),
      'network': NetworkBlock(),
      'npm': NpmBlock(),
+     'package': PackageBlock(),
      'pacman': PacmanBlock(),
      'pamac': PamacBlock(),
+     'pause': PauseBlock(),
      'permissions': PermissionsBlock(),
      'pip': PipBlock(),
+     'raw': RawBlock(),
      'rename': RenameBlock(),
+     'replace': ReplaceBlock(),
+     'script': ScriptBlock(),
+     'service': ServiceBlock(),
      'set_fact': SetFactBlock(),
+     'slurp': SlurpBlock(),
      'snap': SnapBlock(),
      'stat': StatBlock(),
      'symlink': SymlinkBlock(),
      'sync': SyncBlock(),
-     'systemd': SystemdBlock(),
-     'touch': TouchBlock(),
-     'validate': ValidateBlock(),
-     'yum': YumBlock(),
-     'lineinfile': LineInFileBlock(),
-     'blockinfile': BlockInFileBlock(),
-     'replace': ReplaceBlock(),
-     'assert': AssertBlock(),
-     'user': UserBlock(),
-     'group': GroupBlock(),
-     'hostname': HostnameBlock(),
-     'timezone': TimezoneBlock(),
      'sysctl': SysctlBlock(),
-     'cron': CronBlock(),
-     'locale_gen': LocaleGenBlock(),
-     'alternatives': AlternativesBlock(),
+     'systemd': SystemdBlock(),
+     'timezone': TimezoneBlock(),
+     'touch': TouchBlock(),
+     'ufw': UfwBlock(),
+     'unarchive': UnarchiveBlock(),
+     'uri': UriBlock(),
+     'user': UserBlock(),
+     'validate': ValidateBlock(),
      'wait_for': WaitForBlock(),
+     'yum': YumBlock(),
    };
 
   // -----------------------------------------------------------------------

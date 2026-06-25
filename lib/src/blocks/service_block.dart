@@ -6,7 +6,7 @@ import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/platform.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
-/// Manages services across init systems — Ansible-style platform dispatch.
+/// Manages services across init systems.
 ///
 /// ```i3
 /// service {
@@ -25,7 +25,7 @@ abstract class ServiceBlock extends ActionBlock {
   bool enabled = false;
   String use = 'auto';
 
-  /// Ansible-style factory: returns the right platform subclass.
+  /// Factory: returns the right platform subclass.
   factory ServiceBlock() {
     final facts = OsFacts.detect();
     switch (facts.os) {

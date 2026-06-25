@@ -1,0 +1,7 @@
+resource {
+  actions {
+    raw {
+      command = "uptime"
+    }
+  }
+}

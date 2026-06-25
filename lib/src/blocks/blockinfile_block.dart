@@ -7,7 +7,7 @@ class BlockInFileBlock extends ActionBlock {
   @override
   String get blockType => 'blockinfile';
 
-  String marker = '# {mark} ANSIBLE MANAGED BLOCK';
+  String marker = '# {mark} CONFIGR MANAGED BLOCK';
   String block = '';
   bool backup = false;
   bool create = false;
@@ -19,7 +19,7 @@ class BlockInFileBlock extends ActionBlock {
 
   @override
   Map<String, String> get additionalProperties => {
-    if (marker != '# {mark} ANSIBLE MANAGED BLOCK') 'marker': marker,
+    if (marker != '# {mark} CONFIGR MANAGED BLOCK') 'marker': marker,
     if (owner.isNotEmpty) 'owner': owner,
     if (group.isNotEmpty) 'group': group,
     if (mode.isNotEmpty) 'mode': mode,
@@ -34,7 +34,7 @@ class BlockInFileBlock extends ActionBlock {
   @override
   void resetState() {
     super.resetState();
-    marker = '# {mark} ANSIBLE MANAGED BLOCK';
+    marker = '# {mark} CONFIGR MANAGED BLOCK';
     block = '';
     backup = false;
     create = false;
@@ -56,7 +56,7 @@ class BlockInFileBlock extends ActionBlock {
       status = (context.getVariable('state') as String?) ?? 'present';
     }
     marker = (context.getVariable('marker') as String?) ??
-        '# {mark} ANSIBLE MANAGED BLOCK';
+        '# {mark} CONFIGR MANAGED BLOCK';
     this.block = switch (context.getVariable('block')) {
       String s => s,
       _ => this.block,

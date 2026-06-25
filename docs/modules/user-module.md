@@ -1,6 +1,6 @@
 # User Module
 
-Manages system user accounts — Ansible-style `user` module.
+Manages system user accounts.
 
 ## Overview
 

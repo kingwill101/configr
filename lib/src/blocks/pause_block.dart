@@ -35,8 +35,16 @@ class PauseBlock extends ActionBlock {
     i3.Context context,
   ) async {
     await super.readAdditionalProperties(block, context);
-    seconds = (context.getVariable('seconds') as int?) ?? 0;
-    minutes = (context.getVariable('minutes') as int?) ?? 0;
+    seconds = switch (context.getVariable('seconds')) {
+      final int v => v,
+      final String v => int.tryParse(v) ?? 0,
+      _ => 0,
+    };
+    minutes = switch (context.getVariable('minutes')) {
+      final int v => v,
+      final String v => int.tryParse(v) ?? 0,
+      _ => 0,
+    };
     prompt = (context.getVariable('prompt') as String?) ?? '';
   }
 

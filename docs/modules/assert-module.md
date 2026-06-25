@@ -1,6 +1,6 @@
 # Assert Module
 
-Validates conditions during configuration — Ansible-style `assert`.
+Validates conditions during configuration.
 
 ## Overview
 

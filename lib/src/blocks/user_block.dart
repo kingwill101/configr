@@ -6,7 +6,7 @@ import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/platform.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
-/// Manages user accounts — Ansible-style platform subclass dispatch.
+/// Manages user accounts.
 ///
 /// Base class holds platform-agnostic property parsing. Platform-specific
 /// subclasses override [execute] with OS-native commands:
@@ -35,7 +35,7 @@ abstract class UserBlock extends ActionBlock {
   bool force = false;
   bool append = false;
 
-  /// Ansible-style factory: returns the right platform subclass.
+  /// Factory: returns the right platform subclass.
   factory UserBlock() {
     final facts = OsFacts.detect();
     switch (facts.os) {

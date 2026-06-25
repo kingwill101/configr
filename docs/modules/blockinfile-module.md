@@ -1,10 +1,10 @@
 # BlockInFile Module
 
-Inserts/updates/removes multi-line blocks in files — Ansible-style `blockinfile`.
+Inserts/updates/removes multi-line blocks in files.
 
 ## Overview
 
-The BlockInFile Module manages multi-line blocks of text in files, similar to Ansible's `blockinfile` module. It wraps content between customizable marker lines, making it easy to manage blocks inserted by automation tools.
+The BlockInFile Module manages multi-line blocks of text in files. It wraps content between customizable marker lines, making it easy to manage blocks inserted by automation tools.
 
 ## Features
 
@@ -22,7 +22,7 @@ The BlockInFile Module manages multi-line blocks of text in files, similar to An
 - `state` (required): `present` to ensure block exists, `absent` to remove
 
 ### BlockInFile Properties
-- `marker`: Marker line format (default: `# {mark} ANSIBLE MANAGED BLOCK`). `{mark}` is replaced with `BEGIN` or `END`
+- `marker`: Marker line format (default: `# {mark} CONFIGR MANAGED BLOCK`). `{mark}` is replaced with `BEGIN` or `END`
 - `block`: The block content to insert (also accepts `content` as alias)
 - `backup`: Create a backup file with `.bak` suffix (default: `false`)
 - `create`: Create file if it doesn't exist (default: `false`)

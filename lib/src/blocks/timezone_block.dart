@@ -6,7 +6,7 @@ import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/platform.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
-/// Sets the system timezone — Ansible-style platform subclass dispatch.
+/// Sets the system timezone.
 abstract class TimezoneBlock extends ActionBlock {
   @override
   String get blockType => 'timezone';

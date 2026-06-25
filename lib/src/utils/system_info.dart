@@ -4,7 +4,7 @@ import 'package:i3config/i3config_v2.dart' as i3;
 
 /// Collects system information and exposes it as i3config context variables.
 ///
-/// Mirrors the kind of facts Ansible exposes — OS details, host info, user
+/// OS and hardware details — host info, user information,
 /// info, date/time, and environment variables — so config files can make
 /// decisions based on the target machine.
 class SystemInfo {

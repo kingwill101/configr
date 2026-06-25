@@ -1,0 +1,85 @@
+import 'package:configr/src/events/module_events.dart';
+import 'package:test/test.dart';
+import 'v2_test_helper.dart';
+
+void main() {
+  late V2TestHelper helper;
+
+  setUp(() {
+    helper = V2TestHelper();
+  });
+
+  test('should parse fetch block properties', () async {
+    final blocks = await helper.processConfig('''
+      fetch {
+        src = "/var/log/syslog"
+        dest = "/tmp/backup"
+        flat = true
+        fail_on_missing = false
+      }
+    ''');
+
+    expect(blocks, hasLength(1));
+    final block = blocks.first as dynamic;
+    expect(block.blockType, equals('fetch'));
+    expect(block.src, equals('/var/log/syslog'));
+    expect(block.dest, equals('/tmp/backup'));
+    expect(block.flat, isTrue);
+    expect(block.failOnMissing, isFalse);
+  });
+
+  test('should use default values', () async {
+    final blocks = await helper.processConfig('''
+      fetch {
+        src = "/var/log/syslog"
+        dest = "/tmp/backup"
+      }
+    ''');
+
+    expect(blocks, hasLength(1));
+    final block = blocks.first as dynamic;
+    expect(block.flat, isFalse);
+    expect(block.failOnMissing, isTrue);
+  });
+
+  test('should fail when src is missing', () async {
+    await helper.runConfig('''
+      fetch {
+        dest = "/tmp/backup"
+      }
+    ''');
+
+    expect(helper.eventOfType<FailedEvent>(), isNotNull);
+  });
+
+  test('should fail when dest is missing', () async {
+    await helper.runConfig('''
+      fetch {
+        src = "/var/log/syslog"
+      }
+    ''');
+
+    expect(helper.eventOfType<FailedEvent>(), isNotNull);
+  });
+
+  test('should return correct dry-run summary', () async {
+    final blocks = await helper.processConfig('''
+      fetch {
+        src = "/var/log/syslog"
+        dest = "/tmp/backup"
+      }
+    ''');
+
+    final block = blocks.first as dynamic;
+    expect(block.dryRunSummary(), startsWith('fetch: /var/log/syslog ->'));
+  });
+
+  test('should return correct dry-run summary empty', () async {
+    final blocks = await helper.processConfig('''
+      fetch {}
+    ''');
+
+    final block = blocks.first as dynamic;
+    expect(block.dryRunSummary(), equals('fetch: (empty)'));
+  });
+}

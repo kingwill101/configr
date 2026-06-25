@@ -6,7 +6,7 @@ import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/platform.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
-/// Manages groups — Ansible-style platform subclass dispatch.
+/// Manages groups.
 abstract class GroupBlock extends ActionBlock {
   @override
   String get blockType => 'group';

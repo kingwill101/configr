@@ -1,10 +1,10 @@
 # Replace Module
 
-Replaces text in files using regular expressions — Ansible-style `replace`.
+Replaces text in files using regular expressions.
 
 ## Overview
 
-The Replace Module searches files for regular expression patterns and replaces matches with specified text, similar to Ansible's `replace` module. It is ideal for surgical text modifications in configuration files.
+The Replace Module searches files for regular expression patterns and replaces matches with specified text. It is ideal for surgical text modifications in configuration files.
 
 ## Features
 

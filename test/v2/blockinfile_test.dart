@@ -20,14 +20,14 @@ void main() {
     ''');
 
     final content = await helper.readFile('/test.txt');
-    expect(content, contains('BEGIN ANSIBLE MANAGED BLOCK'));
+    expect(content, contains('BEGIN CONFIGR MANAGED BLOCK'));
     expect(content, contains('managed content'));
-    expect(content, contains('END ANSIBLE MANAGED BLOCK'));
+    expect(content, contains('END CONFIGR MANAGED BLOCK'));
   });
 
   test('should replace existing block with same marker', () async {
-    const initialContent = 'preamble\n# BEGIN ANSIBLE MANAGED BLOCK\nold\n'
-        '# END ANSIBLE MANAGED BLOCK\npostamble\n';
+    const initialContent = 'preamble\n# BEGIN CONFIGR MANAGED BLOCK\nold\n'
+        '# END CONFIGR MANAGED BLOCK\npostamble\n';
     await helper.createFile('/test.txt', initialContent);
 
     await helper.runConfig('''
@@ -45,8 +45,8 @@ void main() {
   });
 
   test('should remove block when status=absent', () async {
-    const initialContent = 'preamble\n# BEGIN ANSIBLE MANAGED BLOCK\n'
-        'managed\n# END ANSIBLE MANAGED BLOCK\npostamble\n';
+    const initialContent = 'preamble\n# BEGIN CONFIGR MANAGED BLOCK\n'
+        'managed\n# END CONFIGR MANAGED BLOCK\npostamble\n';
     await helper.createFile('/test.txt', initialContent);
 
     await helper.runConfig('''
@@ -153,7 +153,7 @@ void main() {
     ''');
 
     final content = await helper.readFile('/test.txt');
-    final beginMatches = 'BEGIN ANSIBLE MANAGED BLOCK'.allMatches(content).length;
+    final beginMatches = 'BEGIN CONFIGR MANAGED BLOCK'.allMatches(content).length;
     expect(beginMatches, equals(1));
   });
 

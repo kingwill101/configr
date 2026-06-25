@@ -4,9 +4,9 @@ import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/platform.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
-/// Sets the system hostname — Ansible-style platform subclass dispatch.
+/// Sets the system hostname.
 ///
-/// Ansible reference: hostname.py — separates current vs permanent hostname,
+/// Separates current vs permanent hostname, supporting multiple strategies.
 /// supports `use` strategy override, and multiple Linux distribution strategies.
 abstract class HostnameBlock extends ActionBlock {
   @override
@@ -15,7 +15,7 @@ abstract class HostnameBlock extends ActionBlock {
   String name = '';
   String use = '';
 
-  /// Ansible-style factory: returns the right platform subclass.
+  /// Factory: returns the right platform subclass.
   factory HostnameBlock() {
     final facts = OsFacts.detect();
     switch (facts.os) {
@@ -94,7 +94,7 @@ class _LinuxHostnameBlock extends HostnameBlock {
           );
         }
 
-        // Ansible: update permanent hostname first, then current,
+        // Update permanent hostname first, then current,
         // to avoid NetworkManager complaints
         final staticResult = await priv.runWithElevatedPrivileges(
           'hostnamectl',

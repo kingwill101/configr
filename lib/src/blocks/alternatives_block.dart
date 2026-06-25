@@ -4,9 +4,9 @@ import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/platform.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
-/// Manages command alternatives (update-alternatives) — Ansible-style dispatch.
+/// Manages command alternatives (update-alternatives).
 ///
-/// Ansible reference: community.general.alternatives — supports state
+/// Supports state present/absent:
 /// (present/selected/auto/absent), subcommands (slaves), family, priority.
 abstract class AlternativesBlock extends ActionBlock {
   @override
@@ -62,7 +62,11 @@ abstract class AlternativesBlock extends ActionBlock {
     name = (context.getVariable('name') as String?) ?? '';
     path = (context.getVariable('path') as String?) ?? '';
     link = (context.getVariable('link') as String?) ?? '';
-    priority = (context.getVariable('priority') as int?) ?? 50;
+    priority = switch (context.getVariable('priority')) {
+      final int v => v,
+      final String v => int.tryParse(v) ?? 50,
+      _ => 50,
+    };
     linkState = (context.getVariable('state') as String?) ?? 'selected';
 
     final subcmds = context.getVariable('subcommands');

@@ -59,9 +59,21 @@ class WaitForBlock extends ActionBlock {
   ) async {
     await super.readAdditionalProperties(block, context);
     host = (context.getVariable('host') as String?) ?? '';
-    port = (context.getVariable('port') as int?) ?? 0;
-    timeout = (context.getVariable('timeout') as int?) ?? 300;
-    delay = (context.getVariable('delay') as int?) ?? 0;
+    port = switch (context.getVariable('port')) {
+      final int v => v,
+      final String v => int.tryParse(v) ?? 0,
+      _ => 0,
+    };
+    timeout = switch (context.getVariable('timeout')) {
+      final int v => v,
+      final String v => int.tryParse(v) ?? 300,
+      _ => 300,
+    };
+    delay = switch (context.getVariable('delay')) {
+      final int v => v,
+      final String v => int.tryParse(v) ?? 0,
+      _ => 0,
+    };
     activeConnection = switch (context.getVariable('active_connection')) {
       true || 'true' => true,
       _ => false,

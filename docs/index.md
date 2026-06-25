@@ -20,27 +20,43 @@ block-specific properties.
 |-------|-------------|
 | [Alternatives](modules/alternatives-module.md) | Manages command alternatives (`update-alternatives`) |
 | [Assert](modules/assert-module.md) | Validates conditions via shell commands |
+| [AuthorizedKey](authorized_key.md) | Manages SSH authorized_keys entries |
 | [Backup](backup.md) | Creates backup copies before modifications |
 | [BlockInFile](modules/blockinfile-module.md) | Manages multi-line blocks in files |
 | [Compress](compress.md) | Compresses files/directories into archives |
 | [Copy](copy.md) | Copies files/directories to new locations |
+| [Cron](cron.md) | Manages cron job entries |
+| [Debug](debug.md) | Prints debug messages to the console |
 | [Decompress](decompress.md) | Extracts files from archives |
 | [Delete](delete.md) | Safely deletes files and directories |
 | [Download](download.md) | Downloads files from remote URLs |
 | [Echo](echo.md) | Prints messages to the console |
 | [Execute](execute.md) | Executes shell commands |
+| [Fail](fail.md) | Fails execution with a custom error message |
+| [Fetch](fetch.md) | Fetches files from the target to the local machine |
 | [File](file.md) | Creates/edits files with content |
+| [Firewalld](firewalld.md) | Manages firewalld services, ports, and rules (Linux) |
+| [GatherFacts](gather_facts.md) | Collects system facts into context variables |
 | [Git](git.md) | Git repository operations |
 | [Group](modules/group-module.md) | Manages system groups |
 | [Hostname](modules/hostname-module.md) | Sets the system hostname |
+| [KnownHosts](known_hosts.md) | Manages SSH known_hosts entries |
 | [LineInFile](modules/lineinfile-module.md) | Ensures a specific line in a file |
 | [LocaleGen](modules/locale_gen-module.md) | Generates system locales |
+| [Mount](mount.md) | Manages mount points and fstab entries |
 | [Move](move.md) | Moves/renames files and directories |
 | [Network](network.md) | Network connectivity testing |
 | [Package](package.md) | Package management (apt, brew, dnf, docker, flatpak, npm, pacman, pamac, pip, snap, yum) |
+| [Pause](pause.md) | Pauses execution for a specified duration |
 | [Permissions](permissions.md) | Sets file permissions and ownership |
+| [Raw](raw.md) | Executes raw shell commands |
 | [Rename](rename.md) | Renames files and directories |
 | [Replace](modules/replace-module.md) | Replaces text using regular expressions |
+| [Script](script.md) | Copies and executes local scripts on the target |
+| [Service](service.md) | Manages system services across init systems |
+| [SetFact](set_fact.md) | Sets key/value pairs as context variables |
+| [Slurp](slurp.md) | Reads files and base64-encodes their content |
+| [Stat](stat.md) | Retrieves file/directory statistics |
 | [Symlink](symlink.md) | Creates/manages symbolic links |
 | [Sync](sync.md) | Bidirectional file synchronization |
 | [Sysctl](modules/sysctl-module.md) | Manages kernel parameters |
@@ -48,8 +64,12 @@ block-specific properties.
 | [Template](template.md) | Renders template files with Liquid |
 | [Timezone](modules/timezone-module.md) | Sets the system timezone |
 | [Touch](touch.md) | Updates file timestamps |
+| [UFW](ufw.md) | Manages UFW firewall rules (Linux) |
+| [Unarchive](unarchive.md) | Extracts archives (tar, zip, gz, bz2, xz) |
+| [URI](uri.md) | Makes HTTP/HTTPS requests |
 | [User](modules/user-module.md) | Manages system user accounts |
 | [Validate](validate.md) | Validates file contents and formats |
+| [WaitFor](wait_for.md) | Waits for a condition before continuing |
 
 ## Features
 

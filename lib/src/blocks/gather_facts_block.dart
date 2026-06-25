@@ -45,15 +45,15 @@ try {
       // ---- OS facts from OsFacts.detect() ----
       final facts = OsFacts.detect();
 
-      context.setVariable('ansible_os_family', facts.family.name);
-      context.setVariable('ansible_distribution', facts.distribution);
+      context.setVariable('os_family', facts.family.name);
+      context.setVariable('distribution', facts.distribution);
       context.setVariable(
-        'ansible_distribution_version',
+        'distribution_version',
         facts.distributionVersion,
       );
-      context.setVariable('ansible_architecture', facts.architecture);
-      context.setVariable('ansible_system', facts.os.name);
-      context.setVariable('ansible_hostname', Platform.localHostname);
+      context.setVariable('architecture', facts.architecture);
+      context.setVariable('system', facts.os.name);
+      context.setVariable('hostname', Platform.localHostname);
 
       // ---- Kernel information via uname ----
       try {
@@ -64,7 +64,7 @@ try {
         );
         if (unameResult.exitCode == 0) {
           context.setVariable(
-            'ansible_kernel',
+            'kernel',
             (unameResult.stdout as String).trim(),
           );
         }
@@ -78,7 +78,7 @@ try {
         );
         if (kernelResult.exitCode == 0) {
           context.setVariable(
-            'ansible_kernel_version',
+            'kernel_version',
             (kernelResult.stdout as String).trim(),
           );
         }
@@ -93,7 +93,7 @@ try {
         );
         if (nprocResult.exitCode == 0) {
           context.setVariable(
-            'ansible_processor_count',
+            'processor_count',
             (nprocResult.stdout as String).trim(),
           );
         }
@@ -114,7 +114,7 @@ try {
               if (parts.length >= 2) {
                 final totalBytes = int.tryParse(parts[1]) ?? 0;
                 context.setVariable(
-                  'ansible_memtotal_mb',
+                  'memtotal_mb',
                   (totalBytes ~/ (1024 * 1024)).toString(),
                 );
               }
@@ -134,7 +134,7 @@ try {
             if (parts.length >= 2) {
               final totalBytes = int.tryParse(parts[1].trim()) ?? 0;
               context.setVariable(
-                'ansible_memtotal_mb',
+                'memtotal_mb',
                 (totalBytes ~/ (1024 * 1024)).toString(),
               );
             }
@@ -153,7 +153,7 @@ try {
             if (parts.length >= 2) {
               final totalBytes = int.tryParse(parts[1].trim()) ?? 0;
               context.setVariable(
-                'ansible_memtotal_mb',
+                'memtotal_mb',
                 (totalBytes ~/ (1024 * 1024)).toString(),
               );
             }
@@ -170,7 +170,7 @@ try {
         );
         if (dfResult.exitCode == 0) {
           context.setVariable(
-            'ansible_mounts',
+            'mounts',
             (dfResult.stdout as String).trim(),
           );
         }
@@ -186,7 +186,7 @@ try {
           );
           if (netResult.exitCode == 0) {
             context.setVariable(
-              'ansible_interfaces',
+              'interfaces',
               (netResult.stdout as String).trim(),
             );
           }
@@ -200,7 +200,7 @@ try {
           );
           if (netResult.exitCode == 0) {
             context.setVariable(
-              'ansible_interfaces',
+              'interfaces',
               (netResult.stdout as String).trim(),
             );
           }

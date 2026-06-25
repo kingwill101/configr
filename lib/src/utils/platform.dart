@@ -28,7 +28,7 @@ enum OperatingSystem {
   }
 }
 
-/// OS family grouping — mirrors Ansible's `ansible_os_family`.
+/// OS family grouping.
 ///
 /// On Linux, the family is derived from the distribution
 /// (e.g., `debian`, `redhat`, `arch`, `suse`, `alpine`).
@@ -55,7 +55,7 @@ enum OsFamily {
   };
 }
 
-/// Parsed OS information, analogous to Ansible's `ansible_facts`.
+/// Parsed OS information.
 class OsFacts {
   final OperatingSystem os;
   final OsFamily family;

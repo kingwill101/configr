@@ -1,34 +1,34 @@
-# Configr Roadmap: Ansible-Inspired Module Expansion & Container Testing
+# Configr Roadmap: Module Expansion & Container Testing
 
 ## 1. Current State
 
 31 action blocks implemented across 6 categories. See [docs/index.md](docs/index.md) for the full list.
 
-### Notable gaps vs Ansible builtin modules
+### Notable gaps
 
-| Category | Configr Status | Ansible Comparison |
-|----------|---------------|-------------------|
-| File operations (copy, move, delete, symlink, touch) | ✅ Full coverage | On par with `ansible.builtin.{copy,file}` |
+| Category | Configr Status | Comparison |
+|----------|---------------|------------|
+| File operations (copy, move, delete, symlink, touch) | ✅ Full coverage | Well-established |
 | File content editing (create, append, prepend, replace) | ✅ Full | Has `file { create/edit }` + `lineinfile`, `blockinfile`, `replace` blocks |
-| Permissions (chmod, chown, ACL) | ✅ Full | On par with `ansible.builtin.file` + `ansible.posix.acl` |
-| Templates (Liquid, Mustache) | ✅ Full | On par with `ansible.builtin.template` |
-| Archives (compress/decompress/backup) | ✅ Full | Exceeds Ansible (`backup` with incremental, encryption) |
-| Downloads | ✅ Full | On par with `ansible.builtin.get_url` |
-| Sync (bidirectional) | ✅ Full | Exceeds Ansible's `synchronize` (bidirectional mode) |
+| Permissions (chmod, chown, ACL) | ✅ Full | Full coverage |
+| Templates (Liquid, Mustache) | ✅ Full | Full coverage |
+| Archives (compress/decompress/backup) | ✅ Full | Extensive (`backup` with incremental, encryption) |
+| Downloads | ✅ Full | Full coverage |
+| Sync (bidirectional) | ✅ Full | Bidirectional mode available |
 | Validation (JSON/YAML schema, checksum) | ✅ Full | Unique to Configr |
-| Shell execution | ✅ Full | On par with `ansible.builtin.shell/command` |
-| Systemd | ✅ Full | On par with `ansible.builtin.systemd` |
-| Network checks (HTTP/TCP/DNS/ping) | ✅ Full | Exceeds Ansible's `uri` (multiple check types) |
-| Git (clone/pull/push/commit) | ✅ Full | On par with `ansible.builtin.git` |
-| **Package managers (11)** | ✅ Full | On par with `ansible.builtin.{apt,yum,dnf,pacman,...}` |
+| Shell execution | ✅ Full | Full coverage |
+| Systemd | ✅ Full | Full coverage |
+| Network checks (HTTP/TCP/DNS/ping) | ✅ Full | Multiple check types |
+| Git (clone/pull/push/commit) | ✅ Full | Full coverage |
+| **Package managers (11)** | ✅ Full | Full coverage |
 | **Plugin system (Dart + Lua)** | ✅ Full | Unique to Configr |
-| **User/group management** | ✅ Implemented | `ansible.builtin.{user,group}` — Linux full, macOS/FreeBSD stubs |
-| **Regex file editing (lineinfile/blockinfile/replace)** | ✅ Implemented | `ansible.builtin.{lineinfile,blockinfile,replace}` — MemFS-testable |
-| **System settings (hostname, timezone, sysctl, locale_gen)** | ✅ Implemented | `ansible.posix.{hostname,timezone,sysctl}`, `locale_gen` — multi-OS dispatch |
-| **Alternatives** | ✅ Implemented | `community.general.alternatives` — Debian full, RHEL stub |
-| **Assert** | ✅ Implemented | `ansible.builtin.assert` — shell condition testing |
-| **Cron jobs** | ❌ Missing | `ansible.builtin.cron` |
-| **Wait_for** | ❌ Missing | `ansible.builtin.wait_for` |
+| **User/group management** | ✅ Implemented | Linux full, macOS/FreeBSD stubs |
+| **Regex file editing (lineinfile/blockinfile/replace)** | ✅ Implemented | MemFS-testable |
+| **System settings (hostname, timezone, sysctl, locale_gen)** | ✅ Implemented | multi-OS dispatch |
+| **Alternatives** | ✅ Implemented | Debian full, RHEL stub |
+| **Assert** | ✅ Implemented | shell condition testing |
+| **Cron jobs** | ❌ Missing | Not yet implemented |
+| **Wait_for** | ❌ Missing | Not yet implemented |
 | **Firewall (ufw, firewalld)** | ❌ Missing | Plugin territory |
 | **Mount** | ❌ Missing | Plugin territory |
 | **SELinux** | ❌ Missing | Plugin territory |
@@ -43,7 +43,7 @@ These directly map to common dotfiles/system-config tasks and should ship as bui
 
 ### 2.1 `user` block ✅
 
-Ansible equivalent: `ansible.builtin.user`
+Equivalent reference: `user`
 
 ```configr
 resource {
@@ -68,7 +68,7 @@ Platform dispatch: `_LinuxUserBlock` (full), `_MacOSUserBlock` (stub), `_FreeBSD
 
 ### 2.2 `group` block ✅
 
-Ansible equivalent: `ansible.builtin.group`
+Equivalent reference: `group`
 
 ```configr
 resource {
@@ -117,7 +117,7 @@ resource {
 
   actions {
     blockinfile {
-      marker "# {mark} ANSIBLE MANAGED BLOCK"
+      marker "# {mark} CONFIGR MANAGED BLOCK"
       block """
 Host github.com
   HostName github.com
@@ -299,22 +299,22 @@ wait_for {
 
 These are more specialized. Ship as separate packages or built-in plugins.
 
-| Addon | Description | Ansible Inspiration |
-|-------|-------------|-------------------|
-| `configr-firewall` | ufw & firewalld management | `community.general.ufw`, `ansible.posix.firewalld` |
-| `configr-mount` | Mount filesystems (fstab) | `ansible.posix.mount` |
-| `configr-selinux` | SELinux context, boolean, port | `ansible.posix.selinux` |
-| `configr-crypto` | OpenSSL certs, keys, CSRs | `community.crypto.openssl_*` |
-| `configr-acme` | Let's Encrypt certificate management | `community.crypto.acme_certificate` |
-| `configr-dconf` | GNOME/desktop settings via dconf | `community.general.dconf` |
+| Addon | Description | Notes |
+|-------|-------------|-------|
+| `configr-firewall` | ufw & firewalld management | |
+| `configr-mount` | Mount filesystems (fstab) | |
+| `configr-selinux` | SELinux context, boolean, port | |
+| `configr-crypto` | OpenSSL certs, keys, CSRs | |
+| `configr-acme` | Let's Encrypt certificate management | |
+| `configr-dconf` | GNOME/desktop settings via dconf | |
 | `configr-desktop-entry` | Create .desktop files | — |
 | `configr-font` | Font installation & management | — |
 | `configr-vscode` | VS Code extension management | — |
-| `configr-ssh` | SSH key generation, known_hosts | `community.crypto.openssh_keypair`, `known_hosts` |
-| `configr-gpg` | GPG key management | `community.general.gpg_key` |
-| `configr-git-config` | Git config management | `community.general.git_config` |
-| `configr-docker-compose` | Docker Compose management | `community.docker.docker_compose` |
-| `configr-podman` | Podman container management | `containers.podman` |
+| `configr-ssh` | SSH key generation, known_hosts | |
+| `configr-gpg` | GPG key management | |
+| `configr-git-config` | Git config management | |
+| `configr-docker-compose` | Docker Compose management | |
+| `configr-podman` | Podman container management | |
 
 ---
 
@@ -448,9 +448,9 @@ test('creates a user and is idempotent', () async {
 }, tags: ['debian', 'fedora', 'arch', 'alpine', 'needs-root']);
 ```
 
-### 5.5 Test Patterns (Ansible-Style)
+### 5.5 Test Patterns
 
-Three patterns are used, inspired by Ansible's integration test methodology:
+Three patterns are used for block testing:
 
 **1. Idempotency** — every test runs the config twice and asserts the second
    run produces no changes. Use `assertIdempotent()` from shared utils.
@@ -536,14 +536,14 @@ CONFIGR_TEST_ENV=ubuntu ./testing/scripts/ci-run.sh
 Phase 1a — Foundation                  ✅ done
 ├── Missing docs                      ✅ 16 module docs created
 ├── Example configs                   ✅ lineinfile, blockinfile, replace, assert
-└── Ansible source audit              ✅ 7 modules audited upstream
+└── Source audit              ✅ 7 modules audited
 
 Phase 1b — Core Blocks                ✅ done
 ├── lineinfile block                  ✅
 ├── blockinfile block                 ✅
 ├── replace block                     ✅
-├── user block                        ✅ (Ansible subclass pattern)
-├── group block                       ✅ (Ansible subclass pattern)
+├── user block                        ✅ (subclass pattern)
+├── group block                       ✅ (subclass pattern)
 ├── assert block                      ✅
 ├── wait_for block                    ✅
 └── cron block                        ✅
@@ -615,5 +615,5 @@ Phase 2 — Addon Packages
    distro tests sequentially with proper exit code propagation.
 - **`dart:io` import in timezone_block.dart** still needed for `Platform`.
 - **All 209 tests pass** on Arch Linux as of last run.
-- **Ansible subclass pattern** used by 7 system blocks (user, group, hostname,
+- **Subclass pattern** used by 7 system blocks (user, group, hostname,
   timezone, sysctl, locale_gen, alternatives).

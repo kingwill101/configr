@@ -1,6 +1,6 @@
 # Locale Gen Module
 
-Generates system locales — Ansible-style `locale_gen` module.
+Generates system locales.
 
 ## Overview
 

@@ -1,10 +1,10 @@
 # Sysctl Module
 
-Manages kernel parameters — Ansible-style `sysctl` module.
+Manages kernel parameters.
 
 ## Overview
 
-The Sysctl Module configures kernel parameters via `sysctl` with persistent file management. It follows the Ansible `ansible.posix.sysctl` pattern, supporting both runtime changes and persistent configuration in sysctl configuration files.
+The Sysctl Module configures kernel parameters via `sysctl` with persistent file management, supporting both runtime changes and persistent configuration in sysctl configuration files.
 
 ## Features
 

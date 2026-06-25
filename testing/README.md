@@ -50,7 +50,7 @@ dart test --tags debian
 dart test --tags fedora
 ```
 
-## Test Patterns (Ansible-Style)
+## Test Patterns
 
 ### 1. Idempotency
 

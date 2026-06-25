@@ -1,10 +1,10 @@
 # Alternatives Module
 
-Manages command alternatives (`update-alternatives`) — Ansible-style.
+Manages command alternatives (`update-alternatives`).
 
 ## Overview
 
-The Alternatives Module manages symbolic link alternatives for commands, following the Debian `update-alternatives` system and the Ansible `community.general.alternatives` module pattern.
+The Alternatives Module manages symbolic link alternatives for commands, following the Debian `update-alternatives` system.
 
 ## Features
 

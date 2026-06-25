@@ -1,10 +1,10 @@
 # LineInFile Module
 
-Ensures a specific line is present or absent in a file — Ansible-style `lineinfile`.
+Ensures a specific line is present or absent in a file.
 
 ## Overview
 
-The LineInFile Module manages individual lines in text files, similar to Ansible's `lineinfile` module. It is ideal for managing configuration files where a single line needs to be added, modified, or removed.
+The LineInFile Module manages individual lines in text files. It is ideal for managing configuration files where a single line needs to be added, modified, or removed.
 
 ## Features
 

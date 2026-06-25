@@ -1,0 +1,9 @@
+resource {
+  actions {
+    unarchive {
+      src = "/tmp/app.tar.gz"
+      dest = "/opt/app"
+      remote_src = true
+    }
+  }
+}
