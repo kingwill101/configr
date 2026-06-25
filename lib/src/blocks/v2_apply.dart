@@ -1,8 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:configr/src/cli/ui/handlers/base_handler.dart';
+import 'package:configr/src/configr_directories.dart';
+import 'package:configr/src/exceptions.dart';
+import 'package:configr/src/plugins/configr_plugin.dart';
+import 'package:configr/src/plugins/lua_plugin.dart';
+import 'package:configr/src/reader/handlers/configr_handlers.dart';
+import 'package:configr/src/utils/logging.dart';
+import 'package:configr/src/utils/system_info.dart';
+import 'package:configr/src/utils/v2_lockfile_manager.dart';
 import 'package:crypto/crypto.dart' show sha256;
 import 'package:path/path.dart' as p;
+import 'package_managers/package_manger.dart';
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/blocks/alternatives_block.dart';
 import 'package:configr/src/blocks/assert_block.dart';
@@ -34,17 +44,6 @@ import 'package:configr/src/blocks/mount_block.dart';
 import 'package:configr/src/blocks/move_block.dart';
 import 'package:configr/src/blocks/network_block.dart';
 import 'package:configr/src/blocks/package_block.dart';
-import 'package:configr/src/blocks/package_managers/apt_block.dart';
-import 'package:configr/src/blocks/package_managers/brew_block.dart';
-import 'package:configr/src/blocks/package_managers/dnf_block.dart';
-import 'package:configr/src/blocks/package_managers/docker_block.dart';
-import 'package:configr/src/blocks/package_managers/flatpak_block.dart';
-import 'package:configr/src/blocks/package_managers/npm_block.dart';
-import 'package:configr/src/blocks/package_managers/pacman_block.dart';
-import 'package:configr/src/blocks/package_managers/pamac_block.dart';
-import 'package:configr/src/blocks/package_managers/pip_block.dart';
-import 'package:configr/src/blocks/package_managers/snap_block.dart';
-import 'package:configr/src/blocks/package_managers/yum_block.dart';
 import 'package:configr/src/blocks/pause_block.dart';
 import 'package:configr/src/blocks/permissions_block.dart';
 import 'package:configr/src/blocks/raw_block.dart';
@@ -68,24 +67,17 @@ import 'package:configr/src/blocks/uri_block.dart';
 import 'package:configr/src/blocks/user_block.dart';
 import 'package:configr/src/blocks/validate_block.dart';
 import 'package:configr/src/blocks/wait_for_block.dart';
-import 'package:configr/src/cli/ui/handlers/base_handler.dart';
 import 'package:configr/src/di.dart';
-import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/models/v2_lockfile_data.dart';
-import 'package:configr/src/configr_directories.dart';
-import 'package:configr/src/plugins/configr_plugin.dart';
-import 'package:configr/src/plugins/lua_plugin.dart';
-import 'package:configr/src/reader/handlers/configr_handlers.dart';
-import 'package:configr/src/reader/handlers/plugin_block_handler.dart';
+import 'package:configr/src/utils/command_runner.dart';
 import 'package:configr/src/utils/event_bus.dart';
-import 'package:configr/src/utils/logging.dart';
+import 'package:configr/src/utils/file_service.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
-import 'package:configr/src/utils/system_info.dart';
-import 'package:configr/src/utils/v2_lockfile_manager.dart';
-
 import 'package:file/file.dart' show FileSystem;
-import 'package:file/local.dart';
+import 'package:file/local.dart' show LocalFileSystem;
 import 'package:i3config/i3config_v2.dart' as i3;
+
+import '../reader/handlers/plugin_block_handler.dart';
 
 /// Applies a config file using the v2 ActionBlock pipeline.
 ///
@@ -162,7 +154,8 @@ Future<void> applyV2(
   // Interactive mode — prompt user for confirmation before apply
   // (skipped when --no-interaction/-n is passed)
   if (interactive && !dryRun) {
-    final confirmed = uiHandler?.confirm(
+    final confirmed =
+        uiHandler?.confirm(
           'Apply configuration from ${configPath.split('/').last}?',
           defaultValue: true,
         ) ??
@@ -607,6 +600,8 @@ Future<void> _registerAllBlocks(
       privilegeEscalation ?? NonInteractiveSudoEscalation(),
     )
     ..registerSingleton<FileSystem>(const LocalFileSystem())
+    ..registerSingleton<FileService>(LocalFileService())
+    ..registerSingleton<CommandRunner>(const LocalCommandRunner())
     ..allowReassignment = false;
 
   // Store processor reference so handlers (e.g. PluginBlockHandler)
@@ -614,70 +609,70 @@ Future<void> _registerAllBlocks(
   processor.context.options['_processor'] = processor;
   processor.context.options['_dryRun'] = dryRun;
 
-final actionBlockMap = <String, ActionBlock>{
-     'alternatives': AlternativesBlock(),
-     'apt': AptBlock(),
-     'assert': AssertBlock(),
-     'authorized_key': AuthorizedKeyBlock(),
-     'backup': BackupBlock(),
-     'blockinfile': BlockInFileBlock(),
-     'brew': BrewBlock(),
-     'compress': CompressBlock(),
-     'copy': CopyBlock(),
-     'cron': CronBlock(),
-     'debug': DebugBlock(),
-     'decompress': DecompressBlock(),
-     'delete': DeleteBlock(),
-     'dnf': DnfBlock(),
-     'docker': DockerBlock(),
-     'download': DownloadBlock(),
-     'echo': EchoBlock(),
-     'execute': ExecuteBlock(),
-     'fail': FailBlock(),
-     'fetch': FetchBlock(),
-     'file': FileBlock(),
-     'firewalld': FirewalldBlock(),
-     'flatpak': FlatpakBlock(),
-     'gather_facts': GatherFactsBlock(),
-     'git': GitBlock(),
-     'group': GroupBlock(),
-     'hostname': HostnameBlock(),
-     'known_hosts': KnownHostsBlock(),
-     'lineinfile': LineInFileBlock(),
-     'locale_gen': LocaleGenBlock(),
-     'mount': MountBlock(),
-     'move': MoveBlock(),
-     'network': NetworkBlock(),
-     'npm': NpmBlock(),
-     'package': PackageBlock(),
-     'pacman': PacmanBlock(),
-     'pamac': PamacBlock(),
-     'pause': PauseBlock(),
-     'permissions': PermissionsBlock(),
-     'pip': PipBlock(),
-     'raw': RawBlock(),
-     'rename': RenameBlock(),
-     'replace': ReplaceBlock(),
-     'script': ScriptBlock(),
-     'service': ServiceBlock(),
-     'set_fact': SetFactBlock(),
-     'slurp': SlurpBlock(),
-     'snap': SnapBlock(),
-     'stat': StatBlock(),
-     'symlink': SymlinkBlock(),
-     'sync': SyncBlock(),
-     'sysctl': SysctlBlock(),
-     'systemd': SystemdBlock(),
-     'timezone': TimezoneBlock(),
-     'touch': TouchBlock(),
-     'ufw': UfwBlock(),
-     'unarchive': UnarchiveBlock(),
-     'uri': UriBlock(),
-     'user': UserBlock(),
-     'validate': ValidateBlock(),
-     'wait_for': WaitForBlock(),
-     'yum': YumBlock(),
-   };
+  final actionBlockMap = <String, ActionBlock>{
+    'alternatives': AlternativesBlock(),
+    'apt': AptBlock(),
+    'assert': AssertBlock(),
+    'authorized_key': AuthorizedKeyBlock(),
+    'backup': BackupBlock(),
+    'blockinfile': BlockInFileBlock(),
+    'brew': BrewBlock(),
+    'compress': CompressBlock(),
+    'copy': CopyBlock(),
+    'cron': CronBlock(),
+    'debug': DebugBlock(),
+    'decompress': DecompressBlock(),
+    'delete': DeleteBlock(),
+    'dnf': DnfBlock(),
+    'docker': DockerBlock(),
+    'download': DownloadBlock(),
+    'echo': EchoBlock(),
+    'execute': ExecuteBlock(),
+    'fail': FailBlock(),
+    'fetch': FetchBlock(),
+    'file': FileBlock(),
+    'firewalld': FirewalldBlock(),
+    'flatpak': FlatpakBlock(),
+    'gather_facts': GatherFactsBlock(),
+    'git': GitBlock(),
+    'group': GroupBlock(),
+    'hostname': HostnameBlock(),
+    'known_hosts': KnownHostsBlock(),
+    'lineinfile': LineInFileBlock(),
+    'locale_gen': LocaleGenBlock(),
+    'mount': MountBlock(),
+    'move': MoveBlock(),
+    'network': NetworkBlock(),
+    'npm': NpmBlock(),
+    'package': PackageBlock(),
+    'pacman': PacmanBlock(),
+    'pamac': PamacBlock(),
+    'pause': PauseBlock(),
+    'permissions': PermissionsBlock(),
+    'pip': PipBlock(),
+    'raw': RawBlock(),
+    'rename': RenameBlock(),
+    'replace': ReplaceBlock(),
+    'script': ScriptBlock(),
+    'service': ServiceBlock(),
+    'set_fact': SetFactBlock(),
+    'slurp': SlurpBlock(),
+    'snap': SnapBlock(),
+    'stat': StatBlock(),
+    'symlink': SymlinkBlock(),
+    'sync': SyncBlock(),
+    'sysctl': SysctlBlock(),
+    'systemd': SystemdBlock(),
+    'timezone': TimezoneBlock(),
+    'touch': TouchBlock(),
+    'ufw': UfwBlock(),
+    'unarchive': UnarchiveBlock(),
+    'uri': UriBlock(),
+    'user': UserBlock(),
+    'validate': ValidateBlock(),
+    'wait_for': WaitForBlock(),
+    'yum': YumBlock(),
+  };
 
   // -----------------------------------------------------------------------
   // 2. Create a v2-aware ActionsBlockHandler that dispatches to real

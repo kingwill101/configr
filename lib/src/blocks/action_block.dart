@@ -5,7 +5,9 @@ import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/models/command.dart';
 import 'package:configr/src/models/v2_lockfile_data.dart';
 import 'package:configr/src/utils/command_executor.dart';
+import 'package:configr/src/utils/command_runner.dart';
 import 'package:configr/src/utils/event_bus.dart';
+import 'package:configr/src/utils/file_service.dart';
 
 import 'package:configr/src/utils/privilege_escalation.dart'
     show NoPrivilegeEscalation, PrivilegeEscalation;
@@ -62,6 +64,8 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
   EventBus get eventBus => di<EventBus>();
   PrivilegeEscalation get privilegeEscalation => di<PrivilegeEscalation>();
   FileSystem get fileSystem => di<FileSystem>();
+  FileService get fileService => di<FileService>();
+  CommandRunner get commandRunner => di<CommandRunner>();
 
   /// When true, [execute] is skipped during processing.
   /// Used by tests that only want to verify property parsing.

@@ -5,16 +5,16 @@ import 'package:configr/src/cli/configr_command_runner.dart';
 import 'package:configr/src/cli/cli_exit_exception.dart';
 
 void main() {
+  const testEnv = String.fromEnvironment('CONFIGR_TEST_ENV');
+  if (testEnv.isEmpty) {
+    test('skip: sweep requires container environment (CONFIGR_TEST_ENV)', () {},
+        skip: true);
+    return;
+  }
+
   final configsDir = Directory(
     '${Directory.current.path}/test/integration/configs',
   );
-
-  // Clean up stale lockfiles from previous runs.
-  for (final entry in configsDir.listSync(followLinks: false)) {
-    if (entry is! Directory) continue;
-    final lockFile = File('${entry.path}/config.lock.json');
-    if (lockFile.existsSync()) lockFile.deleteSync();
-  }
 
   for (final entry in configsDir.listSync(followLinks: false)) {
     if (entry is! Directory) continue;
@@ -34,6 +34,8 @@ void main() {
     if (tagsFile.existsSync()) {
       tags = tagsFile.readAsStringSync().trim().split(RegExp(r'\s+'));
     }
+
+    if (tags.isNotEmpty && !tags.contains(testEnv)) continue;
 
     group(dirName, () {
       if (cleanupScript.existsSync()) {
@@ -102,7 +104,8 @@ void main() {
           fail(
               'Second apply (idempotency) failed (exit ${e.exitCode}):\n$out2$err2');
         }
-      }, tags: tags.isEmpty ? null : tags, timeout: const Timeout(Duration(minutes: 2)));
+      }, tags: tags.isEmpty ? null : tags,
+          timeout: const Timeout(Duration(minutes: 2)));
     });
   }
 }
