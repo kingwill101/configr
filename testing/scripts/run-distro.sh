@@ -7,9 +7,10 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPOSE_FILE="$DIR/docker-compose.yml"
 
 DISTRO="${1:-ubuntu}"
-shift 2>/dev/null || true
+shift || true
+EXTRA_ARGS=("$@")
 
-if ! docker compose -f "$COMPOSE_FILE" config --services 2>/dev/null | grep -q "^${DISTRO}-test$"; then
+if ! docker compose -f "$COMPOSE_FILE" --profile "$DISTRO" config --services 2>/dev/null | grep -q "^${DISTRO}-test$"; then
   echo "Error: Unknown distro '$DISTRO'"
   echo "Available: ubuntu, debian, fedora, arch, alpine"
   exit 1
@@ -19,10 +20,10 @@ echo "=== Building $DISTRO test image ==="
 docker compose -f "$COMPOSE_FILE" build "${DISTRO}-test"
 
 echo "=== Running $DISTRO tests ==="
-if [ $# -eq 0 ]; then
-  docker compose -f "$COMPOSE_FILE" run --rm "${DISTRO}-test"
+if [ ${#EXTRA_ARGS[@]} -eq 0 ]; then
+  docker compose -f "$COMPOSE_FILE" --profile "$DISTRO" run --rm "${DISTRO}-test"
 else
-  docker compose -f "$COMPOSE_FILE" run --rm "${DISTRO}-test" sh -c "dart pub get && dart test $*"
+  docker compose -f "$COMPOSE_FILE" --profile "$DISTRO" run --rm "${DISTRO}-test" sh -c "dart pub get && dart test ${EXTRA_ARGS[*]}"
 fi
 
 echo "=== Cleaning up ==="

@@ -12,3 +12,4 @@ AGENTS.md
 build/
 kingwill101/
 *.log
+third_party/

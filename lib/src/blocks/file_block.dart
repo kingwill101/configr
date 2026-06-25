@@ -56,7 +56,7 @@ class FileBlock extends ActionBlock {
     if (content.isNotEmpty) 'content': content,
     if (operation != 'create') 'operation': operation,
     if (editMode != 'replace') 'edit_mode': editMode,
-    if (filePath != destination && filePath.isNotEmpty) 'file_path': filePath,
+    if (filePath != source && filePath.isNotEmpty) 'file_path': filePath,
     if (backupSuffix != '.backup') 'backup_suffix': backupSuffix,
   };
 
@@ -77,8 +77,8 @@ class FileBlock extends ActionBlock {
     operation = (context.getVariable('operation') as String?) ?? 'create';
     editMode = (context.getVariable('edit_mode') as String?) ?? 'replace';
 
-    // file_path can be explicit or fall back to destination
-    filePath = (context.getVariable('file_path') as String?) ?? destination;
+    // file_path can be explicit or fall back to source
+    filePath = (context.getVariable('file_path') as String?) ?? source;
 
     createDirectories = switch (context.getVariable('create_directories')) {
       false || 'false' => false,
