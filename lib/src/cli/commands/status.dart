@@ -73,7 +73,7 @@ class StatusCommand extends BaseCommand {
       io.success('Status check complete — ${blocks.length} blocks found.');
     } catch (e) {
       io.error('Status check failed: $e');
-      logger.severe('Status error: $e');
+      logger.error('Status error: $e');
     }
   }
 
@@ -93,10 +93,16 @@ class StatusCommand extends BaseCommand {
   void _printDriftResults(List<DriftResult> results) {
     if (results.isEmpty) return;
 
-    final drifted = results.where((r) => r.state == DriftState.drifted).toList();
-    final missing = results.where((r) => r.state == DriftState.missing).toList();
+    final drifted = results
+        .where((r) => r.state == DriftState.drifted)
+        .toList();
+    final missing = results
+        .where((r) => r.state == DriftState.missing)
+        .toList();
     final synced = results.where((r) => r.state == DriftState.synced).toList();
-    final unknown = results.where((r) => r.state == DriftState.unknown).toList();
+    final unknown = results
+        .where((r) => r.state == DriftState.unknown)
+        .toList();
 
     io.section('Drift Detection (${results.length} tracked files):');
     io.line('  ✅ ${synced.length} synced');

@@ -39,7 +39,7 @@ void main(List<String> arguments) async {
   } catch (e, stackTrace) {
     print('Unexpected Error: $e');
     print('Tip: Use --debug flag for detailed error information');
-    logger.severe('Unexpected error: $e', e, stackTrace);
+    logger.error('Unexpected error: $e', e, stackTrace);
     exit(1);
   }
 }

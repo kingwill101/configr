@@ -1,43 +1,35 @@
+import 'dart:async';
+
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/utils/event_bus.dart';
-import 'package:file/file.dart';
-import 'package:logging/logging.dart';
 import 'package:configr/src/utils/fs.dart';
+import 'package:file/file.dart';
+// import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
+import 'package:contextual/contextual.dart';
 
-final logger = Logger('configr');
+final logger = Logger();
 
-void initLogging() {
-  Logger.root.level = Level.WARNING; // Only show warnings and errors
-  Logger.root.onRecord.listen((record) {
-    // Only emit events for warnings and errors, not info messages
-    if (record.level >= Level.WARNING) {
-      final level = switch (record.level) {
-        Level.WARNING => StatusEvent.warning,
-        Level.SEVERE => StatusEvent.error,
-        Level.SHOUT => StatusEvent.error,
-        _ => StatusEvent.info,
-      };
-      emitEvent(
-        StatusUpdateEvent(
-          level: level,
-          message: record.message,
-          moduleId: "logger",
-        ),
-      );
-    }
+/// Initialize the logger.
+///
+/// [logDirectory] overrides the default log directory (XDG
+/// `~/.config/configr/logs/`). The log file is written as `configr.log` inside
+/// that directory.
+void initLogging({String? logDirectory}) {
+  logger.setLevel(.warning);
 
-    // Still log everything to file for debugging
-    final logFile = fs.file('app.log');
-    final StringBuffer logBuffer = StringBuffer();
-    logBuffer.writeln(
-      '\n${record.level.name}: ${record.time}: ${record.message}',
+  logger
+    ..environment('development')
+    ..withContext({'app': 'MyApp'})
+    // Console channel with PrettyLogFormatter
+    ..addChannel('console', ConsoleLogDriver(), formatter: PrettyLogFormatter())
+    // File channel with JsonLogFormatter
+    ..addChannel(
+      'file',
+      DailyFileLogDriver(
+        logDirectory ?? p.join(appDirs.config, 'logs'),
+        retentionDays: 7,
+      ),
+      formatter: JsonLogFormatter(),
     );
-    if (record.error != null) {
-      logBuffer.writeln('\nError: ${record.error}');
-    }
-    if (record.stackTrace != null) {
-      logBuffer.writeln('\nStackTrace: ${record.stackTrace}');
-    }
-    logFile.writeAsStringSync(logBuffer.toString(), mode: FileMode.append);
-  });
 }

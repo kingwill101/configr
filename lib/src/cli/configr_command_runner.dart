@@ -7,9 +7,11 @@ import 'package:configr/src/cli/ui/handlers/cli_handler.dart';
 import 'package:configr/src/cli/ui/handlers/interactive_handler.dart';
 import 'package:configr/src/cli/ui/handlers/base_handler.dart';
 import 'package:configr/src/configr_config.dart';
+import 'package:configr/src/configr_directories.dart';
 import 'package:configr/src/configr_runtime.dart';
 import 'package:configr/src/di.dart';
 import 'package:configr/src/utils/event_bus.dart';
+import 'package:configr/src/utils/file_event_handler.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
 import 'package:file/local.dart';
@@ -110,9 +112,12 @@ class ConfigrCommandRunner extends CommandRunner<void> {
 
   @override
   Future<void> run(Iterable<String> args) async {
-    initLogging();
-
     final configPath = _argValue(args, '--config', '-c') ?? 'config';
+    final configDir = path.dirname(path.absolute(configPath));
+    final configrDirs = ConfigrDirectories(
+      projectConfigrPath: path.join(configDir, '.configr'),
+    );
+    initLogging(logDirectory: configrDirs.logsDir);
     final useV2 = _hasFlag(args, '--v2');
     final debugMode = _hasFlag(args, '--debug', '-d');
     final dryRunMode = _hasFlag(args, '--dry-run');
@@ -135,6 +140,14 @@ class ConfigrCommandRunner extends CommandRunner<void> {
     final fileSystem = di.isRegistered<FileSystem>()
         ? di<FileSystem>()
         : const LocalFileSystem();
+
+    final fileEventHandler = FileEventHandler(
+      eventBus: eventBus,
+      logFile: fileSystem.directory(configrDirs.logsDir).childFile(
+        'session-${DateTime.now().toIso8601String().replaceAll(':', '-')}.jsonl',
+      ),
+    );
+    fileEventHandler.start();
 
     final uiHandler = interactiveMode
         ? InteractiveHandler(eventBus: eventBus, interactiveMode: true, console: io)
@@ -173,6 +186,8 @@ class ConfigrCommandRunner extends CommandRunner<void> {
       await super.run(args);
     } on CliExitException {
       rethrow;
+    } finally {
+      fileEventHandler.stop();
     }
   }
 

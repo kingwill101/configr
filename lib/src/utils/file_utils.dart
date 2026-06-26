@@ -35,7 +35,7 @@ class FileUtils {
           completer.complete(f);
         })
         .catchError((err, stacktrace) {
-          logger.severe('File not copied successfully', err, stacktrace);
+          logger.error('File not copied successfully', err, stacktrace);
           completer.completeError(err, stacktrace);
         });
 
@@ -180,7 +180,7 @@ class FileUtils {
           completer.complete(directory);
         })
         .catchError((err, stacktrace) {
-          logger.severe('Failed to create directory $path', err, stacktrace);
+          logger.error('Failed to create directory $path', err, stacktrace);
           completer.completeError(err, stacktrace);
         });
     return completer.future;
@@ -453,7 +453,7 @@ class FileUtils {
 
       return {'owner': parts[0], 'group': parts[1]};
     } catch (e) {
-      logger.severe('Failed to retrieve ownership for $destinationPath: $e');
+      logger.error('Failed to retrieve ownership for $destinationPath: $e');
       rethrow;
     }
   }
@@ -486,7 +486,10 @@ class FileUtils {
   }
 
   /// Checks if a path is a symbolic link
-  static Future<bool> isSymlink(dynamic symlinkPath, {FileSystem? fileSystem}) async {
+  static Future<bool> isSymlink(
+    dynamic symlinkPath, {
+    FileSystem? fileSystem,
+  }) async {
     return await (fileSystem ?? fs).isLink(symlinkPath);
   }
 
@@ -666,7 +669,7 @@ class FileUtils {
             'File written successfully with privilege escalation: $path',
           );
         } catch (e) {
-          logger.severe(
+          logger.error(
             'Failed to write file with privilege escalation: $path - $e',
           );
           throw Exception('Failed to write file with privilege escalation: $e');
@@ -677,7 +680,7 @@ class FileUtils {
         );
       }
     } catch (e) {
-      logger.severe('Failed to write file: $path - $e');
+      logger.error('Failed to write file: $path - $e');
       rethrow;
     }
   }
@@ -731,7 +734,7 @@ class FileUtils {
             'Directory created successfully with privilege escalation: $path',
           );
         } catch (e) {
-          logger.severe(
+          logger.error(
             'Failed to create directory with privilege escalation: $path - $e',
           );
           throw Exception(
@@ -744,7 +747,7 @@ class FileUtils {
         );
       }
     } catch (e) {
-      logger.severe('Failed to create directory: $path - $e');
+      logger.error('Failed to create directory: $path - $e');
       rethrow;
     }
   }
@@ -792,7 +795,7 @@ class FileUtils {
             'File deleted successfully with privilege escalation: $path',
           );
         } catch (e) {
-          logger.severe(
+          logger.error(
             'Failed to delete file with privilege escalation: $path - $e',
           );
           throw Exception(
@@ -805,7 +808,7 @@ class FileUtils {
         );
       }
     } catch (e) {
-      logger.severe('Failed to delete file: $path - $e');
+      logger.error('Failed to delete file: $path - $e');
       rethrow;
     }
   }
@@ -987,7 +990,7 @@ class FileUtils {
             );
             return result;
           } else {
-            logger.severe(
+            logger.error(
               'Command failed with privilege escalation (exit code ${result.exitCode}): $cmdDesc',
             );
             throw Exception(
@@ -997,7 +1000,7 @@ class FileUtils {
             );
           }
         } catch (e) {
-          logger.severe('Privilege escalation failed for command: $cmdDesc');
+          logger.error('Privilege escalation failed for command: $cmdDesc');
           throw Exception(
             'Failed to execute command with privilege escalation: $cmdDesc\n'
             'Error: $e',
@@ -1007,7 +1010,7 @@ class FileUtils {
 
       throw Exception('Unexpected execution path for command: $cmdDesc');
     } catch (e) {
-      logger.severe('Command execution failed: $cmdDesc - $e');
+      logger.error('Command execution failed: $cmdDesc - $e');
       rethrow;
     }
   }
@@ -1266,7 +1269,7 @@ class FileUtils {
             'File written successfully with privilege escalation: $path',
           );
         } catch (e) {
-          logger.severe(
+          logger.error(
             'Failed to write file with privilege escalation: $path - $e',
           );
           throw Exception('Failed to write file with privilege escalation: $e');
@@ -1277,7 +1280,7 @@ class FileUtils {
         );
       }
     } catch (e) {
-      logger.severe('Failed to write file: $path - $e');
+      logger.error('Failed to write file: $path - $e');
       rethrow;
     }
   }
@@ -1348,7 +1351,7 @@ class FileUtils {
             'Directory created successfully with privilege escalation: $path',
           );
         } catch (e) {
-          logger.severe(
+          logger.error(
             'Failed to create directory with privilege escalation: $path - $e',
           );
           throw Exception(
@@ -1361,7 +1364,7 @@ class FileUtils {
         );
       }
     } catch (e) {
-      logger.severe('Failed to create directory: $path - $e');
+      logger.error('Failed to create directory: $path - $e');
       rethrow;
     }
   }
@@ -1424,7 +1427,7 @@ class FileUtils {
             'File deleted successfully with privilege escalation: $path',
           );
         } catch (e) {
-          logger.severe(
+          logger.error(
             'Failed to delete file with privilege escalation: $path - $e',
           );
           throw Exception(
@@ -1437,7 +1440,7 @@ class FileUtils {
         );
       }
     } catch (e) {
-      logger.severe('Failed to delete file: $path - $e');
+      logger.error('Failed to delete file: $path - $e');
       rethrow;
     }
   }
@@ -1511,7 +1514,7 @@ class FileUtils {
             );
             return result;
           } else {
-            logger.severe(
+            logger.error(
               'Command failed with privilege escalation (exit code ${result.exitCode}): $cmdDesc',
             );
             throw Exception(
@@ -1521,7 +1524,7 @@ class FileUtils {
             );
           }
         } catch (e) {
-          logger.severe('Privilege escalation failed for command: $cmdDesc');
+          logger.error('Privilege escalation failed for command: $cmdDesc');
           throw Exception(
             'Failed to execute command with privilege escalation: $cmdDesc\n'
             'Error: $e',
@@ -1531,7 +1534,7 @@ class FileUtils {
 
       throw Exception('Unexpected execution path for command: $cmdDesc');
     } catch (e) {
-      logger.severe('Command execution failed: $cmdDesc - $e');
+      logger.error('Command execution failed: $cmdDesc - $e');
       rethrow;
     }
   }

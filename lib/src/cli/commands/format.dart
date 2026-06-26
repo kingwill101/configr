@@ -36,7 +36,7 @@ class FormatCommand extends BaseCommand {
       );
     } catch (e) {
       io.error('Format failed: $e');
-      logger.severe('Format error: $e');
+      logger.error('Format error: $e');
     }
   }
 }

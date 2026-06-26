@@ -320,7 +320,7 @@ class SyncBlock extends ActionBlock {
       syncResults[relativePath] = '$direction: synced';
     } catch (e) {
       errorsEncountered++;
-      logger.severe('Failed to sync file $relativePath: $e');
+      logger.error('Failed to sync file $relativePath: $e');
       syncResults[relativePath] = '$direction: failed';
     }
   }
@@ -368,7 +368,7 @@ class SyncBlock extends ActionBlock {
             syncResults[relativePath] = '$direction: orphan deleted';
           } catch (e) {
             errorsEncountered++;
-            logger.severe('Failed to delete orphan $relativePath: $e');
+            logger.error('Failed to delete orphan $relativePath: $e');
           }
         }
       }

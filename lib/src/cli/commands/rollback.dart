@@ -81,7 +81,7 @@ class RollbackCommand extends BaseCommand {
         );
       } else {
         io.error('Rollback failed: $e');
-        logger.severe('Rollback error: $e');
+        logger.error('Rollback error: $e');
       }
     } finally {
       for (final sub in subscriptions) {

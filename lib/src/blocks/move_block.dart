@@ -94,7 +94,7 @@ class MoveBlock extends ActionBlock {
     originalPath = source;
 
     if (exists && !overwrite) {
-      logger.severe(
+      logger.error(
         'Destination $destination already exists and overwrite is not allowed',
       );
       throw DestinationExistsException(destination);
@@ -131,20 +131,14 @@ class MoveBlock extends ActionBlock {
     try {
       if (originalPath != null) {
         logger.info('Moving back: $destination → $originalPath');
-        await fileService.moveFile(
-          destination,
-          originalPath!,
-        );
+        await fileService.moveFile(destination, originalPath!);
       }
 
       if (hadToCreateDstDir) {
         final destinationDir = path.dirname(destination);
         if (await fileService.directoryExists(destinationDir)) {
           logger.info('Deleting created directory $destinationDir');
-          await fileService.deleteDirectory(
-            destinationDir,
-            recursive: true,
-          );
+          await fileService.deleteDirectory(destinationDir, recursive: true);
         }
       }
 

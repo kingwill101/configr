@@ -60,13 +60,11 @@ class RenameBlock extends ActionBlock {
     );
 
     if (!await fileService.fileExists(source)) {
-      logger.severe('Source file $source does not exist');
+      logger.error('Source file $source does not exist');
       throw SourceNotFoundException(source);
     }
 
-    final exists = await fileService.fileExists(
-      destination,
-    );
+    final exists = await fileService.fileExists(destination);
     destinationFileExisted = exists;
 
     if (exists) {
@@ -78,7 +76,7 @@ class RenameBlock extends ActionBlock {
         ),
       );
       if (!overwrite) {
-        logger.severe(
+        logger.error(
           'Destination $destination already exists and overwrite is not allowed',
         );
         throw DestinationExistsException(destination);
@@ -123,10 +121,7 @@ class RenameBlock extends ActionBlock {
     try {
       final originalPath = path.join(path.dirname(source), originalName!);
       logger.info('Renaming back: $destination → $originalPath');
-      await fileService.moveFile(
-        destination,
-        originalPath,
-      );
+      await fileService.moveFile(destination, originalPath);
       emitEvent(
         CompletedEvent(moduleId: id, message: 'Rename rollback completed'),
       );

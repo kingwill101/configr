@@ -111,7 +111,7 @@ class ConfigWatcher {
     // Skip access/modify events — only process content changes.
     if (event.type == io.FileSystemEvent.modify) return;
 
-    logger.fine('File change detected: $path (${event.type})');
+    logger.debug('File change detected: $path (${event.type})');
 
     _debounceTimer?.cancel();
     _debounceTimer = Timer(debounceDuration, _applyChanges);

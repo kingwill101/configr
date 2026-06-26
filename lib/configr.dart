@@ -29,6 +29,7 @@ export 'src/models/config_options.dart';
 export 'src/models/v2_lockfile_data.dart';
 
 export 'src/utils/event_bus.dart';
+export 'src/utils/file_event_handler.dart';
 export 'src/utils/file_utils.dart';
 export 'src/utils/fs.dart';
 export 'src/utils/logging.dart';

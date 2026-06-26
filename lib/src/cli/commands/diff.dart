@@ -39,7 +39,7 @@ class DiffCommand extends BaseCommand {
       io.success('Diff complete — ${blocks.length} blocks parsed.');
     } catch (e) {
       io.error('Diff failed: $e');
-      logger.severe('Diff error: $e');
+      logger.error('Diff error: $e');
     }
   }
 }

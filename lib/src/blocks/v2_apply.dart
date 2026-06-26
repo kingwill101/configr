@@ -172,7 +172,7 @@ Future<void> applyV2(
     );
   }
   if (debug) {
-    logger.fine('Config contents:\n$contents');
+    logger.debug('Config contents:\n$contents');
   }
 
   // Execute pre-apply scripts before processing action blocks
@@ -290,12 +290,12 @@ Future<void> applyV2(
       <BlockErrorRecord>[];
 
   if (errors.isNotEmpty) {
-    logger.severe(
+    logger.error(
       'Apply failed — ${errors.length} block(s) encountered errors:',
     );
     for (final err in errors) {
       final location = err.source != null ? ' (${err.source})' : '';
-      logger.severe('  - ${err.blockType}: ${err.message}$location');
+      logger.error('  - ${err.blockType}: ${err.message}$location');
     }
     // Delete any partial lockfile that may exist from a previous run.
     final lockPath = V2LockfileManager.lockPathFor(configPath);
@@ -495,7 +495,7 @@ Future<void> rollbackV2(
       await block.rollback();
       rolledBack++;
     } catch (e) {
-      logger.severe(
+      logger.error(
         'Rollback failed for ${record.blockType}: '
         '${record.id.isNotEmpty ? record.id : record.source} — $e',
       );

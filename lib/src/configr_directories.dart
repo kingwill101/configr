@@ -15,10 +15,8 @@ class ConfigrDirectories {
   final String? projectConfigrPath;
   final FileSystem fileSystem;
 
-  ConfigrDirectories({
-    this.projectConfigrPath,
-    FileSystem? fileSystem,
-  }) : fileSystem = fileSystem ?? fs;
+  ConfigrDirectories({this.projectConfigrPath, FileSystem? fileSystem})
+    : fileSystem = fileSystem ?? fs;
 
   // ---------------------------------------------------------------------------
   // XDG directories
@@ -35,8 +33,9 @@ class ConfigrDirectories {
   // ---------------------------------------------------------------------------
 
   /// Project-local `.configr/` directory, e.g. `/home/user/dotfiles/.configr/`.
-  Directory? get projectDir =>
-      projectConfigrPath != null ? fileSystem.directory(projectConfigrPath!) : null;
+  Directory? get projectDir => projectConfigrPath != null
+      ? fileSystem.directory(projectConfigrPath!)
+      : null;
 
   // ---------------------------------------------------------------------------
   // Plugin directories
@@ -73,6 +72,21 @@ class ConfigrDirectories {
   String get cacheDir => appDirs.cache;
 
   // ---------------------------------------------------------------------------
+  // Logs directory
+  // ---------------------------------------------------------------------------
+
+  /// Directory for log files.
+  ///
+  /// Returns project-local `.configr/logs/` if a project configr path is set,
+  /// otherwise falls back to XDG `~/.config/configr/logs/`.
+  String get logsDir {
+    if (projectConfigrPath != null) {
+      return p.join(projectConfigrPath!, 'logs');
+    }
+    return p.join(appDirs.config, 'logs');
+  }
+
+  // ---------------------------------------------------------------------------
   // Backup directory
   // ---------------------------------------------------------------------------
 
@@ -90,14 +104,19 @@ class ConfigrDirectories {
       xdgCacheDir,
       fileSystem.directory(backupDir),
       // Project dir plugins/
-      if (projectConfigrPath != null) fileSystem.directory(p.join(projectConfigrPath!, 'plugins')),
-      if (projectConfigrPath != null) fileSystem.directory(p.join(projectConfigrPath!, 'cache')),
+      if (projectConfigrPath != null)
+        fileSystem.directory(p.join(projectConfigrPath!, 'plugins')),
+      if (projectConfigrPath != null)
+        fileSystem.directory(p.join(projectConfigrPath!, 'cache')),
+      fileSystem.directory(p.join(appDirs.config, 'logs')),
+      if (projectConfigrPath != null)
+        fileSystem.directory(p.join(projectConfigrPath!, 'logs')),
     ];
 
     for (final dir in dirs) {
       if (!await dir.exists()) {
         await dir.create(recursive: true);
-        logger.fine('Created directory: ${dir.path}');
+        logger.debug('Created directory: ${dir.path}');
       }
     }
   }

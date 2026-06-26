@@ -135,7 +135,7 @@ class PersistentPrivilegeLock {
 
       logger.info('Persistent sudo shell started successfully');
     } catch (e) {
-      logger.severe('Failed to start persistent shell: $e');
+      logger.error('Failed to start persistent shell: $e');
       _cleanup();
       rethrow;
     }

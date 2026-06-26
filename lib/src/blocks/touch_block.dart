@@ -64,7 +64,7 @@ class TouchBlock extends ActionBlock {
     final fileExists = await fileService.fileExists(source);
 
     if (!fileExists && !createIfMissing) {
-      logger.severe(
+      logger.error(
         'File $source does not exist and create_if_missing is false',
       );
       throw SourceNotFoundException(source);

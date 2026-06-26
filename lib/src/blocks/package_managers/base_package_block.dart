@@ -266,7 +266,7 @@ abstract class BasePackageBlock extends ActionBlock {
         packagesProcessed++;
       } catch (e) {
         errorsEncountered++;
-        logger.severe('Failed to $operation package $pkg: $e');
+        logger.error('Failed to $operation package $pkg: $e');
       }
     }
   }
@@ -326,5 +326,4 @@ abstract class BasePackageBlock extends ActionBlock {
       _detachOutput(pm);
     }
   }
-
 }
