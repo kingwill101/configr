@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
@@ -93,11 +92,11 @@ class AuthorizedKeyBlock extends ActionBlock {
       final sshDir = keyPath.replaceAll('/authorized_keys', '');
 
       if (manageDir && status != 'absent') {
-        await Process.run('mkdir', ['-p', sshDir]);
-        await Process.run('chmod', ['700', sshDir]);
-        final userInfo = await Process.run('id', ['-u', user]);
+        await fileService.createDirectory(sshDir);
+        await fileService.chmod(sshDir, '700');
+        final userInfo = await executionService.run('id', ['-u', user]);
         if (userInfo.exitCode == 0) {
-          await Process.run('chown', ['-R', user, sshDir]);
+          await executionService.run('chown', ['-R', user, sshDir]);
         }
       }
 
@@ -136,10 +135,10 @@ class AuthorizedKeyBlock extends ActionBlock {
       }
 
       await file.writeAsString('${lines.join('\n')}\n');
-      await Process.run('chmod', ['600', keyPath]);
-      final userInfo = await Process.run('id', ['-u', user]);
+      await fileService.chmod(keyPath, '600');
+      final userInfo = await executionService.run('id', ['-u', user]);
       if (userInfo.exitCode == 0) {
-        await Process.run('chown', ['-R', user, keyPath]);
+        await executionService.run('chown', ['-R', user, keyPath]);
       }
 
       emitEvent(CompletedEvent(

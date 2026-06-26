@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:configr/src/utils/execution_service.dart';
 import 'package:configr/src/utils/logging.dart';
 
 /// Session-based privilege lock for maintaining elevated privileges
@@ -91,10 +92,12 @@ abstract class PrivilegeEscalation {
 }
 
 class InteractiveSudoEscalation implements PrivilegeEscalation {
+  final ExecutionService executionService;
   final bool keepPrivilegeLock;
   final PrivilegeLock? privilegeLock;
 
   InteractiveSudoEscalation({
+    this.executionService = const LocalExecutionService(),
     this.keepPrivilegeLock = false,
     this.privilegeLock,
   });
@@ -109,11 +112,12 @@ class InteractiveSudoEscalation implements PrivilegeEscalation {
     String? workingDirectory,
     bool runInShell = false,
   }) async {
-    // If privilege lock is enabled and active, try to use it first
     if (usePrivilegeLock && privilegeLock != null && privilegeLock!.isActive) {
       try {
-        var result = await Process.run('sudo', ['-n', command, ...arguments],
-            workingDirectory: workingDirectory);
+        var result = await executionService.run(
+          'sudo', ['-n', command, ...arguments],
+          workingDirectory: workingDirectory,
+        );
         if (result.exitCode == 0) {
           privilegeLock!._updateLastUsed();
           return result;
@@ -125,9 +129,10 @@ class InteractiveSudoEscalation implements PrivilegeEscalation {
       }
     }
 
-    // First, try running sudo with -n (non-interactive) to see if we have passwordless sudo
-    var result = await Process.run('sudo', ['-n', command, ...arguments],
-        workingDirectory: workingDirectory);
+    var result = await executionService.run(
+      'sudo', ['-n', command, ...arguments],
+      workingDirectory: workingDirectory,
+    );
     if (result.exitCode == 0) {
       if (usePrivilegeLock && privilegeLock != null) {
         privilegeLock!.acquire();
@@ -135,7 +140,6 @@ class InteractiveSudoEscalation implements PrivilegeEscalation {
       return result;
     }
 
-    // Fallback to direct stdin for password input
     try {
       stderr.writeln(
         'Sudo password required to run: $command ${arguments.join(' ')}',
@@ -144,23 +148,23 @@ class InteractiveSudoEscalation implements PrivilegeEscalation {
       stdin.echoMode = false;
       final password = stdin.readLineSync() ?? '';
       stdin.echoMode = true;
-      stderr.writeln(''); // New line after password input
+      stderr.writeln('');
 
       if (password.isEmpty) {
         throw Exception('Password required but not provided');
       }
 
-      // Use a shell to echo the password into sudo
       final fullCommand =
           'echo "$password" | sudo -S $command ${arguments.join(' ')}';
-      result = await Process.run('sh', ['-c', fullCommand],
-          workingDirectory: workingDirectory);
+      result = await executionService.run(
+        'sh', ['-c', fullCommand],
+        workingDirectory: workingDirectory,
+      );
 
       if (result.exitCode != 0) {
         throw Exception('Failed to run command with sudo: ${result.stderr}');
       }
 
-      // Acquire privilege lock after successful authentication
       if (usePrivilegeLock && privilegeLock != null) {
         privilegeLock!.acquire();
       }
@@ -173,10 +177,12 @@ class InteractiveSudoEscalation implements PrivilegeEscalation {
 }
 
 class NonInteractiveSudoEscalation implements PrivilegeEscalation {
+  final ExecutionService executionService;
   final bool keepPrivilegeLock;
   final PrivilegeLock? privilegeLock;
 
   NonInteractiveSudoEscalation({
+    this.executionService = const LocalExecutionService(),
     this.keepPrivilegeLock = false,
     this.privilegeLock,
   });
@@ -191,11 +197,12 @@ class NonInteractiveSudoEscalation implements PrivilegeEscalation {
     String? workingDirectory,
     bool runInShell = false,
   }) async {
-    // If privilege lock is enabled and active, try to use it first
     if (usePrivilegeLock && privilegeLock != null && privilegeLock!.isActive) {
       try {
-        var result = await Process.run('sudo', ['-n', command, ...arguments],
-            workingDirectory: workingDirectory);
+        var result = await executionService.run(
+          'sudo', ['-n', command, ...arguments],
+          workingDirectory: workingDirectory,
+        );
         if (result.exitCode == 0) {
           privilegeLock!._updateLastUsed();
           return result;
@@ -207,13 +214,11 @@ class NonInteractiveSudoEscalation implements PrivilegeEscalation {
       }
     }
 
-    // Try running sudo with -n (non-interactive) to see if we have passwordless sudo.
-    // We must distinguish between sudo itself failing (no passwordless access) and
-    // the *command* sudo ran returning a non-zero exit (e.g. `id nonexistent_user`).
-    var result = await Process.run('sudo', ['-n', command, ...arguments],
-        workingDirectory: workingDirectory);
+    var result = await executionService.run(
+      'sudo', ['-n', command, ...arguments],
+      workingDirectory: workingDirectory,
+    );
 
-    // exitCode == 0 -> everything succeeded
     if (result.exitCode == 0) {
       if (usePrivilegeLock && privilegeLock != null) {
         privilegeLock!.acquire();
@@ -221,7 +226,6 @@ class NonInteractiveSudoEscalation implements PrivilegeEscalation {
       return result;
     }
 
-    // If stderr contains a sudo-specific message, sudo itself is the problem.
     final stderrStr = result.stderr is String
         ? result.stderr as String
         : String.fromCharCodes(result.stderr as List<int>);
@@ -232,13 +236,15 @@ class NonInteractiveSudoEscalation implements PrivilegeEscalation {
       );
     }
 
-    // The command itself failed - return the result as-is so the caller
-    // can inspect the exit code and stderr.
     return result;
   }
 }
 
 class NoPrivilegeEscalation implements PrivilegeEscalation {
+  final ExecutionService executionService;
+
+  const NoPrivilegeEscalation({this.executionService = const LocalExecutionService()});
+
   @override
   bool get usePrivilegeLock => false;
 
@@ -249,8 +255,7 @@ class NoPrivilegeEscalation implements PrivilegeEscalation {
     String? workingDirectory,
     bool runInShell = false,
   }) async {
-    // Run command directly without any privilege escalation
-    return await Process.run(command, arguments,
+    return executionService.run(command, arguments,
         workingDirectory: workingDirectory, runInShell: runInShell);
   }
 }

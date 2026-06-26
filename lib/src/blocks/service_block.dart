@@ -139,9 +139,9 @@ abstract class ServiceBlock extends ActionBlock {
 class _LinuxServiceBlock extends ServiceBlock {
   _LinuxServiceBlock() : super._();
 
-  bool _isSystemd() {
+  Future<bool> _isSystemd() async {
     try {
-      final result = Process.runSync('systemctl', ['--version']);
+      final result = await executionService.run('systemctl', ['--version']);
       return result.exitCode == 0;
     } catch (_) {
       return false;
@@ -157,7 +157,7 @@ class _LinuxServiceBlock extends ServiceBlock {
   }
 
   Future<ProcessResult> _runAction(String action) async {
-    if (use == 'systemd' || (use == 'auto' && _isSystemd())) {
+    if (use == 'systemd' || (use == 'auto' && await _isSystemd())) {
       return _systemctl(action);
     }
     return _serviceCmd(action);
@@ -245,7 +245,7 @@ class _LinuxServiceBlock extends ServiceBlock {
 
   @override
   Future<void> _enable() async {
-    if (use == 'systemd' || (use == 'auto' && _isSystemd())) {
+    if (use == 'systemd' || (use == 'auto' && await _isSystemd())) {
       final result = await _systemctl('enable');
       if (result.exitCode != 0) {
         throw ActionFailedException(
@@ -282,9 +282,9 @@ class _MacOSServiceBlock extends ServiceBlock {
 
   String? _plistPath;
 
-  String? _findPlist() {
+  Future<String?> _findPlist() async {
     try {
-      final result = Process.runSync(
+      final result = await executionService.run(
         'find',
         ['/Library/LaunchDaemons', '-name', '$name.plist'],
       );
@@ -301,7 +301,7 @@ class _MacOSServiceBlock extends ServiceBlock {
       throw ActionFailedException('Service name is required', moduleId: id);
     }
 
-    _plistPath ??= _findPlist();
+    _plistPath ??= await _findPlist();
 
     emitEvent(
       StartedEvent(moduleId: id, message: 'Managing service: $name'),
@@ -388,7 +388,7 @@ class _MacOSServiceBlock extends ServiceBlock {
 
   @override
   Future<void> _enable() async {
-    _plistPath ??= _findPlist();
+    _plistPath ??= await _findPlist();
     if (_plistPath != null) {
       await _runInitCommand('launchctl', ['load', '-w', _plistPath!]);
     }

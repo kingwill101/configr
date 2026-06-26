@@ -188,10 +188,8 @@ class WaitForBlock extends ActionBlock {
 
   Future<bool> _checkHost() async {
     try {
-      final result = await Process.run('ping', [
-        '-c', '1',
-        '-W', '2',
-        host,
+      final result = await executionService.run('ping', [
+        '-c', '1', '-W', '2', host,
       ]);
       return result.exitCode == 0;
     } catch (_) {

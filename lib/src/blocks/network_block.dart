@@ -296,12 +296,8 @@ class NetworkBlock extends ActionBlock {
   Future<void> _executePing() async {
     final startTime = DateTime.now();
     try {
-      final result = await Process.run('ping', [
-        '-c',
-        '1',
-        '-W',
-        timeout.toString(),
-        source,
+      final result = await executionService.run('ping', [
+        '-c', '1', '-W', timeout.toString(), source,
       ]);
       responseTimeMs = DateTime.now().difference(startTime).inMilliseconds;
       connectivitySuccess = result.exitCode == 0;

@@ -1,5 +1,3 @@
-import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:configr/src/blocks/action_block.dart';
@@ -147,32 +145,11 @@ class ExecuteBlock extends ActionBlock {
 
     final workingDir = workingDirectory ?? Directory.current.path;
 
-    final process = await Process.start(
-      'sh',
-      ['-c', command],
+    return executionService.run(
+      'sh', ['-c', command],
       environment: env,
       workingDirectory: workingDir,
-    );
-
-    if (input != null) {
-      process.stdin.write(input);
-      await process.stdin.close();
-    }
-
-    final stdoutBuf = StringBuffer();
-    final stderrBuf = StringBuffer();
-
-    await Future.wait([
-      process.stdout.transform(utf8.decoder).forEach((d) => stdoutBuf.write(d)),
-      process.stderr.transform(utf8.decoder).forEach((d) => stderrBuf.write(d)),
-    ]);
-
-    final code = await process.exitCode;
-    return ProcessResult(
-      process.pid,
-      code,
-      stdoutBuf.toString(),
-      stderrBuf.toString(),
+      stdin: input,
     );
   }
 }

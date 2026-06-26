@@ -1,13 +1,14 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/models/command.dart';
 import 'package:configr/src/security/input_sanitizer.dart';
 import 'package:configr/src/security/security_manager.dart';
+import 'package:configr/src/utils/execution_service.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
 
+/// Callback for streaming command output.
 typedef CommandOutputHandler = void Function(String line, bool isStderr);
 
 class CommandExecutor {
@@ -20,6 +21,7 @@ class CommandExecutor {
     bool runInShell = false,
     bool checkExitCode = true,
     CommandOutputHandler? onOutput,
+    ExecutionService? executionService,
   }) async {
     if (command.command == null || command.command!.isEmpty) {
       throw Exception("missing command");
@@ -60,24 +62,14 @@ class CommandExecutor {
       ),
     );
 
-    ProcessResult result;
-    if (onOutput != null) {
-      result = await _runStreaming(
-        sanitizedCommand,
-        sanitizedParams,
-        onOutput,
-        workingDirectory: workingDirectory,
-        runInShell: runInShell,
-      );
-    } else {
-      result = await _runStreaming(
-        sanitizedCommand,
-        sanitizedParams,
-        null,
-        workingDirectory: workingDirectory,
-        runInShell: runInShell,
-      );
-    }
+    final exec = executionService ?? const LocalExecutionService();
+    final result = await exec.run(
+      sanitizedCommand,
+      sanitizedParams,
+      workingDirectory: workingDirectory,
+      runInShell: runInShell,
+      onOutput: onOutput,
+    );
 
     manager.audit(
       SecurityEvent(
@@ -101,57 +93,4 @@ class CommandExecutor {
     return result;
   }
 
-  static Future<ProcessResult> _runStreaming(
-    String command,
-    List<String> arguments,
-    CommandOutputHandler? onOutput, {
-    String? workingDirectory,
-    bool runInShell = false,
-  }) async {
-    final process = await Process.start(
-      command,
-      arguments,
-      workingDirectory: workingDirectory,
-      runInShell: runInShell,
-    );
-
-    final stdoutBuf = StringBuffer();
-    final stderrBuf = StringBuffer();
-
-    final stdoutDone = onOutput != null
-        ? process.stdout
-            .transform(utf8.decoder)
-            .transform(const LineSplitter())
-            .forEach((line) {
-            stdoutBuf.writeln(line);
-            onOutput(line, false);
-          })
-        : process.stdout
-            .transform(utf8.decoder)
-            .transform(const LineSplitter())
-            .forEach((line) => stdoutBuf.writeln(line));
-
-    final stderrDone = onOutput != null
-        ? process.stderr
-            .transform(utf8.decoder)
-            .transform(const LineSplitter())
-            .forEach((line) {
-            stderrBuf.writeln(line);
-            onOutput(line, true);
-          })
-        : process.stderr
-            .transform(utf8.decoder)
-            .transform(const LineSplitter())
-            .forEach((line) => stderrBuf.writeln(line));
-
-    await Future.wait([stdoutDone, stderrDone]);
-    final exitCode = await process.exitCode;
-
-    return ProcessResult(
-      process.pid,
-      exitCode,
-      stdoutBuf.toString(),
-      stderrBuf.toString(),
-    );
-  }
 }

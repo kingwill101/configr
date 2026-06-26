@@ -6,6 +6,7 @@ import 'package:configr/src/models/command.dart';
 import 'package:configr/src/models/v2_lockfile_data.dart';
 import 'package:configr/src/utils/command_executor.dart';
 import 'package:configr/src/utils/command_runner.dart';
+import 'package:configr/src/utils/execution_service.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/file_service.dart';
 
@@ -421,6 +422,9 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
   ///
   /// Returns the [io.ProcessResult] from the execution.
   /// Throws if the process exits with a non-zero code.
+  ExecutionService get executionService =>
+      di.isRegistered<ExecutionService>() ? di<ExecutionService>() : const LocalExecutionService();
+
   Future<io.ProcessResult> runCommand(
     String command,
     List<String> args, {
@@ -442,6 +446,7 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
       workingDirectory: workingDirectory,
       runInShell: true,
       checkExitCode: checkExitCode,
+      executionService: executionService,
     );
   }
 }

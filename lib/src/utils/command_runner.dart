@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:configr/src/di.dart';
 import 'package:configr/src/models/command.dart';
 import 'package:configr/src/utils/command_executor.dart';
+import 'package:configr/src/utils/execution_service.dart';
 import 'package:configr/src/utils/privilege_escalation.dart'
     show PrivilegeEscalation;
 
@@ -48,6 +49,8 @@ abstract class CommandRunner {
 class LocalCommandRunner implements CommandRunner {
   const LocalCommandRunner();
   PrivilegeEscalation get _privilegeEscalation => di<PrivilegeEscalation>();
+  ExecutionService get _executionService =>
+      di.isRegistered<ExecutionService>() ? di<ExecutionService>() : const LocalExecutionService();
 
   @override
   Future<ProcessResult> run(
@@ -57,16 +60,10 @@ class LocalCommandRunner implements CommandRunner {
     Map<String, String>? environment,
     bool runInShell = false,
   }) async {
-    // CommandExecutor.execute does not support environment overrides.
-    // Fall back to bare Process.run when env vars are needed.
     if (environment != null && environment.isNotEmpty) {
-      return Process.run(
-        command,
-        arguments,
-        workingDirectory: workingDirectory,
-        environment: environment,
-        runInShell: runInShell,
-      );
+      return _executionService.run(command, arguments,
+          workingDirectory: workingDirectory, environment: environment,
+          runInShell: runInShell);
     }
 
     final cmd = Command(
@@ -79,6 +76,7 @@ class LocalCommandRunner implements CommandRunner {
       _privilegeEscalation,
       workingDirectory: workingDirectory,
       runInShell: runInShell,
+      executionService: _executionService,
     );
   }
 
@@ -111,7 +109,7 @@ class LocalCommandRunner implements CommandRunner {
   @override
   Future<bool> commandExists(String command) async {
     try {
-      final result = await Process.run(
+      final result = await _executionService.run(
         'which',
         [command],
         runInShell: true,

@@ -71,6 +71,7 @@ import 'package:configr/src/di.dart';
 import 'package:configr/src/models/v2_lockfile_data.dart';
 import 'package:configr/src/utils/command_runner.dart';
 import 'package:configr/src/utils/event_bus.dart';
+import 'package:configr/src/utils/execution_service.dart';
 import 'package:configr/src/utils/file_service.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
 import 'package:file/file.dart' show FileSystem;
@@ -181,10 +182,9 @@ Future<void> applyV2(
     for (final script in preScripts) {
       logger.info('Executing pre-apply script: $script');
       try {
-        await Process.run(
+        await LocalExecutionService().run(
           '/bin/sh',
           ['-c', script],
-          runInShell: true,
           workingDirectory: fs.currentDirectory.path,
         );
       } catch (e) {
@@ -272,7 +272,7 @@ Future<void> applyV2(
     for (final script in postScripts) {
       logger.info('Executing post-apply script: $script');
       try {
-        await Process.run(
+        await LocalExecutionService().run(
           '/bin/sh',
           ['-c', script],
           runInShell: true,
@@ -600,6 +600,7 @@ Future<void> _registerAllBlocks(
       privilegeEscalation ?? NonInteractiveSudoEscalation(),
     )
     ..registerSingleton<FileSystem>(const LocalFileSystem())
+    ..registerSingleton<ExecutionService>(const LocalExecutionService())
     ..registerSingleton<FileService>(LocalFileService())
     ..registerSingleton<CommandRunner>(const LocalCommandRunner())
     ..allowReassignment = false;

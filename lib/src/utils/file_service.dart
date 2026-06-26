@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:configr/src/di.dart';
+import 'package:configr/src/utils/execution_service.dart';
 import 'package:configr/src/utils/fs.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
+import 'package:configr/src/utils/system_operations.dart';
 import 'package:crypto/crypto.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
@@ -81,6 +83,9 @@ class LocalFileService implements FileService {
     if (di.isRegistered<FileSystem>()) return di<FileSystem>();
     return fs;
   }
+
+  ExecutionService get _executionService =>
+      di.isRegistered<ExecutionService>() ? di<ExecutionService>() : const LocalExecutionService();
 
   @override
   Future<bool> fileExists(String path) async {
@@ -225,7 +230,7 @@ class LocalFileService implements FileService {
 
   @override
   Future<void> setOwner(String path, String owner) async {
-    final result = await Process.run('chown', [owner, path], runInShell: true);
+    final result = await _executionService.run('chown', [owner, path], runInShell: true);
     if (result.exitCode != 0) {
       throw ProcessException('chown', [owner, path], result.stderr.toString(), result.exitCode);
     }
@@ -248,7 +253,7 @@ class LocalFileService implements FileService {
         : owner ?? ':$group';
     final result = escalation != null
         ? await escalation.runWithElevatedPrivileges('chown', [chownArg, path])
-        : await Process.run('chown', [chownArg, path], runInShell: true);
+        : await _executionService.run('chown', [chownArg, path], runInShell: true);
     if (result.exitCode != 0) {
       throw ProcessException('chown', [chownArg, path], result.stderr.toString(), result.exitCode);
     }
@@ -265,7 +270,7 @@ class LocalFileService implements FileService {
     final current = await getPermissions(path);
     final result = escalation != null
         ? await escalation.runWithElevatedPrivileges('chmod', [mode, path])
-        : await Process.run('chmod', [mode, path], runInShell: true);
+        : await _executionService.run('chmod', [mode, path], runInShell: true);
     if (result.exitCode != 0) {
       throw ProcessException('chmod', [mode, path], result.stderr.toString(), result.exitCode);
     }
@@ -275,10 +280,11 @@ class LocalFileService implements FileService {
 
   @override
   Future<Map<String, String>> getOwnership(String path) async {
-    final result = await Process.run(
-      'stat', ['-c', '%U %G', path], runInShell: true);
+    final ops = SystemOperations(_executionService.platform);
+    final (cmd, args) = ops.getOwnership(path);
+    final result = await _executionService.run(cmd, args, runInShell: true);
     if (result.exitCode != 0) {
-      throw ProcessException('stat', ['-c', '%U %G', path], result.stderr.toString(), result.exitCode);
+      throw ProcessException(cmd, args, result.stderr.toString(), result.exitCode);
     }
     final parts = (result.stdout as String).trim().split(' ');
     return {'owner': parts[0], 'group': parts[1]};
@@ -286,10 +292,11 @@ class LocalFileService implements FileService {
 
   @override
   Future<String> getPermissions(String path) async {
-    final result = await Process.run(
-      'stat', ['-c', '%a', path], runInShell: true);
+    final ops = SystemOperations(_executionService.platform);
+    final (cmd, args) = ops.getPermissions(path);
+    final result = await _executionService.run(cmd, args, runInShell: true);
     if (result.exitCode != 0) {
-      throw ProcessException('stat', ['-c', '%a', path], result.stderr.toString(), result.exitCode);
+      throw ProcessException(cmd, args, result.stderr.toString(), result.exitCode);
     }
     return (result.stdout as String).trim();
   }
@@ -333,7 +340,7 @@ class LocalFileService implements FileService {
     String? workingDirectory,
     Map<String, String>? environment,
   }) async {
-    return Process.run(command, arguments,
+    return _executionService.run(command, arguments,
         workingDirectory: workingDirectory, environment: environment);
   }
 

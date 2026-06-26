@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:configr/src/blocks/action_block.dart';
@@ -306,8 +305,6 @@ class GitBlock extends ActionBlock {
 
   Future<ProcessResult> _runGit(List<String> args, String workingDir) async {
     final fullArgs = ['-C', workingDir, ...args];
-    final output = StringBuffer();
-    final error = StringBuffer();
 
     if (streamOutput) {
       emitEvent(
@@ -319,55 +316,30 @@ class GitBlock extends ActionBlock {
       );
     }
 
-    final process = await Process.start(
-      'git',
-      fullArgs,
-      workingDirectory: workingDir,
-    );
+    final result = await executionService.run('git', fullArgs,
+        runInShell: true,
+        onOutput: streamOutput
+            ? (line, isStderr) {
+                emitEvent(
+                  StatusUpdateEvent(
+                    moduleId: id,
+                    level: StatusEvent.debug,
+                    message: line.trim(),
+                  ),
+                );
+              }
+            : null);
 
-    await Future.wait([
-      process.stdout.transform(utf8.decoder).forEach((d) {
-        output.write(d);
-        if (streamOutput) {
-          emitEvent(
-            StatusUpdateEvent(
-              moduleId: id,
-              level: StatusEvent.debug,
-              message: d.trim(),
-            ),
-          );
-        }
-      }),
-      process.stderr.transform(utf8.decoder).forEach((d) {
-        error.write(d);
-        if (streamOutput) {
-          emitEvent(
-            StatusUpdateEvent(
-              moduleId: id,
-              level: StatusEvent.debug,
-              message: d.trim(),
-            ),
-          );
-        }
-      }),
-    ]);
+    operationOutput = result.stdout.toString();
+    operationError = result.stderr.toString();
 
-    final exitCode = await process.exitCode;
-    operationOutput = output.toString();
-    operationError = error.toString();
-
-    if (exitCode != 0) {
+    if (result.exitCode != 0) {
       throw ActionFailedException(
-        'Git command failed: ${error.toString().trim()}',
+        'Git command failed: ${result.stderr.toString().trim()}',
         moduleId: id,
       );
     }
 
-    return ProcessResult(
-      process.pid,
-      exitCode,
-      output.toString(),
-      error.toString(),
-    );
+    return result;
   }
 }

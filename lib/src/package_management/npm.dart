@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:configr/src/package_management/package_manger.dart';
 import 'package:configr/src/utils/logging.dart';
 
@@ -84,7 +83,7 @@ class NpmPackageManager extends PackageManager
   @override
   Future<bool> isAvailable() async {
     try {
-      final result = await Process.run('npm', ['--version']);
+      final result = await runCommand('npm', ['--version']);
       return result.exitCode == 0;
     } catch (e) {
       return false;

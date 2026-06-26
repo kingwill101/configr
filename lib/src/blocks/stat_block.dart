@@ -1,9 +1,9 @@
-import 'dart:io';
-
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
+import 'package:configr/src/utils/system_operations.dart';
 import 'package:crypto/crypto.dart';
+import 'package:file/file.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
 class StatBlock extends ActionBlock {
@@ -75,9 +75,12 @@ class StatBlock extends ActionBlock {
     }
 
 try {
-      // Detect type without following symlinks so we can identify links
-      final type = FileSystemEntity.typeSync(path, followLinks: false);
-      final exists = type != FileSystemEntityType.notFound;
+      // Use fileSystem (package:file) which delegates to whatever FS is registered
+      // in DI — local, memory, or remote (e.g. SFTP).
+      // Detect symlinks via link().existsSync() (package:file has no isLinkSync)
+      final linkExists = fileSystem.link(path).existsSync();
+      final rawStat = fileSystem.statSync(path);
+      final exists = linkExists || rawStat.type != FileSystemEntityType.notFound;
 
       context.setVariable('stat_exists', exists.toString());
 
@@ -89,88 +92,82 @@ try {
         return;
       }
 
-      final isLink = type == FileSystemEntityType.link;
-      final isDir = type == FileSystemEntityType.directory;
-      final isReg = type == FileSystemEntityType.file;
+      final isDir = linkExists ? false : rawStat.type == FileSystemEntityType.directory;
+      final isReg = linkExists ? false : rawStat.type == FileSystemEntityType.file;
 
-      context.setVariable('stat_islnk', isLink.toString());
+      context.setVariable('stat_islnk', linkExists.toString());
       context.setVariable('stat_isdir', isDir.toString());
       context.setVariable('stat_isreg', isReg.toString());
 
       String typeStr;
-      switch (type) {
-        case FileSystemEntityType.file:
-          typeStr = 'file';
-        case FileSystemEntityType.directory:
-          typeStr = 'directory';
-        case FileSystemEntityType.link:
-          typeStr = 'link';
-        default:
-          typeStr = 'other';
+      if (linkExists) {
+        typeStr = 'link';
+      } else {
+        switch (rawStat.type) {
+          case FileSystemEntityType.file:
+            typeStr = 'file';
+          case FileSystemEntityType.directory:
+            typeStr = 'directory';
+          default:
+            typeStr = 'other';
+        }
       }
       context.setVariable('stat_type', typeStr);
 
-      // FileStat.statSync follows symlinks by design
-      final stat = FileStat.statSync(path);
+      // Re-stat following symlinks for the detailed attributes
+      final targetStat = fileSystem.statSync(path);
 
-      context.setVariable('stat_mode', stat.mode.toRadixString(8));
-      context.setVariable('stat_size', stat.size.toString());
+      context.setVariable('stat_mode', targetStat.mode.toRadixString(8));
+      context.setVariable('stat_size', targetStat.size.toString());
       context.setVariable(
         'stat_mtime',
-        stat.modified.toUtc().toIso8601String(),
+        targetStat.modified.toUtc().toIso8601String(),
       );
       context.setVariable(
         'stat_atime',
-        stat.accessed.toUtc().toIso8601String(),
+        targetStat.accessed.toUtc().toIso8601String(),
       );
       context.setVariable(
         'stat_ctime',
-        stat.changed.toUtc().toIso8601String(),
+        targetStat.changed.toUtc().toIso8601String(),
       );
 
-      // Get uid/gid via runCommand (dart:io FileStat does not expose these)
+      // Get uid/gid via runCommand (FileStat does not expose these)
+      final ops = SystemOperations(executionService.platform);
       try {
-        final uidResult = await runCommand(
-          'stat',
-          ['-c', '%u', path],
-          checkExitCode: false,
-        );
+        final (uidCmd, uidArgs) = ops.uid(path);
+        final uidResult = await runCommand(uidCmd, uidArgs, checkExitCode: false);
         if (uidResult.exitCode == 0) {
           context.setVariable(
             'stat_uid',
             (uidResult.stdout as String).trim(),
           );
         }
-        final gidResult = await runCommand(
-          'stat',
-          ['-c', '%g', path],
-          checkExitCode: false,
-        );
+        final (gidCmd, gidArgs) = ops.gid(path);
+        final gidResult = await runCommand(gidCmd, gidArgs, checkExitCode: false);
         if (gidResult.exitCode == 0) {
           context.setVariable(
             'stat_gid',
             (gidResult.stdout as String).trim(),
           );
         }
-      } catch (_) {
-        // uid/gid unavailable on this platform
-      }
+      } catch (_) {}
 
       // Compute checksum for regular files (not directories)
-      if (isReg || (isLink && follow)) {
+      if (isReg || (linkExists && follow)) {
         try {
-          final targetPath = isLink ? Link(path).targetSync() : path;
-          if (!Directory(targetPath).existsSync()) {
-            final bytes = File(targetPath).readAsBytesSync();
+          final targetPath = linkExists
+              ? (await fileService.readSymlink(path)) ?? path
+              : path;
+          if (!await fileService.directoryExists(targetPath)) {
+            final bytes = await fileService.readBinaryFile(targetPath);
             final hash = _hashForAlgorithm(checksumAlgorithm);
             context.setVariable(
               'stat_checksum',
               hash.convert(bytes).toString(),
             );
           }
-        } catch (_) {
-          // checksum failed — skip
-        }
+        } catch (_) {}
       }
 
       emitEvent(

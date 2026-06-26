@@ -397,7 +397,7 @@ class SystemdBlock extends ActionBlock {
       '$serviceName.$serviceType',
     ].where((s) => s.isNotEmpty).toList();
 
-    final result = await Process.run('systemctl', args);
+    final result = await executionService.run('systemctl', args);
 
     if (result.exitCode != 0) {
       throw ActionFailedException(
@@ -635,9 +635,8 @@ class SystemdBlock extends ActionBlock {
     try {
       await tempFile.writeAsString(content);
 
-      final result = await Process.run('systemd-analyze', [
-        'verify',
-        tempFile.path,
+      final result = await executionService.run('systemd-analyze', [
+        'verify', tempFile.path,
       ]);
 
       if (result.exitCode != 0) {
