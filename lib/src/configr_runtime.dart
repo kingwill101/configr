@@ -74,6 +74,7 @@ class ConfigrRuntime {
     uiHandler: uiHandler,
     privilegeEscalation: config.privilegeEscalation,
     pluginLoader: config.pluginLoader,
+    connectionConfig: config.connectionConfig?.toMap(),
   );
 
   /// Rollback applied blocks.

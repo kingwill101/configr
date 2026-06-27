@@ -17,6 +17,12 @@ abstract class ExecutionService {
     CommandOutputHandler? onOutput,
     String? stdin,
   });
+
+  Future<void> connect(Map<String, dynamic> config);
+  Future<void> disconnect();
+  bool get isConnected;
+  Future<void> putFile(String sourcePath, String destinationPath);
+  Future<void> fetchFile(String sourcePath, String destinationPath);
 }
 
 class LocalExecutionService implements ExecutionService {
@@ -24,6 +30,25 @@ class LocalExecutionService implements ExecutionService {
 
   @override
   String get platform => Platform.operatingSystem;
+
+  @override
+  bool get isConnected => true;
+
+  @override
+  Future<void> connect(Map<String, dynamic> config) async {}
+
+  @override
+  Future<void> disconnect() async {}
+
+  @override
+  Future<void> putFile(String sourcePath, String destinationPath) async {
+    await File(sourcePath).copy(destinationPath);
+  }
+
+  @override
+  Future<void> fetchFile(String sourcePath, String destinationPath) async {
+    await File(sourcePath).copy(destinationPath);
+  }
 
   @override
   Future<ProcessResult> run(

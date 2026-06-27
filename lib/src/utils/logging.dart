@@ -22,7 +22,7 @@ void initLogging({String? logDirectory}) {
     ..environment('development')
     ..withContext({'app': 'MyApp'})
     // Console channel with PrettyLogFormatter
-    ..addChannel('console', ConsoleLogDriver(), formatter: PrettyLogFormatter())
+    // ..addChannel('console', ConsoleLogDriver(), formatter: PrettyLogFormatter())
     // File channel with JsonLogFormatter
     ..addChannel(
       'file',
@@ -30,6 +30,6 @@ void initLogging({String? logDirectory}) {
         logDirectory ?? p.join(appDirs.config, 'logs'),
         retentionDays: 7,
       ),
-      formatter: JsonLogFormatter(),
+      formatter: PlainTextLogFormatter(),
     );
 }

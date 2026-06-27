@@ -8,6 +8,7 @@ import 'package:configr/src/plugins/configr_plugin.dart';
 import 'package:configr/src/plugins/lua_plugin.dart';
 import 'package:configr/src/reader/handlers/configr_handlers.dart';
 import 'package:configr/src/utils/logging.dart';
+import 'package:configr/src/utils/ssh_execution_service.dart';
 import 'package:configr/src/utils/system_info.dart';
 import 'package:configr/src/utils/v2_lockfile_manager.dart';
 import 'package:crypto/crypto.dart' show sha256;
@@ -18,6 +19,7 @@ import 'package:configr/src/blocks/alternatives_block.dart';
 import 'package:configr/src/blocks/assert_block.dart';
 import 'package:configr/src/blocks/authorized_key_block.dart';
 import 'package:configr/src/blocks/backup_block.dart';
+import 'package:configr/src/blocks/connection_block.dart';
 import 'package:configr/src/blocks/blockinfile_block.dart';
 import 'package:configr/src/blocks/compress_block.dart';
 import 'package:configr/src/blocks/copy_block.dart';
@@ -48,6 +50,7 @@ import 'package:configr/src/blocks/pause_block.dart';
 import 'package:configr/src/blocks/permissions_block.dart';
 import 'package:configr/src/blocks/raw_block.dart';
 import 'package:configr/src/blocks/rename_block.dart';
+import 'package:configr/src/blocks/secrets_block.dart';
 import 'package:configr/src/blocks/replace_block.dart';
 import 'package:configr/src/blocks/script_block.dart';
 import 'package:configr/src/blocks/service_block.dart';
@@ -97,6 +100,9 @@ import '../reader/handlers/plugin_block_handler.dart';
 ///
 /// If [failFast] is true, the pipeline stops at the first block error
 /// instead of continuing with remaining blocks.
+///
+/// If [connectionConfig] is provided (with a non-empty `host` key), all
+/// operations run over SSH via [SSHExecutionService].
 Future<void> applyV2(
   String configPath, {
   EventBus? eventBus,
@@ -109,6 +115,7 @@ Future<void> applyV2(
   UIHandler? uiHandler,
   PrivilegeEscalation? privilegeEscalation,
   ConfigrPluginLoader? pluginLoader,
+  Map<String, dynamic>? connectionConfig,
 }) async {
   final fs = const LocalFileSystem();
   final configFile = fs.file(configPath);
@@ -182,7 +189,10 @@ Future<void> applyV2(
     for (final script in preScripts) {
       logger.info('Executing pre-apply script: $script');
       try {
-        await LocalExecutionService().run(
+        final exec = di.isRegistered<ExecutionService>()
+            ? di<ExecutionService>()
+            : const LocalExecutionService();
+        await exec.run(
           '/bin/sh',
           ['-c', script],
           workingDirectory: fs.currentDirectory.path,
@@ -245,6 +255,7 @@ Future<void> applyV2(
     privilegeEscalation: privilegeEscalation,
     pluginLoader: pluginLoader,
     configDir: configDir,
+    connectionConfig: connectionConfig,
   );
 
   // Invoke plugin onConfigLoad hooks
@@ -272,7 +283,10 @@ Future<void> applyV2(
     for (final script in postScripts) {
       logger.info('Executing post-apply script: $script');
       try {
-        await LocalExecutionService().run(
+        final exec = di.isRegistered<ExecutionService>()
+            ? di<ExecutionService>()
+            : const LocalExecutionService();
+        await exec.run(
           '/bin/sh',
           ['-c', script],
           runInShell: true,
@@ -581,6 +595,9 @@ Future<List<BlockSnapshot>> parseAndCollectBlocks(
 /// If [pluginLoader] is provided, its [ConfigrPluginLoader.registerAllPlugins]
 /// is called after built-in block registration so that plugins can override or
 /// extend the built-in handlers.
+///
+/// If [connectionConfig] is provided (with a non-empty `host` key), an
+/// [SSHExecutionService] is used instead of [LocalExecutionService].
 Future<void> _registerAllBlocks(
   i3.ConfigProcessor processor, {
   EventBus? eventBus,
@@ -588,10 +605,22 @@ Future<void> _registerAllBlocks(
   PrivilegeEscalation? privilegeEscalation,
   ConfigrPluginLoader? pluginLoader,
   String configDir = '.',
+  Map<String, dynamic>? connectionConfig,
 }) async {
   // -----------------------------------------------------------------------
   // 1. Register DI dependencies before creating blocks
   // -----------------------------------------------------------------------
+  ExecutionService executionService;
+  if (connectionConfig != null &&
+      connectionConfig['host'] is String &&
+      (connectionConfig['host'] as String).isNotEmpty) {
+    final ssh = SSHExecutionService();
+    await ssh.connect(connectionConfig);
+    executionService = ssh;
+  } else {
+    executionService = const LocalExecutionService();
+  }
+
   di
     ..allowReassignment = true
     ..registerSingleton<DryRunFlag>(DryRunFlag(dryRun))
@@ -600,7 +629,7 @@ Future<void> _registerAllBlocks(
       privilegeEscalation ?? NonInteractiveSudoEscalation(),
     )
     ..registerSingleton<FileSystem>(const LocalFileSystem())
-    ..registerSingleton<ExecutionService>(const LocalExecutionService())
+    ..registerSingleton<ExecutionService>(executionService)
     ..registerSingleton<FileService>(LocalFileService())
     ..registerSingleton<CommandRunner>(const LocalCommandRunner())
     ..allowReassignment = false;
@@ -752,7 +781,17 @@ Future<void> _registerAllBlocks(
   processor.registerBlockHandler(v2TemplateHandler);
 
   // -----------------------------------------------------------------------
-  // 5. Register plugin blocks after built-ins so plugins can override
+  // 5. Register SecretsBlock for secret resolution
+  // -----------------------------------------------------------------------
+  processor.registerBlockHandler(SecretsBlock());
+
+  // -----------------------------------------------------------------------
+  // 6. Register ConnectionBlock for inline SSH connection config
+  // -----------------------------------------------------------------------
+  processor.registerBlockHandler(ConnectionBlock());
+
+  // -----------------------------------------------------------------------
+  // 7. Register plugin blocks after built-ins so plugins can override
   // -----------------------------------------------------------------------
   if (pluginLoader != null) {
     await pluginLoader.registerAllPlugins(processor, eventBus: eventBus);

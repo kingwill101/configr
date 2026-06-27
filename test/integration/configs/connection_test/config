@@ -1,0 +1,11 @@
+connection {
+    host = "localhost"
+    port = 22
+    username = "root"
+    connect_timeout = 5
+}
+
+echo {
+    message = "connected"
+    level = "info"
+}

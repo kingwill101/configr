@@ -209,7 +209,12 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
       // ----- 6. Dry-run: print what would happen -----
       final summary = dryRunSummary();
       if (summary.isNotEmpty) {
-        print('  [DRY-RUN] $summary');
+        final sensitiveValues = context.globalContext.options['_sensitiveValues']
+            as Map<String, String>?;
+        final safe = sensitiveValues != null && sensitiveValues.isNotEmpty
+            ? _redact(summary, sensitiveValues)
+            : summary;
+        print('  [DRY-RUN] $safe');
       }
     } else {
       // ----- 7. Execute (unless dry-run) -----
@@ -410,7 +415,80 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
   }
 
   void emitEvent(ModuleEvent event) {
-    eventBus.emit(event);
+    final redacted = _redactEvent(event);
+    eventBus.emit(redacted);
+  }
+
+  ModuleEvent _redactEvent(ModuleEvent event) {
+    final ctx = _context;
+    if (ctx == null) return event;
+    final sensitiveValues = ctx.globalContext.options['_sensitiveValues']
+        as Map<String, String>?;
+    if (sensitiveValues == null || sensitiveValues.isEmpty) return event;
+    final message = _getEventMessage(event);
+    if (message == null || message.isEmpty) return event;
+    final redactedMessage = _redact(message, sensitiveValues);
+    if (redactedMessage == message) return event;
+    return _withRedactedMessage(event, redactedMessage);
+  }
+
+  String? _getEventMessage(ModuleEvent event) {
+    return switch (event) {
+      StartedEvent e => e.message,
+      ProgressEvent e => e.message,
+      CompletedEvent e => e.message,
+      FailedEvent e => e.message,
+      StatusUpdateEvent e => e.message,
+      ErrorEvent e => e.message,
+      DownloadProgressEvent e => e.message,
+      _ => null,
+    };
+  }
+
+  ModuleEvent _withRedactedMessage(ModuleEvent event, String message) {
+    return switch (event) {
+      StartedEvent e => StartedEvent(
+        moduleId: e.moduleId, message: message, correlationId: e.correlationId,
+        timestamp: e.timestamp, metadata: e.metadata,
+      ),
+      ProgressEvent e => ProgressEvent(
+        moduleId: e.moduleId, message: message, current: e.current,
+        total: e.total, correlationId: e.correlationId,
+        timestamp: e.timestamp, metadata: e.metadata,
+      ),
+      CompletedEvent e => CompletedEvent(
+        moduleId: e.moduleId, message: message, duration: e.duration,
+        correlationId: e.correlationId, timestamp: e.timestamp,
+        metadata: e.metadata,
+      ),
+      FailedEvent e => FailedEvent(
+        moduleId: e.moduleId, message: message, errorCode: e.errorCode,
+        cause: e.cause, correlationId: e.correlationId,
+        timestamp: e.timestamp, metadata: e.metadata,
+      ),
+      StatusUpdateEvent e => StatusUpdateEvent(
+        moduleId: e.moduleId, message: message, level: e.level,
+        correlationId: e.correlationId, timestamp: e.timestamp,
+        metadata: e.metadata,
+      ),
+      ErrorEvent e => ErrorEvent(
+        moduleId: e.moduleId, message: message, errorCode: e.errorCode,
+        severity: e.severity, category: e.category,
+        isRetryable: e.isRetryable, retryAfter: e.retryAfter, cause: e.cause,
+        correlationId: e.correlationId, timestamp: e.timestamp,
+        metadata: e.metadata,
+      ),
+      _ => event,
+    };
+  }
+
+  String _redact(String message, Map<String, String> sensitiveValues) {
+    var result = message;
+    for (final value in sensitiveValues.values) {
+      if (value.length < 4) continue;
+      result = result.replaceAll(value, '<SENSITIVE>');
+    }
+    return result;
   }
 
   // ---------------------------------------------------------------------------

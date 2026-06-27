@@ -625,3 +625,251 @@ All docs in `docs/` have been updated for v2:
 | Writer loses comments or formatting | Document limitations; add comment preservation tests (C.7) before v2 release. |
 | Plugin isolate complexity | Delay isolate execution (G.5); basic in-process plugin registration works (G.7 test passes). |
 | JSON/YAML distracts from i3 pipeline | Deferred; format boundary interfaces are ready when needed. |
+
+---
+
+## H. ExecutionService Refactor — Transport Layer Abstraction
+
+Replace all direct `Process.run`/`Process.start` calls with an `ExecutionService` abstraction, enabling future SSH-based remote execution.
+
+### H.1 Motivation
+
+- All blocks shell out via `dart:io` `Process` directly — impossible to swap transport for remote execution.
+- Code duplication: streaming output, stdin piping, environment variable handling repeated across blocks.
+- No centralized `platform` detection — blocks use `Platform.isLinux` etc. ad-hoc.
+
+### H.2 Design
+
+```
+ExecutionService (interface)
+├── run(String executable, List<String> args, {String? stdin, Map<String,String>? environment, Function? onOutput, String? workingDirectory}) → Future<ProcessResult>
+├── start(String executable, List<String> args, {String? stdin, Map<String,String>? environment, Function? onOutput, String? workingDirectory}) → Future<Process>
+└── String platform
+    │
+    ├── LocalExecutionService (dart:io Process)
+    │
+    └── SSHExecutionService (dartssh2) — Phase 2
+```
+
+- `ProcessResult` type from `dart:io` is used throughout — `ExecutionService.run()` returns it directly.
+- `SystemOperations` composes OS-appropriate commands (`stat -f%Su` on macOS vs `stat -c%U` on Linux).
+- DI wired via `v2_apply.dart` — `registerSingleton<ExecutionService>(LocalExecutionService())`.
+
+### H.3 Implementation Order (Done)
+
+| Step | File | Change |
+|------|------|--------|
+| 1 | `lib/src/utils/execution_service.dart` | Create `ExecutionService` interface + `LocalExecutionService` |
+| 2 | `lib/src/utils/system_operations.dart` | Create `SystemOperations` (stat/chown/chmod/mkdir per platform) |
+| 3 | `lib/src/utils/privilege_escalation.dart` | All 3 impls use `executionService.run()` |
+| 4 | `lib/src/utils/file_service.dart` | `LocalFileService` shell-out methods → `_executionService` + `SystemOperations` |
+| 5 | `lib/src/utils/command_executor.dart` | `execute()` accepts `ExecutionService` |
+| 6 | `lib/src/utils/command_runner.dart` | `LocalCommandRunner` → `_executionService` |
+| 7 | `lib/src/blocks/v2_apply.dart` | DI wiring |
+| 8 | `lib/src/blocks/stat_block.dart` | `fileSystem.statSync()` + `fileService` + `SystemOperations` |
+| 9 | `lib/src/blocks/git_block.dart` | `executionService.run('git', ...)` |
+| 10 | `lib/src/blocks/execute_block.dart` | `executionService.run('sh', ['-c', ...])` |
+| 11 | `lib/src/blocks/authorized_key_block.dart` | `fileService`/`executionService` |
+| 12 | `lib/src/blocks/network_block.dart` | `executionService.run('ping', ...)` |
+| 13 | `lib/src/blocks/wait_for_block.dart` | `executionService.run('ping', ...)` |
+| 14 | `lib/src/blocks/systemd_block.dart` | `executionService.run('systemctl', ...)` |
+| 15 | `lib/src/blocks/service_block.dart` | `_isSystemd()`/`_findPlist()` async via `executionService` |
+| 16 | `lib/src/blocks/npm.dart` | version check via `runCommand()` |
+| 17 | `lib/src/blocks/v2_apply.dart` | pre/post scripts via `LocalExecutionService().run(...)` |
+
+### H.4 Verification
+
+- `dart analyze` — 0 errors, 0 warnings
+- `dart test` — select v2 tests pass
+- `rg 'Process\.(run|start|runSync)' lib/src/blocks/ lib/src/package_management/` — 0 matches
+
+---
+
+## I. Secrets Management
+
+Integrate secret resolution into the i3config processing pipeline, modeled on Rust's `SecretSpec` crate (Cachix) and Ansible's connection/action plugin split.
+
+### I.1 Key Decision: Native BlockReference Instead of `{{ secret:... }}` Syntax
+
+i3config already supports `BlockReference` (dotted path syntax like `secrets.db_password`) in value parsing. The `secrets` block resolves secrets from providers and registers them as block properties. Other blocks reference them via i3config's native syntax:
+
+```i3
+secrets {
+  provider "prod" = "onepassword://Production"
+  provider "env" = "env://"
+  profile = "default"
+  db_password = "prod://myapp/db_password"
+  api_key = "env://MYAPP_API_KEY"
+}
+copy {
+  content = "DB_PASSWORD=secrets.db_password"
+  dest = "/etc/myapp/.env"
+}
+```
+
+Flow:
+1. `SecretsBlock` resolves all secret URIs, calls `context.registerBlock('secrets', null, {'db_password': 'resolved-value', ...})`
+2. Other blocks reference `secrets.db_password` → `context.resolveBlockReference()` → returns resolved value
+
+### I.2 Architecture
+
+```
+SecretProvider (interface)
+├── get(String project, String key, String? profile) → Future<String?>
+│
+SecretProviders (registry)
+├── register(String scheme, SecretProvider Function(Uri) factory)
+├── resolve(Uri uri, {String? alias, Map<String,String>? aliases}) → Future<String?>
+│
+SecretResolver
+├── resolve(String uriString, {Map<String,String>? aliases}) → Future<String?>
+│
+Built-in providers
+├── EnvProvider — env://KEY_NAME → Platform.environment
+├── FileProvider — file:///path → reads file content
+├── DotenvProvider — dotenv:///path → parses .env file
+├── CmdProvider — cmd://command-template → runs CLI ("universal adapter")
+├── OnePasswordProvider — onepassword://vault/item/field → wraps `op`
+└── KeyringProvider — keyring://service/account → system keychain
+```
+
+### I.3 Implementation Order
+
+#### Phase 1: Core Interfaces (1 session)
+
+| Step | File | What |
+|------|------|------|
+| 1 | `lib/src/secrets/secret_provider.dart` | `SecretProvider` interface with `get(project, key, profile?)` |
+| 2 | `lib/src/secrets/secret_providers.dart` | `SecretProviders` registry — scheme→factory map, `resolve(uri)` |
+| 3 | `lib/src/secrets/secret_resolver.dart` | `SecretResolver` — resolves alias-prefixed URI strings via providers |
+| 4 | `lib/src/secrets/sensitive_value.dart` | `SensitiveValue` wrapper — redacts `toString()`, `toJson()` |
+
+#### Phase 2: Built-in Providers (1 session)
+
+| Step | File | What |
+|------|------|------|
+| 5 | `lib/src/secrets/providers/env_provider.dart` | `EnvProvider` |
+| 6 | `lib/src/secrets/providers/file_provider.dart` | `FileProvider` |
+| 7 | `lib/src/secrets/providers/dotenv_provider.dart` | `DotenvProvider` |
+| 8 | `lib/src/secrets/providers/cmd_provider.dart` | `CmdProvider` |
+| 9 | `lib/src/secrets/providers/onepassword_provider.dart` | `OnePasswordProvider` |
+| 10 | `lib/src/secrets/providers/keyring_provider.dart` | `KeyringProvider` |
+
+#### Phase 3: i3config Integration (1 session)
+
+| Step | File | What |
+|------|------|------|
+| 11 | `lib/src/blocks/secrets_block.dart` | `SecretsBlock` — reads provider aliases + secret declarations, calls `SecretResolver`, registers via `context.registerBlock()` |
+| 12 | `lib/src/blocks/v2_apply.dart` | Register `SecretsBlock` in handler map |
+| 13 | `lib/src/secrets/secrets.dart` | Barrel export |
+
+#### Phase 4: Sensitive Redaction (1 session)
+
+| Step | File | What |
+|------|------|------|
+| 14 | `dryRunSummary()` | Mask `SensitiveValue` contents |
+| 15 | Event log / error messages | Strip `SensitiveValue` from serialized output |
+| 16 | `ActionBlock.afterChildrenProcessed()` | Trigger resolution chain before other blocks read properties |
+
+---
+
+## J. SSH / Remote Execution
+
+Extend `ExecutionService` with file transfer and connection lifecycle for remote execution over SSH.
+
+### J.1 Design
+
+```
+ExecutionService (extended)
+├── connect() → Future<void>
+├── disconnect() → Future<void>
+├── putFile(String local, String remote) → Future<void>
+├── fetchFile(String remote, String local) → Future<void>
+├── run(...) → Future<ProcessResult>
+├── start(...) → Future<Process>
+└── String platform
+
+LocalExecutionService
+├── connect() → no-op
+├── disconnect() → no-op
+├── putFile() → FileSystem.copy()
+├── fetchFile() → FileSystem.copy()
+└── platform → Platform.operatingSystem
+
+SSHExecutionService
+├── connect() → dartssh2 session
+├── disconnect() → close session
+├── putFile() → SFTP upload
+├── fetchFile() → SFTP download
+├── run() → SSH exec channel
+└── platform → configured remote OS
+```
+
+### J.2 SFTP Filesystem Bridge
+
+`file_sftp` at `file_sftp` provides `SftpFilesystem` implementing `package:storage_fs.Filesystem` — **not** `package:file.FileSystem`. To integrate with existing blocks that use `package:file.FileSystem`:
+
+- Create an adapter: `SftpFileSystem` wrapping `SftpClient` that implements `package:file.FileSystem`
+- `SSHExecutionService` will both hold the SSH session _and_ provide an `SftpFileSystem`-backed `LocalFileService`
+- Blocks that need file ops on remote hosts use a remote-specific `LocalFileService` instance from the `SSHExecutionService`
+
+### J.3 Config-Driven Selection
+
+```i3
+config {
+  remote = "ssh://user@host:22"
+  remote_platform = "linux"
+}
+```
+
+`v2_apply.dart` resolves:
+- If `remote` is set → `SSHExecutionService(uri, ...)`
+- Otherwise → `LocalExecutionService()`
+
+### J.4 Implementation Order
+
+| Step | File | What |
+|------|------|------|
+| 1 | `lib/src/utils/execution_service.dart` | Extend interface: `connect()`, `disconnect()`, `putFile()`, `fetchFile()` |
+| 2 | `lib/src/utils/local_execution_service.dart` | Extract from `execution_service.dart`, implement no-op connect/disconnect + FileSystem-based put/fetch |
+| 3 | `lib/src/utils/ssh_execution_service.dart` | `SSHExecutionService` via `dartssh2` |
+| 4 | `lib/src/utils/sftp_file_system.dart` | Adapter: `SftpClient` → `package:file.FileSystem` |
+| 5 | `lib/src/blocks/v2_apply.dart` | Config-driven DI: check `remote` option → SSH or Local |
+| 6 | `pubspec.yaml` | Add `dartssh2` dependency (conditional) |
+
+---
+
+## K. Testing Strategy
+
+| Layer | Tool | What |
+|-------|------|------|
+| Secrets unit | `package:test` | Test each provider in isolation (mock process, mock env) |
+| Secrets integration | `package:test` | Test `SecretResolver` with multiple providers + alias map |
+| SecretsBlock | Existing block test infra | i3config fixture → resolved values via `BlockReference` |
+| SSHExecutionService | Integration | Requires SSH server fixture (Docker container) |
+| End-to-end | `justfile` recipes | Dry-run + actual run against test configs |
+
+### K.1 Running Tests
+
+```sh
+# Unit tests (no SSH)
+TMPDIR=/run/media/kingwill101/disk2/tmp dart test test/v2/secrets/
+
+# All v2 tests
+TMPDIR=/run/media/kingwill101/disk2/tmp dart test test/v2/
+
+# Analysis
+dart analyze lib/src/secrets/
+```
+
+---
+
+## L. Risks & Mitigations
+
+| Risk | Mitigation |
+|------|------------|
+| `dartssh2` API changes or bugs | Pin version; contribute fixes upstream; fall back to `subprocess`-based SSH (`ssh` CLI) as `ProcessExecutionService` |
+| `SecretSpec` inspiration does not map well to Dart | Dart-friendly `Future<String?>` interface; providers are synchronous wrappers where possible |
+| Sensitive values leak in stack traces | `SensitiveValue` wraps in `_SensitiveValue` class with custom `toString()`; audit error-handling paths |
+| SSH password auth unsupported | Document key-only requirement; add `ssh_key` option pointing to key file |
+| `file_sftp` `SftpFilesystem` does not implement `package:file.FileSystem` | Build adapter layer; test against existing MemFS-based block tests |

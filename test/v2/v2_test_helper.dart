@@ -61,6 +61,7 @@ import 'package:configr/src/blocks/slurp_block.dart';
 import 'package:configr/src/blocks/ufw_block.dart';
 import 'package:configr/src/blocks/unarchive_block.dart';
 import 'package:configr/src/blocks/uri_block.dart';
+import 'package:configr/src/blocks/secrets_block.dart';
 import 'package:configr/src/reader/handlers/configr_handlers.dart';
 import 'package:configr/src/utils/command_runner.dart';
 import 'package:configr/src/utils/file_service.dart';
@@ -73,6 +74,7 @@ import 'package:test/test.dart';
 
 import 'package:configr/src/di.dart';
 import 'package:configr/src/events/module_events.dart';
+import 'package:configr/src/utils/execution_service.dart';
 
 /// Test helper for v2 ActionBlock tests.
 ///
@@ -216,6 +218,7 @@ class V2TestHelper {
       ..registerSingleton<EventBus>(eventBus)
       ..registerSingleton<PrivilegeEscalation>(NoPrivilegeEscalation())
       ..registerSingleton<FileSystem>(fileSystem)
+      ..registerSingleton<ExecutionService>(const LocalExecutionService())
       ..registerSingleton<FileService>(LocalFileService())
       ..registerSingleton<CommandRunner>(LocalCommandRunner())
       ..allowReassignment = false;
@@ -318,6 +321,7 @@ final actionBlockMap = <String, ActionBlock>{
     processor.registerBlockHandler(v2FileHandler);
     processor.registerBlockHandler(v2DirectoryHandler);
     processor.registerBlockHandler(v2ActionsHandler);
+    processor.registerBlockHandler(SecretsBlock());
     processor.registerBlockHandler(CommandsBlockHandler());
     processor.registerBlockHandler(PackagesBlockHandler());
     processor.registerBlockHandler(ScriptsBlockHandler('pre_apply_scripts'));

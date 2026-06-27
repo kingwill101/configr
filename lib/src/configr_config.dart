@@ -1,3 +1,4 @@
+import 'package:configr/src/connection_config.dart';
 import 'package:configr/src/format/format_service.dart';
 import 'package:configr/src/models/config_options.dart';
 import 'package:configr/src/plugins/configr_plugin.dart';
@@ -28,6 +29,7 @@ class ConfigrConfig {
   final List<String> pluginDirs;
   final List<String> pluginFiles;
   final ConfigrPluginLoader? pluginLoader;
+  final ConnectionConfig? connectionConfig;
   final FormatService formatService;
 
   // Phase K: Privilege escalation persistence
@@ -52,6 +54,7 @@ class ConfigrConfig {
     this.useV2 = false,
     this.pluginDirs = const [],
     this.pluginFiles = const [],
+    this.connectionConfig,
     this.privilegeLockTimeout = const Duration(minutes: 15),
     this.privilegeLockEnabled = false,
     ConfigrPluginLoader? pluginLoader,

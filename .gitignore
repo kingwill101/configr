@@ -2,6 +2,10 @@
 # Created by `dart pub`
 .dart_tool/
 
+# Compiled kernel files
+*.dill
+*.dill.stamp
+
 # FVM Version Cache
 .fvm/
 .cursor/

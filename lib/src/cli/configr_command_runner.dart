@@ -29,6 +29,7 @@ import 'package:configr/src/cli/commands/package.dart';
 import 'package:configr/src/cli/commands/rollback.dart';
 import 'package:configr/src/cli/commands/status.dart';
 import 'package:configr/src/cli/commands/watch.dart';
+import 'package:configr/src/connection_config.dart';
 
 class ConfigrCommandRunner extends CommandRunner<void> {
   ConfigrCommandRunner({
@@ -98,6 +99,44 @@ class ConfigrCommandRunner extends CommandRunner<void> {
       defaultsTo: false,
     );
 
+    argParser.addOption(
+      'host',
+      help: 'SSH host to connect to for remote execution',
+      valueHelp: 'hostname',
+    );
+
+    argParser.addOption(
+      'ssh-port',
+      help: 'SSH port (default: 22)',
+      valueHelp: 'port',
+      defaultsTo: '22',
+    );
+
+    argParser.addOption(
+      'ssh-user',
+      help: 'SSH username (default: root)',
+      valueHelp: 'username',
+      defaultsTo: 'root',
+    );
+
+    argParser.addOption(
+      'ssh-password',
+      help: 'SSH password',
+      valueHelp: 'password',
+    );
+
+    argParser.addOption(
+      'ssh-key',
+      help: 'Path to SSH private key file',
+      valueHelp: 'path',
+    );
+
+    argParser.addOption(
+      'ssh-key-passphrase',
+      help: 'Passphrase for the SSH private key',
+      valueHelp: 'passphrase',
+    );
+
     addCommand(InitCommand());
     addCommand(ApplyCommand());
     addCommand(DiffCommand());
@@ -124,6 +163,34 @@ class ConfigrCommandRunner extends CommandRunner<void> {
     final generateCompletion = _hasFlag(args, '--generate-completion');
     final pluginDirs = _multiArgValues(args, '--plugin-dir');
     final pluginFiles = _multiArgValues(args, '--plugin');
+
+    final sshHost = _argValue(args, '--host', '');
+    final sshPort = int.tryParse(_argValue(args, '--ssh-port', '') ?? '22') ?? 22;
+    final sshUser = _argValue(args, '--ssh-user', '');
+    final sshPassword = _argValue(args, '--ssh-password', '');
+    final sshKeyPath = _argValue(args, '--ssh-key', '');
+    final sshKeyPassphrase = _argValue(args, '--ssh-key-passphrase', '');
+
+    ConnectionConfig? connectionConfig;
+    if (sshHost != null && sshHost.isNotEmpty) {
+      String? privateKey;
+      if (sshKeyPath != null && sshKeyPath.isNotEmpty) {
+        final keyFile = (di.isRegistered<FileSystem>()
+            ? di<FileSystem>()
+            : const LocalFileSystem()) as dynamic;
+        privateKey = keyFile.file(sshKeyPath).readAsStringSync();
+      }
+      connectionConfig = ConnectionConfig(
+        host: sshHost,
+        port: sshPort,
+        username: sshUser ?? 'root',
+        password: sshPassword?.isNotEmpty == true ? sshPassword : null,
+        privateKey: privateKey,
+        privateKeyPassphrase: sshKeyPassphrase?.isNotEmpty == true
+            ? sshKeyPassphrase
+            : null,
+      );
+    }
 
     if (generateCompletion) {
       _generateCompletionScript();
@@ -172,6 +239,7 @@ class ConfigrCommandRunner extends CommandRunner<void> {
       pluginDirs: pluginDirs,
       pluginFiles: pluginFiles,
       privilegeEscalation: privilegeEscalation,
+      connectionConfig: connectionConfig,
     );
 
     final runtime = ConfigrRuntime(configrConfig);

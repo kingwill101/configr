@@ -5,7 +5,7 @@ import 'package:configr/src/cli/configr_command_runner.dart';
 import 'package:configr/src/cli/cli_exit_exception.dart';
 
 void main() {
-  const testEnv = String.fromEnvironment('CONFIGR_TEST_ENV');
+  final testEnv = Platform.environment['CONFIGR_TEST_ENV'] ?? '';
   if (testEnv.isEmpty) {
     test('skip: sweep requires container environment (CONFIGR_TEST_ENV)', () {},
         skip: true);
@@ -27,6 +27,9 @@ void main() {
     final verifyScript = File('${dir.path}/verify.sh');
     final cleanupScript = File('${dir.path}/cleanup.sh');
     final tagsFile = File('${dir.path}/tags');
+    final argsFile = File('${dir.path}/args');
+    final outContainsFile = File('${dir.path}/out_contains');
+    final outNotContainsFile = File('${dir.path}/out_not_contains');
 
     if (!configFile.existsSync()) continue;
 
@@ -36,6 +39,28 @@ void main() {
     }
 
     if (tags.isNotEmpty && !tags.contains(testEnv)) continue;
+
+    final extraArgs = <String>[];
+    if (argsFile.existsSync()) {
+      for (final arg in argsFile.readAsStringSync().trim().split(RegExp(r'\s+'))) {
+        if (arg.isNotEmpty) extraArgs.add(arg);
+      }
+    }
+
+    // Output expectations
+    String? outContains;
+    List<String> outNotContains = [];
+    if (outContainsFile.existsSync()) {
+      outContains = outContainsFile.readAsStringSync().trim();
+    }
+    if (outNotContainsFile.existsSync()) {
+      outNotContains = outNotContainsFile
+          .readAsStringSync()
+          .trim()
+          .split(RegExp(r'\s+'))
+          .where((s) => s.isNotEmpty)
+          .toList();
+    }
 
     group(dirName, () {
       if (cleanupScript.existsSync()) {
@@ -73,9 +98,19 @@ void main() {
             '--config',
             configFile.path,
             '-n',
+            ...extraArgs,
           ]);
         } on CliExitException catch (e) {
           fail('configr apply failed (exit ${e.exitCode}):\n$out$err');
+        }
+
+        // Verify output content
+        final combinedOut = '$out\n$err';
+        if (outContains != null) {
+          expect(combinedOut, contains(outContains));
+        }
+        for (final forbidden in outNotContains) {
+          expect(combinedOut, isNot(contains(forbidden)));
         }
 
         if (verifyScript.existsSync()) {
@@ -85,6 +120,7 @@ void main() {
                   'verify.sh failed:\n${verifyResult.stdout}\n${verifyResult.stderr}');
         }
 
+        // Second apply for idempotency check
         final out2 = StringBuffer();
         final err2 = StringBuffer();
         final runner2 = ConfigrCommandRunner(
@@ -99,6 +135,7 @@ void main() {
             '--config',
             configFile.path,
             '-n',
+            ...extraArgs,
           ]);
         } on CliExitException catch (e) {
           fail(

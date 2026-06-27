@@ -18,6 +18,7 @@ library;
 
 export 'src/configr_config.dart';
 export 'src/configr_runtime.dart';
+export 'src/connection_config.dart';
 
 export 'src/events/module_events.dart';
 export 'src/exceptions.dart';
@@ -33,6 +34,7 @@ export 'src/utils/file_event_handler.dart';
 export 'src/utils/file_utils.dart';
 export 'src/utils/fs.dart';
 export 'src/utils/logging.dart';
+export 'src/secrets/secrets.dart';
 export 'src/utils/privilege_escalation.dart';
 
 export 'src/writer/i3_config_writer_v2.dart';

@@ -34,6 +34,12 @@ configr <command> [options]
 | `-n, --no-interaction` | Disable interactive prompts |
 | `--ansi / --no-ansi` | Force ANSI output |
 | `--generate-completion` | Generate shell completion script |
+| `--host <hostname>` | SSH host for remote execution |
+| `--ssh-port <port>` | SSH port (default: 22) |
+| `--ssh-user <username>` | SSH username (default: root) |
+| `--ssh-password <password>` | SSH password |
+| `--ssh-key <path>` | Path to SSH private key |
+| `--ssh-key-passphrase <passphrase>` | Passphrase for SSH private key |
 
 ## Available Commands
 
@@ -67,6 +73,12 @@ configr apply --v2 --fail-fast
 
 # Watch for changes and re-apply automatically
 configr apply --v2 --watch
+
+# Apply to a remote host via SSH
+configr apply --v2 --host server.example.com --ssh-user deploy
+
+# Apply with SSH key authentication
+configr apply --v2 --host db.internal --ssh-key ~/.ssh/id_rsa
 ```
 
 ### `rollback`

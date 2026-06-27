@@ -9,6 +9,9 @@ configuration files.
 - [CLI Usage Guide](cli-usage.md) — Command reference and examples
 - [Migration Guide](migration-guide.md) — Upgrading from v1 to v2
 - [Tutorial](tutorial.md) — Getting started guide
+- [Architecture](architecture.md) — Core abstractions and design decisions
+- [Secrets Management](secrets.md) — Provider-agnostic secret resolution
+- [Remote Execution](remote-execution.md) — SSH transport for remote machines
 
 ## Action Blocks
 
@@ -81,6 +84,8 @@ block-specific properties.
 - [**Plugin system**](plugin-system.md) — Extend with custom block handlers (Dart + Lua)
 - **Watch mode** — Auto-apply on file changes
 - [**Terminal UI**](terminal-ui.md) — Task widgets, spinners, styled output, interactive prompts
+- [**Secrets management**](secrets.md) — Provider-agnostic secret resolution (env, file, dotenv, cmd, 1Password, keyring) with automatic redaction
+- [**Remote execution**](remote-execution.md) — SSH transport with CLI flags or inline `connection { }` block
 
 ## Architecture
 
