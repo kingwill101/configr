@@ -2,6 +2,7 @@ import 'dart:io' as io;
 
 import 'package:configr/src/di.dart';
 import 'package:configr/src/events/module_events.dart';
+import 'package:configr/src/hooks/hook_manager.dart';
 import 'package:configr/src/models/command.dart';
 import 'package:configr/src/models/v2_lockfile_data.dart';
 import 'package:configr/src/utils/command_executor.dart';
@@ -219,8 +220,32 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
     } else {
       // ----- 7. Execute (unless dry-run) -----
       _context = context;
+
+      // Run pre-block hook if a HookManager is registered
+      final hookMgr = context.globalContext.options['_hookManager']
+          as HookManager?;
+      if (hookMgr != null) {
+        await hookMgr.runEvent('pre-block', extraVars: {
+          'block_type': blockType,
+          'block_id': id,
+          'block_source': source,
+          'block_destination': destination,
+        });
+      }
+
       try {
         await execute();
+
+        // Run post-block hook after successful execution
+        if (hookMgr != null) {
+          await hookMgr.runEvent('post-block', extraVars: {
+            'block_type': blockType,
+            'block_id': id,
+            'block_source': source,
+            'block_destination': destination,
+          });
+        }
+
         // Record this block in the lockfile collector (if present).
         await _recordApplied(context);
       } catch (e) {

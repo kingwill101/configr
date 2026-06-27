@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:configr/src/cli/ui/handlers/base_handler.dart';
 import 'package:configr/src/configr_directories.dart';
 import 'package:configr/src/exceptions.dart';
+import 'package:configr/src/hooks/hook_manager.dart';
 import 'package:configr/src/plugins/configr_plugin.dart';
 import 'package:configr/src/plugins/lua_plugin.dart';
 import 'package:configr/src/reader/handlers/configr_handlers.dart';
@@ -248,6 +249,11 @@ Future<void> applyV2(
   // Ensure standard directories exist
   await configrDirs.ensureAll();
 
+  // Initialize hook manager for .configr/hooks/ directory
+  final hooksDir = p.join(dotConfigrPath, 'hooks');
+  final hookMgr = HookManager(hooksDir: hooksDir);
+  processor.context.options['_hookManager'] = hookMgr;
+
   await _registerAllBlocks(
     processor,
     eventBus: eventBus,
@@ -265,6 +271,11 @@ Future<void> applyV2(
       await plugin.onConfigLoad(config);
     }
   }
+
+  // Run pre-apply hook before processing blocks
+  await hookMgr.runEvent('pre-apply', extraVars: {
+    'config_path': configPath,
+  });
 
   // Process — each block executes as it is processed
   await processor.process(config);
@@ -304,6 +315,12 @@ Future<void> applyV2(
       <BlockErrorRecord>[];
 
   if (errors.isNotEmpty) {
+    // Run on-error hook before reporting failure
+    await hookMgr.runEvent('on-error', extraVars: {
+      'config_path': configPath,
+      'error_count': errors.length.toString(),
+    });
+
     logger.error(
       'Apply failed — ${errors.length} block(s) encountered errors:',
     );
@@ -321,6 +338,12 @@ Future<void> applyV2(
       '${errors.length} block(s) failed during apply. Fix errors and re-run.',
     );
   }
+
+  // Run post-apply hook after successful processing
+  await hookMgr.runEvent('post-apply', extraVars: {
+    'config_path': configPath,
+    'block_count': appliedBlocks.length.toString(),
+  });
 
   // Write lockfile with records of what was applied
   if (appliedBlocks.isNotEmpty) {

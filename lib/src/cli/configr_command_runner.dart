@@ -41,16 +41,16 @@ class ConfigrCommandRunner extends CommandRunner<void> {
     void Function(int)? setExitCode,
     bool? ansi,
   }) : super(
-          'configr',
-          'A powerful configuration management tool for dotfiles and system configuration',
-          out: out,
-          err: err,
-          outRaw: outRaw,
-          errRaw: errRaw,
-          readLine: readLine,
-          setExitCode: setExitCode,
-          ansi: ansi,
-        ) {
+         'configr',
+         'A powerful configuration management tool for dotfiles and system configuration',
+         out: out,
+         err: err,
+         outRaw: outRaw,
+         errRaw: errRaw,
+         readLine: readLine,
+         setExitCode: setExitCode,
+         ansi: ansi,
+       ) {
     argParser.addOption(
       'config',
       abbr: 'c',
@@ -165,7 +165,8 @@ class ConfigrCommandRunner extends CommandRunner<void> {
     final pluginFiles = _multiArgValues(args, '--plugin');
 
     final sshHost = _argValue(args, '--host', '');
-    final sshPort = int.tryParse(_argValue(args, '--ssh-port', '') ?? '22') ?? 22;
+    final sshPort =
+        int.tryParse(_argValue(args, '--ssh-port', '') ?? '22') ?? 22;
     final sshUser = _argValue(args, '--ssh-user', '');
     final sshPassword = _argValue(args, '--ssh-password', '');
     final sshKeyPath = _argValue(args, '--ssh-key', '');
@@ -175,9 +176,11 @@ class ConfigrCommandRunner extends CommandRunner<void> {
     if (sshHost != null && sshHost.isNotEmpty) {
       String? privateKey;
       if (sshKeyPath != null && sshKeyPath.isNotEmpty) {
-        final keyFile = (di.isRegistered<FileSystem>()
-            ? di<FileSystem>()
-            : const LocalFileSystem()) as dynamic;
+        final keyFile =
+            (di.isRegistered<FileSystem>()
+                    ? di<FileSystem>()
+                    : const LocalFileSystem())
+                as dynamic;
         privateKey = keyFile.file(sshKeyPath).readAsStringSync();
       }
       connectionConfig = ConnectionConfig(
@@ -201,23 +204,27 @@ class ConfigrCommandRunner extends CommandRunner<void> {
     final debugLevel = _verbosityLevel(args) >= 3;
     final interactiveMode = !_hasFlag(args, '--no-interaction', '-n');
 
-    final eventBus = di.isRegistered<EventBus>()
-        ? di<EventBus>()
-        : EventBus();
+    final eventBus = di.isRegistered<EventBus>() ? di<EventBus>() : EventBus();
     final fileSystem = di.isRegistered<FileSystem>()
         ? di<FileSystem>()
         : const LocalFileSystem();
 
     final fileEventHandler = FileEventHandler(
       eventBus: eventBus,
-      logFile: fileSystem.directory(configrDirs.logsDir).childFile(
-        'session-${DateTime.now().toIso8601String().replaceAll(':', '-')}.jsonl',
-      ),
+      logFile: fileSystem
+          .directory(configrDirs.logsDir)
+          .childFile(
+            'session-${DateTime.now().toIso8601String().replaceAll(':', '-')}.jsonl',
+          ),
     );
     fileEventHandler.start();
 
     final uiHandler = interactiveMode
-        ? InteractiveHandler(eventBus: eventBus, interactiveMode: true, console: io)
+        ? InteractiveHandler(
+            eventBus: eventBus,
+            interactiveMode: true,
+            console: io,
+          )
         : CLIHandler(eventBus: eventBus, console: io) as UIHandler;
 
     final privilegeEscalation = di.isRegistered<PrivilegeEscalation>()
@@ -256,6 +263,8 @@ class ConfigrCommandRunner extends CommandRunner<void> {
       rethrow;
     } finally {
       fileEventHandler.stop();
+      uiHandler.stop();
+      // await logger.shutdown();
     }
   }
 

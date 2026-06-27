@@ -1,4 +1,4 @@
-import 'dart:async' show Completer, unawaited;
+import 'dart:async' show Completer, StreamSubscription, unawaited;
 import 'dart:io' as dart_io;
 
 import 'package:artisanal/artisanal.dart' show Console, TaskResult;
@@ -14,6 +14,7 @@ class InteractiveHandler implements UIHandler {
   final bool _debugMode;
   final bool _interactiveMode;
   final Map<String, Completer<TaskResult>> _pendingTasks = {};
+  StreamSubscription<ModuleEvent>? _eventSubscription;
 
   InteractiveHandler({
     required this._eventBus,
@@ -27,7 +28,7 @@ class InteractiveHandler implements UIHandler {
   }
 
   void _setupEventListeners() {
-    _eventBus.stream.listen((event) {
+    _eventSubscription = _eventBus.stream.listen((event) {
       if (event is UserInputRequiredEvent) {
         _handleUserInputRequired(event);
       } else if (event is WaitForUserEvent) {
@@ -378,7 +379,8 @@ class InteractiveHandler implements UIHandler {
 
   @override
   void stop() {
-    // Nothing to stop
+    _eventSubscription?.cancel();
+    _eventSubscription = null;
   }
 
   @override

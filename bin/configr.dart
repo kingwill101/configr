@@ -46,6 +46,7 @@ void main(List<String> arguments) async {
     print('Tip: Use --debug flag for detailed error information');
     logger.error('Unexpected error: $e', e, stackTrace);
     await logger.shutdown();
+
     exit(1);
   } finally {}
 }
