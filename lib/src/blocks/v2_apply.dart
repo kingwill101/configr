@@ -22,6 +22,8 @@ import 'package:configr/src/blocks/authorized_key_block.dart';
 import 'package:configr/src/blocks/backup_block.dart';
 import 'package:configr/src/blocks/connection_block.dart';
 import 'package:configr/src/multi_host/inventory_block.dart';
+import 'package:configr/src/multi_host/inventory.dart';
+import 'package:configr/src/multi_host/target_resolver.dart';
 import 'package:configr/src/blocks/blockinfile_block.dart';
 import 'package:configr/src/blocks/compress_block.dart';
 import 'package:configr/src/blocks/copy_block.dart';
@@ -118,6 +120,10 @@ Future<void> applyV2(
   PrivilegeEscalation? privilegeEscalation,
   ConfigrPluginLoader? pluginLoader,
   Map<String, dynamic>? connectionConfig,
+  List<String>? hosts,
+  List<String>? roles,
+  List<String>? groups,
+  String strategy = 'linear',
 }) async {
   final fs = const LocalFileSystem();
   final configFile = fs.file(configPath);
@@ -280,6 +286,28 @@ Future<void> applyV2(
 
   // Process — each block executes as it is processed
   await processor.process(config);
+
+  // Resolve targets from inventory if multi-host flags were provided
+  final inventory =
+      processor.context.globalContext.options['_inventory'] as Inventory?;
+  final hasMultiHostFlags =
+      (hosts != null && hosts.isNotEmpty) ||
+      (roles != null && roles.isNotEmpty) ||
+      (groups != null && groups.isNotEmpty);
+  if (inventory != null && hasMultiHostFlags) {
+    final resolver = TargetResolver();
+    final resolved = resolver.resolve(
+      hosts: hosts,
+      roles: roles,
+      groups: groups,
+      inventory: inventory,
+    );
+    logger.info(
+      'Targeted ${resolved.length} host(s): '
+      '${resolved.map((h) => h.name).join(', ')} '
+      '(strategy: $strategy)',
+    );
+  }
 
   // Invoke plugin onConfigApplied hooks
   if (pluginLoader != null) {

@@ -29,6 +29,24 @@ class ApplyCommand extends BaseCommand {
       help: 'Stop at the first block error instead of continuing',
       defaultsTo: false,
     );
+    argParser.addMultiOption(
+      'target',
+      help: 'Target specific host(s) by name (can be specified multiple times)',
+    );
+    argParser.addMultiOption(
+      'target-role',
+      help: 'Target all hosts in the given role(s) (can be specified multiple times)',
+    );
+    argParser.addMultiOption(
+      'target-group',
+      help: 'Target all hosts in the given group(s) (can be specified multiple times)',
+    );
+    argParser.addOption(
+      'strategy',
+      help: 'Execution strategy: linear, parallel, or serial',
+      defaultsTo: 'linear',
+      allowed: ['linear', 'parallel', 'serial'],
+    );
   }
 
   @override
@@ -57,6 +75,10 @@ class ApplyCommand extends BaseCommand {
     final interactive = configrConfig.interactiveMode;
     final verbose = configrConfig.verboseMode;
     final debug = configrConfig.debugMode;
+    final hosts = argResults?['target'] as List<String>?;
+    final roles = argResults?['target-role'] as List<String>?;
+    final groups = argResults?['target-group'] as List<String>?;
+    final strategy = argResults?['strategy'] as String? ?? 'linear';
 
     if (dryRun) {
       io.info('  [DRY-RUN] Preview mode — no changes will be made.');
@@ -73,6 +95,10 @@ class ApplyCommand extends BaseCommand {
         interactive: interactive,
         verbose: verbose,
         debug: debug,
+        hosts: hosts,
+        roles: roles,
+        groups: groups,
+        strategy: strategy,
       );
       io.success('Configuration applied successfully.');
       io.line('');

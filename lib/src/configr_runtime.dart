@@ -62,6 +62,10 @@ class ConfigrRuntime {
     bool interactive = false,
     bool verbose = false,
     bool debug = false,
+    List<String>? hosts,
+    List<String>? roles,
+    List<String>? groups,
+    String strategy = 'linear',
   }) => applyV2(
     resolvedConfigPath,
     eventBus: eventBus,
@@ -75,6 +79,10 @@ class ConfigrRuntime {
     privilegeEscalation: config.privilegeEscalation,
     pluginLoader: config.pluginLoader,
     connectionConfig: config.connectionConfig?.toMap(),
+    hosts: hosts,
+    roles: roles,
+    groups: groups,
+    strategy: strategy,
   );
 
   /// Rollback applied blocks.
