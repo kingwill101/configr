@@ -21,6 +21,7 @@ import 'package:configr/src/cli/cli_exit_exception.dart';
 import 'package:configr/src/cli/commands/add.dart';
 import 'package:configr/src/cli/commands/apply.dart';
 import 'package:configr/src/cli/commands/base_command.dart';
+import 'package:configr/src/cli/commands/config.dart';
 import 'package:configr/src/cli/commands/diff.dart';
 import 'package:configr/src/cli/commands/edit.dart';
 import 'package:configr/src/cli/commands/format.dart';
@@ -140,6 +141,7 @@ class ConfigrCommandRunner extends CommandRunner<void> {
     addCommand(InitCommand());
     addCommand(ApplyCommand());
     addCommand(DiffCommand());
+    addCommand(ConfigCommand());
     addCommand(FormatCommand());
     addCommand(AddCommand());
     addCommand(EditCommand());

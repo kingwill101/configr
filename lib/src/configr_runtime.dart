@@ -93,6 +93,15 @@ class ConfigrRuntime {
     pluginLoader: config.pluginLoader,
   );
 
+  /// Resolve the full config (variables expanded, secrets fetched) and return
+  /// a `ResolvedConfig` with the parsed AST, resolved variables, and
+  /// sensitive-key tracking.
+  Future<ResolvedConfig?> resolveConfig() => resolveConfigBlocks(
+    resolvedConfigPath,
+    eventBus: eventBus,
+    pluginLoader: config.pluginLoader,
+  );
+
   /// Read and parse the config file through the format service.
   Future<i3.Config> readConfig() => formatService.readConfig(configSource);
 

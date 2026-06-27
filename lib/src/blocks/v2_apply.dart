@@ -602,6 +602,89 @@ Future<List<BlockSnapshot>> parseAndCollectBlocks(
   return snapshotCollector;
 }
 
+/// Processes a config file and returns the resolved state for display.
+///
+/// Runs the full pipeline (including secret resolution) and returns the
+/// resolved variables, registered blocks, and sensitive-key tracking so
+/// the caller can display the fully-resolved configuration.
+///
+/// Returns null if the config file cannot be parsed.
+Future<ResolvedConfig?> resolveConfigBlocks(
+  String configPath, {
+  EventBus? eventBus,
+  ConfigrPluginLoader? pluginLoader,
+}) async {
+  final fs = const LocalFileSystem();
+  final configFile = fs.file(configPath);
+  if (!await configFile.exists()) return null;
+
+  final contents = await configFile.readAsString();
+  final config = i3.Config.parse(contents);
+  final configDir = p.dirname(p.absolute(configPath));
+  final dotConfigrPath = p.join(configDir, '.configr');
+  final configrDirs = ConfigrDirectories(projectConfigrPath: dotConfigrPath);
+
+  final processor = i3.ConfigProcessor(
+    fileSystem: _ConfigrFileSystem(configDir),
+  );
+
+  SystemInfo(
+    configDir: configDir,
+    configrVersion: '1.0.0',
+    configrCacheDir: configrDirs.cacheDir,
+    configrBackupDir: configrDirs.backupDir,
+  ).applyToContext(processor.context);
+
+  final hookMgr = HookManager(hooksDir: p.join(dotConfigrPath, 'hooks'));
+  processor.context.options['_hookManager'] = hookMgr;
+
+  await _registerAllBlocks(
+    processor,
+    eventBus: eventBus,
+    dryRun: true,
+    pluginLoader: pluginLoader,
+    configDir: configDir,
+  );
+
+  await processor.process(config);
+
+  final globalCtx = processor.context.globalContext;
+
+  // Collect resolved variables (excluding internal _-prefixed ones)
+  final variables = <String, String>{};
+  for (final entry in globalCtx.variables.entries) {
+    if (!entry.key.startsWith('_')) {
+      variables[entry.key] = entry.value.toString();
+    }
+  }
+
+  // Collect sensitive key names for redaction
+  final sensitiveKeys =
+      (globalCtx.options['_sensitiveKeys'] as Set<String>?) ?? {};
+
+  return ResolvedConfig(
+    config: config,
+    variables: variables,
+    sensitiveKeys: sensitiveKeys,
+    blockRegistry: Map.from(globalCtx.blockRegistry),
+  );
+}
+
+/// The resolved state of a configuration after processing.
+class ResolvedConfig {
+  final i3.Config config;
+  final Map<String, String> variables;
+  final Set<String> sensitiveKeys;
+  final Map<String, Map<String?, Map<String, dynamic>>> blockRegistry;
+
+  const ResolvedConfig({
+    required this.config,
+    required this.variables,
+    required this.sensitiveKeys,
+    required this.blockRegistry,
+  });
+}
+
 /// Registers all v2 block handlers on [processor] and any plugins.
 ///
 /// Registers three layers:

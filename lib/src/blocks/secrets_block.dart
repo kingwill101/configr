@@ -22,6 +22,10 @@ class SecretsBlock extends i3.BaseBlockHandler {
     providers.register('cmd', (_) => const CmdProvider());
     providers.register('onepassword', (_) => const OnePasswordProvider());
     providers.register('keyring', (_) => const KeyringProvider());
+    providers.register('bitwarden', (_) => const BitwardenProvider());
+    providers.register('aws', (_) => const AwsSecretsManagerProvider());
+    providers.register('gcp', (_) => const GcpSecretManagerProvider());
+    providers.register('doppler', (_) => const DopplerProvider());
     return providers;
   }
 
