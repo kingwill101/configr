@@ -21,6 +21,7 @@ import 'package:configr/src/blocks/assert_block.dart';
 import 'package:configr/src/blocks/authorized_key_block.dart';
 import 'package:configr/src/blocks/backup_block.dart';
 import 'package:configr/src/blocks/connection_block.dart';
+import 'package:configr/src/multi_host/inventory_block.dart';
 import 'package:configr/src/blocks/blockinfile_block.dart';
 import 'package:configr/src/blocks/compress_block.dart';
 import 'package:configr/src/blocks/copy_block.dart';
@@ -897,7 +898,12 @@ Future<void> _registerAllBlocks(
   processor.registerBlockHandler(ConnectionBlock());
 
   // -----------------------------------------------------------------------
-  // 7. Register plugin blocks after built-ins so plugins can override
+  // 7. Register InventoryBlock for multi-host inventory configuration
+  // -----------------------------------------------------------------------
+  processor.registerBlockHandler(InventoryBlock());
+
+  // -----------------------------------------------------------------------
+  // 8. Register plugin blocks after built-ins so plugins can override
   // -----------------------------------------------------------------------
   if (pluginLoader != null) {
     await pluginLoader.registerAllPlugins(processor, eventBus: eventBus);
