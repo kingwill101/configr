@@ -79,6 +79,12 @@ class Inventory {
   /// all hosts in the inventory are used.
   final List<String>? defaultTargets;
 
+  /// Per-group variables for Ansible-style group variable resolution.
+  ///
+  /// Variables defined here apply to all hosts in the group and are
+  /// overridden by host-level variables and CLI vars.
+  final Map<String, Map<String, String>> groupVars;
+
   /// Create an empty inventory.
   Inventory({
     this.hosts = const [],
@@ -89,6 +95,7 @@ class Inventory {
     this.hostsByName = const {},
     this.metadata = const {},
     this.defaultTargets,
+    this.groupVars = const {},
   });
 
   /// Create an inventory with the required initial data.
@@ -104,6 +111,7 @@ class Inventory {
     required Map<String, Host> hostsByName,
     Map<String, dynamic>? metadata,
     List<String>? defaultTargets,
+    Map<String, Map<String, String>> groupVars = const {},
   }) {
     return Inventory(
       hosts: hosts,
@@ -114,7 +122,21 @@ class Inventory {
       hostsByName: hostsByName,
       metadata: metadata ?? {},
       defaultTargets: defaultTargets,
+      groupVars: groupVars,
     );
+  }
+
+  /// Collect all group-level variables applicable to this host.
+  ///
+  /// Iterates the host's groups and merges vars from each (in order,
+  /// with later groups overriding earlier ones).
+  Map<String, String> groupVarsFor(Host host) {
+    final result = <String, String>{};
+    for (final group in host.groups) {
+      final vars = groupVars[group];
+      if (vars != null) result.addAll(vars);
+    }
+    return result;
   }
 
   /// Find a host by name.

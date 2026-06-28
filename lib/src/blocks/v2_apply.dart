@@ -342,6 +342,7 @@ Future<void> applyV2(
     final pool = ConnectionPool();
     Future<void> executeOnHost(Host host) async {
       logger.info('[${host.name}] Starting remote apply');
+      final groupVars = inventory.groupVarsFor(host);
       final ctx = await applyOnHost(
         host: host,
         pool: pool,
@@ -349,6 +350,7 @@ Future<void> applyV2(
         eventBus: eventBusInstance,
         dryRun: dryRun,
         failFast: failFast,
+        extraVars: groupVars.isNotEmpty ? groupVars : null,
       );
       if (!ctx.succeeded) {
         throw Exception(
