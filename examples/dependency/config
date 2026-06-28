@@ -1,0 +1,29 @@
+# Dependency block: check that target hosts are reachable before execution
+#
+# These checks run as a pre-flight orchestration step, before any
+# resource actions are dispatched to target hosts.
+
+dependency {
+  from = "control-node"
+  host = "web-01"
+  type = "network"
+  state = "reachable"
+  timeout = 10
+}
+
+dependency {
+  from = "web-01"
+  host = "db-01"
+  type = "port"
+  port = 5432
+  state = "reachable"
+  timeout = 5
+}
+
+dependency {
+  from = "web-01"
+  host = "redis-01"
+  type = "network"
+  state = "reachable"
+  timeout = 5
+}

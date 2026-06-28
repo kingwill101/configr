@@ -22,14 +22,18 @@ import 'package:configr/src/blocks/authorized_key_block.dart';
 import 'package:configr/src/blocks/backup_block.dart';
 import 'package:configr/src/blocks/connection_block.dart';
 import 'package:configr/src/multi_host/inventory_block.dart';
+import 'package:configr/src/multi_host/dependency_checker.dart' show DependencyChecker;
 import 'package:configr/src/multi_host/inventory.dart';
 import 'package:configr/src/multi_host/target_resolver.dart';
 import 'package:configr/src/multi_host/host.dart' show Host;
 import 'package:configr/src/multi_host/strategy_resolver.dart';
 import 'package:configr/src/multi_host/connection_pool.dart';
 import 'package:configr/src/multi_host/host_applier.dart';
+import 'package:configr/src/multi_host/host_rollback.dart' show HostLockfile;
 import 'package:configr/src/multi_host/variable_precedence.dart'
     show VariablePrecedence, PrecedenceLayer;
+import 'package:configr/src/secrets/sensitive_variable_middleware.dart'
+    show SensitiveVariableMiddleware;
 import 'package:configr/src/blocks/blockinfile_block.dart';
 import 'package:configr/src/blocks/compress_block.dart';
 import 'package:configr/src/blocks/container_block.dart';
@@ -257,6 +261,13 @@ Future<void> applyV2(
   processor.context.registerVariableMiddleware(precedence);
   processor.context.options['_variablePrecedence'] = precedence;
 
+  // Register sensitive variable middleware at the processor level so it
+  // propagates to all contexts. Sensitive values are redacted in dry-run
+  // output, event messages, and logs via the middleware's redact() method.
+  final sensitiveMiddleware = SensitiveVariableMiddleware();
+  processor.registerVariableMiddleware(sensitiveMiddleware);
+  processor.context.options['_sensitiveMiddleware'] = sensitiveMiddleware;
+
   final appliedBlocks = <AppliedBlockRecord>[];
   processor.context.options['_appliedBlocks'] = appliedBlocks;
   if (failFast) {
@@ -319,6 +330,7 @@ Future<void> applyV2(
       (hosts != null && hosts.isNotEmpty) ||
       (roles != null && roles.isNotEmpty) ||
       (groups != null && groups.isNotEmpty);
+  Map<String, TargetLockEntry>? collectedTargets;
   if (inventory != null && hasMultiHostFlags) {
     final resolver = TargetResolver();
     final resolved = resolver.resolve(
@@ -333,31 +345,90 @@ Future<void> applyV2(
       '(strategy: $strategy)',
     );
 
-    // Execute with the selected strategy
     final strategyResolver = StrategyResolver();
     final executionStrategy = strategyResolver.strategyFor(strategy);
     final targets = resolver.fromHosts(resolved, strategy);
 
+    // Pre-flight: resolve dependency blocks from config and check them
+    final depBlocks = _collectDependencyBlocks(config);
+    if (depBlocks.isNotEmpty) {
+      logger.info('Checking ${depBlocks.length} inter-host dependenc(ies)...');
+      final depChecker = DependencyChecker(inventory: inventory);
+      for (final dep in depBlocks) {
+        final result = await depChecker.check(
+          from: dep['from'] ?? '',
+          to: dep['to'] ?? dep['host'] ?? '',
+          checkType: dep['type'] ?? 'network',
+          port: int.tryParse(dep['port'] ?? '') ?? 0,
+          timeout: int.tryParse(dep['timeout'] ?? '') ?? 30,
+        );
+        if (!result.passed) {
+          throw Exception(
+            'Pre-flight dependency check failed: ${result.fromHost} → ${result.toHost}',
+          );
+        }
+      }
+    }
+
     final eventBusInstance = eventBus ?? EventBus();
     final pool = ConnectionPool();
+    final hostResults = <String, TargetLockEntry>{};
+    final errors = <String>[];
+
     Future<void> executeOnHost(Host host) async {
       logger.info('[${host.name}] Starting remote apply');
       final groupVars = inventory.groupVarsFor(host);
-      final ctx = await applyOnHost(
-        host: host,
-        pool: pool,
-        configPath: configPath,
-        eventBus: eventBusInstance,
-        dryRun: dryRun,
-        failFast: failFast,
-        extraVars: groupVars.isNotEmpty ? groupVars : null,
-      );
-      if (!ctx.succeeded) {
-        throw Exception(
-          'Apply failed on ${host.name}: ${ctx.errorMessage}',
+      try {
+        final ctx = await applyOnHost(
+          host: host,
+          pool: pool,
+          configPath: configPath,
+          eventBus: eventBusInstance,
+          dryRun: dryRun,
+          failFast: failFast,
+          extraVars: groupVars.isNotEmpty ? groupVars : null,
         );
+        if (!ctx.succeeded) {
+          hostResults[host.name] = TargetLockEntry(
+            hostName: host.name,
+            strategy: strategy,
+            status: 'failed',
+            appliedAt: DateTime.now().toUtc().toIso8601String(),
+            errorMessage: ctx.errorMessage,
+          );
+          errors.add('Apply failed on ${host.name}: ${ctx.errorMessage}');
+          throw Exception(
+            'Apply failed on ${host.name}: ${ctx.errorMessage}',
+          );
+        }
+        hostResults[host.name] = TargetLockEntry(
+          hostName: host.name,
+          strategy: strategy,
+          status: 'succeeded',
+          appliedAt: DateTime.now().toUtc().toIso8601String(),
+        );
+        logger.info('[${host.name}] Remote apply completed');
+
+        // Write per-host lockfile
+        final hostLockPath = HostLockfile.pathFor(configPath, host.name);
+        final hostLockMgr = V2LockfileManager(hostLockPath, fileSystem: fs);
+        await hostLockMgr.write(
+          V2LockfileData(
+            appliedBlocks: appliedBlocks,
+            configChecksum: currentChecksum,
+          ),
+        );
+      } catch (e) {
+        hostResults[host.name] = TargetLockEntry(
+          hostName: host.name,
+          strategy: strategy,
+          status: 'failed',
+          appliedAt: DateTime.now().toUtc().toIso8601String(),
+          errorMessage: '$e',
+        );
+        errors.add('Connection/execution failed on ${host.name}: $e');
+        throw Exception('Connection/execution failed on ${host.name}: $e');
       }
-      logger.info('[${host.name}] Remote apply completed');
     }
 
     try {
@@ -370,7 +441,20 @@ Future<void> applyV2(
       );
     } finally {
       await pool.releaseAll();
+      collectedTargets = hostResults;
     }
+
+    // Report errors after all targets processed
+    if (errors.isNotEmpty) {
+      for (final err in errors) {
+        logger.error(err);
+      }
+    }
+  }
+
+  // Use collected multi-host targets as lockfile targets if available
+  if (collectedTargets != null) {
+    lockfileTargets = collectedTargets;
   }
 
   // Invoke plugin onConfigApplied hooks
@@ -626,6 +710,7 @@ Future<void> rollbackV2(
     block.destination = record.destination;
     block.sha256 = record.sha256;
     block.status = record.status;
+    block.delegateTo = record.metadata?['delegate_to'] as String?;
 
     try {
       await block.rollback();
@@ -758,9 +843,10 @@ Future<ResolvedConfig?> resolveConfigBlocks(
     }
   }
 
-  // Collect sensitive key names for redaction
-  final sensitiveKeys =
-      (globalCtx.options['_sensitiveKeys'] as Set<String>?) ?? {};
+  // Collect sensitive key names for redaction from the middleware
+  final sensitiveMw = globalCtx.options['_sensitiveMiddleware']
+      as SensitiveVariableMiddleware?;
+  final sensitiveKeys = sensitiveMw?.sensitiveKeys ?? {};
 
   // Extract inventory if present
   final inventory = globalCtx.options['_inventory'];
@@ -1082,6 +1168,27 @@ Future<List<BlockSnapshot>> _parseConfigBlocks(
 String _sha256Hex(String input) {
   final bytes = utf8.encode(input);
   return sha256.convert(bytes).toString();
+}
+
+/// Collect `dependency` block declarations from the parsed config AST.
+///
+/// Returns a list of maps with keys: `from`, `to`, `host`, `type`, `port`, `timeout`.
+List<Map<String, String>> _collectDependencyBlocks(i3.Config config) {
+  final deps = <Map<String, String>>[];
+  for (final stmt in config.statements) {
+    if (stmt is i3.Block && stmt.blockType == 'dependency') {
+      final dep = <String, String>{};
+      for (final child in stmt.body) {
+        if (child is i3.Assignment) {
+          dep[child.variable] = child.values
+              .map((v) => v.toConfigString())
+              .join(' ');
+        }
+      }
+      deps.add(dep);
+    }
+  }
+  return deps;
 }
 
 /// Collects script paths from a `pre_apply_scripts` or `post_apply_scripts`

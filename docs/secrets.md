@@ -72,9 +72,10 @@ copy {
 
 ## Sensitive Value Redaction
 
-All secrets marked as sensitive are stored in a `_sensitiveValues` map in the
-context options. When events are emitted or dry-run output is printed, any
-occurrence of a sensitive value in the message is automatically replaced with
+All secrets marked as sensitive are registered with the
+`SensitiveVariableMiddleware`, which is injected into all i3config contexts
+at the processor level. When events are emitted or dry-run output is printed,
+any occurrence of a sensitive value in the message is automatically replaced with
 `<SENSITIVE>`. Values shorter than 4 characters are not redacted to avoid
 false positives.
 
@@ -122,6 +123,6 @@ flowchart LR
     Alias --> Provider[SecretProviders registry]
     Provider --> Resolve[SecretResolver.resolveWithSensitivity]
     Resolve --> Register[registerBlock secrets.key = value]
-    Register --> Sensitive[Store in _sensitiveValues]
-    Sensitive --> Redact[Redact in emitEvent / dry-run]
+    Register --> Middleware[SensitiveVariableMiddleware]
+    Middleware --> Redact[Redact in emitEvent / dry-run]
 ```

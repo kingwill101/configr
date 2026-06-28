@@ -79,17 +79,19 @@ flowchart LR
     Registry --> Resolver[SecretResolver]
     Resolver --> Provider[Provider.get()]
     Provider --> Sensitive[SensitiveValue wrapper]
-    Sensitive --> Context[registerBlock + _sensitiveValues]
+    Sensitive --> Middleware[SensitiveVariableMiddleware]
+    Middleware --> Context[context.globalContext]
     Context --> Blocks[Other blocks reference secrets.key]
-    Context --> Redact[Redaction in emitEvent / dry-run]
+    Context --> Redact[Redaction via middleware.redact()]
 ```
 
 1. `SecretsBlock.afterChildrenProcessed()` iterates context variables
 2. Each value is resolved via `SecretResolver.resolveWithSensitivity()`
 3. Resolved values are stored via `context.globalContext.registerBlock()`
-4. Sensitive keys and values are tracked in `options['_sensitiveKeys']` and `options['_sensitiveValues']`
+4. Sensitive key names are registered with the `SensitiveVariableMiddleware`
 5. Other blocks reference secrets via native `secrets.key` dot-notation
-6. `emitEvent()` and dry-run `print()` redact sensitive values with `<SENSITIVE>`
+6. `emitEvent()` and dry-run `print()` call `middleware.redact()` to replace
+   actual sensitive values with `<SENSITIVE>`
 
 ## Block Processing Pipeline
 
@@ -124,10 +126,12 @@ present in the event message are replaced with `<SENSITIVE>`.
    native `secrets.key` dot-notation, not template syntax like `{{ secret }}`.
    No changes needed to existing block subclasses.
 
-3. **Centralised redaction** — Sensitive values are tracked by value in
-   `_sensitiveValues`. Redaction happens in two choke points (`emitEvent`
+3. **Centralised redaction** — Sensitive values are tracked by the
+   `SensitiveVariableMiddleware`, which knows the set of sensitive key names and
+   their actual values. Redaction happens in two choke points (`emitEvent`
    and dry-run `print`), so no individual block needs to worry about leaking
-   secrets.
+   secrets. The middleware is registered at the processor level so it
+   propagates to all contexts automatically.
 
 4. **DI over globals** — Services are registered in a DI container rather
    than accessed via static globals, making unit testing easier and allowing

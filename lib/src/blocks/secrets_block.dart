@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:configr/src/secrets/secret_provider.dart';
 import 'package:configr/src/secrets/secret_providers.dart';
 import 'package:configr/src/secrets/secret_resolver.dart';
+import 'package:configr/src/secrets/sensitive_variable_middleware.dart'
+    show SensitiveVariableMiddleware;
 import 'package:configr/src/secrets/providers/providers.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
@@ -51,6 +53,10 @@ class SecretsBlock extends i3.BaseBlockHandler {
     final rawValues = <String, String>{};
     final sensitiveKeys = <String>{};
 
+    // Find the sensitive variable middleware — it may be on any ancestor.
+    final sensitiveMiddleware =
+        _findSensitiveMiddleware(context);
+
     for (final entry in context.variables.entries) {
       final key = entry.key;
       if (key == 'profile') continue;
@@ -74,28 +80,32 @@ class SecretsBlock extends i3.BaseBlockHandler {
 
     if (rawValues.isNotEmpty) {
       context.globalContext.registerBlock('secrets', null, rawValues);
-      final existingKeys = (context.globalContext.options['_sensitiveKeys']
-          as Set<String>? ?? {});
-      context.globalContext.options['_sensitiveKeys'] =
-        {...existingKeys, ...sensitiveKeys};
-      final existingValues = (context.globalContext.options['_sensitiveValues']
-          as Map<String, String>? ?? {});
-      context.globalContext.options['_sensitiveValues'] = {
-        ...existingValues,
-        for (final k in sensitiveKeys) k: rawValues[k]!,
-      };
+
+      // Register sensitive keys with the middleware so redaction happens
+      // automatically in logs, dry-run output, and event messages.
+      for (final key in sensitiveKeys) {
+        final value = rawValues[key]!;
+        if (sensitiveMiddleware != null) {
+          sensitiveMiddleware.markSensitive(key, value);
+        }
+      }
+
       for (final entry in rawValues.entries) {
-        context.setVariable('secrets_${entry.key}', entry.value);
-        context.globalContext.setVariable(
-          'secrets_${entry.key}',
-          entry.value,
-        );
-        context.globalContext.setVariable(
-          'secrets.${entry.key}',
-          entry.value,
-        );
+        context.setVariable(entry.key, entry.value);
+        context.globalContext.setVariable(entry.key, entry.value);
       }
     }
+  }
+
+  /// Walk up the context chain to find the [SensitiveVariableMiddleware].
+  SensitiveVariableMiddleware? _findSensitiveMiddleware(i3.Context ctx) {
+    i3.Context? current = ctx;
+    while (current != null) {
+      final mw = current.options['_sensitiveMiddleware'];
+      if (mw is SensitiveVariableMiddleware) return mw;
+      current = current.parentContext;
+    }
+    return null;
   }
 
   Map<String, String> get aliases => Map.unmodifiable(_aliases);

@@ -27,7 +27,7 @@ class DependencyBlock extends ActionBlock {
     if (to.isNotEmpty) 'to': to,
     if (host.isNotEmpty) 'host': host,
     if (port > 0) 'port': port.toString(),
-    if (checkType != 'network') 'check_type': checkType,
+    if (checkType != 'network') 'type': checkType,
     if (timeout != 60) 'timeout': timeout.toString(),
     if (delay > 0) 'delay': delay.toString(),
     if (interval != 5) 'interval': interval.toString(),
@@ -91,7 +91,8 @@ class DependencyBlock extends ActionBlock {
   @override
   String dryRunSummary() {
     final target = host.isNotEmpty ? host : to;
-    return '$blockType: $checkType/$state → $target${port > 0 ? ':$port' : ''}';
+    final fromStr = from.isNotEmpty ? ' from=$from' : '';
+    return '$blockType: $checkType/$state → $target${port > 0 ? ':$port' : ''}$fromStr';
   }
 
   @override
@@ -115,6 +116,16 @@ class DependencyBlock extends ActionBlock {
         level: StatusEvent.info,
       ),
     );
+
+    if (from.isNotEmpty) {
+      emitEvent(
+        StatusUpdateEvent(
+          moduleId: id,
+          message: 'From host: $from',
+          level: StatusEvent.info,
+        ),
+      );
+    }
 
     final deadline = DateTime.now().add(Duration(seconds: timeout));
     bool reached = false;

@@ -6,6 +6,8 @@ import 'package:configr/src/hooks/hook_manager.dart';
 import 'package:configr/src/models/command.dart';
 import 'package:configr/src/models/v2_lockfile_data.dart';
 import 'package:configr/src/multi_host/inventory.dart' show Inventory;
+import 'package:configr/src/secrets/sensitive_variable_middleware.dart'
+    show SensitiveVariableMiddleware;
 import 'package:configr/src/utils/command_executor.dart';
 import 'package:configr/src/utils/command_runner.dart';
 import 'package:configr/src/utils/execution_service.dart';
@@ -214,10 +216,11 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
       // ----- 6. Dry-run: print what would happen -----
       final summary = dryRunSummary();
       if (summary.isNotEmpty) {
-        final sensitiveValues = context.globalContext.options['_sensitiveValues']
-            as Map<String, String>?;
-        final safe = sensitiveValues != null && sensitiveValues.isNotEmpty
-            ? _redact(summary, sensitiveValues)
+        final sensitiveMw =
+            context.globalContext.options['_sensitiveMiddleware']
+                as SensitiveVariableMiddleware?;
+        final safe = sensitiveMw != null && sensitiveMw.hasSensitiveKeys
+            ? sensitiveMw.redact(summary)
             : summary;
         print('  [DRY-RUN] $safe');
       }
@@ -433,7 +436,12 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
 
   /// Override to attach block-specific metadata to the lockfile record
   /// (e.g. installed package versions).
-  Map<String, dynamic>? get lockfileMetadata => null;
+  Map<String, dynamic>? get lockfileMetadata {
+    if (delegateTo != null) {
+      return {'delegate_to': delegateTo};
+    }
+    return null;
+  }
 
   /// Record this block in the lockfile collector if one is active.
   ///
@@ -480,12 +488,12 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
   ModuleEvent _redactEvent(ModuleEvent event) {
     final ctx = _context;
     if (ctx == null) return event;
-    final sensitiveValues = ctx.globalContext.options['_sensitiveValues']
-        as Map<String, String>?;
-    if (sensitiveValues == null || sensitiveValues.isEmpty) return event;
+    final sensitiveMw = ctx.globalContext.options['_sensitiveMiddleware']
+        as SensitiveVariableMiddleware?;
+    if (sensitiveMw == null || !sensitiveMw.hasSensitiveKeys) return event;
     final message = _getEventMessage(event);
     if (message == null || message.isEmpty) return event;
-    final redactedMessage = _redact(message, sensitiveValues);
+    final redactedMessage = sensitiveMw.redact(message);
     if (redactedMessage == message) return event;
     return _withRedactedMessage(event, redactedMessage);
   }
@@ -538,15 +546,6 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
       ),
       _ => event,
     };
-  }
-
-  String _redact(String message, Map<String, String> sensitiveValues) {
-    var result = message;
-    for (final value in sensitiveValues.values) {
-      if (value.length < 4) continue;
-      result = result.replaceAll(value, '<SENSITIVE>');
-    }
-    return result;
   }
 
   // ---------------------------------------------------------------------------
