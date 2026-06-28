@@ -6,6 +6,7 @@ import 'package:configr/src/blocks/container_exec_block.dart';
 import 'package:configr/src/blocks/container_logs_block.dart';
 import 'package:configr/src/blocks/copy_block.dart';
 import 'package:configr/src/blocks/decompress_block.dart';
+import 'package:configr/src/blocks/dependency_block.dart';
 import 'package:configr/src/blocks/delete_block.dart';
 import 'package:configr/src/blocks/download_block.dart';
 import 'package:configr/src/blocks/echo_block.dart';
@@ -236,8 +237,9 @@ final actionBlockMap = <String, ActionBlock>{
        'container_logs': ContainerLogsBlock(),
        'copy': CopyBlock(),
        'decompress': DecompressBlock(),
-       'delete': DeleteBlock(),
-       'dnf': DnfBlock(),
+        'delete': DeleteBlock(),
+        'dependency': DependencyBlock(),
+        'dnf': DnfBlock(),
        'docker': DockerBlock(),
        'download': DownloadBlock(),
        'echo': EchoBlock(),

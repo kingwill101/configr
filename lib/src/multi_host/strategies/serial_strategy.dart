@@ -15,14 +15,17 @@ import 'package:configr/src/utils/event_bus.dart' show EventBus;
 ///
 /// If no targets have explicit priorities, falls back to config order (same
 /// as linear).
-class SerialStrategy {
+class SerialStrategy implements ExecutionStrategy {
+  @override
   String get name => 'serial';
 
+  @override
   String get description =>
       'Execute targets grouped by boot priority. Within each priority group, '
       'targets run serially. Groups are ordered by ascending priority '
       '(databases before web servers).';
 
+  @override
   Future<void> execute({
     required List<Target> targets,
     required Future<void> Function(Host) executeOnHost,

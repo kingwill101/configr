@@ -10,13 +10,16 @@ import 'package:configr/src/utils/event_bus.dart' show EventBus;
 ///
 /// All targets execute concurrently using [Future.wait]. Errors are collected
 /// but do not stop other hosts unless [failFast] is true.
-class ParallelStrategy {
+class ParallelStrategy implements ExecutionStrategy {
+  @override
   String get name => 'parallel';
 
+  @override
   String get description =>
       'Execute all targets concurrently. Each host runs independently. '
       'With fail-fast enabled, the first error cancels remaining hosts.';
 
+  @override
   Future<void> execute({
     required List<Target> targets,
     required Future<void> Function(Host) executeOnHost,

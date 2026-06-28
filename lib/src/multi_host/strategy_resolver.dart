@@ -1,3 +1,4 @@
+import 'package:configr/src/multi_host/strategy.dart' show ExecutionStrategy;
 import 'package:configr/src/multi_host/strategies/linear_strategy.dart';
 import 'package:configr/src/multi_host/strategies/serial_strategy.dart';
 import 'package:configr/src/multi_host/strategies/parallel_strategy.dart';
@@ -24,7 +25,7 @@ class StrategyResolver {
         serial = serial ?? SerialStrategy(),
         parallel = parallel ?? ParallelStrategy();
 
-  Object strategyFor(String name) {
+  ExecutionStrategy strategyFor(String name) {
     switch (name.toLowerCase()) {
       case 'linear':
         return linear;

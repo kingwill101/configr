@@ -11,16 +11,16 @@ import 'package:configr/src/utils/event_bus.dart' show EventBus;
 /// The LinearStrategy is the default execution strategy for multi-host operations.
 /// It processes each target sequentially, waiting for all blocks on one host to
 /// complete before moving to the next host.
-class LinearStrategy {
-  /// The name of this strategy.
+class LinearStrategy implements ExecutionStrategy {
+  @override
   String get name => 'linear';
 
-  /// Human-readable description of this strategy.
+  @override
   String get description =>
       'Execute targets sequentially, one host at a time. All blocks on a '
       'host must complete before moving to the next host.';
 
-  /// Execute targets using linear strategy.
+  @override
   Future<void> execute({
     required List<Target> targets,
     required Future<void> Function(Host) executeOnHost,

@@ -67,6 +67,7 @@ class ConfigrRuntime {
     List<String>? roles,
     List<String>? groups,
     String strategy = 'linear',
+    Map<String, String>? extraVars,
   }) => applyV2(
     resolvedConfigPath,
     eventBus: eventBus,
@@ -84,6 +85,7 @@ class ConfigrRuntime {
     roles: roles,
     groups: groups,
     strategy: strategy,
+    extraVars: extraVars,
   );
 
   /// Rollback applied blocks.

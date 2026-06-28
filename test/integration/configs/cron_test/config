@@ -1,0 +1,5 @@
+cron {
+  name = "test job"
+  job = "/usr/bin/true"
+  state = "present"
+}

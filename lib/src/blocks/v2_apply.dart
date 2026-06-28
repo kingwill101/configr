@@ -26,11 +26,10 @@ import 'package:configr/src/multi_host/inventory.dart';
 import 'package:configr/src/multi_host/target_resolver.dart';
 import 'package:configr/src/multi_host/host.dart' show Host;
 import 'package:configr/src/multi_host/strategy_resolver.dart';
-import 'package:configr/src/multi_host/strategies/linear_strategy.dart';
-import 'package:configr/src/multi_host/strategies/serial_strategy.dart';
-import 'package:configr/src/multi_host/strategies/parallel_strategy.dart';
 import 'package:configr/src/multi_host/connection_pool.dart';
 import 'package:configr/src/multi_host/host_applier.dart';
+import 'package:configr/src/multi_host/variable_precedence.dart'
+    show VariablePrecedence, PrecedenceLayer;
 import 'package:configr/src/blocks/blockinfile_block.dart';
 import 'package:configr/src/blocks/compress_block.dart';
 import 'package:configr/src/blocks/container_block.dart';
@@ -40,6 +39,7 @@ import 'package:configr/src/blocks/copy_block.dart';
 import 'package:configr/src/blocks/cron_block.dart';
 import 'package:configr/src/blocks/debug_block.dart';
 import 'package:configr/src/blocks/decompress_block.dart';
+import 'package:configr/src/blocks/dependency_block.dart';
 import 'package:configr/src/blocks/delete_block.dart';
 import 'package:configr/src/blocks/download_block.dart';
 import 'package:configr/src/blocks/dynamic_block.dart';
@@ -134,6 +134,11 @@ Future<void> applyV2(
   List<String>? roles,
   List<String>? groups,
   String strategy = 'linear',
+  Map<String, String>? extraVars,
+
+  /// Per-target host status from a consolidated multi-host run.
+  /// When provided, the lockfile includes a `targets` section.
+  Map<String, TargetLockEntry>? lockfileTargets,
 }) async {
   final fs = const LocalFileSystem();
   final configFile = fs.file(configPath);
@@ -242,6 +247,16 @@ Future<void> applyV2(
     configrBackupDir: configrDirs.backupDir,
   ).applyToContext(processor.context);
 
+  // Register variable precedence middleware for Ansible-style layering.
+  // CLI vars (--var) take highest priority, then host vars, group vars,
+  // secrets, and finally system facts.
+  final precedence = VariablePrecedence();
+  if (extraVars != null && extraVars.isNotEmpty) {
+    precedence.addSource(PrecedenceLayer.cliVars, extraVars);
+  }
+  processor.context.registerVariableMiddleware(precedence);
+  processor.context.options['_variablePrecedence'] = precedence;
+
   final appliedBlocks = <AppliedBlockRecord>[];
   processor.context.options['_appliedBlocks'] = appliedBlocks;
   if (failFast) {
@@ -344,33 +359,13 @@ Future<void> applyV2(
     }
 
     try {
-      if (executionStrategy is LinearStrategy) {
-        await executionStrategy.execute(
-          targets: targets,
-          executeOnHost: executeOnHost,
-          globalEventBus: eventBusInstance,
-          dryRun: dryRun,
-          failFast: failFast,
-        );
-      } else if (executionStrategy is SerialStrategy) {
-        await executionStrategy.execute(
-          targets: targets,
-          executeOnHost: executeOnHost,
-          globalEventBus: eventBusInstance,
-          dryRun: dryRun,
-          failFast: failFast,
-        );
-      } else if (executionStrategy is ParallelStrategy) {
-        await executionStrategy.execute(
-          targets: targets,
-          executeOnHost: executeOnHost,
-          globalEventBus: eventBusInstance,
-          dryRun: dryRun,
-          failFast: failFast,
-        );
-      } else {
-        logger.info('Unknown strategy: $strategy - skipping execution');
-      }
+      await executionStrategy.execute(
+        targets: targets,
+        executeOnHost: executeOnHost,
+        globalEventBus: eventBusInstance,
+        dryRun: dryRun,
+        failFast: failFast,
+      );
     } finally {
       await pool.releaseAll();
     }
@@ -447,10 +442,12 @@ Future<void> applyV2(
       V2LockfileData(
         appliedBlocks: appliedBlocks,
         configChecksum: currentChecksum,
+        targets: lockfileTargets,
       ),
     );
     logger.info(
-      'Lockfile written with ${appliedBlocks.length} applied block(s).',
+      'Lockfile written with ${appliedBlocks.length} applied block(s)'
+      '${lockfileTargets != null ? ' across ${lockfileTargets.length} target(s)' : ''}.',
     );
   }
 }
@@ -550,6 +547,7 @@ Future<void> rollbackV2(
     'debug': DebugBlock(),
     'decompress': DecompressBlock(),
     'delete': DeleteBlock(),
+    'dependency': DependencyBlock(),
     'dnf': DnfBlock(),
     'docker': DockerBlock(),
     'download': DownloadBlock(),
@@ -659,6 +657,7 @@ Future<void> rollbackV2(
       V2LockfileData(
         appliedBlocks: remainingRecords,
         configChecksum: lockData.configChecksum,
+        targets: lockData.targets,
       ),
     );
     logger.info(
@@ -761,11 +760,15 @@ Future<ResolvedConfig?> resolveConfigBlocks(
   final sensitiveKeys =
       (globalCtx.options['_sensitiveKeys'] as Set<String>?) ?? {};
 
+  // Extract inventory if present
+  final inventory = globalCtx.options['_inventory'];
+
   return ResolvedConfig(
     config: config,
     variables: variables,
     sensitiveKeys: sensitiveKeys,
     blockRegistry: Map.from(globalCtx.blockRegistry),
+    inventory: inventory,
   );
 }
 
@@ -776,11 +779,15 @@ class ResolvedConfig {
   final Set<String> sensitiveKeys;
   final Map<String, Map<String?, Map<String, dynamic>>> blockRegistry;
 
+  /// The inventory parsed from inventory/servers blocks, if any.
+  final dynamic inventory;
+
   const ResolvedConfig({
     required this.config,
     required this.variables,
     required this.sensitiveKeys,
     required this.blockRegistry,
+    this.inventory,
   });
 }
 
@@ -861,6 +868,7 @@ Future<void> _registerAllBlocks(
     'debug': DebugBlock(),
     'decompress': DecompressBlock(),
     'delete': DeleteBlock(),
+    'dependency': DependencyBlock(),
     'dnf': DnfBlock(),
     'docker': DockerBlock(),
     'download': DownloadBlock(),

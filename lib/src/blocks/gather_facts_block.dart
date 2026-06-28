@@ -3,6 +3,8 @@ import 'dart:io' show Platform;
 
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
+import 'package:configr/src/multi_host/variable_precedence.dart'
+    show PrecedenceLayer, VariablePrecedence;
 import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/platform.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
@@ -235,6 +237,13 @@ class GatherFactsBlock extends ActionBlock {
       }
 
       await _persistFacts(facts);
+
+      final precedence = context.globalContext.options['_variablePrecedence'];
+      if (precedence is VariablePrecedence) {
+        precedence.setLayer(PrecedenceLayer.facts, Map<String, String>.from(
+          facts.map((k, v) => MapEntry(k, v.toString())),
+        ));
+      }
 
       emitEvent(
         CompletedEvent(moduleId: id, message: 'Facts gathered'),

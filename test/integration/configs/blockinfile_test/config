@@ -1,0 +1,5 @@
+blockinfile {
+  path = "/tmp/test_blockinfile"
+  block = "managed block content"
+  state = "present"
+}

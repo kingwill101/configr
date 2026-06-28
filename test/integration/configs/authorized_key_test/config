@@ -1,0 +1,5 @@
+authorized_key {
+  user = "root"
+  key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQ test-key"
+  state = "present"
+}

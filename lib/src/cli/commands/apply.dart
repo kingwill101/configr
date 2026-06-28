@@ -47,6 +47,12 @@ class ApplyCommand extends BaseCommand {
       defaultsTo: 'linear',
       allowed: ['linear', 'parallel', 'serial'],
     );
+    argParser.addMultiOption(
+      'var',
+      help: 'Set a variable (key=value). Can be specified multiple times. '
+          'Takes highest precedence over config and inventory variables.',
+      valueHelp: 'key=value',
+    );
   }
 
   @override
@@ -79,6 +85,10 @@ class ApplyCommand extends BaseCommand {
     final roles = argResults?['target-role'] as List<String>?;
     final groups = argResults?['target-group'] as List<String>?;
     final strategy = argResults?['strategy'] as String? ?? 'linear';
+    final rawVars = argResults?['var'] as List<String>?;
+    final extraVars = rawVars != null
+        ? {for (final pair in rawVars) ..._parseVarPair(pair)}
+        : null;
 
     if (dryRun) {
       io.info('  [DRY-RUN] Preview mode — no changes will be made.');
@@ -99,6 +109,7 @@ class ApplyCommand extends BaseCommand {
         roles: roles,
         groups: groups,
         strategy: strategy,
+        extraVars: extraVars,
       );
       io.success('Configuration applied successfully.');
       io.line('');
@@ -150,5 +161,13 @@ class ApplyCommand extends BaseCommand {
       await sigintSub.cancel();
       await watcher.stop();
     }
+  }
+
+  /// Parse a `key=value` string from `--var`.
+  /// Returns an empty map if the pair is malformed.
+  Map<String, String> _parseVarPair(String pair) {
+    final eq = pair.indexOf('=');
+    if (eq <= 0) return {};
+    return {pair.substring(0, eq): pair.substring(eq + 1)};
   }
 }

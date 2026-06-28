@@ -1,11 +1,22 @@
+import 'package:configr/src/multi_host/inventory.dart' show Inventory;
+import 'package:configr/src/multi_host/host.dart' show Host;
 import 'package:configr/src/di.dart';
 import 'package:configr/src/utils/drift_checker.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/v2_lockfile_manager.dart';
 import 'base_command.dart';
 import 'package:file/file.dart' show FileSystem;
+import 'package:path/path.dart' as p;
 
 class StatusCommand extends BaseCommand {
+  StatusCommand() {
+    argParser.addOption(
+      'host',
+      help: 'Show detailed status for a specific host',
+      valueHelp: 'hostname',
+    );
+  }
+
   @override
   String get name => 'status';
 
@@ -14,7 +25,112 @@ class StatusCommand extends BaseCommand {
 
   @override
   Future<void> executeCommand() async {
-    await _executeV2();
+    final host = argResults?['host'] as String?;
+
+    if (host != null) {
+      await _showHostStatus(host);
+    } else {
+      await _executeV2();
+    }
+  }
+
+  Future<void> _showHostStatus(String hostName) async {
+    io.title('Host Status: $hostName');
+
+    try {
+      final resolved = await runtime.resolveConfig();
+      if (resolved == null) {
+        io.error('Configuration file not found.');
+        return;
+      }
+
+      final inventory = resolved.inventory;
+      if (inventory is! Inventory) {
+        io.warn('No inventory defined.');
+        return;
+      }
+
+      final host = inventory.getHost(hostName);
+      if (host == null) {
+        io.error('Host "$hostName" not found in inventory.');
+        return;
+      }
+
+      _printHostDetails(host);
+      await _printHostLockfile(hostName);
+    } catch (e) {
+      io.error('Host status check failed: $e');
+      logger.error('Host status error: $e');
+    }
+  }
+
+  void _printHostDetails(Host host) {
+    io.section('Connection');
+    io.line('  address: ${host.address}');
+    io.line('  port:    ${host.port}');
+    io.line('  user:    ${host.username}');
+
+    if (host.roles.isNotEmpty) {
+      io.section('Roles');
+      for (final role in host.roles) {
+        io.line('  - $role');
+      }
+    }
+
+    if (host.groups.isNotEmpty) {
+      io.section('Groups');
+      for (final group in host.groups) {
+        io.line('  - $group');
+      }
+    }
+
+    if (host.variables.isNotEmpty) {
+      io.section('Variables');
+      for (final entry in host.variables.entries) {
+        io.line('  ${entry.key} = ${entry.value}');
+      }
+    }
+  }
+
+  Future<void> _printHostLockfile(String hostName) async {
+    final configPath = configrConfig.configPath;
+    if (configPath == null) return;
+
+    final lockPath = p.join(
+      p.dirname(p.absolute(configPath)),
+      '${p.basename(configPath)}.$hostName.lock.json',
+    );
+
+    final fs = di<FileSystem>();
+    if (!await fs.file(lockPath).exists()) {
+      io.info('No per-host lockfile found at: $lockPath');
+      return;
+    }
+
+    io.section('Lockfile: $lockPath');
+    try {
+      final lockMgr = V2LockfileManager(
+        lockPath,
+        fileSystem: fs,
+      );
+      final lockData = await lockMgr.read();
+
+      io.line('  Blocks: ${lockData.appliedBlocks.length} applied');
+
+      final byStatus = <String, int>{};
+      for (final block in lockData.appliedBlocks) {
+        byStatus[block.status] = (byStatus[block.status] ?? 0) + 1;
+      }
+      for (final entry in byStatus.entries) {
+        io.line('    ${entry.key}: ${entry.value}');
+      }
+      if (lockData.appliedBlocks.isNotEmpty) {
+        final latest = lockData.appliedBlocks.last;
+        io.line('  Latest applied at: ${latest.appliedAt}');
+      }
+    } catch (e) {
+      io.warn('  Could not read lockfile: $e');
+    }
   }
 
   Future<void> _executeV2() async {

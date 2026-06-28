@@ -1,0 +1,5 @@
+firewalld {
+  port = "80/tcp"
+  state = "enabled"
+  zone = "public"
+}

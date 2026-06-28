@@ -1,0 +1,5 @@
+permissions {
+  path = "/tmp/test_perms"
+  mode = "0644"
+  owner = "root"
+}
