@@ -24,6 +24,11 @@ import 'package:configr/src/blocks/connection_block.dart';
 import 'package:configr/src/multi_host/inventory_block.dart';
 import 'package:configr/src/multi_host/inventory.dart';
 import 'package:configr/src/multi_host/target_resolver.dart';
+import 'package:configr/src/multi_host/host.dart' show Host;
+import 'package:configr/src/multi_host/strategy_resolver.dart';
+import 'package:configr/src/multi_host/strategies/linear_strategy.dart';
+import 'package:configr/src/multi_host/strategies/serial_strategy.dart';
+import 'package:configr/src/multi_host/strategies/parallel_strategy.dart';
 import 'package:configr/src/blocks/blockinfile_block.dart';
 import 'package:configr/src/blocks/compress_block.dart';
 import 'package:configr/src/blocks/copy_block.dart';
@@ -307,6 +312,46 @@ Future<void> applyV2(
       '${resolved.map((h) => h.name).join(', ')} '
       '(strategy: $strategy)',
     );
+
+    // Execute with the selected strategy
+    final strategyResolver = StrategyResolver();
+    final executionStrategy = strategyResolver.strategyFor(strategy);
+    final targets = resolver.fromHosts(resolved, strategy);
+
+    // TODO: wire executeOnHost callback - will use HostExecutionContext
+    // and ConnectionPool from Phase 3
+    final eventBusInstance = eventBus ?? EventBus();
+    Future<void> executeOnHost(Host host) async {
+      logger.info('Executing on host: ${host.name} (dry-run: $dryRun)');
+    }
+
+    if (executionStrategy is LinearStrategy) {
+      await executionStrategy.execute(
+        targets: targets,
+        executeOnHost: executeOnHost,
+        globalEventBus: eventBusInstance,
+        dryRun: dryRun,
+        failFast: failFast,
+      );
+    } else if (executionStrategy is SerialStrategy) {
+      await executionStrategy.execute(
+        targets: targets,
+        executeOnHost: executeOnHost,
+        globalEventBus: eventBusInstance,
+        dryRun: dryRun,
+        failFast: failFast,
+      );
+    } else if (executionStrategy is ParallelStrategy) {
+      await executionStrategy.execute(
+        targets: targets,
+        executeOnHost: executeOnHost,
+        globalEventBus: eventBusInstance,
+        dryRun: dryRun,
+        failFast: failFast,
+      );
+    } else {
+      logger.info('Unknown strategy: $strategy - skipping execution');
+    }
   }
 
   // Invoke plugin onConfigApplied hooks
