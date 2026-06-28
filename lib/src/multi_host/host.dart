@@ -85,6 +85,17 @@ class Host {
     this.connectionConfig = const {},
   });
 
+  /// Convert host connection parameters to the format expected by
+  /// [SSHExecutionService.connect].
+  Map<String, dynamic> toConnectionMap() => {
+    'host': address,
+    'port': port,
+    'username': username,
+    if (privateKey != null) 'private_key': privateKey,
+    if (privateKeyPassphrase != null) 'private_key_passphrase': privateKeyPassphrase,
+    if (connectTimeout != null) 'connect_timeout': connectTimeout,
+  };
+
   /// Is this host part of a specific role?
   ///
   /// Useful for filtering hosts: isHostRole("web")
