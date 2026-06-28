@@ -5,14 +5,17 @@ import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/hooks/hook_manager.dart';
 import 'package:configr/src/models/command.dart';
 import 'package:configr/src/models/v2_lockfile_data.dart';
+import 'package:configr/src/multi_host/inventory.dart' show Inventory;
 import 'package:configr/src/utils/command_executor.dart';
 import 'package:configr/src/utils/command_runner.dart';
 import 'package:configr/src/utils/execution_service.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/file_service.dart';
-
+import 'package:configr/src/utils/logging.dart' show logger;
 import 'package:configr/src/utils/privilege_escalation.dart'
     show NoPrivilegeEscalation, PrivilegeEscalation;
+import 'package:configr/src/utils/ssh_execution_service.dart'
+    show SSHExecutionService;
 import 'package:file/file.dart' show FileSystem;
 import 'package:i3config/i3config_v2.dart' as i3;
 
@@ -53,6 +56,7 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
   String destination = '';
   String? type;
   String? status;
+  String? delegateTo;
   String? sha256;
   String? renderedContent;
   bool sourceWasExplicitlySet = false;
@@ -132,22 +136,22 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
     resetState();
 
     // ----- 1. Read common properties -----
-    id = (context.getVariable('id') as String?) ?? '';
-    source = (context.getVariable('source') as String?) ?? '';
+    id = context.getString('id');
+    source = context.getString('source');
     sourceWasExplicitlySet = source.isNotEmpty;
-    destination = (context.getVariable('destination') as String?) ?? '';
+    destination = context.getString('destination');
     // Backward compat: if source is empty, fall back to destination.
     // Many v1 configs set 'destination' at the resource level but action
     // blocks read 'source' for the file path (e.g. touch, delete, rename).
     if (source.isEmpty && destination.isNotEmpty) {
       source = destination;
     }
-    status = context.getVariable('status') as String?;
-    sha256 = context.getVariable('sha256') as String?;
-    renderedContent = context.getVariable('_rendered_content') as String?;
+    status = context.getVariableAs<String>('status');
+    sha256 = context.getVariableAs<String>('sha256');
+    renderedContent = context.getVariableAs<String>('_rendered_content');
     children = [];
 
-    final rawProps = <String, dynamic>{?context.getVariable('type'): 'type'};
+    final rawProps = <String, dynamic>{?context.getVariableAs<String>('type'): 'type'};
     if (rawProps.isNotEmpty) properties = rawProps;
 
     // ----- 2. Auto-generate friendly name for unnamed blocks -----
@@ -233,6 +237,30 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
         });
       }
 
+      // ----- 7a. Connect delegate SSH if delegate_to is set -----
+      if (delegateTo != null) {
+        try {
+          _delegateService = await _connectToDelegate(delegateTo!, context);
+        } catch (e) {
+          emitEvent(FailedEvent(
+            moduleId: id,
+            message: 'Failed to connect to delegate host "$delegateTo": $e',
+          ));
+          final errors =
+              (context.globalContext.options['_errors']
+                  as List<BlockErrorRecord>?) ??
+              <BlockErrorRecord>[];
+          context.globalContext.options['_errors'] = errors;
+          errors.add(BlockErrorRecord(
+            message: 'Failed $blockType block: could not connect to delegate host "$delegateTo": $e',
+            blockType: blockType,
+            blockId: id,
+            source: block.span != null ? _formatSpan(block.span!) : null,
+          ));
+          return;
+        }
+      }
+
       try {
         await execute();
 
@@ -278,6 +306,8 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
             source: block.span != null ? _formatSpan(block.span!) : null,
           ),
         );
+      } finally {
+        await _disconnectDelegate();
       }
     }
   }
@@ -303,6 +333,8 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
     destination = '';
     type = null;
     status = null;
+    delegateTo = null;
+    _delegateService = null;
     sha256 = null;
     renderedContent = null;
     sourceWasExplicitlySet = false;
@@ -330,7 +362,7 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
      i3.Block block,
      i3.Context context,
    ) async {
-     // Subclasses override this.
+     delegateTo = context.getVariableAs<String>('delegate_to');
    }
 
    /// Context for the current block being processed.
@@ -347,6 +379,7 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
     if (id.isNotEmpty) parts.add('id=$id');
     if (source.isNotEmpty) parts.add('source=$source');
     if (destination.isNotEmpty) parts.add('destination=$destination');
+    if (delegateTo != null) parts.add('delegate_to=$delegateTo');
     if (parts.isEmpty) return '';
     return '$blockType: ${parts.join(', ')}';
   }
@@ -525,8 +558,51 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
   ///
   /// Returns the [io.ProcessResult] from the execution.
   /// Throws if the process exits with a non-zero code.
-  ExecutionService get executionService =>
-      di.isRegistered<ExecutionService>() ? di<ExecutionService>() : const LocalExecutionService();
+  SSHExecutionService? _delegateService;
+
+  ExecutionService get executionService {
+    if (_delegateService != null) return _delegateService!;
+    return di.isRegistered<ExecutionService>()
+        ? di<ExecutionService>()
+        : const LocalExecutionService();
+  }
+
+  /// Connect to a delegate host via SSH.
+  ///
+  /// Looks up [hostName] in the inventory (stored in global context options).
+  /// Falls back to a raw connection with default SSH config if not found.
+  Future<SSHExecutionService> _connectToDelegate(
+    String hostName,
+    i3.Context context,
+  ) async {
+    final inventory = context.globalContext.options['_inventory'];
+    final ssh = SSHExecutionService();
+    if (inventory is Inventory) {
+      final host = inventory.getHost(hostName);
+      if (host != null) {
+        await ssh.connect(host.toConnectionMap());
+        return ssh;
+      }
+      logger.warning(
+        'Host "$hostName" not found in inventory — '
+        'connecting with default SSH config',
+      );
+    }
+    await ssh.connect(<String, dynamic>{'host': hostName});
+    return ssh;
+  }
+
+  Future<void> _disconnectDelegate() async {
+    final service = _delegateService;
+    _delegateService = null;
+    if (service != null) {
+      try {
+        await service.disconnect();
+      } catch (_) {
+        // Non-critical — delegate connection cleanup errors are safe to ignore.
+      }
+    }
+  }
 
   Future<io.ProcessResult> runCommand(
     String command,

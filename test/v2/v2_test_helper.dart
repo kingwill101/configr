@@ -1,6 +1,9 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/blocks/backup_block.dart';
 import 'package:configr/src/blocks/compress_block.dart';
+import 'package:configr/src/blocks/container_block.dart';
+import 'package:configr/src/blocks/container_exec_block.dart';
+import 'package:configr/src/blocks/container_logs_block.dart';
 import 'package:configr/src/blocks/copy_block.dart';
 import 'package:configr/src/blocks/decompress_block.dart';
 import 'package:configr/src/blocks/delete_block.dart';
@@ -228,6 +231,9 @@ final actionBlockMap = <String, ActionBlock>{
        'backup': BackupBlock(),
        'brew': BrewBlock(),
        'compress': CompressBlock(),
+       'container': ContainerBlock(),
+       'container_exec': ContainerExecBlock(),
+       'container_logs': ContainerLogsBlock(),
        'copy': CopyBlock(),
        'decompress': DecompressBlock(),
        'delete': DeleteBlock(),

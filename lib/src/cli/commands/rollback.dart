@@ -13,6 +13,11 @@ class RollbackCommand extends BaseCommand {
       help: 'Number of most recent resources to rollback',
       valueHelp: 'number',
     );
+    argParser.addOption(
+      'host',
+      help: 'Rollback a specific host (per-host lockfile)',
+      valueHelp: 'hostname',
+    );
   }
 
   @override
@@ -26,11 +31,19 @@ class RollbackCommand extends BaseCommand {
     final count = argResults?['count'] != null
         ? int.tryParse(argResults!['count'])
         : null;
-    await _executeV2(count: count);
+    final host = argResults?['host'] as String?;
+    await _executeV2(count: count, host: host);
   }
 
-  Future<void> _executeV2({int? count}) async {
+  Future<void> _executeV2({int? count, String? host}) async {
     io.title('Rollback Configuration (v2)');
+
+    // Per-host rollback
+    if (host != null) {
+      await runtime.rollbackHost(hostName: host, count: count);
+      io.success('Rollback completed for host $host.');
+      return;
+    }
 
     final interactive = configrConfig.interactiveMode;
 

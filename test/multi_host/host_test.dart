@@ -103,5 +103,71 @@ void main() {
 
       expect(hosts.length, equals(2));
     });
+
+    group('toConnectionMap', () {
+      test('returns required fields', () {
+        final host = Host(name: 'web-01', address: '10.0.0.1');
+        final map = host.toConnectionMap();
+
+        expect(map['host'], equals('10.0.0.1'));
+        expect(map['port'], equals(22));
+        expect(map['username'], equals('root'));
+      });
+
+      test('includes private key when set', () {
+        final host = Host(
+          name: 'web-01',
+          address: '10.0.0.1',
+          privateKey: '/home/admin/.ssh/id_rsa',
+        );
+        final map = host.toConnectionMap();
+
+        expect(map['private_key'], equals('/home/admin/.ssh/id_rsa'));
+      });
+
+      test('includes private key passphrase when set', () {
+        final host = Host(
+          name: 'web-01',
+          address: '10.0.0.1',
+          privateKeyPassphrase: 'secret',
+        );
+        final map = host.toConnectionMap();
+
+        expect(map['private_key_passphrase'], equals('secret'));
+      });
+
+      test('includes connect timeout when set', () {
+        final host = Host(
+          name: 'web-01',
+          address: '10.0.0.1',
+          connectTimeout: 30,
+        );
+        final map = host.toConnectionMap();
+
+        expect(map['connect_timeout'], equals(30));
+      });
+
+      test('omits optional fields when not set', () {
+        final host = Host(name: 'web-01', address: '10.0.0.1');
+        final map = host.toConnectionMap();
+
+        expect(map.containsKey('private_key'), isFalse);
+        expect(map.containsKey('private_key_passphrase'), isFalse);
+        expect(map.containsKey('connect_timeout'), isFalse);
+      });
+
+      test('uses custom port and username', () {
+        final host = Host(
+          name: 'db-01',
+          address: '10.0.0.5',
+          port: 2222,
+          username: 'admin',
+        );
+        final map = host.toConnectionMap();
+
+        expect(map['port'], equals(2222));
+        expect(map['username'], equals('admin'));
+      });
+    });
   });
 }

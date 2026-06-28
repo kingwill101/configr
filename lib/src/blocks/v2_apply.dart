@@ -33,6 +33,9 @@ import 'package:configr/src/multi_host/connection_pool.dart';
 import 'package:configr/src/multi_host/host_applier.dart';
 import 'package:configr/src/blocks/blockinfile_block.dart';
 import 'package:configr/src/blocks/compress_block.dart';
+import 'package:configr/src/blocks/container_block.dart';
+import 'package:configr/src/blocks/container_exec_block.dart';
+import 'package:configr/src/blocks/container_logs_block.dart';
 import 'package:configr/src/blocks/copy_block.dart';
 import 'package:configr/src/blocks/cron_block.dart';
 import 'package:configr/src/blocks/debug_block.dart';
@@ -539,6 +542,9 @@ Future<void> rollbackV2(
     'blockinfile': BlockInFileBlock(),
     'brew': BrewBlock(),
     'compress': CompressBlock(),
+    'container': ContainerBlock(),
+    'container_exec': ContainerExecBlock(),
+    'container_logs': ContainerLogsBlock(),
     'copy': CopyBlock(),
     'cron': CronBlock(),
     'debug': DebugBlock(),
@@ -847,6 +853,9 @@ Future<void> _registerAllBlocks(
     'blockinfile': BlockInFileBlock(),
     'brew': BrewBlock(),
     'compress': CompressBlock(),
+    'container': ContainerBlock(),
+    'container_exec': ContainerExecBlock(),
+    'container_logs': ContainerLogsBlock(),
     'copy': CopyBlock(),
     'cron': CronBlock(),
     'debug': DebugBlock(),

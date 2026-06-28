@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:io' show Platform;
 
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
+import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/platform.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
@@ -10,18 +12,22 @@ class GatherFactsBlock extends ActionBlock {
   String get blockType => 'gather_facts';
 
   String gatherSubset = 'all';
+  @override
+  String destination = '';
 
   GatherFactsBlock();
 
   @override
   Map<String, String> get additionalProperties => {
     if (gatherSubset != 'all') 'gather_subset': gatherSubset,
+    if (destination.isNotEmpty) 'destination': destination,
   };
 
   @override
   void resetState() {
     super.resetState();
     gatherSubset = 'all';
+    destination = '';
   }
 
   @override
@@ -30,30 +36,51 @@ class GatherFactsBlock extends ActionBlock {
     i3.Context context,
   ) async {
     await super.readAdditionalProperties(block, context);
-    gatherSubset =
-        (context.getVariable('gather_subset') as String?) ?? 'all';
+    gatherSubset = context.getString('gather_subset', 'all');
+    destination = context.getString('destination', destination);
   }
 
   @override
-  String dryRunSummary() => '$blockType: subset=$gatherSubset';
+  String dryRunSummary() => '$blockType: subset=$gatherSubset'
+      '${destination.isNotEmpty ? ' → $destination' : ''}';
+
+  Future<void> _persistFacts(Map<String, dynamic> facts) async {
+    if (destination.isEmpty) return;
+    try {
+      final file = fileSystem.file(destination);
+      await file.create(recursive: true);
+      await file.writeAsString(
+        const JsonEncoder.withIndent('  ').convert(facts),
+      );
+      logger.info('Facts written to $destination');
+    } catch (e) {
+      logger.error('Failed to persist facts to $destination: $e');
+    }
+  }
 
   @override
   Future<void> execute() async {
     emitEvent(StartedEvent(moduleId: id, message: 'Gathering facts'));
+    try {
+      final osFacts = OsFacts.detect();
+      final facts = <String, dynamic>{
+        'os_family': osFacts.family.name,
+        'distribution': osFacts.distribution,
+        'distribution_version': osFacts.distributionVersion,
+        'architecture': osFacts.architecture,
+        'system': osFacts.os.name,
+        'hostname': Platform.localHostname,
+      };
 
-try {
-      // ---- OS facts from OsFacts.detect() ----
-      final facts = OsFacts.detect();
-
-      context.setVariable('os_family', facts.family.name);
-      context.setVariable('distribution', facts.distribution);
+      context.setVariable('os_family', facts['os_family'] as String);
+      context.setVariable('distribution', facts['distribution'] as String);
       context.setVariable(
         'distribution_version',
-        facts.distributionVersion,
+        facts['distribution_version'] as String,
       );
-      context.setVariable('architecture', facts.architecture);
-      context.setVariable('system', facts.os.name);
-      context.setVariable('hostname', Platform.localHostname);
+      context.setVariable('architecture', facts['architecture'] as String);
+      context.setVariable('system', facts['system'] as String);
+      context.setVariable('hostname', facts['hostname'] as String);
 
       // ---- Kernel information via uname ----
       try {
@@ -100,7 +127,7 @@ try {
       } catch (_) {}
 
       // ---- Memory info (OS-specific) ----
-      if (facts.isLinux) {
+      if (osFacts.isLinux) {
         try {
           final memResult = await runCommand(
             'free',
@@ -121,7 +148,7 @@ try {
             }
           }
         } catch (_) {}
-      } else if (facts.isMacOS) {
+      } else if (osFacts.isMacOS) {
         try {
           final memResult = await runCommand(
             'sysctl',
@@ -140,7 +167,7 @@ try {
             }
           }
         } catch (_) {}
-      } else if (facts.os == OperatingSystem.freebsd) {
+      } else if (osFacts.os == OperatingSystem.freebsd) {
         try {
           final memResult = await runCommand(
             'sysctl',
@@ -177,7 +204,7 @@ try {
       } catch (_) {}
 
       // ---- Network interfaces (OS-specific) ----
-      if (facts.isLinux) {
+      if (osFacts.isLinux) {
         try {
           final netResult = await runCommand(
             'ip',
@@ -206,6 +233,8 @@ try {
           }
         } catch (_) {}
       }
+
+      await _persistFacts(facts);
 
       emitEvent(
         CompletedEvent(moduleId: id, message: 'Facts gathered'),

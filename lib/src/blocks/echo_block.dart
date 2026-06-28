@@ -43,18 +43,10 @@ class EchoBlock extends ActionBlock {
   ) async {
     await super.readAdditionalProperties(block, context);
 
-    message = (context.getVariable('message') as String?) ?? message;
-    color = switch (context.getVariable('color')) {
-      true => true,
-      'false' || false => false,
-      _ => color,
-    };
-    verbose = switch (context.getVariable('verbose')) {
-      true => true,
-      'true' => true,
-      _ => verbose,
-    };
-    level = (context.getVariable('level') as String?) ?? level;
+    message = context.getString('message', message);
+    color = context.getBool('color', color);
+    verbose = context.getBool('verbose', verbose);
+    level = context.getString('level', level);
   }
 
   @override

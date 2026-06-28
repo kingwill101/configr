@@ -4,6 +4,7 @@ import 'package:configr/src/cli/ui/handlers/base_handler.dart';
 import 'package:configr/src/configr_config.dart';
 import 'package:configr/src/format/config_source.dart';
 import 'package:configr/src/format/format_service.dart';
+import 'package:configr/src/multi_host/host_rollback.dart' as host_rollback;
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:file/file.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
@@ -92,6 +93,19 @@ class ConfigrRuntime {
     count: count,
     dryRun: dryRun,
     pluginLoader: config.pluginLoader,
+  );
+
+  /// Rollback applied blocks for a specific host.
+  Future<int> rollbackHost({
+    required String hostName,
+    int? count,
+    bool dryRun = false,
+  }) => host_rollback.rollbackHost(
+    configPath: resolvedConfigPath,
+    hostName: hostName,
+    count: count,
+    dryRun: dryRun,
+    fileSystem: fileSystem,
   );
 
   /// Parse and collect block snapshots without executing them.

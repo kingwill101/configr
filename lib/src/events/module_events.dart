@@ -641,3 +641,139 @@ class ResumeProcessingEvent extends ModuleEvent {
   @override
   ModuleEventType get eventType => ModuleEventType.resumeProcessing;
 }
+
+// ---------------------------------------------------------------------------
+// Multi-host events
+// ---------------------------------------------------------------------------
+
+/// Host-level status for multi-host execution.
+enum HostStatus { pending, running, succeeded, failed, skipped }
+
+/// Mixin for host-scoped events.
+mixin HostEvent on ModuleEvent {
+  String get hostName => moduleId;
+  HostStatus get hostStatus;
+}
+
+/// Emitted when execution starts on a host.
+class HostStartedEvent extends ModuleEvent with HostEvent {
+  @override
+  final HostStatus hostStatus;
+  final String message;
+
+  HostStartedEvent({
+    required super.moduleId,
+    this.hostStatus = HostStatus.running,
+    super.correlationId,
+    super.timestamp,
+    super.metadata,
+    required this.message,
+  });
+
+  @override
+  ModuleEventType get eventType => ModuleEventType.started;
+
+  @override
+  Map<String, dynamic> toStructuredData() {
+    final data = super.toStructuredData();
+    data['hostName'] = hostName;
+    data['hostStatus'] = hostStatus.name;
+    data['message'] = message;
+    return data;
+  }
+}
+
+/// Emitted when execution completes successfully on a host.
+class HostCompletedEvent extends ModuleEvent with HostEvent {
+  @override
+  final HostStatus hostStatus;
+  final String message;
+  final Duration? duration;
+
+  HostCompletedEvent({
+    required super.moduleId,
+    this.hostStatus = HostStatus.succeeded,
+    super.correlationId,
+    super.timestamp,
+    super.metadata,
+    required this.message,
+    this.duration,
+  });
+
+  @override
+  ModuleEventType get eventType => ModuleEventType.completed;
+
+  @override
+  Map<String, dynamic> toStructuredData() {
+    final data = super.toStructuredData();
+    data['hostName'] = hostName;
+    data['hostStatus'] = hostStatus.name;
+    data['message'] = message;
+    if (duration != null) {
+      data['duration'] = duration!.inMilliseconds;
+    }
+    return data;
+  }
+}
+
+/// Emitted when execution fails on a host.
+class HostFailedEvent extends ModuleEvent with HostEvent {
+  @override
+  final HostStatus hostStatus;
+  final String message;
+  final String? errorCode;
+  final dynamic cause;
+
+  HostFailedEvent({
+    required super.moduleId,
+    this.hostStatus = HostStatus.failed,
+    super.correlationId,
+    super.timestamp,
+    super.metadata,
+    required this.message,
+    this.errorCode,
+    this.cause,
+  });
+
+  @override
+  ModuleEventType get eventType => ModuleEventType.failed;
+
+  @override
+  Map<String, dynamic> toStructuredData() {
+    final data = super.toStructuredData();
+    data['hostName'] = hostName;
+    data['hostStatus'] = hostStatus.name;
+    data['message'] = message;
+    data['errorCode'] = errorCode;
+    data['cause'] = cause?.toString();
+    return data;
+  }
+}
+
+/// Emitted when a host is skipped (e.g. fail-fast).
+class HostSkippedEvent extends ModuleEvent with HostEvent {
+  @override
+  final HostStatus hostStatus;
+  final String reason;
+
+  HostSkippedEvent({
+    required super.moduleId,
+    this.hostStatus = HostStatus.skipped,
+    super.correlationId,
+    super.timestamp,
+    super.metadata,
+    required this.reason,
+  });
+
+  @override
+  ModuleEventType get eventType => ModuleEventType.info;
+
+  @override
+  Map<String, dynamic> toStructuredData() {
+    final data = super.toStructuredData();
+    data['hostName'] = hostName;
+    data['hostStatus'] = hostStatus.name;
+    data['reason'] = reason;
+    return data;
+  }
+}

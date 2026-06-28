@@ -429,10 +429,10 @@ packages:
     dependency: "direct main"
     description:
       name: i3config
-      sha256: "515ac06be44af9085347632e405387f8f0ad9ac9f94e0a7c26e5606b3699bc9b"
+      sha256: ed59ea002caa5dc09cb5955985206072eca95a67d275a032c1976c0caf9dd374
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.0"
+    version: "2.6.0"
   image:
     dependency: transitive
     description:
