@@ -1,15 +1,12 @@
 inventory {
-  default_targets = ["web-01"]
+  default_targets = ["web-01", "db-01"]
+
   host "web-01" {
     address = "127.0.0.1"
     roles = ["web"]
     groups = ["production"]
   }
-  host "web-02" {
-    address = "127.0.0.1"
-    roles = ["web"]
-    groups = ["production"]
-  }
+
   host "db-01" {
     address = "127.0.0.1"
     roles = ["db"]
