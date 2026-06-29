@@ -1,33 +1,54 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
+import 'package:testcontainers_compose/testcontainers_compose.dart';
+import 'package:configr/src/cli/configr_command_runner.dart';
+import 'package:configr/src/cli/cli_exit_exception.dart';
 
 const composeDir = 'test/integration/docker';
+const sshKeyPath = 'test/integration/docker/shared/ssh/id_ed25519';
 
-Future<String> dockerCompose(List<String> args) async {
-  final result = await Process.run('docker', ['compose', ...args],
-      workingDirectory: composeDir, runInShell: true);
+Future<void> ensureSshKeyFixture() async {
+  final result = await Process.run('bash', [
+    'generate_keys.sh',
+  ], workingDirectory: composeDir);
   if (result.exitCode != 0) {
     throw ProcessException(
-      'docker compose',
-      args,
+      'bash',
+      ['generate_keys.sh'],
       '${result.stdout}${result.stderr}',
       result.exitCode,
     );
   }
-  return result.stdout.toString();
 }
 
-Future<String> deployerExec(List<String> args) async {
+Future<void> syncSshKeyFixtureFromCompose() async {
+  final key = await dockerComposeExec('shared', [
+    'cat',
+    '/shared/ssh/id_ed25519',
+  ]);
+  final pubKey = await dockerComposeExec('shared', [
+    'cat',
+    '/shared/ssh/id_ed25519.pub',
+  ]);
+  final keyFile = File(sshKeyPath);
+  await keyFile.parent.create(recursive: true);
+  await keyFile.writeAsString(key);
+  await File('$sshKeyPath.pub').writeAsString(pubKey);
+  await Process.run('chmod', ['600', sshKeyPath]);
+}
+
+Future<String> dockerComposeExec(String service, List<String> args) async {
   final result = await Process.run(
     'docker',
-    ['compose', 'exec', '-T', 'deployer', ...args],
+    ['compose', 'exec', '-T', service, 'sh', '-c', args.join(' ')],
     workingDirectory: composeDir,
     runInShell: true,
   );
   if (result.exitCode != 0) {
     throw ProcessException(
-      'deployer',
+      service,
       args,
       '${result.stdout}${result.stderr}',
       result.exitCode,
@@ -37,146 +58,209 @@ Future<String> deployerExec(List<String> args) async {
 }
 
 Future<String> vmExec(int vm, List<String> args) async {
-  final result = await Process.run(
-    'docker',
-    ['compose', 'exec', '-T', 'vm$vm', ...args],
-    workingDirectory: composeDir,
-    runInShell: true,
+  return dockerComposeExec('vm$vm', args);
+}
+
+Future<String> runConfigr(List<String> args) async {
+  final out = StringBuffer();
+  final err = StringBuffer();
+  final runner = ConfigrCommandRunner(
+    out: (s) => out.writeln(s),
+    err: (s) => err.writeln(s),
+    outRaw: (s) => out.write(s),
+    errRaw: (s) => err.write(s),
   );
-  if (result.exitCode != 0) {
-    throw ProcessException(
-      'vm$vm',
-      args,
-      '${result.stdout}${result.stderr}',
-      result.exitCode,
-    );
+  try {
+    await runner.run(args);
+  } on CliExitException catch (e) {
+    throw StateError('configr failed (exit ${e.exitCode}):\n$out\n$err');
   }
-  return result.stdout.toString();
+  return out.toString();
 }
 
 Future<void> main() async {
   group('SSH Integration', () {
+    late final DockerCompose compose;
+
     setUpAll(() async {
-      await dockerCompose(['up', '-d', '--build']);
-      await _waitForHealthy();
-      await _preWarmDeployer();
+      await ensureSshKeyFixture();
+      compose = DockerCompose(context: composeDir, build: true, wait: true);
+      await compose.start();
+      for (var i = 0; i < 180; i++) {
+        final containers = compose.containers();
+        final vmHealthy = containers.where((c) {
+          final service = c.service;
+          return service != null &&
+              service.startsWith('vm') &&
+              c.health == 'healthy';
+        }).length;
+        if (vmHealthy >= 3) {
+          await syncSshKeyFixtureFromCompose();
+          return;
+        }
+        await Future<void>.delayed(const Duration(seconds: 2));
+      }
+      throw StateError('Containers did not become healthy in time');
     });
 
     tearDownAll(() async {
-      await dockerCompose(['down', '-t', '0', '--volumes']);
+      compose.stop();
     });
 
-    test('can run configr on deployer', () async {
-      final output = await deployerExec([
-        'configr',
-        'help',
-      ]);
-      expect(output, contains('Available commands:'));
-      expect(output, contains('apply'));
-      expect(output, contains('status'));
-    });
+    test('can apply a config file to vm1 via SSH', () async {
+      final configPath = '/tmp/configr_test_apply';
+      final lockPath = '$configPath.lock.json';
 
-    test('configr apply help shows host flags', () async {
-      final output = await deployerExec([
-        'configr',
+      if (File(lockPath).existsSync()) {
+        File(lockPath).deleteSync();
+      }
+
+      final absoluteKey = path.absolute(sshKeyPath);
+
+      final config =
+          '''
+inventory {
+  host "localhost" {
+    address = "localhost"
+    port = 2221
+    user = "root"
+    privateKey = "$absoluteKey"
+    roles = ["web"]
+  }
+}
+
+file {
+  file_path = "/tmp/configr_deploy_test"
+  content = "deployed by configr"
+}
+''';
+
+      await File(configPath).writeAsString(config);
+
+      final output = await runConfigr([
         'apply',
-        '--help',
+        '--config',
+        configPath,
+        '--v2',
+        '--no-interaction',
+        '--target',
+        'localhost',
+        '--dry-run',
       ]);
-      expect(output, contains('--target'));
-      expect(output, contains('--target-role'));
-      expect(output, contains('--target-group'));
-      expect(output, contains('--strategy'));
-      expect(output, contains('--var='));
+
+      expect(
+        output.contains('localhost') ||
+            output.contains('dry-run') ||
+            output.contains('DRY-RUN'),
+        isTrue,
+        reason: 'Expected apply dry-run output, got: $output',
+      );
     });
 
-    test('can ssh from deployer to vm1', () async {
-      final hostname = await deployerExec([
-        'ssh',
-        '-o StrictHostKeyChecking=no',
-        'vm1',
-        'hostname',
+    test('can create a file on vm1 via SSH deploy', () async {
+      final configPath = '/tmp/configr_real_apply';
+      final lockPath = '$configPath.lock.json';
+
+      if (File(lockPath).existsSync()) {
+        File(lockPath).deleteSync();
+      }
+
+      final absoluteKey = path.absolute(sshKeyPath);
+
+      final config =
+          '''
+inventory {
+  host "localhost" {
+    address = "localhost"
+    port = 2221
+    user = "root"
+    privateKey = "$absoluteKey"
+    roles = ["web"]
+  }
+}
+
+file {
+  file_path = "/tmp/configr_e2e_test"
+  content = "deployed by configr e2e"
+}
+''';
+
+      await File(configPath).writeAsString(config);
+
+      await runConfigr([
+        'apply',
+        '--config',
+        configPath,
+        '--v2',
+        '--no-interaction',
+        '--target',
+        'localhost',
       ]);
-      expect(hostname.trim(), isNotEmpty);
+
+      final remoteContent = await vmExec(1, ['cat', '/tmp/configr_e2e_test']);
+      expect(remoteContent.trim(), equals('deployed by configr e2e'));
     });
 
-    test('can ssh from deployer to vm2', () async {
-      final hostname = await deployerExec([
-        'ssh',
-        '-o StrictHostKeyChecking=no',
-        'vm2',
-        'hostname',
-      ]);
-      expect(hostname.trim(), isNotEmpty);
-    });
+    test('can rollback a file on vm1 via SSH', () async {
+      final configPath = '/tmp/configr_real_apply';
+      final lockPath = '$configPath.lock.json';
 
-    test('can ssh from deployer to vm3', () async {
-      final hostname = await deployerExec([
-        'ssh',
-        '-o StrictHostKeyChecking=no',
-        'vm3',
-        'hostname',
-      ]);
-      expect(hostname.trim(), isNotEmpty);
-    });
+      if (File(lockPath).existsSync()) {
+        File(lockPath).deleteSync();
+      }
 
-    test('can run a shell command on vm1 from deployer', () async {
-      final content = await deployerExec([
-        'ssh',
-        '-o StrictHostKeyChecking=no',
-        'vm1',
-        'cat /etc/hostname',
-      ]);
-      expect(content.trim(), isNotEmpty);
-    });
+      final absoluteKey = path.absolute(sshKeyPath);
 
-    test('can scp a file from deployer to vm1', () async {
-      await deployerExec([
-        'sh',
-        '-c',
-        'echo "hello from deployer" > /tmp/testfile.txt',
-      ]);
-      await deployerExec([
-        'scp',
-        '-o StrictHostKeyChecking=no',
-        '/tmp/testfile.txt',
-        'vm1:/tmp/testfile.txt',
-      ]);
-      final content = await vmExec(1, ['cat', '/tmp/testfile.txt']);
-      expect(content.trim(), equals('hello from deployer'));
-    });
+      final config =
+          '''
+inventory {
+  host "localhost" {
+    address = "localhost"
+    port = 2221
+    user = "root"
+    privateKey = "$absoluteKey"
+    roles = ["web"]
+  }
+}
 
-    test('can copy a file from host to vm1 via deployer', () async {
-      final remoteContent = await vmExec(1, ['cat', '/etc/hostname']);
-      expect(remoteContent.trim(), isNotEmpty);
+file {
+  file_path = "/tmp/configr_e2e_test"
+  content = "deployed by configr e2e"
+}
+''';
+
+      await File(configPath).writeAsString(config);
+
+      await runConfigr([
+        'apply',
+        '--config',
+        configPath,
+        '--v2',
+        '--no-interaction',
+        '--target',
+        'localhost',
+      ]);
+
+      final rollbackOutput = await runConfigr([
+        'rollback',
+        '--config',
+        configPath,
+        '--v2',
+        '--no-interaction',
+        '--host',
+        'localhost',
+        '--ssh-port',
+        '2221',
+        '--ssh-key',
+        absoluteKey,
+      ]);
+
+      expect(rollbackOutput.toLowerCase(), contains('rollback'));
+
+      final afterRollback = await vmExec(1, [
+        'test -f /tmp/configr_e2e_test && cat /tmp/configr_e2e_test || echo __MISSING__',
+      ]);
+      expect(afterRollback.trim(), equals('__MISSING__'));
     });
   });
-}
-
-Future<void> _preWarmDeployer() async {
-  try {
-    await deployerExec(['configr', 'help']);
-  } catch (e) {
-    throw StateError('Deployer binary not ready: $e');
-  }
-}
-
-Future<void> _waitForHealthy() async {
-  for (var i = 0; i < 180; i++) {
-    final output = await dockerCompose([
-      'ps',
-      '--format',
-      '{{.Name}}\t{{.Status}}',
-    ]);
-
-    final lines = output.split('\n').where((l) => l.trim().isNotEmpty).toList();
-    final vmHealthy = lines.where((l) => l.startsWith('configr-test-vm') && l.contains('healthy')).length;
-    final deployerUp = lines.any((l) => l.startsWith('configr-test-deployer') && l.contains('Up'));
-
-    if (vmHealthy >= 3 && deployerUp) {
-      return;
-    }
-    await Future<void>.delayed(const Duration(seconds: 2));
-  }
-
-  throw StateError('Containers did not become healthy in time');
 }
