@@ -206,7 +206,13 @@ Future<int> _remoteRollback({
     logger.info('[$hostName] Uploading config to $remoteConfigPath');
     await ssh.putFile(configPath, remoteConfigPath);
 
-    final rollbackArgs = <String>['--config', remoteConfigPath, 'rollback'];
+    final rollbackArgs = <String>[
+      '--config',
+      remoteConfigPath,
+      '--v2',
+      '--no-interaction',
+      'rollback',
+    ];
     if (count != null) rollbackArgs.addAll(['--count', '$count']);
 
     logger.info('[$hostName] Running: configr ${rollbackArgs.join(' ')}');

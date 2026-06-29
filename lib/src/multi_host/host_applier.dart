@@ -1,4 +1,5 @@
-import 'package:configr/src/multi_host/connection_pool.dart' show ConnectionPool;
+import 'package:configr/src/multi_host/connection_pool.dart'
+    show ConnectionPool;
 import 'package:configr/src/multi_host/host.dart' show Host;
 import 'package:configr/src/multi_host/host_execution_context.dart'
     show HostExecutionContext;
@@ -43,7 +44,13 @@ Future<HostExecutionContext> applyOnHost({
     logger.info('[${host.name}] Uploading config to $remoteConfigPath');
     await ssh.putFile(configPath, remoteConfigPath);
 
-    final applyArgs = <String>['--config', remoteConfigPath, 'apply'];
+    final applyArgs = <String>[
+      '--config',
+      remoteConfigPath,
+      '--v2',
+      '--no-interaction',
+      'apply',
+    ];
     if (dryRun) applyArgs.add('--dry-run');
     if (failFast) applyArgs.add('--fail-fast');
     if (extraApplyArgs != null) applyArgs.addAll(extraApplyArgs);
