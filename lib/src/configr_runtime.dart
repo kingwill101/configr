@@ -4,6 +4,8 @@ import 'package:configr/src/cli/ui/handlers/base_handler.dart';
 import 'package:configr/src/configr_config.dart';
 import 'package:configr/src/format/config_source.dart';
 import 'package:configr/src/format/format_service.dart';
+import 'package:configr/src/multi_host/inventory.dart';
+import 'package:configr/src/multi_host/inventory_block.dart';
 import 'package:configr/src/multi_host/host_rollback.dart' as host_rollback;
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:file/file.dart';
@@ -102,14 +104,35 @@ class ConfigrRuntime {
     required String hostName,
     int? count,
     bool dryRun = false,
-  }) => host_rollback.rollbackHost(
-    configPath: resolvedConfigPath,
-    hostName: hostName,
-    count: count,
-    dryRun: dryRun,
-    fileSystem: fileSystem,
-    connectionConfig: config.connectionConfig?.toMap(),
-  );
+  }) async {
+    final connectionConfig =
+        config.connectionConfig?.toMap() ??
+        await _inventoryConnectionConfig(hostName);
+
+    return host_rollback.rollbackHost(
+      configPath: resolvedConfigPath,
+      hostName: hostName,
+      count: count,
+      dryRun: dryRun,
+      fileSystem: fileSystem,
+      connectionConfig: connectionConfig,
+    );
+  }
+
+  Future<Map<String, dynamic>?> _inventoryConnectionConfig(
+    String hostName,
+  ) async {
+    if (!await fileSystem.file(resolvedConfigPath).exists()) return null;
+
+    final parsed = await readConfig();
+    final processor = i3.ConfigProcessor();
+    processor.registerBlockHandler(InventoryBlock());
+    await processor.process(parsed);
+
+    final inventory =
+        processor.context.globalContext.options['_inventory'] as Inventory?;
+    return inventory?.getHost(hostName)?.toConnectionMap();
+  }
 
   /// Parse and collect block snapshots without executing them.
   Future<List<BlockSnapshot>> parseAndCollect() => parseAndCollectBlocks(
