@@ -12,6 +12,8 @@ configuration files.
 - [Architecture](architecture.md) — Core abstractions and design decisions
 - [Secrets Management](secrets.md) — Provider-agnostic secret resolution
 - [Remote Execution](remote-execution.md) — SSH transport for remote machines
+- [Multi-Host Execution](multi-host.md) — Inventory, strategies, per-host lockfiles, remote rollback
+- [SSH VM Integration Guide](ssh-vm-guide.md) — Launch Docker VMs and apply configs over SSH
 
 ## Action Blocks
 
@@ -86,6 +88,7 @@ block-specific properties.
 - [**Terminal UI**](terminal-ui.md) — Task widgets, spinners, styled output, interactive prompts
 - [**Secrets management**](secrets.md) — Provider-agnostic secret resolution (env, file, dotenv, cmd, 1Password, keyring) with automatic redaction
 - [**Remote execution**](remote-execution.md) — SSH transport with CLI flags or inline `connection { }` block
+- [**Multi-host**](multi-host.md) — Inventory, execution strategies, per-host lockfiles, remote rollback
 
 ## Architecture
 
