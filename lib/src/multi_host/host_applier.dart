@@ -47,7 +47,6 @@ Future<HostExecutionContext> applyOnHost({
     final applyArgs = <String>[
       '--config',
       remoteConfigPath,
-      '--v2',
       '--no-interaction',
       'apply',
     ];

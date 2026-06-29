@@ -10,11 +10,11 @@ class FormatCommand extends BaseCommand {
 
   @override
   Future<void> executeCommand() async {
-    await _executeV2();
+    await _executeFormat();
   }
 
-  Future<void> _executeV2() async {
-    io.title('Format Configuration (v2)');
+  Future<void> _executeFormat() async {
+    io.title('Format Configuration');
 
     try {
       // Read the full config AST via FormatService (preserves all structure:

@@ -26,7 +26,7 @@ void main() {
       continue;
     }
 
-    test('example: $exampleName parses with --v2', () async {
+    test('example: $exampleName parses with', () async {
       // Find the config file — could be named 'config', 'config.i3',
       // or have the example name without extension.
       File? configFile;

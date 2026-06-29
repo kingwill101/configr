@@ -12,7 +12,7 @@ import 'package:lualike/lualike.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('LuaPlugin System (v2)', () {
+  group('LuaPlugin System', () {
     late MemoryFileSystem fileSystem;
     late EventBus eventBus;
     late List<ModuleEvent> emittedEvents;

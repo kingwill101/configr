@@ -25,7 +25,6 @@ class ConfigrConfig {
   final bool debugMode;
   final bool dryRunMode;
   final bool interactiveMode;
-  final bool useV2;
   final List<String> pluginDirs;
   final List<String> pluginFiles;
   final ConfigrPluginLoader? pluginLoader;
@@ -51,7 +50,6 @@ class ConfigrConfig {
     this.debugMode = false,
     this.dryRunMode = false,
     this.interactiveMode = false,
-    this.useV2 = false,
     this.pluginDirs = const [],
     this.pluginFiles = const [],
     this.connectionConfig,
@@ -64,10 +62,11 @@ class ConfigrConfig {
        options = options ?? ConfigOptions(),
        eventBus = eventBus ?? EventBus(),
        pluginLoader =
-            pluginLoader ?? ConfigrPluginLoader(
-              pluginDirectories: pluginDirs,
-              pluginFiles: pluginFiles,
-            ),
+           pluginLoader ??
+           ConfigrPluginLoader(
+             pluginDirectories: pluginDirs,
+             pluginFiles: pluginFiles,
+           ),
        privilegeLock =
            privilegeLock ??
            (keepPrivilegeLock

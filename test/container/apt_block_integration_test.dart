@@ -57,7 +57,7 @@ apt {
 
         try {
           final result = await container!.runCommand(
-            'cd /app && dart run bin/configr.dart apply --v2 '
+            'cd /app && dart run bin/configr.dart apply '
             '--config /tmp/test_apt_install.i3 2>&1',
           );
 
@@ -113,7 +113,7 @@ apt {
 
         try {
           final result = await container!.runCommand(
-            'cd /app && dart run bin/configr.dart apply --v2 '
+            'cd /app && dart run bin/configr.dart apply '
             '--config /tmp/test_apt_uninstall.i3 2>&1',
           );
 
@@ -156,7 +156,7 @@ apt {
 
         try {
           final result = await container!.runCommand(
-            'cd /app && dart run bin/configr.dart apply --v2 '
+            'cd /app && dart run bin/configr.dart apply '
             '--config /tmp/test_apt_fail.i3 2>&1',
           );
 

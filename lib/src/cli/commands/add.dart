@@ -8,7 +8,7 @@ class AddCommand extends BaseCommand {
     argParser.addOption(
       'type',
       abbr: 't',
-      help: 'Block type for v2 mode (copy, file, symlink, etc.)',
+      help: 'Block type (copy, file, symlink, etc.)',
       defaultsTo: 'copy',
     );
     argParser.addOption(
@@ -60,7 +60,7 @@ $type {
       final current = await f.readAsString();
       await f.writeAsString('$current\n$block\n');
     } else {
-      await f.writeAsString('# Configr v2\n\n$block\n');
+      await f.writeAsString('# Configr\n\n$block\n');
     }
 
     io.success('Added $type block for $file to configuration.');

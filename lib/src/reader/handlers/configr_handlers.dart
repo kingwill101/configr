@@ -19,8 +19,11 @@ import 'package:i3config/i3config_v2.dart' as i3;
 ///
 /// The [ConfigBuilder] is stored in the processor's context options under
 /// `'configBuilder'` and is populated as the processor walks the AST.
-i3.ConfigProcessor createConfigrProcessor(ConfigBuilder builder) {
-  final processor = i3.ConfigProcessor();
+i3.ConfigProcessor createConfigrProcessor(
+  ConfigBuilder builder, {
+  i3.FileSystem? fileSystem,
+}) {
+  final processor = i3.ConfigProcessor(fileSystem: fileSystem);
 
   // Store the ConfigBuilder in the processor's root context
   processor.context.options['configBuilder'] = builder;
@@ -490,8 +493,10 @@ class TemplateBlockHandler extends i3.BaseBlockHandler {
         if (parentCtx.options['resourceBuilder'] is ResourceBuilder) {
           final builder =
               parentCtx.options['resourceBuilder'] as ResourceBuilder;
-          builder.template =
-              Template(template: templateStr, vars: Map.from(vars));
+          builder.template = Template(
+            template: templateStr,
+            vars: Map.from(vars),
+          );
           break;
         }
         parentCtx = parentCtx.parentContext;
@@ -849,4 +854,3 @@ class ScriptsBlockHandler extends i3.BaseBlockHandler {
     }
   }
 }
-

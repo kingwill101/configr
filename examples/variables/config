@@ -1,7 +1,7 @@
 # Built-in Variables Example
 #
 # Demonstrates all built-in variables Configr exposes.
-# Run: configr apply --v2
+# Run: configr apply
 
 echo { message = "Config directory:       $cwd" }
 

@@ -30,7 +30,7 @@ class StatusCommand extends BaseCommand {
     if (host != null) {
       await _showHostStatus(host);
     } else {
-      await _executeV2();
+      await _executeStatus();
     }
   }
 
@@ -109,10 +109,7 @@ class StatusCommand extends BaseCommand {
 
     io.section('Lockfile: $lockPath');
     try {
-      final lockMgr = V2LockfileManager(
-        lockPath,
-        fileSystem: fs,
-      );
+      final lockMgr = V2LockfileManager(lockPath, fileSystem: fs);
       final lockData = await lockMgr.read();
 
       io.line('  Blocks: ${lockData.appliedBlocks.length} applied');
@@ -133,8 +130,8 @@ class StatusCommand extends BaseCommand {
     }
   }
 
-  Future<void> _executeV2() async {
-    io.title('Configuration Status (v2)');
+  Future<void> _executeStatus() async {
+    io.title('Configuration Status');
 
     try {
       final blocks = await runtime.parseAndCollect();

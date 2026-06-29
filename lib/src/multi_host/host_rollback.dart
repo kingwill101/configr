@@ -209,7 +209,6 @@ Future<int> _remoteRollback({
     final rollbackArgs = <String>[
       '--config',
       remoteConfigPath,
-      '--v2',
       '--no-interaction',
       'rollback',
     ];

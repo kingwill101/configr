@@ -35,11 +35,13 @@ class ApplyCommand extends BaseCommand {
     );
     argParser.addMultiOption(
       'target-role',
-      help: 'Target all hosts in the given role(s) (can be specified multiple times)',
+      help:
+          'Target all hosts in the given role(s) (can be specified multiple times)',
     );
     argParser.addMultiOption(
       'target-group',
-      help: 'Target all hosts in the given group(s) (can be specified multiple times)',
+      help:
+          'Target all hosts in the given group(s) (can be specified multiple times)',
     );
     argParser.addOption(
       'strategy',
@@ -49,7 +51,8 @@ class ApplyCommand extends BaseCommand {
     );
     argParser.addMultiOption(
       'var',
-      help: 'Set a variable (key=value). Can be specified multiple times. '
+      help:
+          'Set a variable (key=value). Can be specified multiple times. '
           'Takes highest precedence over config and inventory variables.',
       valueHelp: 'key=value',
     );
@@ -69,12 +72,12 @@ class ApplyCommand extends BaseCommand {
     if (watch) {
       await _executeWatch();
     } else {
-      await _executeV2(force: force);
+      await _executeApply(force: force);
     }
   }
 
-  Future<void> _executeV2({bool force = false}) async {
-    io.title('Apply Configuration (v2)');
+  Future<void> _executeApply({bool force = false}) async {
+    io.title('Apply Configuration');
 
     final dryRun = argResults?['dry-run'] as bool? ?? false;
     final failFast = argResults?['fail-fast'] as bool? ?? false;
@@ -131,7 +134,7 @@ class ApplyCommand extends BaseCommand {
   }
 
   Future<void> _executeWatch() async {
-    io.title('Apply with Watch (v2)');
+    io.title('Apply with Watch');
 
     final watcher = ConfigWatcher(
       runtime: runtime,

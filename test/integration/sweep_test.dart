@@ -7,8 +7,11 @@ import 'package:configr/src/cli/cli_exit_exception.dart';
 void main() {
   final testEnv = Platform.environment['CONFIGR_TEST_ENV'] ?? '';
   if (testEnv.isEmpty) {
-    test('skip: sweep requires container environment (CONFIGR_TEST_ENV)', () {},
-        skip: true);
+    test(
+      'skip: sweep requires container environment (CONFIGR_TEST_ENV)',
+      () {},
+      skip: true,
+    );
     return;
   }
 
@@ -42,7 +45,9 @@ void main() {
 
     final extraArgs = <String>[];
     if (argsFile.existsSync()) {
-      for (final arg in argsFile.readAsStringSync().trim().split(RegExp(r'\s+'))) {
+      for (final arg in argsFile.readAsStringSync().trim().split(
+        RegExp(r'\s+'),
+      )) {
         if (arg.isNotEmpty) extraArgs.add(arg);
       }
     }
@@ -76,73 +81,82 @@ void main() {
         });
       }
 
-      test('applies, verifies, and is idempotent', () async {
-        if (setupScript.existsSync()) {
-          final setupResult = await Process.run('bash', [setupScript.path]);
-          expect(setupResult.exitCode, 0,
+      test(
+        'applies, verifies, and is idempotent',
+        () async {
+          if (setupScript.existsSync()) {
+            final setupResult = await Process.run('bash', [setupScript.path]);
+            expect(
+              setupResult.exitCode,
+              0,
               reason:
-                  'setup.sh failed: ${setupResult.stdout}\n${setupResult.stderr}');
-        }
+                  'setup.sh failed: ${setupResult.stdout}\n${setupResult.stderr}',
+            );
+          }
 
-        final out = StringBuffer();
-        final err = StringBuffer();
-        final runner = ConfigrCommandRunner(
-          out: (s) => out.write(s),
-          err: (s) => err.write(s),
-        );
+          final out = StringBuffer();
+          final err = StringBuffer();
+          final runner = ConfigrCommandRunner(
+            out: (s) => out.write(s),
+            err: (s) => err.write(s),
+          );
 
-        try {
-          await runner.run([
-            'apply',
-            '--v2',
-            '--config',
-            configFile.path,
-            '-n',
-            ...extraArgs,
-          ]);
-        } on CliExitException catch (e) {
-          fail('configr apply failed (exit ${e.exitCode}):\n$out$err');
-        }
+          try {
+            await runner.run([
+              'apply',
+              '--config',
+              configFile.path,
+              '-n',
+              ...extraArgs,
+            ]);
+          } on CliExitException catch (e) {
+            fail('configr apply failed (exit ${e.exitCode}):\n$out$err');
+          }
 
-        // Verify output content
-        final combinedOut = '$out\n$err';
-        if (outContains != null) {
-          expect(combinedOut, contains(outContains));
-        }
-        for (final forbidden in outNotContains) {
-          expect(combinedOut, isNot(contains(forbidden)));
-        }
+          // Verify output content
+          final combinedOut = '$out\n$err';
+          if (outContains != null) {
+            expect(combinedOut, contains(outContains));
+          }
+          for (final forbidden in outNotContains) {
+            expect(combinedOut, isNot(contains(forbidden)));
+          }
 
-        if (verifyScript.existsSync()) {
-          final verifyResult = await Process.run('bash', [verifyScript.path]);
-          expect(verifyResult.exitCode, 0,
+          if (verifyScript.existsSync()) {
+            final verifyResult = await Process.run('bash', [verifyScript.path]);
+            expect(
+              verifyResult.exitCode,
+              0,
               reason:
-                  'verify.sh failed:\n${verifyResult.stdout}\n${verifyResult.stderr}');
-        }
+                  'verify.sh failed:\n${verifyResult.stdout}\n${verifyResult.stderr}',
+            );
+          }
 
-        // Second apply for idempotency check
-        final out2 = StringBuffer();
-        final err2 = StringBuffer();
-        final runner2 = ConfigrCommandRunner(
-          out: (s) => out2.write(s),
-          err: (s) => err2.write(s),
-        );
+          // Second apply for idempotency check
+          final out2 = StringBuffer();
+          final err2 = StringBuffer();
+          final runner2 = ConfigrCommandRunner(
+            out: (s) => out2.write(s),
+            err: (s) => err2.write(s),
+          );
 
-        try {
-          await runner2.run([
-            'apply',
-            '--v2',
-            '--config',
-            configFile.path,
-            '-n',
-            ...extraArgs,
-          ]);
-        } on CliExitException catch (e) {
-          fail(
-              'Second apply (idempotency) failed (exit ${e.exitCode}):\n$out2$err2');
-        }
-      }, tags: tags.isEmpty ? null : tags,
-          timeout: const Timeout(Duration(minutes: 2)));
+          try {
+            await runner2.run([
+              'apply',
+              '--config',
+              configFile.path,
+              '-n',
+              ...extraArgs,
+            ]);
+          } on CliExitException catch (e) {
+            fail(
+              'Second apply (idempotency) failed (exit ${e.exitCode}):\n$out2$err2',
+            );
+          }
+        },
+        tags: tags.isEmpty ? null : tags,
+        timeout: const Timeout(Duration(minutes: 2)),
+      );
     });
   }
 }

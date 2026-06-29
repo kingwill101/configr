@@ -107,7 +107,7 @@ class TemplateBlock extends ActionBlock {
       ctx = ctx.parentContext;
     }
 
-    // Support both source (v2) and template_str (v1 compat) for the
+    // Support both source and template_str (v1 compat) for the
     // template file path. template_str is set by the `template` command
     // handler when using `template = "..."` syntax.
     // This must override any value set by the base class's backward-compat
