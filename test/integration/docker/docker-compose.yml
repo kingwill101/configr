@@ -14,7 +14,8 @@ services:
   vm1:
     platform: linux/amd64
     build:
-      context: vm
+      context: ../../../ 
+      dockerfile: test/integration/docker/vm/Dockerfile
     volumes:
       - shared:/shared
       - ssh:/root/.ssh
@@ -27,7 +28,8 @@ services:
   vm2:
     platform: linux/amd64
     build:
-      context: vm
+      context: ../../../ 
+      dockerfile: test/integration/docker/vm/Dockerfile
     volumes:
       - shared:/shared
       - ssh:/root/.ssh
@@ -40,7 +42,8 @@ services:
   vm3:
     platform: linux/amd64
     build:
-      context: vm
+      context: ../../../ 
+      dockerfile: test/integration/docker/vm/Dockerfile
     volumes:
       - shared:/shared
       - ssh:/root/.ssh

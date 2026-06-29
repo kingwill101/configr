@@ -8,13 +8,12 @@ KEY_DIR="$SHARED_DIR/ssh"
 mkdir -p "$KEY_DIR"
 chmod 755 "$KEY_DIR"
 
-if [ ! -f "$KEY_DIR/id_rsa" ]; then
+if [ ! -f "$KEY_DIR/id_ed25519" ]; then
   echo "Generating SSH test keys..."
-  ssh-keygen -t rsa -b 4096 -f "$KEY_DIR/id_rsa" -N "" -q
-  cp "$KEY_DIR/id_rsa.pub" "$KEY_DIR/id_rsa.pub"
+  ssh-keygen -t ed25519 -f "$KEY_DIR/id_ed25519" -N "" -q
 else
   echo "SSH keys already exist at $KEY_DIR"
 fi
 
 echo "Public key:"
-cat "$KEY_DIR/id_rsa.pub"
+cat "$KEY_DIR/id_ed25519.pub"

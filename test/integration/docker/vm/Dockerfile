@@ -1,3 +1,14 @@
+FROM dart:stable AS builder
+
+WORKDIR /build
+
+COPY pubspec.yaml ./
+COPY lib ./lib
+COPY bin ./bin
+
+RUN dart pub get && \
+    dart compile exe bin/configr.dart -o /build/configr
+
 FROM ubuntu:22.04
 
 WORKDIR /work
@@ -15,7 +26,9 @@ RUN apt-get update && \
       jq && \
     rm -rf /var/lib/apt/lists/*
 
-COPY boot.sh .
+COPY --from=builder /build/configr /usr/local/bin/configr
+
+COPY test/integration/docker/vm/boot.sh .
 RUN chmod +x boot.sh
 
 RUN useradd -m -s /bin/bash tester && \

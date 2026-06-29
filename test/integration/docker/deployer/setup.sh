@@ -5,12 +5,12 @@ echo "=== Configr Deployer Setup ==="
 
 # Copy SSH keys from shared volume to deployer SSH dir
 mkdir -p /root/.ssh
-if [ -f /shared/ssh/id_rsa ]; then
-  cp /shared/ssh/id_rsa /root/.ssh/id_rsa
-  chmod 600 /root/.ssh/id_rsa
+if [ -f /shared/ssh/id_ed25519 ]; then
+  cp /shared/ssh/id_ed25519 /root/.ssh/id_ed25519
+  chmod 600 /root/.ssh/id_ed25519
 fi
-if [ -f /shared/ssh/id_rsa.pub ]; then
-  cp /shared/ssh/id_rsa.pub /root/.ssh/id_rsa.pub
+if [ -f /shared/ssh/id_ed25519.pub ]; then
+  cp /shared/ssh/id_ed25519.pub /root/.ssh/id_ed25519.pub
 fi
 
 # Add VM host keys to known_hosts using hostnames from compose DNS
