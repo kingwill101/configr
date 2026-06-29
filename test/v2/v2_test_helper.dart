@@ -1,3 +1,5 @@
+import 'dart:io' show ProcessResult;
+
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/blocks/backup_block.dart';
 import 'package:configr/src/blocks/compress_block.dart';
@@ -220,81 +222,81 @@ class V2TestHelper {
       ..allowReassignment = true
       ..registerSingleton<DryRunFlag>(DryRunFlag(dryRun))
       ..registerSingleton<EventBus>(eventBus)
-      ..registerSingleton<PrivilegeEscalation>(NoPrivilegeEscalation())
+      ..registerSingleton<PrivilegeEscalation>(_DenyingPrivilegeEscalation())
       ..registerSingleton<FileSystem>(fileSystem)
-      ..registerSingleton<ExecutionService>(const LocalExecutionService())
+      ..registerSingleton<ExecutionService>(_DenyingExecutionService())
       ..registerSingleton<FileService>(LocalFileService())
       ..registerSingleton<CommandRunner>(LocalCommandRunner())
       ..allowReassignment = false;
 
-final actionBlockMap = <String, ActionBlock>{
-       'apt': AptBlock(),
-       'backup': BackupBlock(),
-       'brew': BrewBlock(),
-       'compress': CompressBlock(),
-       'container': ContainerBlock(),
-       'container_exec': ContainerExecBlock(),
-       'container_logs': ContainerLogsBlock(),
-       'copy': CopyBlock(),
-       'decompress': DecompressBlock(),
-        'delete': DeleteBlock(),
-        'dependency': DependencyBlock(),
-        'dnf': DnfBlock(),
-       'docker': DockerBlock(),
-       'download': DownloadBlock(),
-       'echo': EchoBlock(),
-       'execute': ExecuteBlock(),
-       'file': FileBlock(),
-       'flatpak': FlatpakBlock(),
-       'gather_facts': GatherFactsBlock(),
-       'git': GitBlock(),
-       'debug': DebugBlock(),
-       'set_fact': SetFactBlock(),
-       'stat': StatBlock(),
-       'move': MoveBlock(),
-       'network': NetworkBlock(),
-       'npm': NpmBlock(),
-       'pacman': PacmanBlock(),
-       'pamac': PamacBlock(),
-       'permissions': PermissionsBlock(),
-       'pip': PipBlock(),
-       'rename': RenameBlock(),
-       'snap': SnapBlock(),
-       'symlink': SymlinkBlock(),
-       'sync': SyncBlock(),
-       'systemd': SystemdBlock(),
-       'template': TemplateBlock(),
-'touch': TouchBlock(),
-        'pause': PauseBlock(),
-        'validate': ValidateBlock(),
-       'yum': YumBlock(),
-       'lineinfile': LineInFileBlock(),
-       'blockinfile': BlockInFileBlock(),
-       'replace': ReplaceBlock(),
-       'assert': AssertBlock(),
-       'user': UserBlock(),
-       'group': GroupBlock(),
-       'hostname': HostnameBlock(),
-       'timezone': TimezoneBlock(),
-       'sysctl': SysctlBlock(),
-       'cron': CronBlock(),
-       'locale_gen': LocaleGenBlock(),
-       'alternatives': AlternativesBlock(),
-       'wait_for': WaitForBlock(),
-       'authorized_key': AuthorizedKeyBlock(),
-       'fail': FailBlock(),
-       'fetch': FetchBlock(),
-       'firewalld': FirewalldBlock(),
-       'known_hosts': KnownHostsBlock(),
-       'mount': MountBlock(),
-       'raw': RawBlock(),
-       'script': ScriptBlock(),
-       'service': ServiceBlock(),
-       'slurp': SlurpBlock(),
-       'ufw': UfwBlock(),
-       'unarchive': UnarchiveBlock(),
-       'uri': UriBlock(),
-     };
+    final actionBlockMap = <String, ActionBlock>{
+      'apt': AptBlock(),
+      'backup': BackupBlock(),
+      'brew': BrewBlock(),
+      'compress': CompressBlock(),
+      'container': ContainerBlock(),
+      'container_exec': ContainerExecBlock(),
+      'container_logs': ContainerLogsBlock(),
+      'copy': CopyBlock(),
+      'decompress': DecompressBlock(),
+      'delete': DeleteBlock(),
+      'dependency': DependencyBlock(),
+      'dnf': DnfBlock(),
+      'docker': DockerBlock(),
+      'download': DownloadBlock(),
+      'echo': EchoBlock(),
+      'execute': ExecuteBlock(),
+      'file': FileBlock(),
+      'flatpak': FlatpakBlock(),
+      'gather_facts': GatherFactsBlock(),
+      'git': GitBlock(),
+      'debug': DebugBlock(),
+      'set_fact': SetFactBlock(),
+      'stat': StatBlock(),
+      'move': MoveBlock(),
+      'network': NetworkBlock(),
+      'npm': NpmBlock(),
+      'pacman': PacmanBlock(),
+      'pamac': PamacBlock(),
+      'permissions': PermissionsBlock(),
+      'pip': PipBlock(),
+      'rename': RenameBlock(),
+      'snap': SnapBlock(),
+      'symlink': SymlinkBlock(),
+      'sync': SyncBlock(),
+      'systemd': SystemdBlock(),
+      'template': TemplateBlock(),
+      'touch': TouchBlock(),
+      'pause': PauseBlock(),
+      'validate': ValidateBlock(),
+      'yum': YumBlock(),
+      'lineinfile': LineInFileBlock(),
+      'blockinfile': BlockInFileBlock(),
+      'replace': ReplaceBlock(),
+      'assert': AssertBlock(),
+      'user': UserBlock(),
+      'group': GroupBlock(),
+      'hostname': HostnameBlock(),
+      'timezone': TimezoneBlock(),
+      'sysctl': SysctlBlock(),
+      'cron': CronBlock(),
+      'locale_gen': LocaleGenBlock(),
+      'alternatives': AlternativesBlock(),
+      'wait_for': WaitForBlock(),
+      'authorized_key': AuthorizedKeyBlock(),
+      'fail': FailBlock(),
+      'fetch': FetchBlock(),
+      'firewalld': FirewalldBlock(),
+      'known_hosts': KnownHostsBlock(),
+      'mount': MountBlock(),
+      'raw': RawBlock(),
+      'script': ScriptBlock(),
+      'service': ServiceBlock(),
+      'slurp': SlurpBlock(),
+      'ufw': UfwBlock(),
+      'unarchive': UnarchiveBlock(),
+      'uri': UriBlock(),
+    };
 
     // -----------------------------------------------------------------------
     // 2. Create v2-aware ActionsBlockHandler
@@ -362,5 +364,66 @@ final actionBlockMap = <String, ActionBlock>{
   /// Asserts that an event of type [T] was emitted.
   void expectEvent<T extends ModuleEvent>() {
     expect(eventOfType<T>(), isNotNull, reason: 'Expected $T to be emitted');
+  }
+}
+
+class _DenyingPrivilegeEscalation implements PrivilegeEscalation {
+  @override
+  bool get usePrivilegeLock => false;
+
+  @override
+  Future<ProcessResult> runWithElevatedPrivileges(
+    String command,
+    List<String> arguments, {
+    String? workingDirectory,
+    bool runInShell = false,
+  }) async {
+    throw UnsupportedError(
+      'Unit tests must not execute privileged command: '
+      '$command ${arguments.join(' ')}',
+    );
+  }
+}
+
+class _DenyingExecutionService implements ExecutionService {
+  @override
+  String get platform => 'test';
+
+  @override
+  bool get isConnected => true;
+
+  @override
+  Future<void> connect(Map<String, dynamic> config) async {}
+
+  @override
+  Future<void> disconnect() async {}
+
+  @override
+  Future<void> putFile(String sourcePath, String destinationPath) async {
+    throw UnsupportedError('Unit tests must not put files on a real host');
+  }
+
+  @override
+  Future<void> fetchFile(String sourcePath, String destinationPath) async {
+    throw UnsupportedError('Unit tests must not fetch files from a real host');
+  }
+
+  @override
+  Future<ProcessResult> run(
+    String command,
+    List<String> arguments, {
+    String? workingDirectory,
+    bool runInShell = false,
+    Map<String, String>? environment,
+    CommandOutputHandler? onOutput,
+    String? stdin,
+  }) async {
+    return ProcessResult(
+      0,
+      127,
+      '',
+      'Unit tests must not execute host command: '
+          '$command ${arguments.join(' ')}',
+    );
   }
 }
