@@ -23,7 +23,9 @@ bootstrap-test:
 # Run all unit tests (excludes container-backed tests that need docker-in-docker)
 test:
     dart test --exclude-tags container --exclude-tags integration
-
+testt *args:
+    mkdir -p .dart_test_tmp
+    TMPDIR="$PWD/.dart_test_tmp" dart test {{ args }}
 # Build all docker test containers from the testing/docker-compose.yml matrix
 docker-build:
     docker compose -f testing/docker-compose.yml build

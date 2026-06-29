@@ -1,6 +1,7 @@
 # https://dart.dev/guides/libraries/private-files
 # Created by `dart pub`
 .dart_tool/
+.dart_test_tmp/
 
 # Compiled kernel files
 *.dill
