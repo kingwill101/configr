@@ -8,10 +8,13 @@ class KeyringProvider extends SecretProvider {
   @override
   Future<String?> get(String project, String key, String? profile) async {
     try {
-      final result = await Process.run(
-        'secret-tool',
-        ['lookup', 'service', project, 'account', key],
-      );
+      final result = await Process.run('secret-tool', [
+        'lookup',
+        'service',
+        project,
+        'account',
+        key,
+      ]);
       if (result.exitCode != 0) return null;
       return (result.stdout as String).trimRight();
     } catch (_) {

@@ -211,7 +211,9 @@ class Inventory {
     for (final role in roles) {
       for (final hostName in role.hosts.map((h) => h.name)) {
         if (!hostsByName.containsKey(hostName)) {
-          errors.add('Role ${role.name} references non-existent host: $hostName');
+          errors.add(
+            'Role ${role.name} references non-existent host: $hostName',
+          );
         }
       }
     }

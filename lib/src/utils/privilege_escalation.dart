@@ -114,10 +114,11 @@ class InteractiveSudoEscalation implements PrivilegeEscalation {
   }) async {
     if (usePrivilegeLock && privilegeLock != null && privilegeLock!.isActive) {
       try {
-        var result = await executionService.run(
-          'sudo', ['-n', command, ...arguments],
-          workingDirectory: workingDirectory,
-        );
+        var result = await executionService.run('sudo', [
+          '-n',
+          command,
+          ...arguments,
+        ], workingDirectory: workingDirectory);
         if (result.exitCode == 0) {
           privilegeLock!._updateLastUsed();
           return result;
@@ -129,10 +130,11 @@ class InteractiveSudoEscalation implements PrivilegeEscalation {
       }
     }
 
-    var result = await executionService.run(
-      'sudo', ['-n', command, ...arguments],
-      workingDirectory: workingDirectory,
-    );
+    var result = await executionService.run('sudo', [
+      '-n',
+      command,
+      ...arguments,
+    ], workingDirectory: workingDirectory);
     if (result.exitCode == 0) {
       if (usePrivilegeLock && privilegeLock != null) {
         privilegeLock!.acquire();
@@ -156,10 +158,10 @@ class InteractiveSudoEscalation implements PrivilegeEscalation {
 
       final fullCommand =
           'echo "$password" | sudo -S $command ${arguments.join(' ')}';
-      result = await executionService.run(
-        'sh', ['-c', fullCommand],
-        workingDirectory: workingDirectory,
-      );
+      result = await executionService.run('sh', [
+        '-c',
+        fullCommand,
+      ], workingDirectory: workingDirectory);
 
       if (result.exitCode != 0) {
         throw Exception('Failed to run command with sudo: ${result.stderr}');
@@ -199,10 +201,11 @@ class NonInteractiveSudoEscalation implements PrivilegeEscalation {
   }) async {
     if (usePrivilegeLock && privilegeLock != null && privilegeLock!.isActive) {
       try {
-        var result = await executionService.run(
-          'sudo', ['-n', command, ...arguments],
-          workingDirectory: workingDirectory,
-        );
+        var result = await executionService.run('sudo', [
+          '-n',
+          command,
+          ...arguments,
+        ], workingDirectory: workingDirectory);
         if (result.exitCode == 0) {
           privilegeLock!._updateLastUsed();
           return result;
@@ -214,10 +217,11 @@ class NonInteractiveSudoEscalation implements PrivilegeEscalation {
       }
     }
 
-    var result = await executionService.run(
-      'sudo', ['-n', command, ...arguments],
-      workingDirectory: workingDirectory,
-    );
+    var result = await executionService.run('sudo', [
+      '-n',
+      command,
+      ...arguments,
+    ], workingDirectory: workingDirectory);
 
     if (result.exitCode == 0) {
       if (usePrivilegeLock && privilegeLock != null) {
@@ -243,7 +247,9 @@ class NonInteractiveSudoEscalation implements PrivilegeEscalation {
 class NoPrivilegeEscalation implements PrivilegeEscalation {
   final ExecutionService executionService;
 
-  const NoPrivilegeEscalation({this.executionService = const LocalExecutionService()});
+  const NoPrivilegeEscalation({
+    this.executionService = const LocalExecutionService(),
+  });
 
   @override
   bool get usePrivilegeLock => false;
@@ -255,7 +261,11 @@ class NoPrivilegeEscalation implements PrivilegeEscalation {
     String? workingDirectory,
     bool runInShell = false,
   }) async {
-    return executionService.run(command, arguments,
-        workingDirectory: workingDirectory, runInShell: runInShell);
+    return executionService.run(
+      command,
+      arguments,
+      workingDirectory: workingDirectory,
+      runInShell: runInShell,
+    );
   }
 }

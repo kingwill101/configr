@@ -6,7 +6,8 @@ import 'package:configr/src/multi_host/connection_pool.dart';
 import 'package:configr/src/multi_host/host_applier.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/ssh_execution_service.dart';
-import 'package:configr/src/utils/execution_service.dart' show CommandOutputHandler;
+import 'package:configr/src/utils/execution_service.dart'
+    show CommandOutputHandler;
 
 class FakeSSH extends SSHExecutionService {
   String? uploadedSource;
@@ -27,12 +28,15 @@ class FakeSSH extends SSHExecutionService {
   Future<void> disconnect() async {}
 
   @override
-  Future<ProcessResult> run(String command, List<String> arguments,
-      {String? workingDirectory,
-      bool runInShell = false,
-      Map<String, String>? environment,
-      CommandOutputHandler? onOutput,
-      String? stdin}) async {
+  Future<ProcessResult> run(
+    String command,
+    List<String> arguments, {
+    String? workingDirectory,
+    bool runInShell = false,
+    Map<String, String>? environment,
+    CommandOutputHandler? onOutput,
+    String? stdin,
+  }) async {
     ranCommand = command;
     ranArgs = arguments;
     return ProcessResult(

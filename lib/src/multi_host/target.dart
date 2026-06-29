@@ -15,11 +15,7 @@ class Target {
   final int? priority;
 
   /// Create a target with a host and strategy.
-  Target({
-    required this.host,
-    required this.strategy,
-    this.priority,
-  });
+  Target({required this.host, required this.strategy, this.priority});
 
   /// Create a target with host, strategy, and boot group.
   factory Target.withBootGroup({
@@ -27,11 +23,7 @@ class Target {
     required String strategy,
     required int priority,
   }) {
-    return Target(
-      host: host,
-      strategy: strategy,
-      priority: priority,
-    );
+    return Target(host: host, strategy: strategy, priority: priority);
   }
 
   /// Create a target with host and strategy using host roles as priority.
@@ -40,11 +32,7 @@ class Target {
     required String strategy,
   }) {
     final rolePriority = _calculatePriorityFromRoles(host);
-    return Target(
-      host: host,
-      strategy: strategy,
-      priority: rolePriority,
-    );
+    return Target(host: host, strategy: strategy, priority: rolePriority);
   }
 
   static int _calculatePriorityFromRoles(Host host) {
@@ -75,7 +63,8 @@ class Target {
   }
 
   /// Is this target a primary service?
-  bool get isPrimary => host.roles.contains('web') || host.roles.contains('application');
+  bool get isPrimary =>
+      host.roles.contains('web') || host.roles.contains('application');
 
   @override
   String toString() {

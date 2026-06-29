@@ -107,9 +107,7 @@ class _LinuxSysctlBlock extends SysctlBlock {
       throw ActionFailedException('Name is required for sysctl', moduleId: id);
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id, message: 'Managing sysctl: $name',
-    ));
+    emitEvent(StartedEvent(moduleId: id, message: 'Managing sysctl: $name'));
 
     try {
       final priv = privilegeEscalation;
@@ -150,15 +148,22 @@ class _LinuxSysctlBlock extends SysctlBlock {
       }
 
       if (changed) {
-        emitEvent(CompletedEvent(
-          moduleId: id, message: 'Sysctl $name ${status == 'absent' ? 'removed' : 'set to $value'}',
-        ));
+        emitEvent(
+          CompletedEvent(
+            moduleId: id,
+            message:
+                'Sysctl $name ${status == 'absent' ? 'removed' : 'set to $value'}',
+          ),
+        );
         status = 'completed';
       } else {
-        emitEvent(StatusUpdateEvent(
-          moduleId: id, message: 'Sysctl $name already at desired state',
-          level: StatusEvent.info,
-        ));
+        emitEvent(
+          StatusUpdateEvent(
+            moduleId: id,
+            message: 'Sysctl $name already at desired state',
+            level: StatusEvent.info,
+          ),
+        );
       }
     } catch (e) {
       if (e is ActionFailedException) rethrow;
@@ -172,7 +177,11 @@ class _LinuxSysctlBlock extends SysctlBlock {
     final lines = await sysctlFile.readAsLines();
     for (final line in lines) {
       final trimmed = line.trim();
-      if (trimmed.isEmpty || trimmed.startsWith('#') || trimmed.startsWith(';')) continue;
+      if (trimmed.isEmpty ||
+          trimmed.startsWith('#') ||
+          trimmed.startsWith(';')) {
+        continue;
+      }
       if (!trimmed.contains('=')) continue;
       final eq = trimmed.indexOf('=');
       final key = trimmed.substring(0, eq).trim();
@@ -190,7 +199,11 @@ class _LinuxSysctlBlock extends SysctlBlock {
       lines = await sysctlFile.readAsLines();
       for (int i = 0; i < lines.length; i++) {
         final trimmed = lines[i].trim();
-        if (trimmed.isEmpty || trimmed.startsWith('#') || trimmed.startsWith(';')) continue;
+        if (trimmed.isEmpty ||
+            trimmed.startsWith('#') ||
+            trimmed.startsWith(';')) {
+          continue;
+        }
         if (!trimmed.contains('=')) continue;
         final eq = trimmed.indexOf('=');
         final key = trimmed.substring(0, eq).trim();
@@ -213,7 +226,11 @@ class _LinuxSysctlBlock extends SysctlBlock {
     final lines = await sysctlFile.readAsLines();
     lines.removeWhere((line) {
       final trimmed = line.trim();
-      if (trimmed.isEmpty || trimmed.startsWith('#') || trimmed.startsWith(';')) return false;
+      if (trimmed.isEmpty ||
+          trimmed.startsWith('#') ||
+          trimmed.startsWith(';')) {
+        return false;
+      }
       if (!trimmed.contains('=')) return false;
       final eq = trimmed.indexOf('=');
       return trimmed.substring(0, eq).trim() == name;
@@ -224,35 +241,38 @@ class _LinuxSysctlBlock extends SysctlBlock {
   Future<bool> _sysctlSet(dynamic priv) async {
     // Read current value first — avoids spurious "permission denied" errors
     // when running inside containers where the value is already correct.
-    final current = await priv.runWithElevatedPrivileges(
-      'sysctl', ['-n', name],
-    );
+    final current = await priv.runWithElevatedPrivileges('sysctl', [
+      '-n',
+      name,
+    ]);
     if (current.exitCode == 0) {
-      final curVal = (current.stdout is String
-          ? current.stdout as String
-          : String.fromCharCodes(current.stdout as List<int>))
-          .trim();
+      final curVal =
+          (current.stdout is String
+                  ? current.stdout as String
+                  : String.fromCharCodes(current.stdout as List<int>))
+              .trim();
       if (curVal == value) return false; // already correct
     }
 
-    final result = await priv.runWithElevatedPrivileges(
-      'sysctl', ['-w', '$name=$value'],
-    );
+    final result = await priv.runWithElevatedPrivileges('sysctl', [
+      '-w',
+      '$name=$value',
+    ]);
     if (result.exitCode != 0 && !ignoreErrors) {
       throw ActionFailedException(
-        'sysctl -w failed: ${result.stderr}', moduleId: id,
+        'sysctl -w failed: ${result.stderr}',
+        moduleId: id,
       );
     }
     return result.exitCode == 0;
   }
 
   Future<void> _sysctlReload(dynamic priv, String file) async {
-    final result = await priv.runWithElevatedPrivileges(
-      'sysctl', ['-p', file],
-    );
+    final result = await priv.runWithElevatedPrivileges('sysctl', ['-p', file]);
     if (result.exitCode != 0 && !ignoreErrors) {
       throw ActionFailedException(
-        'sysctl -p failed: ${result.stderr}', moduleId: id,
+        'sysctl -p failed: ${result.stderr}',
+        moduleId: id,
       );
     }
   }
@@ -306,21 +326,22 @@ class _FreeBSDSysctlBlock extends SysctlBlock {
       );
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id, message: 'Managing sysctl on FreeBSD: $name',
-    ));
+    emitEvent(
+      StartedEvent(moduleId: id, message: 'Managing sysctl on FreeBSD: $name'),
+    );
 
     try {
       final priv = privilegeEscalation;
 
       // FreeBSD: sysctl name=value (no -w flag)
       if (status != 'absent' && value.isNotEmpty) {
-        final result = await priv.runWithElevatedPrivileges(
-          'sysctl', ['$name=$value'],
-        );
+        final result = await priv.runWithElevatedPrivileges('sysctl', [
+          '$name=$value',
+        ]);
         if (result.exitCode != 0 && !ignoreErrors) {
           throw ActionFailedException(
-            'sysctl failed on FreeBSD: ${result.stderr}', moduleId: id,
+            'sysctl failed on FreeBSD: ${result.stderr}',
+            moduleId: id,
           );
         }
       }
@@ -335,19 +356,24 @@ class _FreeBSDSysctlBlock extends SysctlBlock {
       // Reload via rc.d script
       if (reload) {
         final reloadResult = await priv.runWithElevatedPrivileges(
-          '/etc/rc.d/sysctl', ['reload'],
+          '/etc/rc.d/sysctl',
+          ['reload'],
         );
         if (reloadResult.exitCode != 0 && !ignoreErrors) {
           throw ActionFailedException(
-            'sysctl reload failed: ${reloadResult.stderr}', moduleId: id,
+            'sysctl reload failed: ${reloadResult.stderr}',
+            moduleId: id,
           );
         }
       }
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: 'Sysctl $name ${status == 'absent' ? 'removed' : 'set to $value'} on FreeBSD',
-      ));
+      emitEvent(
+        CompletedEvent(
+          moduleId: id,
+          message:
+              'Sysctl $name ${status == 'absent' ? 'removed' : 'set to $value'} on FreeBSD',
+        ),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;
@@ -364,7 +390,11 @@ class _FreeBSDSysctlBlock extends SysctlBlock {
       lines = await sysctlFile.readAsLines();
       for (int i = 0; i < lines.length; i++) {
         final trimmed = lines[i].trim();
-        if (trimmed.isEmpty || trimmed.startsWith('#') || trimmed.startsWith(';')) continue;
+        if (trimmed.isEmpty ||
+            trimmed.startsWith('#') ||
+            trimmed.startsWith(';')) {
+          continue;
+        }
         if (!trimmed.contains('=')) continue;
         final eq = trimmed.indexOf('=');
         final key = trimmed.substring(0, eq).trim();
@@ -385,7 +415,11 @@ class _FreeBSDSysctlBlock extends SysctlBlock {
     final lines = await sysctlFile.readAsLines();
     lines.removeWhere((line) {
       final trimmed = line.trim();
-      if (trimmed.isEmpty || trimmed.startsWith('#') || trimmed.startsWith(';')) return false;
+      if (trimmed.isEmpty ||
+          trimmed.startsWith('#') ||
+          trimmed.startsWith(';')) {
+        return false;
+      }
       if (!trimmed.contains('=')) return false;
       final eq = trimmed.indexOf('=');
       return trimmed.substring(0, eq).trim() == name;
@@ -410,41 +444,45 @@ class _OpenBSDSysctlBlock extends SysctlBlock {
       throw ActionFailedException('Name is required for sysctl', moduleId: id);
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id, message: 'Managing sysctl on OpenBSD: $name',
-    ));
+    emitEvent(
+      StartedEvent(moduleId: id, message: 'Managing sysctl on OpenBSD: $name'),
+    );
 
     try {
       final priv = privilegeEscalation;
 
       // OpenBSD: sysctl name=value (no -w, no -e, no -p)
       if (value.isNotEmpty && status != 'absent') {
-        final result = await priv.runWithElevatedPrivileges(
-          'sysctl', ['$name=$value'],
-        );
+        final result = await priv.runWithElevatedPrivileges('sysctl', [
+          '$name=$value',
+        ]);
         if (result.exitCode != 0 && !ignoreErrors) {
           throw ActionFailedException(
-            'sysctl failed on OpenBSD: ${result.stderr}', moduleId: id,
+            'sysctl failed on OpenBSD: ${result.stderr}',
+            moduleId: id,
           );
         }
       }
 
       // OpenBSD doesn't have sysctl -p, so set each value individually
       if (reload && status != 'absent') {
-        final result = await priv.runWithElevatedPrivileges(
-          'sysctl', ['$name=$value'],
-        );
+        final result = await priv.runWithElevatedPrivileges('sysctl', [
+          '$name=$value',
+        ]);
         if (result.exitCode != 0 && !ignoreErrors) {
           throw ActionFailedException(
-            'sysctl reload failed on OpenBSD: ${result.stderr}', moduleId: id,
+            'sysctl reload failed on OpenBSD: ${result.stderr}',
+            moduleId: id,
           );
         }
       }
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: 'Sysctl $name set to $value on OpenBSD',
-      ));
+      emitEvent(
+        CompletedEvent(
+          moduleId: id,
+          message: 'Sysctl $name set to $value on OpenBSD',
+        ),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;

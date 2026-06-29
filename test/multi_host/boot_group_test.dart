@@ -4,10 +4,7 @@ import 'package:configr/src/multi_host/boot_group.dart';
 void main() {
   group('BootGroup', () {
     test('creates with required fields', () {
-      final group = BootGroup(
-        name: 'web',
-        hostNames: ['web-01', 'web-02'],
-      );
+      final group = BootGroup(name: 'web', hostNames: ['web-01', 'web-02']);
 
       expect(group.name, equals('web'));
       expect(group.hostNames, equals(['web-01', 'web-02']));
@@ -31,54 +28,76 @@ void main() {
 
   group('BootConfig', () {
     test('orderedGroups returns groups in definition order when no deps', () {
-      final config = BootConfig(groups: [
-        BootGroup(name: 'web', hostNames: ['web-01']),
-        BootGroup(name: 'worker', hostNames: ['worker-01']),
-      ]);
+      final config = BootConfig(
+        groups: [
+          BootGroup(name: 'web', hostNames: ['web-01']),
+          BootGroup(name: 'worker', hostNames: ['worker-01']),
+        ],
+      );
 
       final ordered = config.orderedGroups();
       expect(ordered.map((g) => g.name).toList(), equals(['web', 'worker']));
     });
 
     test('orderedGroups sorts by dependency order', () {
-      final config = BootConfig(groups: [
-        BootGroup(name: 'worker', hostNames: ['worker-01'], dependsOn: ['web']),
-        BootGroup(name: 'db', hostNames: ['db-01'], dependsOn: ['web']),
-        BootGroup(name: 'web', hostNames: ['web-01']),
-      ]);
+      final config = BootConfig(
+        groups: [
+          BootGroup(
+            name: 'worker',
+            hostNames: ['worker-01'],
+            dependsOn: ['web'],
+          ),
+          BootGroup(name: 'db', hostNames: ['db-01'], dependsOn: ['web']),
+          BootGroup(name: 'web', hostNames: ['web-01']),
+        ],
+      );
 
       final ordered = config.orderedGroups();
       expect(ordered.first.name, equals('web'));
-      expect(ordered.map((g) => g.name).toList(),
-          containsAllInOrder(['web', 'worker', 'db']));
+      expect(
+        ordered.map((g) => g.name).toList(),
+        containsAllInOrder(['web', 'worker', 'db']),
+      );
     });
 
     test('orderedGroups handles multiple levels of deps', () {
-      final config = BootConfig(groups: [
-        BootGroup(name: 'app', hostNames: ['app-01'], dependsOn: ['db']),
-        BootGroup(name: 'proxy', hostNames: ['proxy-01'], dependsOn: ['app']),
-        BootGroup(name: 'db', hostNames: ['db-01']),
-      ]);
+      final config = BootConfig(
+        groups: [
+          BootGroup(name: 'app', hostNames: ['app-01'], dependsOn: ['db']),
+          BootGroup(name: 'proxy', hostNames: ['proxy-01'], dependsOn: ['app']),
+          BootGroup(name: 'db', hostNames: ['db-01']),
+        ],
+      );
 
       final ordered = config.orderedGroups();
       expect(ordered.first.name, equals('db'));
-      expect(ordered.map((g) => g.name).toList(),
-          containsAllInOrder(['db', 'app', 'proxy']));
+      expect(
+        ordered.map((g) => g.name).toList(),
+        containsAllInOrder(['db', 'app', 'proxy']),
+      );
     });
 
     test('validate returns no errors for valid config', () {
-      final config = BootConfig(groups: [
-        BootGroup(name: 'web', hostNames: ['web-01']),
-        BootGroup(name: 'worker', hostNames: ['worker-01'], dependsOn: ['web']),
-      ]);
+      final config = BootConfig(
+        groups: [
+          BootGroup(name: 'web', hostNames: ['web-01']),
+          BootGroup(
+            name: 'worker',
+            hostNames: ['worker-01'],
+            dependsOn: ['web'],
+          ),
+        ],
+      );
 
       expect(config.validate(), isEmpty);
     });
 
     test('validate detects missing dependency references', () {
-      final config = BootConfig(groups: [
-        BootGroup(name: 'web', hostNames: ['web-01'], dependsOn: ['db']),
-      ]);
+      final config = BootConfig(
+        groups: [
+          BootGroup(name: 'web', hostNames: ['web-01'], dependsOn: ['db']),
+        ],
+      );
 
       final errors = config.validate();
       expect(errors, hasLength(1));
@@ -86,9 +105,11 @@ void main() {
     });
 
     test('validate does not flag self-referencing deps', () {
-      final config = BootConfig(groups: [
-        BootGroup(name: 'web', hostNames: ['web-01'], dependsOn: ['web']),
-      ]);
+      final config = BootConfig(
+        groups: [
+          BootGroup(name: 'web', hostNames: ['web-01'], dependsOn: ['web']),
+        ],
+      );
 
       expect(config.validate(), isEmpty);
     });
@@ -97,10 +118,7 @@ void main() {
   group('runHealthCheck', () {
     test('returns true when no health check is set', () async {
       final group = BootGroup(name: 'web', hostNames: ['web-01']);
-      final result = await runHealthCheck(
-        group,
-        (_) async => 0,
-      );
+      final result = await runHealthCheck(group, (_) async => 0);
       expect(result, isTrue);
     });
 
@@ -111,10 +129,7 @@ void main() {
         healthCheck: 'curl -f http://localhost',
       );
 
-      final result = await runHealthCheck(
-        group,
-        (_) async => 0,
-      );
+      final result = await runHealthCheck(group, (_) async => 0);
       expect(result, isTrue);
     });
 
@@ -125,10 +140,7 @@ void main() {
         healthCheck: 'curl -f http://localhost',
       );
 
-      final result = await runHealthCheck(
-        group,
-        (_) async => 1,
-      );
+      final result = await runHealthCheck(group, (_) async => 1);
       expect(result, isFalse);
     });
 

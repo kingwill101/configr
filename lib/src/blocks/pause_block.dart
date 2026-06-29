@@ -60,10 +60,7 @@ class PauseBlock extends ActionBlock {
   Future<void> execute() async {
     final total = seconds + minutes * 60;
     if (total > 0) {
-      emitEvent(StartedEvent(
-        moduleId: id,
-        message: 'Pausing for ${total}s',
-      ));
+      emitEvent(StartedEvent(moduleId: id, message: 'Pausing for ${total}s'));
       await Future.delayed(Duration(seconds: total));
     } else if (prompt.isNotEmpty) {
       throw ActionFailedException(

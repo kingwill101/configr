@@ -120,9 +120,7 @@ class DownloadBlock extends ActionBlock {
 
   @override
   Future<void> execute() async {
-    emitEvent(
-      StartedEvent(moduleId: id, message: 'Downloading from $source'),
-    );
+    emitEvent(StartedEvent(moduleId: id, message: 'Downloading from $source'));
 
     // Check destination
     final exists = await fileService.fileExists(destination);

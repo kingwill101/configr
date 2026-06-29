@@ -54,7 +54,10 @@ void main() {
     test('resolves alias-prefixed URI', () async {
       final registry = SecretProviders();
       registry.register('env', (_) => const EnvProvider());
-      final result = await registry.resolve('prod://USER', aliases: {'prod': 'env://'});
+      final result = await registry.resolve(
+        'prod://USER',
+        aliases: {'prod': 'env://'},
+      );
       expect(result, isNotNull);
       expect(result, isNotEmpty);
     });
@@ -92,10 +95,11 @@ void main() {
       expect(blocks.first.blockType, equals('echo'));
     });
 
-    test('resolved secrets are accessible via dot notation from sibling blocks',
-        () async {
-      final helper = V2TestHelper();
-      final blocks = await helper.processConfig('''
+    test(
+      'resolved secrets are accessible via dot notation from sibling blocks',
+      () async {
+        final helper = V2TestHelper();
+        final blocks = await helper.processConfig('''
         secrets {
           test_secret = "env://USER"
         }
@@ -104,13 +108,14 @@ void main() {
         }
       ''');
 
-      expect(blocks, hasLength(1));
-      expect(blocks.first.blockType, equals('echo'));
-      // dry-run: echo block's source is used as message
-      // The message should have the USER env var resolved
-      final echoBlock = blocks.first;
-      print('ECHO MESSAGE: "${echoBlock.source}"');
-      print('ECHO DESTINATION: "${echoBlock.destination}"');
-    });
+        expect(blocks, hasLength(1));
+        expect(blocks.first.blockType, equals('echo'));
+        // dry-run: echo block's source is used as message
+        // The message should have the USER env var resolved
+        final echoBlock = blocks.first;
+        print('ECHO MESSAGE: "${echoBlock.source}"');
+        print('ECHO DESTINATION: "${echoBlock.destination}"');
+      },
+    );
   });
 }

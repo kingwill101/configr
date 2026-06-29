@@ -49,15 +49,16 @@ class ContainerExecBlock extends ActionBlock {
   }
 
   @override
-  String dryRunSummary() =>
-      '$blockType: $containerName › $command';
+  String dryRunSummary() => '$blockType: $containerName › $command';
 
   @override
   Future<void> execute() async {
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Executing in container $containerName: $command',
-    ));
+    emitEvent(
+      StartedEvent(
+        moduleId: id,
+        message: 'Executing in container $containerName: $command',
+      ),
+    );
 
     final args = <String>['exec'];
     if (interactive) {
@@ -72,10 +73,12 @@ class ContainerExecBlock extends ActionBlock {
     final result = await runCommand('docker', args, checkExitCode: false);
     capturedOutput = result.stdout?.toString() ?? '';
 
-    emitEvent(CompletedEvent(
-      moduleId: id,
-      message: 'Executed in container $containerName',
-    ));
+    emitEvent(
+      CompletedEvent(
+        moduleId: id,
+        message: 'Executed in container $containerName',
+      ),
+    );
 
     status = 'completed';
   }

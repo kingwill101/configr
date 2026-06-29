@@ -36,14 +36,19 @@ void main() {
       configPath = '/config';
     });
 
-    Future<void> writeLockfile(String hostName,
-        List<AppliedBlockRecord> records, {String? checksum}) async {
+    Future<void> writeLockfile(
+      String hostName,
+      List<AppliedBlockRecord> records, {
+      String? checksum,
+    }) async {
       final lockPath = HostLockfile.pathFor(configPath, hostName);
       final mgr = V2LockfileManager(lockPath, fileSystem: fs);
-      await mgr.write(V2LockfileData(
-        appliedBlocks: records,
-        configChecksum: checksum ?? 'abc123',
-      ));
+      await mgr.write(
+        V2LockfileData(
+          appliedBlocks: records,
+          configChecksum: checksum ?? 'abc123',
+        ),
+      );
     }
 
     group('checkHost', () {

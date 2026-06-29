@@ -54,13 +54,11 @@ class FlatpakPackageManager extends PackageManager
 
   @override
   Future<String?> getInstalledVersion(String packageName) async {
-    final result = await runCommand('flatpak', [
-      'info',
-      packageName,
-    ]);
+    final result = await runCommand('flatpak', ['info', packageName]);
     if (result.exitCode != 0) return null;
-    final versionMatch =
-        RegExp(r'Version:\s*(.+)').firstMatch(result.stdout.toString());
+    final versionMatch = RegExp(
+      r'Version:\s*(.+)',
+    ).firstMatch(result.stdout.toString());
     return versionMatch?.group(1)?.trim();
   }
 
@@ -102,21 +100,19 @@ class FlatpakPackageManager extends PackageManager
       packageName,
     ]);
     if (result.exitCode != 0) return null;
-    final versionMatch =
-        RegExp(r'Version:\s*(.+)').firstMatch(result.stdout.toString());
+    final versionMatch = RegExp(
+      r'Version:\s*(.+)',
+    ).firstMatch(result.stdout.toString());
     return versionMatch?.group(1)?.trim();
   }
 
   @override
   Future<String?> getInstalledVersionLocally(String packageName) async {
-    final result = await runCommand('flatpak', [
-      'info',
-      '--user',
-      packageName,
-    ]);
+    final result = await runCommand('flatpak', ['info', '--user', packageName]);
     if (result.exitCode != 0) return null;
-    final versionMatch =
-        RegExp(r'Version:\s*(.+)').firstMatch(result.stdout.toString());
+    final versionMatch = RegExp(
+      r'Version:\s*(.+)',
+    ).firstMatch(result.stdout.toString());
     return versionMatch?.group(1)?.trim();
   }
 

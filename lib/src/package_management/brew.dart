@@ -1,8 +1,7 @@
 import 'package:configr/src/package_management/package_manger.dart';
 import 'package:configr/src/utils/logging.dart';
 
-class BrewPackageManager extends PackageManager
-    with GlobalInstallCapability {
+class BrewPackageManager extends PackageManager with GlobalInstallCapability {
   BrewPackageManager(super.privilegeEscalation);
 
   @override
@@ -42,8 +41,9 @@ class BrewPackageManager extends PackageManager
     // JSON output: [{"installed":[{"version":"1.2.3"}]}]
     try {
       final json = result.stdout.toString();
-      final versionMatch =
-          RegExp(r'"version"\s*:\s*"([^"]+)"').firstMatch(json);
+      final versionMatch = RegExp(
+        r'"version"\s*:\s*"([^"]+)"',
+      ).firstMatch(json);
       return versionMatch?.group(1);
     } catch (_) {
       return null;

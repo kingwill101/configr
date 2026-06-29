@@ -52,7 +52,10 @@ void main() {
     ''');
 
     final block = blocks.first as dynamic;
-    expect(block.dryRunSummary(), equals('service: docker, state=started, enabled'));
+    expect(
+      block.dryRunSummary(),
+      equals('service: docker, state=started, enabled'),
+    );
   });
 
   test('should return minimal dry-run summary', () async {

@@ -30,11 +30,7 @@ abstract class PackageManager {
     List<String> args, {
     CommandOutputHandler? onOutput,
   }) {
-    final cmd = Command(
-      name: command,
-      command: command,
-      parameters: args,
-    );
+    final cmd = Command(name: command, command: command, parameters: args);
     return CommandExecutor.execute(
       cmd,
       privilegeEscalation,

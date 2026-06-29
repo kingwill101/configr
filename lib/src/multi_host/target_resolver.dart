@@ -84,7 +84,11 @@ class TargetResolver {
     // Use inventory defaults (fourth priority)
     if (inventory.defaultTargets != null &&
         inventory.defaultTargets!.isNotEmpty) {
-      return _resolveByName(inventory.defaultTargets!, inventory, throwIfNotFound);
+      return _resolveByName(
+        inventory.defaultTargets!,
+        inventory,
+        throwIfNotFound,
+      );
     }
 
     // Fallback to all hosts (final option)
@@ -104,8 +108,11 @@ class TargetResolver {
   /// Throws:
   /// ConfigrCliExitException if [throwIfNotFound] is true and any host
   /// name is not found in the inventory.
-  List<Host> _resolveByName(List<String> hostNames, Inventory inventory,
-      bool throwIfNotFound) {
+  List<Host> _resolveByName(
+    List<String> hostNames,
+    Inventory inventory,
+    bool throwIfNotFound,
+  ) {
     final result = <Host>[];
     final missing = <String>[];
 
@@ -119,9 +126,7 @@ class TargetResolver {
     }
 
     if (throwIfNotFound && missing.isNotEmpty) {
-      throw CliExitException(
-        1,
-      );
+      throw CliExitException(1);
     }
 
     return result;
@@ -137,7 +142,7 @@ class TargetResolver {
   /// Combined list of all hosts assigned to the specified roles.
   /// Duplicate hosts are avoided (a host can belong to multiple roles).
   List<Host> _resolveByRole(List<String> roleNames, Inventory inventory) {
-    final hosts = <Host>{};  // Use Set to avoid duplicates
+    final hosts = <Host>{}; // Use Set to avoid duplicates
 
     for (final roleName in roleNames) {
       final roleHosts = inventory.getHostsByRole(roleName);
@@ -159,7 +164,7 @@ class TargetResolver {
   /// Combined list of all hosts belonging to the specified groups.
   /// Duplicate hosts are avoided (a host can belong to multiple groups).
   List<Host> _resolveByGroup(List<String> groupNames, Inventory inventory) {
-    final hosts = <Host>{};  // Use Set to avoid duplicates
+    final hosts = <Host>{}; // Use Set to avoid duplicates
 
     for (final groupName in groupNames) {
       final groupHosts = inventory.getHostsByGroup(groupName);
@@ -185,11 +190,7 @@ class TargetResolver {
     required String strategy,
     int? priority,
   }) {
-    return Target(
-      host: host,
-      strategy: strategy,
-      priority: priority,
-    );
+    return Target(host: host, strategy: strategy, priority: priority);
   }
 
   /// Build targets for a list of hosts with optional strategy overrides.
@@ -205,6 +206,11 @@ class TargetResolver {
   /// Returns:
   /// List of Target objects.
   List<Target> fromHosts(List<Host> hosts, String strategy, {int? priority}) {
-    return hosts.map((host) => fromHost(host: host, strategy: strategy, priority: priority)).toList();
+    return hosts
+        .map(
+          (host) =>
+              fromHost(host: host, strategy: strategy, priority: priority),
+        )
+        .toList();
   }
 }

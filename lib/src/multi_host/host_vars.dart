@@ -23,7 +23,7 @@ class HostVars {
   final FileSystem fs;
 
   HostVars({this.factsDir = '.configr/facts', FileSystem? fs})
-      : fs = fs ?? LocalFileSystem();
+    : fs = fs ?? LocalFileSystem();
 
   /// Load facts for a single host.
   ///

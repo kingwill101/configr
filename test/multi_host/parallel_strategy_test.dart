@@ -31,9 +31,18 @@ void main() {
     group('execute', () {
       test('executes all targets', () async {
         final targets = [
-          Target(host: Host(name: 'web-01', address: '10.0.0.1'), strategy: 'parallel'),
-          Target(host: Host(name: 'web-02', address: '10.0.0.2'), strategy: 'parallel'),
-          Target(host: Host(name: 'db-01', address: '10.0.0.3'), strategy: 'parallel'),
+          Target(
+            host: Host(name: 'web-01', address: '10.0.0.1'),
+            strategy: 'parallel',
+          ),
+          Target(
+            host: Host(name: 'web-02', address: '10.0.0.2'),
+            strategy: 'parallel',
+          ),
+          Target(
+            host: Host(name: 'db-01', address: '10.0.0.3'),
+            strategy: 'parallel',
+          ),
         ];
 
         await strategy.execute(
@@ -45,7 +54,10 @@ void main() {
         );
 
         expect(recorder.executedHosts, hasLength(3));
-        expect(recorder.executedHosts, containsAll(['web-01', 'web-02', 'db-01']));
+        expect(
+          recorder.executedHosts,
+          containsAll(['web-01', 'web-02', 'db-01']),
+        );
       });
 
       test('returns early for empty targets', () async {
@@ -60,31 +72,49 @@ void main() {
         expect(recorder.executedHosts, isEmpty);
       });
 
-      test('completes all targets despite failures without fail-fast', () async {
-        final targets = [
-          Target(host: Host(name: 'web-01', address: '10.0.0.1'), strategy: 'parallel'),
-          Target(host: Host(name: 'web-02', address: '10.0.0.2'), strategy: 'parallel'),
-          Target(host: Host(name: 'db-01', address: '10.0.0.3'), strategy: 'parallel'),
-        ];
+      test(
+        'completes all targets despite failures without fail-fast',
+        () async {
+          final targets = [
+            Target(
+              host: Host(name: 'web-01', address: '10.0.0.1'),
+              strategy: 'parallel',
+            ),
+            Target(
+              host: Host(name: 'web-02', address: '10.0.0.2'),
+              strategy: 'parallel',
+            ),
+            Target(
+              host: Host(name: 'db-01', address: '10.0.0.3'),
+              strategy: 'parallel',
+            ),
+          ];
 
-        final callback = recorder.failOnHosts(['web-01']);
+          final callback = recorder.failOnHosts(['web-01']);
 
-        await strategy.execute(
-          targets: targets,
-          executeOnHost: callback,
-          globalEventBus: eventBus,
-          dryRun: false,
-          failFast: false,
-        );
+          await strategy.execute(
+            targets: targets,
+            executeOnHost: callback,
+            globalEventBus: eventBus,
+            dryRun: false,
+            failFast: false,
+          );
 
-        expect(recorder.executedHosts, hasLength(3));
-        expect(recorder.failedHosts, equals(['web-01']));
-      });
+          expect(recorder.executedHosts, hasLength(3));
+          expect(recorder.failedHosts, equals(['web-01']));
+        },
+      );
 
       test('stops on first failure with fail-fast', () async {
         final targets = [
-          Target(host: Host(name: 'web-01', address: '10.0.0.1'), strategy: 'parallel'),
-          Target(host: Host(name: 'web-02', address: '10.0.0.2'), strategy: 'parallel'),
+          Target(
+            host: Host(name: 'web-01', address: '10.0.0.1'),
+            strategy: 'parallel',
+          ),
+          Target(
+            host: Host(name: 'web-02', address: '10.0.0.2'),
+            strategy: 'parallel',
+          ),
         ];
 
         final callback = recorder.failOnHosts(['web-01']);
@@ -105,7 +135,10 @@ void main() {
 
       test('emits started and completed events for each host', () async {
         final targets = [
-          Target(host: Host(name: 'web-01', address: '10.0.0.1'), strategy: 'parallel'),
+          Target(
+            host: Host(name: 'web-01', address: '10.0.0.1'),
+            strategy: 'parallel',
+          ),
         ];
 
         await strategy.execute(
@@ -124,7 +157,10 @@ void main() {
 
       test('emits success summary', () async {
         final targets = [
-          Target(host: Host(name: 'web-01', address: '10.0.0.1'), strategy: 'parallel'),
+          Target(
+            host: Host(name: 'web-01', address: '10.0.0.1'),
+            strategy: 'parallel',
+          ),
         ];
 
         await strategy.execute(

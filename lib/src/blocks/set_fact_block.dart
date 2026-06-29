@@ -54,11 +54,13 @@ class SetFactBlock extends ActionBlock {
   @override
   Future<void> execute() async {
     emitEvent(StartedEvent(moduleId: id, message: 'Setting facts'));
-    emitEvent(StatusUpdateEvent(
-      moduleId: id,
-      message: 'Set ${_facts.length} fact(s): ${_facts.keys.join(', ')}',
-      level: StatusEvent.info,
-    ));
+    emitEvent(
+      StatusUpdateEvent(
+        moduleId: id,
+        message: 'Set ${_facts.length} fact(s): ${_facts.keys.join(', ')}',
+        level: StatusEvent.info,
+      ),
+    );
     status = 'completed';
   }
 

@@ -4,7 +4,8 @@ import 'package:test/test.dart';
 import 'package:configr/src/multi_host/host.dart';
 import 'package:configr/src/multi_host/connection_pool.dart';
 import 'package:configr/src/utils/ssh_execution_service.dart';
-import 'package:configr/src/utils/execution_service.dart' show CommandOutputHandler;
+import 'package:configr/src/utils/execution_service.dart'
+    show CommandOutputHandler;
 
 /// A mock SSH execution service for testing.
 class MockSSHExecutionService extends SSHExecutionService {
@@ -28,12 +29,15 @@ class MockSSHExecutionService extends SSHExecutionService {
   }
 
   @override
-  Future<ProcessResult> run(String command, List<String> arguments,
-      {String? workingDirectory,
-      bool runInShell = false,
-      Map<String, String>? environment,
-      CommandOutputHandler? onOutput,
-      String? stdin}) async {
+  Future<ProcessResult> run(
+    String command,
+    List<String> arguments, {
+    String? workingDirectory,
+    bool runInShell = false,
+    Map<String, String>? environment,
+    CommandOutputHandler? onOutput,
+    String? stdin,
+  }) async {
     return ProcessResult(0, 0, '', '');
   }
 
@@ -47,15 +51,11 @@ class MockSSHExecutionService extends SSHExecutionService {
 void main() {
   group('ConnectionPool', () {
     late ConnectionPool pool;
-    final host1 =
-        Host(name: 'web-01', address: '10.0.0.1', username: 'root');
-    final host2 =
-        Host(name: 'db-01', address: '10.0.0.2', username: 'admin');
+    final host1 = Host(name: 'web-01', address: '10.0.0.1', username: 'root');
+    final host2 = Host(name: 'db-01', address: '10.0.0.2', username: 'admin');
 
     setUp(() {
-      pool = ConnectionPool(
-        sshFactory: () => MockSSHExecutionService(),
-      );
+      pool = ConnectionPool(sshFactory: () => MockSSHExecutionService());
     });
 
     test('acquire creates a new connection', () async {
@@ -127,10 +127,7 @@ void main() {
 
       await pool.acquire(host1);
 
-      expect(
-        () => pool.acquire(host2),
-        throwsA(isA<StateError>()),
-      );
+      expect(() => pool.acquire(host2), throwsA(isA<StateError>()));
     });
 
     test('acquire with maxConnections reuses existing', () async {

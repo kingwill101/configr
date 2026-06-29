@@ -15,9 +15,8 @@ class HookManager {
   HookManager({
     required this.hooksDir,
     FileSystem? fileSystem,
-    Map<String, String> extraEnv = const {},
-  })  : _fileSystem = fileSystem ?? const LocalFileSystem(),
-        _extraEnv = extraEnv;
+    this._extraEnv = const {},
+  }) : _fileSystem = fileSystem ?? const LocalFileSystem();
 
   static const knownEvents = [
     'pre-apply',
@@ -73,10 +72,7 @@ class HookManager {
       ...extraVars,
     };
 
-    final runner = LuaHookRunner(
-      globals: globals,
-      fileSystem: _fileSystem,
-    );
+    final runner = LuaHookRunner(globals: globals, fileSystem: _fileSystem);
 
     return runner.run(scriptPath);
   }

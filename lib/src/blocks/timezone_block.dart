@@ -69,34 +69,39 @@ class _LinuxTimezoneBlock extends TimezoneBlock {
   Future<void> execute() async {
     if (timezone.isEmpty) {
       throw ActionFailedException(
-        'Timezone is required for timezone block', moduleId: id,
+        'Timezone is required for timezone block',
+        moduleId: id,
       );
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id, message: 'Setting timezone to: $timezone',
-    ));
+    emitEvent(
+      StartedEvent(moduleId: id, message: 'Setting timezone to: $timezone'),
+    );
 
     try {
       final priv = privilegeEscalation;
 
-      final result = await priv.runWithElevatedPrivileges(
-        'timedatectl', ['set-timezone', timezone],
-      );
+      final result = await priv.runWithElevatedPrivileges('timedatectl', [
+        'set-timezone',
+        timezone,
+      ]);
       if (result.exitCode != 0) {
-        final fallback = await priv.runWithElevatedPrivileges(
-          'ln', ['-sf', '/usr/share/zoneinfo/$timezone', '/etc/localtime'],
-        );
+        final fallback = await priv.runWithElevatedPrivileges('ln', [
+          '-sf',
+          '/usr/share/zoneinfo/$timezone',
+          '/etc/localtime',
+        ]);
         if (fallback.exitCode != 0) {
           throw ActionFailedException(
-            'Failed to set timezone: ${result.stderr}', moduleId: id,
+            'Failed to set timezone: ${result.stderr}',
+            moduleId: id,
           );
         }
       }
 
-      emitEvent(CompletedEvent(
-        moduleId: id, message: 'Timezone set to $timezone',
-      ));
+      emitEvent(
+        CompletedEvent(moduleId: id, message: 'Timezone set to $timezone'),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;

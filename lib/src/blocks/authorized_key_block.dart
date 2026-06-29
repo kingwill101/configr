@@ -82,10 +82,9 @@ class AuthorizedKeyBlock extends ActionBlock {
       );
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Managing authorized_keys for $user',
-    ));
+    emitEvent(
+      StartedEvent(moduleId: id, message: 'Managing authorized_keys for $user'),
+    );
 
     try {
       final keyPath = _resolvePath();
@@ -106,10 +105,12 @@ class AuthorizedKeyBlock extends ActionBlock {
         lines = await file.readAsLines();
       } else if (status == 'absent') {
         status = 'completed';
-        emitEvent(CompletedEvent(
-          moduleId: id,
-          message: 'Authorized_keys file does not exist for $user',
-        ));
+        emitEvent(
+          CompletedEvent(
+            moduleId: id,
+            message: 'Authorized_keys file does not exist for $user',
+          ),
+        );
         return;
       }
 
@@ -141,11 +142,13 @@ class AuthorizedKeyBlock extends ActionBlock {
         await executionService.run('chown', ['-R', user, keyPath]);
       }
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message:
-            'Key ${status == 'absent' ? 'removed from' : 'added to'} $keyPath',
-      ));
+      emitEvent(
+        CompletedEvent(
+          moduleId: id,
+          message:
+              'Key ${status == 'absent' ? 'removed from' : 'added to'} $keyPath',
+        ),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;

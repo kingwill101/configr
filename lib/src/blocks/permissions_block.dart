@@ -73,9 +73,7 @@ class PermissionsBlock extends ActionBlock {
     }
 
     try {
-      final isDir = await fileService.directoryExists(
-        source,
-      );
+      final isDir = await fileService.directoryExists(source);
 
       if (isDir && recursive) {
         await _processDirectoryRecursively(source);
@@ -115,11 +113,7 @@ class PermissionsBlock extends ActionBlock {
               fileState['originalOwnership'] as Map<String, String>?;
           final origPerm = fileState['originalPermissions'] as String?;
           if (origOwn != null) {
-            await fileService.chown(
-              path,
-              origOwn['owner'],
-              origOwn['group'],
-            );
+            await fileService.chown(path, origOwn['owner'], origOwn['group']);
           }
           if (origPerm != null) {
             await fileService.chmod(path, origPerm);
@@ -134,10 +128,7 @@ class PermissionsBlock extends ActionBlock {
           );
         }
         if (originalPermissions != null) {
-          await fileService.chmod(
-            source,
-            originalPermissions!,
-          );
+          await fileService.chmod(source, originalPermissions!);
         }
       }
 

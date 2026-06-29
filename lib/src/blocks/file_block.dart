@@ -89,8 +89,7 @@ class FileBlock extends ActionBlock {
     operation = record.metadata?['operation'] as String? ?? 'create';
     content = record.metadata?['content'] as String? ?? '';
     editMode = record.metadata?['edit_mode'] as String? ?? 'replace';
-    createDirectories =
-        record.metadata?['create_directories'] as bool? ?? true;
+    createDirectories = record.metadata?['create_directories'] as bool? ?? true;
     backupOriginal = record.metadata?['backup_original'] as bool? ?? false;
     backupSuffix = record.metadata?['backup_suffix'] as String? ?? '.backup';
     operationSuccess = record.metadata?['operation_success'] as bool? ?? true;
@@ -349,8 +348,7 @@ class FileBlock extends ActionBlock {
       await fileService.deleteFile(filePath);
     }
 
-    if (backupPath != null &&
-        await fileService.fileExists(backupPath!)) {
+    if (backupPath != null && await fileService.fileExists(backupPath!)) {
       await fileService.deleteFile(backupPath!);
     }
   }
@@ -360,8 +358,7 @@ class FileBlock extends ActionBlock {
       await fileService.writeFile(filePath, originalContent!);
     }
 
-    if (backupPath != null &&
-        await fileService.fileExists(backupPath!)) {
+    if (backupPath != null && await fileService.fileExists(backupPath!)) {
       await fileService.deleteFile(backupPath!);
     }
   }
@@ -375,8 +372,7 @@ class FileBlock extends ActionBlock {
       await fileService.writeFile(filePath, content);
     }
 
-    if (backupPath != null &&
-        await fileService.fileExists(backupPath!)) {
+    if (backupPath != null && await fileService.fileExists(backupPath!)) {
       await fileService.deleteFile(backupPath!);
     }
   }

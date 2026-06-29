@@ -170,10 +170,7 @@ class DecompressBlock extends ActionBlock {
   Future<void> rollback() async {
     // Remove the entire destination directory
     if (await fileService.directoryExists(destination)) {
-      await fileService.deleteDirectory(
-        destination,
-        recursive: true,
-      );
+      await fileService.deleteDirectory(destination, recursive: true);
     }
 
     for (final child in children) {
@@ -215,8 +212,9 @@ class DecompressBlock extends ActionBlock {
 
         if (extractedFiles % 10 == 0 || extractedFiles == totalFiles) {
           final pct = uncompressedSize > 0
-              ? ((1 - compressedSize / uncompressedSize) * 100)
-                  .toStringAsFixed(1)
+              ? ((1 - compressedSize / uncompressedSize) * 100).toStringAsFixed(
+                  1,
+                )
               : 'N/A';
           emitEvent(
             ProgressEvent(

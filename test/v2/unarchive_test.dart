@@ -96,7 +96,10 @@ void main() {
     ''');
 
     final block = blocks.first as dynamic;
-    expect(block.dryRunSummary(), equals('unarchive: /tmp/archive.zip -> /opt/data'));
+    expect(
+      block.dryRunSummary(),
+      equals('unarchive: /tmp/archive.zip -> /opt/data'),
+    );
   });
 
   test('should return correct dry-run summary empty', () async {

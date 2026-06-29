@@ -290,10 +290,7 @@ class DeleteBlock extends ActionBlock {
     // Delete the directory itself if empty
     if (recursive) {
       try {
-        await fileService.deleteDirectory(
-          source,
-          recursive: false,
-        );
+        await fileService.deleteDirectory(source, recursive: false);
       } catch (_) {
         // Directory might not be empty
       }

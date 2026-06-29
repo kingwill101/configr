@@ -5,27 +5,52 @@ import 'package:configr/src/multi_host/inventory.dart';
 
 void main() {
   group('Inventory', () {
-    final web01 = Host(name: 'web-01', address: '10.0.0.1', roles: ['web'], groups: ['production']);
-    final web02 = Host(name: 'web-02', address: '10.0.0.2', roles: ['web'], groups: ['production']);
-    final db01 = Host(name: 'db-01', address: '10.0.0.3', roles: ['db'], groups: ['production']);
-    final worker01 = Host(name: 'worker-01', address: '10.0.0.4', roles: ['worker'], groups: ['staging']);
+    final web01 = Host(
+      name: 'web-01',
+      address: '10.0.0.1',
+      roles: ['web'],
+      groups: ['production'],
+    );
+    final web02 = Host(
+      name: 'web-02',
+      address: '10.0.0.2',
+      roles: ['web'],
+      groups: ['production'],
+    );
+    final db01 = Host(
+      name: 'db-01',
+      address: '10.0.0.3',
+      roles: ['db'],
+      groups: ['production'],
+    );
+    final worker01 = Host(
+      name: 'worker-01',
+      address: '10.0.0.4',
+      roles: ['worker'],
+      groups: ['staging'],
+    );
 
     final allHosts = [web01, web02, db01, worker01];
 
-    final webRole = Role(name: 'web', hosts: [web01, web02], primary: true, bootPriority: 1);
+    final webRole = Role(
+      name: 'web',
+      hosts: [web01, web02],
+      primary: true,
+      bootPriority: 1,
+    );
     final dbRole = Role(name: 'db', hosts: [db01], bootPriority: 10);
-    final workerRole = Role(name: 'worker', hosts: [worker01], bootPriority: 20);
+    final workerRole = Role(
+      name: 'worker',
+      hosts: [worker01],
+      bootPriority: 20,
+    );
 
     Inventory makeInventory({List<String>? defaultTargets}) {
       return Inventory.full(
         hosts: allHosts,
         roles: [webRole, dbRole, workerRole],
         groups: ['production', 'staging'],
-        rolesByName: {
-          'web': webRole,
-          'db': dbRole,
-          'worker': workerRole,
-        },
+        rolesByName: {'web': webRole, 'db': dbRole, 'worker': workerRole},
         hostsByGroup: {
           'production': ['web-01', 'web-02', 'db-01'],
           'staging': ['worker-01'],
@@ -86,7 +111,10 @@ void main() {
       final inventory = makeInventory();
       final hosts = inventory.getHostsByGroup('production');
       expect(hosts, hasLength(3));
-      expect(hosts.map((h) => h.name), containsAll(['web-01', 'web-02', 'db-01']));
+      expect(
+        hosts.map((h) => h.name),
+        containsAll(['web-01', 'web-02', 'db-01']),
+      );
     });
 
     test('getHostsByGroup returns empty for unknown group', () {
@@ -102,7 +130,10 @@ void main() {
 
     test('getAllHosts returns unmodifiable list', () {
       final inventory = makeInventory();
-      expect(() => inventory.getAllHosts() as dynamic..clear(), throwsUnsupportedError);
+      expect(
+        () => inventory.getAllHosts() as dynamic..clear(),
+        throwsUnsupportedError,
+      );
     });
 
     test('getRoleNames returns all role names', () {

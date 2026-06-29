@@ -34,7 +34,11 @@ class DriftDetector {
     String? expectedChecksum,
     FileSystem? fileSystem,
   }) async {
-    final lockData = await HostLockfile.read(configPath, hostName, fileSystem: fileSystem);
+    final lockData = await HostLockfile.read(
+      configPath,
+      hostName,
+      fileSystem: fileSystem,
+    );
 
     if (lockData == null) {
       return DriftResult(
@@ -51,7 +55,8 @@ class DriftDetector {
       return DriftResult(
         hostName: hostName,
         hasDrift: true,
-        message: 'Config checksum mismatch '
+        message:
+            'Config checksum mismatch '
             '(applied: ${lockData.configChecksum}, expected: $expectedChecksum).',
         lockData: lockData,
       );
@@ -62,7 +67,8 @@ class DriftDetector {
       return DriftResult(
         hostName: hostName,
         hasDrift: true,
-        message: 'Block count mismatch '
+        message:
+            'Block count mismatch '
             '(applied: ${lockData.appliedBlocks.length}, expected: ${expectedBlocks.length}).',
         lockData: lockData,
       );
@@ -79,7 +85,8 @@ class DriftDetector {
         return DriftResult(
           hostName: hostName,
           hasDrift: true,
-          message: 'Missing block at index $i: ${expected.blockType} '
+          message:
+              'Missing block at index $i: ${expected.blockType} '
               '(${expected.source}).',
           lockData: lockData,
         );
@@ -91,7 +98,8 @@ class DriftDetector {
         return DriftResult(
           hostName: hostName,
           hasDrift: true,
-          message: 'Block mismatch at index $i: '
+          message:
+              'Block mismatch at index $i: '
               'expected ${expected.blockType}(${expected.source}), '
               'found ${actual.blockType}(${actual.source}).',
           lockData: lockData,
@@ -149,7 +157,11 @@ class DriftDetector {
     final unconfigured = <String>[];
 
     for (final hostName in hostNames) {
-      final lockData = await HostLockfile.read(configPath, hostName, fileSystem: fileSystem);
+      final lockData = await HostLockfile.read(
+        configPath,
+        hostName,
+        fileSystem: fileSystem,
+      );
       if (lockData == null) {
         unconfigured.add(hostName);
       }

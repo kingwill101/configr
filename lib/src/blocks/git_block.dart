@@ -204,10 +204,7 @@ class GitBlock extends ActionBlock {
   Future<void> _rollbackClone() async {
     if (await fileService.directoryExists(destination)) {
       logger.info('Removing cloned repository at $destination');
-      await fileService.deleteDirectory(
-        destination,
-        recursive: true,
-      );
+      await fileService.deleteDirectory(destination, recursive: true);
     }
   }
 
@@ -316,19 +313,22 @@ class GitBlock extends ActionBlock {
       );
     }
 
-    final result = await executionService.run('git', fullArgs,
-        runInShell: true,
-        onOutput: streamOutput
-            ? (line, isStderr) {
-                emitEvent(
-                  StatusUpdateEvent(
-                    moduleId: id,
-                    level: StatusEvent.debug,
-                    message: line.trim(),
-                  ),
-                );
-              }
-            : null);
+    final result = await executionService.run(
+      'git',
+      fullArgs,
+      runInShell: true,
+      onOutput: streamOutput
+          ? (line, isStderr) {
+              emitEvent(
+                StatusUpdateEvent(
+                  moduleId: id,
+                  level: StatusEvent.debug,
+                  message: line.trim(),
+                ),
+              );
+            }
+          : null,
+    );
 
     operationOutput = result.stdout.toString();
     operationError = result.stderr.toString();

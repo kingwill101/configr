@@ -42,7 +42,7 @@ void main() {
 
   test('should emit started event during execution', () async {
     helper.clearEvents();
-    
+
     await helper.runConfig('''
       stat {
         path = "/nonexistent/file.txt"
@@ -56,7 +56,7 @@ void main() {
 
   test('should set stat variables on context for existing file', () async {
     await helper.createFile('/tmp/test_stat.txt', 'test content');
-    
+
     final blocks = await helper.runConfig('''
       stat {
         path = "/tmp/test_stat.txt"

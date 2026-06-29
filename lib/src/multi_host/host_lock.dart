@@ -18,7 +18,7 @@ class HostLock {
   final FileSystem fs;
 
   HostLock({this.baseDir = '.configr', FileSystem? fs})
-      : fs = fs ?? LocalFileSystem();
+    : fs = fs ?? LocalFileSystem();
 
   /// Acquire a lock for [hostName].
   ///

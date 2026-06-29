@@ -31,9 +31,18 @@ void main() {
     group('execute', () {
       test('executes all targets in order', () async {
         final targets = [
-          Target(host: Host(name: 'web-01', address: '10.0.0.1'), strategy: 'linear'),
-          Target(host: Host(name: 'web-02', address: '10.0.0.2'), strategy: 'linear'),
-          Target(host: Host(name: 'db-01', address: '10.0.0.3'), strategy: 'linear'),
+          Target(
+            host: Host(name: 'web-01', address: '10.0.0.1'),
+            strategy: 'linear',
+          ),
+          Target(
+            host: Host(name: 'web-02', address: '10.0.0.2'),
+            strategy: 'linear',
+          ),
+          Target(
+            host: Host(name: 'db-01', address: '10.0.0.3'),
+            strategy: 'linear',
+          ),
         ];
 
         await strategy.execute(
@@ -49,7 +58,10 @@ void main() {
 
       test('emits started and completed events for each host', () async {
         final targets = [
-          Target(host: Host(name: 'web-01', address: '10.0.0.1'), strategy: 'linear'),
+          Target(
+            host: Host(name: 'web-01', address: '10.0.0.1'),
+            strategy: 'linear',
+          ),
         ];
 
         await strategy.execute(
@@ -86,9 +98,18 @@ void main() {
 
       test('stops on first failure with fail-fast', () async {
         final targets = [
-          Target(host: Host(name: 'web-01', address: '10.0.0.1'), strategy: 'linear'),
-          Target(host: Host(name: 'web-02', address: '10.0.0.2'), strategy: 'linear'),
-          Target(host: Host(name: 'db-01', address: '10.0.0.3'), strategy: 'linear'),
+          Target(
+            host: Host(name: 'web-01', address: '10.0.0.1'),
+            strategy: 'linear',
+          ),
+          Target(
+            host: Host(name: 'web-02', address: '10.0.0.2'),
+            strategy: 'linear',
+          ),
+          Target(
+            host: Host(name: 'db-01', address: '10.0.0.3'),
+            strategy: 'linear',
+          ),
         ];
 
         final callback = recorder.failOnHosts(['web-01']);
@@ -120,9 +141,18 @@ void main() {
 
       test('continues on failure with fail-fast disabled', () async {
         final targets = [
-          Target(host: Host(name: 'web-01', address: '10.0.0.1'), strategy: 'linear'),
-          Target(host: Host(name: 'web-02', address: '10.0.0.2'), strategy: 'linear'),
-          Target(host: Host(name: 'db-01', address: '10.0.0.3'), strategy: 'linear'),
+          Target(
+            host: Host(name: 'web-01', address: '10.0.0.1'),
+            strategy: 'linear',
+          ),
+          Target(
+            host: Host(name: 'web-02', address: '10.0.0.2'),
+            strategy: 'linear',
+          ),
+          Target(
+            host: Host(name: 'db-01', address: '10.0.0.3'),
+            strategy: 'linear',
+          ),
         ];
 
         final callback = recorder.failOnHosts(['web-01']);
@@ -143,7 +173,10 @@ void main() {
 
       test('emits summary on success', () async {
         final targets = [
-          Target(host: Host(name: 'web-01', address: '10.0.0.1'), strategy: 'linear'),
+          Target(
+            host: Host(name: 'web-01', address: '10.0.0.1'),
+            strategy: 'linear',
+          ),
         ];
 
         await strategy.execute(
@@ -164,8 +197,14 @@ void main() {
 
       test('emits error summary on failure with fail-fast disabled', () async {
         final targets = [
-          Target(host: Host(name: 'web-01', address: '10.0.0.1'), strategy: 'linear'),
-          Target(host: Host(name: 'web-02', address: '10.0.0.2'), strategy: 'linear'),
+          Target(
+            host: Host(name: 'web-01', address: '10.0.0.1'),
+            strategy: 'linear',
+          ),
+          Target(
+            host: Host(name: 'web-02', address: '10.0.0.2'),
+            strategy: 'linear',
+          ),
         ];
 
         final callback = recorder.failOnHosts(['web-01']);
@@ -181,7 +220,9 @@ void main() {
         await Future.delayed(Duration.zero);
 
         final statusEvents = eventBus.eventsOfType<StatusUpdateEvent>();
-        final errorStatus = statusEvents.firstWhere((e) => e.level == StatusEvent.error);
+        final errorStatus = statusEvents.firstWhere(
+          (e) => e.level == StatusEvent.error,
+        );
         expect(errorStatus.message, contains('error(s)'));
       });
     });

@@ -37,7 +37,8 @@ class V2LockfileData {
       version: json['version'] as int? ?? 2,
       configChecksum: json['config_checksum'] as String?,
       targets: (json['targets'] as Map<String, dynamic>?)?.map(
-        (k, v) => MapEntry(k, TargetLockEntry.fromJson(v as Map<String, dynamic>)),
+        (k, v) =>
+            MapEntry(k, TargetLockEntry.fromJson(v as Map<String, dynamic>)),
       ),
     );
   }

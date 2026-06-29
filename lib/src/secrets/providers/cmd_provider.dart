@@ -12,11 +12,10 @@ class CmdProvider extends SecretProvider {
     final command = Uri.decodeFull(key);
     if (command.trim().isEmpty) return null;
     try {
-      final result = await Process.run(
-        '/bin/sh',
-        ['-c', command],
-        environment: _environment.isNotEmpty ? _environment : null,
-      );
+      final result = await Process.run('/bin/sh', [
+        '-c',
+        command,
+      ], environment: _environment.isNotEmpty ? _environment : null);
       if (result.exitCode != 0) return null;
       return (result.stdout as String).trimRight();
     } catch (_) {

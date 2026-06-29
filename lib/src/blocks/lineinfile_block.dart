@@ -99,10 +99,9 @@ class LineInFileBlock extends ActionBlock {
       );
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Editing $filePath via lineinfile',
-    ));
+    emitEvent(
+      StartedEvent(moduleId: id, message: 'Editing $filePath via lineinfile'),
+    );
 
     try {
       final file = fileSystem.file(filePath);
@@ -133,17 +132,16 @@ class LineInFileBlock extends ActionBlock {
 
       await file.writeAsString('${lines.join('\n')}\n');
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: 'Edited $filePath: ${lines.length} lines',
-      ));
+      emitEvent(
+        CompletedEvent(
+          moduleId: id,
+          message: 'Edited $filePath: ${lines.length} lines',
+        ),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;
-      throw ActionFailedException(
-        'lineinfile failed: $e',
-        moduleId: id,
-      );
+      throw ActionFailedException('lineinfile failed: $e', moduleId: id);
     }
   }
 

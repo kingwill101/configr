@@ -11,17 +11,18 @@ class LuaHookRunner {
   final Map<String, dynamic> _globals;
 
   LuaHookRunner({
-    required Map<String, dynamic> globals,
+    required this._globals,
     FileSystem? fileSystem,
     EventBus? eventBus,
-  })  : _globals = globals,
-        _fileSystem = fileSystem ?? const LocalFileSystem();
+  }) : _fileSystem = fileSystem ?? const LocalFileSystem();
 
   Future<bool> run(String scriptPath) async {
     final file = _fileSystem.file(scriptPath);
     if (!await file.exists()) return false;
 
-    _luaLike.vm.libraryRegistry.register(ConfigrLibrary(_LuaHookHost(_fileSystem)));
+    _luaLike.vm.libraryRegistry.register(
+      ConfigrLibrary(_LuaHookHost(_fileSystem)),
+    );
     _luaLike.vm.libraryRegistry.initializeAll();
 
     for (final entry in _globals.entries) {

@@ -49,8 +49,9 @@ abstract class CommandRunner {
 class LocalCommandRunner implements CommandRunner {
   const LocalCommandRunner();
   PrivilegeEscalation get _privilegeEscalation => di<PrivilegeEscalation>();
-  ExecutionService get _executionService =>
-      di.isRegistered<ExecutionService>() ? di<ExecutionService>() : const LocalExecutionService();
+  ExecutionService get _executionService => di.isRegistered<ExecutionService>()
+      ? di<ExecutionService>()
+      : const LocalExecutionService();
 
   @override
   Future<ProcessResult> run(
@@ -61,16 +62,16 @@ class LocalCommandRunner implements CommandRunner {
     bool runInShell = false,
   }) async {
     if (environment != null && environment.isNotEmpty) {
-      return _executionService.run(command, arguments,
-          workingDirectory: workingDirectory, environment: environment,
-          runInShell: runInShell);
+      return _executionService.run(
+        command,
+        arguments,
+        workingDirectory: workingDirectory,
+        environment: environment,
+        runInShell: runInShell,
+      );
     }
 
-    final cmd = Command(
-      name: command,
-      command: command,
-      parameters: arguments,
-    );
+    final cmd = Command(name: command, command: command, parameters: arguments);
     return CommandExecutor.execute(
       cmd,
       _privilegeEscalation,
@@ -109,11 +110,9 @@ class LocalCommandRunner implements CommandRunner {
   @override
   Future<bool> commandExists(String command) async {
     try {
-      final result = await _executionService.run(
-        'which',
-        [command],
-        runInShell: true,
-      );
+      final result = await _executionService.run('which', [
+        command,
+      ], runInShell: true);
       return result.exitCode == 0;
     } catch (_) {
       return false;

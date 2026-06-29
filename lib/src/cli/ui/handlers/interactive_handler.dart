@@ -331,9 +331,7 @@ class InteractiveHandler implements UIHandler {
 
   void _handleResourceRollbackCompleted(ResourceRollbackCompletedEvent event) {
     final duration = _formatDuration(event.duration);
-    _console.success(
-      'Rollback completed for ${event.resourceType}',
-    );
+    _console.success('Rollback completed for ${event.resourceType}');
     if (event.totalActions > 0) {
       _console.info(
         '   Actions: ${event.rolledbackActions}/${event.totalActions}',

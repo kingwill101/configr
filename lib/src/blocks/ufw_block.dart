@@ -100,7 +100,12 @@ abstract class UfwBlock extends ActionBlock {
   }
 
   Future<ProcessResult> _runUfw(List<String> args) {
-    return runCommand('ufw', args, requireElevation: true, checkExitCode: false);
+    return runCommand(
+      'ufw',
+      args,
+      requireElevation: true,
+      checkExitCode: false,
+    );
   }
 
   /// Build the rule arguments for ufw allow/deny/reject/limit.
@@ -157,10 +162,7 @@ class _LinuxUfwBlock extends UfwBlock {
   @override
   Future<void> execute() async {
     emitEvent(
-      StartedEvent(
-        moduleId: id,
-        message: 'Managing UFW: $dryRunSummary',
-      ),
+      StartedEvent(moduleId: id, message: 'Managing UFW: $dryRunSummary'),
     );
 
     try {
@@ -171,9 +173,7 @@ class _LinuxUfwBlock extends UfwBlock {
         await _handleRule();
       }
 
-      emitEvent(
-        CompletedEvent(moduleId: id, message: 'UFW managed'),
-      );
+      emitEvent(CompletedEvent(moduleId: id, message: 'UFW managed'));
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;

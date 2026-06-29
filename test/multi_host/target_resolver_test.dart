@@ -12,10 +12,30 @@ void main() {
     setUp(() {
       resolver = TargetResolver();
 
-      final web01 = Host(name: 'web-01', address: '10.0.0.1', roles: ['web'], groups: ['production']);
-      final web02 = Host(name: 'web-02', address: '10.0.0.2', roles: ['web'], groups: ['production']);
-      final db01 = Host(name: 'db-01', address: '10.0.0.3', roles: ['db'], groups: ['production']);
-      final worker01 = Host(name: 'worker-01', address: '10.0.0.4', roles: ['worker'], groups: ['staging']);
+      final web01 = Host(
+        name: 'web-01',
+        address: '10.0.0.1',
+        roles: ['web'],
+        groups: ['production'],
+      );
+      final web02 = Host(
+        name: 'web-02',
+        address: '10.0.0.2',
+        roles: ['web'],
+        groups: ['production'],
+      );
+      final db01 = Host(
+        name: 'db-01',
+        address: '10.0.0.3',
+        roles: ['db'],
+        groups: ['production'],
+      );
+      final worker01 = Host(
+        name: 'worker-01',
+        address: '10.0.0.4',
+        roles: ['worker'],
+        groups: ['staging'],
+      );
 
       inventory = Inventory.full(
         hosts: [web01, web02, db01, worker01],
@@ -56,10 +76,7 @@ void main() {
       });
 
       test('returns hosts by role', () {
-        final hosts = resolver.resolve(
-          roles: ['web'],
-          inventory: inventory,
-        );
+        final hosts = resolver.resolve(roles: ['web'], inventory: inventory);
 
         expect(hosts, hasLength(2));
         expect(hosts.map((h) => h.name), containsAll(['web-01', 'web-02']));
@@ -158,10 +175,7 @@ void main() {
     group('fromHost', () {
       test('creates target from host', () {
         final host = inventory.getHost('web-01')!;
-        final target = resolver.fromHost(
-          host: host,
-          strategy: 'linear',
-        );
+        final target = resolver.fromHost(host: host, strategy: 'linear');
 
         expect(target.host.name, equals('web-01'));
         expect(target.strategy, equals('linear'));
@@ -181,16 +195,25 @@ void main() {
 
     group('fromHosts', () {
       test('creates targets from multiple hosts', () {
-        final hosts = [inventory.getHost('web-01')!, inventory.getHost('web-02')!];
+        final hosts = [
+          inventory.getHost('web-01')!,
+          inventory.getHost('web-02')!,
+        ];
         final targets = resolver.fromHosts(hosts, 'linear');
 
         expect(targets, hasLength(2));
         expect(targets.every((t) => t.strategy == 'linear'), isTrue);
-        expect(targets.map((t) => t.host.name), containsAll(['web-01', 'web-02']));
+        expect(
+          targets.map((t) => t.host.name),
+          containsAll(['web-01', 'web-02']),
+        );
       });
 
       test('creates targets with shared priority', () {
-        final hosts = [inventory.getHost('web-01')!, inventory.getHost('db-01')!];
+        final hosts = [
+          inventory.getHost('web-01')!,
+          inventory.getHost('db-01')!,
+        ];
         final targets = resolver.fromHosts(hosts, 'serial', priority: 1);
 
         expect(targets.every((t) => t.priority == 1), isTrue);

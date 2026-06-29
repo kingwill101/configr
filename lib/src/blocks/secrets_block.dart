@@ -13,8 +13,7 @@ class SecretsBlock extends i3.BaseBlockHandler {
   String? _profile;
   final SecretProviders _providers;
 
-  SecretsBlock()
-    : _providers = _createDefaultProviders();
+  SecretsBlock() : _providers = _createDefaultProviders();
 
   static SecretProviders _createDefaultProviders() {
     final providers = SecretProviders();
@@ -54,8 +53,7 @@ class SecretsBlock extends i3.BaseBlockHandler {
     final sensitiveKeys = <String>{};
 
     // Find the sensitive variable middleware — it may be on any ancestor.
-    final sensitiveMiddleware =
-        _findSensitiveMiddleware(context);
+    final sensitiveMiddleware = _findSensitiveMiddleware(context);
 
     for (final entry in context.variables.entries) {
       final key = entry.key;

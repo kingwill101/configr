@@ -7,7 +7,8 @@ class UnknownStrategyException implements Exception {
   final String name;
   const UnknownStrategyException(this.name);
   @override
-  String toString() => 'Unknown strategy: "$name". '
+  String toString() =>
+      'Unknown strategy: "$name". '
       'Available: linear, serial, parallel';
 }
 
@@ -21,9 +22,9 @@ class StrategyResolver {
     LinearStrategy? linear,
     SerialStrategy? serial,
     ParallelStrategy? parallel,
-  })  : linear = linear ?? LinearStrategy(),
-        serial = serial ?? SerialStrategy(),
-        parallel = parallel ?? ParallelStrategy();
+  }) : linear = linear ?? LinearStrategy(),
+       serial = serial ?? SerialStrategy(),
+       parallel = parallel ?? ParallelStrategy();
 
   ExecutionStrategy strategyFor(String name) {
     switch (name.toLowerCase()) {

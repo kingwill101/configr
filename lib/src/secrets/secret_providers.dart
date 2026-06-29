@@ -24,7 +24,8 @@ class SecretProviders {
       final aliasScheme = _extractScheme(aliasTarget);
       if (aliasScheme != null) {
         resolvedScheme = aliasScheme;
-        effectiveUri = '$aliasScheme://${effectiveUri.substring(scheme.length + 3)}';
+        effectiveUri =
+            '$aliasScheme://${effectiveUri.substring(scheme.length + 3)}';
       }
     }
 
@@ -34,7 +35,9 @@ class SecretProviders {
     final provider = _providerFor(resolvedScheme, uri);
     if (provider == null) return null;
 
-    final project = scheme == 'dotenv' ? uri.path : (uri.host.isNotEmpty ? uri.host : uri.path);
+    final project = scheme == 'dotenv'
+        ? uri.path
+        : (uri.host.isNotEmpty ? uri.host : uri.path);
     final key = uri.queryParameters['name'] ?? _extractKey(uriString);
     final profile = uri.queryParameters['profile'];
     return provider.get(project, key, profile);

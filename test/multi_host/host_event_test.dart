@@ -81,13 +81,16 @@ void main() {
   group('HostStatus', () {
     test('has all expected values', () {
       expect(HostStatus.values, hasLength(5));
-      expect(HostStatus.values, containsAll([
-        HostStatus.pending,
-        HostStatus.running,
-        HostStatus.succeeded,
-        HostStatus.failed,
-        HostStatus.skipped,
-      ]));
+      expect(
+        HostStatus.values,
+        containsAll([
+          HostStatus.pending,
+          HostStatus.running,
+          HostStatus.succeeded,
+          HostStatus.failed,
+          HostStatus.skipped,
+        ]),
+      );
     });
   });
 }

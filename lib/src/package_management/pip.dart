@@ -14,7 +14,10 @@ class PipPackageManager extends PackageManager
   @override
   Future<void> install(String packageName, {String? version}) async {
     logger.info('Installing pip package: $packageName');
-    final args = ['install', if (version != null) '$packageName==$version' else packageName];
+    final args = [
+      'install',
+      if (version != null) '$packageName==$version' else packageName,
+    ];
     await runCommand('pip3', args);
   }
 
@@ -45,7 +48,11 @@ class PipPackageManager extends PackageManager
   @override
   Future<void> installLocally(String packageName, {String? version}) async {
     logger.info('Installing pip package locally: $packageName');
-    final args = ['install', '--user', if (version != null) '$packageName==$version' else packageName];
+    final args = [
+      'install',
+      '--user',
+      if (version != null) '$packageName==$version' else packageName,
+    ];
     await runCommand('pip3', args);
   }
 
@@ -94,8 +101,7 @@ class PipPackageManager extends PackageManager
   }
 
   String? _parseVersion(String output) {
-    final versionMatch =
-        RegExp(r'Version:\s*(.+)').firstMatch(output);
+    final versionMatch = RegExp(r'Version:\s*(.+)').firstMatch(output);
     return versionMatch?.group(1)?.trim();
   }
 }

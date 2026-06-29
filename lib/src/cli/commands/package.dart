@@ -286,12 +286,14 @@ class PackageUpgradeCommand extends Command<void> {
           newVersion = await pm.getInstalledVersion(pkg) ?? '(unknown)';
           io.line(newVersion);
 
-          records.add(PackageLockRecord(
-            name: pkg,
-            manager: mgr.blockType,
-            version: newVersion,
-            appliedAt: DateTime.now().toUtc().toIso8601String(),
-          ));
+          records.add(
+            PackageLockRecord(
+              name: pkg,
+              manager: mgr.blockType,
+              version: newVersion,
+              appliedAt: DateTime.now().toUtc().toIso8601String(),
+            ),
+          );
           totalUpgraded++;
         } catch (e) {
           io.line('failed');
@@ -373,12 +375,14 @@ class PackageLockCommand extends Command<void> {
           final version = await pm.getInstalledVersion(pkg);
           final versionStr = version ?? '(not installed)';
           io.line('  $pkg: $versionStr');
-          records.add(PackageLockRecord(
-            name: pkg,
-            manager: mgr.blockType,
-            version: version,
-            appliedAt: DateTime.now().toUtc().toIso8601String(),
-          ));
+          records.add(
+            PackageLockRecord(
+              name: pkg,
+              manager: mgr.blockType,
+              version: version,
+              appliedAt: DateTime.now().toUtc().toIso8601String(),
+            ),
+          );
           successCount++;
         } catch (e) {
           io.line('  $pkg: error — $e');
@@ -395,9 +399,7 @@ class PackageLockCommand extends Command<void> {
     if (errorCount == 0) {
       io.success('Lock complete — $successCount package(s) recorded.');
     } else {
-      io.warn(
-        'Lock finished — $successCount recorded, $errorCount errors.',
-      );
+      io.warn('Lock finished — $successCount recorded, $errorCount errors.');
     }
   }
 }
@@ -423,10 +425,9 @@ Future<void> _writeLockfile(
     }
   } catch (_) {}
 
-  await mgr.write(PackageLockData(
-    packages: records,
-    configChecksum: configChecksum,
-  ));
+  await mgr.write(
+    PackageLockData(packages: records, configChecksum: configChecksum),
+  );
 
   io.info('Lockfile written to $lockPath');
 }

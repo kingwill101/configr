@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:configr/src/di.dart';
-import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/secrets/secret_provider.dart';
 import 'package:configr/src/secrets/secret_providers.dart';
 import 'package:configr/src/secrets/secret_resolver.dart';
@@ -83,14 +82,16 @@ void main() {
       expect((result as SensitiveValue).value, isNotEmpty);
     });
 
-    test('resolveWithSensitivity returns raw string when markSensitive=false',
-        () async {
-      final result = await resolver.resolveWithSensitivity(
-        'env://USER',
-        markSensitive: false,
-      );
-      expect(result, isA<String>());
-    });
+    test(
+      'resolveWithSensitivity returns raw string when markSensitive=false',
+      () async {
+        final result = await resolver.resolveWithSensitivity(
+          'env://USER',
+          markSensitive: false,
+        );
+        expect(result, isA<String>());
+      },
+    );
   });
 
   group('SecretProviders with aliases', () {
@@ -118,9 +119,10 @@ void main() {
     test('unknown alias returns null', () async {
       final registry = SecretProviders();
       registry.register('env', (_) => const EnvProvider());
-      final result = await registry.resolve('unknown://foo', aliases: {
-        'prod': 'env://',
-      });
+      final result = await registry.resolve(
+        'unknown://foo',
+        aliases: {'prod': 'env://'},
+      );
       expect(result, isNull);
     });
   });
@@ -142,7 +144,8 @@ void main() {
 
   group('FileProvider', () {
     test('returns content of existing file', () async {
-      final tmpFile = '/tmp/_configr_test_file_${DateTime.now().millisecondsSinceEpoch}';
+      final tmpFile =
+          '/tmp/_configr_test_file_${DateTime.now().millisecondsSinceEpoch}';
       try {
         await File(tmpFile).writeAsString('file_secret_value\n');
         final provider = const FileProvider();
@@ -165,8 +168,9 @@ void main() {
       final tmpFile =
           '/tmp/_configr_dotenv_test_${DateTime.now().millisecondsSinceEpoch}';
       try {
-        await File(tmpFile)
-            .writeAsString('MY_KEY=my_dotenv_value\nANOTHER=val\n');
+        await File(
+          tmpFile,
+        ).writeAsString('MY_KEY=my_dotenv_value\nANOTHER=val\n');
         final provider = const DotenvProvider();
         // project arg is the file path, key is the variable name
         final result = await provider.get(tmpFile, 'MY_KEY', null);
@@ -202,9 +206,7 @@ void main() {
         await File(tmpFile).writeAsString('DB_PASS=s3cret\n');
         final registry = SecretProviders();
         registry.register('dotenv', (_) => const DotenvProvider());
-        final result = await registry.resolve(
-          'dotenv://$tmpFile?name=DB_PASS',
-        );
+        final result = await registry.resolve('dotenv://$tmpFile?name=DB_PASS');
         expect(result, 's3cret');
       } finally {
         File(tmpFile).deleteSync();

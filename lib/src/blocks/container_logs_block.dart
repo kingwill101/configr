@@ -53,15 +53,16 @@ class ContainerLogsBlock extends ActionBlock {
   }
 
   @override
-  String dryRunSummary() =>
-      '$blockType: $containerName (tail=$tail)';
+  String dryRunSummary() => '$blockType: $containerName (tail=$tail)';
 
   @override
   Future<void> execute() async {
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Fetching logs from container $containerName',
-    ));
+    emitEvent(
+      StartedEvent(
+        moduleId: id,
+        message: 'Fetching logs from container $containerName',
+      ),
+    );
 
     final args = <String>['logs'];
     if (follow) {
@@ -76,10 +77,12 @@ class ContainerLogsBlock extends ActionBlock {
     final result = await runCommand('docker', args, checkExitCode: false);
     capturedLogs = result.stdout?.toString() ?? '';
 
-    emitEvent(CompletedEvent(
-      moduleId: id,
-      message: 'Fetched logs from container $containerName',
-    ));
+    emitEvent(
+      CompletedEvent(
+        moduleId: id,
+        message: 'Fetched logs from container $containerName',
+      ),
+    );
 
     status = 'completed';
   }

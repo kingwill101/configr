@@ -41,7 +41,8 @@ class PluginContext {
         'version': Platform.operatingSystemVersion,
       },
       'user': {
-        'username': Platform.environment['USER'] ??
+        'username':
+            Platform.environment['USER'] ??
             Platform.environment['USERNAME'] ??
             'unknown',
         'home': Platform.environment['HOME'] ?? '/',
@@ -71,10 +72,7 @@ class PluginContext {
   }
 
   PluginContext withVersion(String version) {
-    _data['configr'] = {
-      ..._data['configr'] as Map,
-      'version': version,
-    };
+    _data['configr'] = {..._data['configr'] as Map, 'version': version};
     return this;
   }
 

@@ -49,7 +49,9 @@ Future<List<DriftResult>> checkDrift(String configPath) async {
   try {
     lockData = await lockMgr.read();
   } catch (e) {
-    logger.info('No lockfile found at ${lockMgr.lockfilePath} — skipping drift check.');
+    logger.info(
+      'No lockfile found at ${lockMgr.lockfilePath} — skipping drift check.',
+    );
     return [];
   }
 
@@ -77,17 +79,21 @@ Future<List<DriftResult>> checkDrift(String configPath) async {
 
       final current = await fileService.computeFileHash(record.destination);
       if (current == record.sha256) {
-        results.add(DriftResult(
-          record: record,
-          state: DriftState.synced,
-          currentChecksum: current,
-        ));
+        results.add(
+          DriftResult(
+            record: record,
+            state: DriftState.synced,
+            currentChecksum: current,
+          ),
+        );
       } else {
-        results.add(DriftResult(
-          record: record,
-          state: DriftState.drifted,
-          currentChecksum: current,
-        ));
+        results.add(
+          DriftResult(
+            record: record,
+            state: DriftState.drifted,
+            currentChecksum: current,
+          ),
+        );
       }
     } catch (e) {
       logger.warning('Drift check failed for ${record.blockType}: $e');

@@ -103,10 +103,7 @@ class WaitForBlock extends ActionBlock {
 
   @override
   Future<void> execute() async {
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: dryRunSummary(),
-    ));
+    emitEvent(StartedEvent(moduleId: id, message: dryRunSummary()));
 
     final startTime = DateTime.now();
     final deadline = startTime.add(Duration(seconds: timeout));
@@ -143,17 +140,13 @@ class WaitForBlock extends ActionBlock {
         );
       }
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: 'Condition met: $dryRunSummary',
-      ));
+      emitEvent(
+        CompletedEvent(moduleId: id, message: 'Condition met: $dryRunSummary'),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;
-      throw ActionFailedException(
-        'wait_for failed: $e',
-        moduleId: id,
-      );
+      throw ActionFailedException('wait_for failed: $e', moduleId: id);
     }
   }
 
@@ -189,7 +182,11 @@ class WaitForBlock extends ActionBlock {
   Future<bool> _checkHost() async {
     try {
       final result = await executionService.run('ping', [
-        '-c', '1', '-W', '2', host,
+        '-c',
+        '1',
+        '-W',
+        '2',
+        host,
       ]);
       return result.exitCode == 0;
     } catch (_) {

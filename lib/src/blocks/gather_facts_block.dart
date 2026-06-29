@@ -14,8 +14,6 @@ class GatherFactsBlock extends ActionBlock {
   String get blockType => 'gather_facts';
 
   String gatherSubset = 'all';
-  @override
-  String destination = '';
 
   GatherFactsBlock();
 
@@ -43,7 +41,8 @@ class GatherFactsBlock extends ActionBlock {
   }
 
   @override
-  String dryRunSummary() => '$blockType: subset=$gatherSubset'
+  String dryRunSummary() =>
+      '$blockType: subset=$gatherSubset'
       '${destination.isNotEmpty ? ' → $destination' : ''}';
 
   Future<void> _persistFacts(Map<String, dynamic> facts) async {
@@ -86,25 +85,18 @@ class GatherFactsBlock extends ActionBlock {
 
       // ---- Kernel information via uname ----
       try {
-        final unameResult = await runCommand(
-          'uname',
-          ['-a'],
-          checkExitCode: false,
-        );
+        final unameResult = await runCommand('uname', [
+          '-a',
+        ], checkExitCode: false);
         if (unameResult.exitCode == 0) {
-          context.setVariable(
-            'kernel',
-            (unameResult.stdout as String).trim(),
-          );
+          context.setVariable('kernel', (unameResult.stdout as String).trim());
         }
       } catch (_) {}
 
       try {
-        final kernelResult = await runCommand(
-          'uname',
-          ['-r'],
-          checkExitCode: false,
-        );
+        final kernelResult = await runCommand('uname', [
+          '-r',
+        ], checkExitCode: false);
         if (kernelResult.exitCode == 0) {
           context.setVariable(
             'kernel_version',
@@ -115,11 +107,7 @@ class GatherFactsBlock extends ActionBlock {
 
       // ---- CPU count via nproc ----
       try {
-        final nprocResult = await runCommand(
-          'nproc',
-          [],
-          checkExitCode: false,
-        );
+        final nprocResult = await runCommand('nproc', [], checkExitCode: false);
         if (nprocResult.exitCode == 0) {
           context.setVariable(
             'processor_count',
@@ -131,11 +119,9 @@ class GatherFactsBlock extends ActionBlock {
       // ---- Memory info (OS-specific) ----
       if (osFacts.isLinux) {
         try {
-          final memResult = await runCommand(
-            'free',
-            ['-b'],
-            checkExitCode: false,
-          );
+          final memResult = await runCommand('free', [
+            '-b',
+          ], checkExitCode: false);
           if (memResult.exitCode == 0) {
             final lines = (memResult.stdout as String).split('\n');
             if (lines.length > 1) {
@@ -152,11 +138,9 @@ class GatherFactsBlock extends ActionBlock {
         } catch (_) {}
       } else if (osFacts.isMacOS) {
         try {
-          final memResult = await runCommand(
-            'sysctl',
-            ['hw.memsize'],
-            checkExitCode: false,
-          );
+          final memResult = await runCommand('sysctl', [
+            'hw.memsize',
+          ], checkExitCode: false);
           if (memResult.exitCode == 0) {
             final output = (memResult.stdout as String).trim();
             final parts = output.split(':');
@@ -171,11 +155,9 @@ class GatherFactsBlock extends ActionBlock {
         } catch (_) {}
       } else if (osFacts.os == OperatingSystem.freebsd) {
         try {
-          final memResult = await runCommand(
-            'sysctl',
-            ['hw.physmem'],
-            checkExitCode: false,
-          );
+          final memResult = await runCommand('sysctl', [
+            'hw.physmem',
+          ], checkExitCode: false);
           if (memResult.exitCode == 0) {
             final output = (memResult.stdout as String).trim();
             final parts = output.split(':');
@@ -192,27 +174,23 @@ class GatherFactsBlock extends ActionBlock {
 
       // ---- Disk info ----
       try {
-        final dfResult = await runCommand(
-          'df',
-          ['-B1', '/'],
-          checkExitCode: false,
-        );
+        final dfResult = await runCommand('df', [
+          '-B1',
+          '/',
+        ], checkExitCode: false);
         if (dfResult.exitCode == 0) {
-          context.setVariable(
-            'mounts',
-            (dfResult.stdout as String).trim(),
-          );
+          context.setVariable('mounts', (dfResult.stdout as String).trim());
         }
       } catch (_) {}
 
       // ---- Network interfaces (OS-specific) ----
       if (osFacts.isLinux) {
         try {
-          final netResult = await runCommand(
-            'ip',
-            ['-o', 'addr', 'show'],
-            checkExitCode: false,
-          );
+          final netResult = await runCommand('ip', [
+            '-o',
+            'addr',
+            'show',
+          ], checkExitCode: false);
           if (netResult.exitCode == 0) {
             context.setVariable(
               'interfaces',
@@ -240,14 +218,15 @@ class GatherFactsBlock extends ActionBlock {
 
       final precedence = context.globalContext.options['_variablePrecedence'];
       if (precedence is VariablePrecedence) {
-        precedence.setLayer(PrecedenceLayer.facts, Map<String, String>.from(
-          facts.map((k, v) => MapEntry(k, v.toString())),
-        ));
+        precedence.setLayer(
+          PrecedenceLayer.facts,
+          Map<String, String>.from(
+            facts.map((k, v) => MapEntry(k, v.toString())),
+          ),
+        );
       }
 
-      emitEvent(
-        CompletedEvent(moduleId: id, message: 'Facts gathered'),
-      );
+      emitEvent(CompletedEvent(moduleId: id, message: 'Facts gathered'));
       status = 'completed';
     } catch (e) {
       emitEvent(

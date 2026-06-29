@@ -84,10 +84,7 @@ class UriBlock extends ActionBlock {
       throw ActionFailedException('url is required for uri', moduleId: id);
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: '$method $url',
-    ));
+    emitEvent(StartedEvent(moduleId: id, message: '$method $url'));
 
     try {
       final parsed = Uri.parse(url);
@@ -108,7 +105,9 @@ class UriBlock extends ActionBlock {
         request.write(body);
       }
 
-      final response = await request.close().timeout(Duration(seconds: timeout));
+      final response = await request.close().timeout(
+        Duration(seconds: timeout),
+      );
       final responseBody = await response.transform(utf8.decoder).join();
       client.close();
 
@@ -125,10 +124,12 @@ class UriBlock extends ActionBlock {
       context.setVariable('uri_method', method);
       context.setVariable('uri_url', url);
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: '$method $url returned ${response.statusCode}',
-      ));
+      emitEvent(
+        CompletedEvent(
+          moduleId: id,
+          message: '$method $url returned ${response.statusCode}',
+        ),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;

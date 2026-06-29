@@ -25,7 +25,7 @@ void main() {
 
   test('should emit started and status events', () async {
     helper.clearEvents();
-    
+
     await helper.runConfig('''
       set_fact {
         test_var = "test_value"

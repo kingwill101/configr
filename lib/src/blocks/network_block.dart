@@ -297,7 +297,11 @@ class NetworkBlock extends ActionBlock {
     final startTime = DateTime.now();
     try {
       final result = await executionService.run('ping', [
-        '-c', '1', '-W', timeout.toString(), source,
+        '-c',
+        '1',
+        '-W',
+        timeout.toString(),
+        source,
       ]);
       responseTimeMs = DateTime.now().difference(startTime).inMilliseconds;
       connectivitySuccess = result.exitCode == 0;

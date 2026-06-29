@@ -66,10 +66,7 @@ class LinearStrategy implements ExecutionStrategy {
             message: 'Completed linear execution of target: ${target.strategy}',
             duration: Duration.zero, // TODO: track actual duration
             correlationId: globalEventBus.executionId,
-            metadata: {
-              'target_index': i,
-              'target_total': targets.length,
-            },
+            metadata: {'target_index': i, 'target_total': targets.length},
           ),
         );
       } catch (e) {

@@ -111,10 +111,12 @@ class _LinuxGroupBlock extends GroupBlock {
         await _createOrUpdateGroup();
       }
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: 'Group $name ${status == 'absent' ? 'removed' : 'managed'}',
-      ));
+      emitEvent(
+        CompletedEvent(
+          moduleId: id,
+          message: 'Group $name ${status == 'absent' ? 'removed' : 'managed'}',
+        ),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;
@@ -128,12 +130,15 @@ class _LinuxGroupBlock extends GroupBlock {
 
     if (groupExists) {
       if (gid.isNotEmpty) {
-        final result = await priv.runWithElevatedPrivileges(
-          'groupmod', ['-g', gid, name],
-        );
+        final result = await priv.runWithElevatedPrivileges('groupmod', [
+          '-g',
+          gid,
+          name,
+        ]);
         if (result.exitCode != 0) {
           throw ActionFailedException(
-            'Failed to modify group: ${result.stderr}', moduleId: id,
+            'Failed to modify group: ${result.stderr}',
+            moduleId: id,
           );
         }
       }
@@ -147,7 +152,8 @@ class _LinuxGroupBlock extends GroupBlock {
       final result = await priv.runWithElevatedPrivileges('groupadd', args);
       if (result.exitCode != 0) {
         throw ActionFailedException(
-          'Failed to create group: ${result.stderr}', moduleId: id,
+          'Failed to create group: ${result.stderr}',
+          moduleId: id,
         );
       }
     }
@@ -158,14 +164,18 @@ class _LinuxGroupBlock extends GroupBlock {
     final result = await priv.runWithElevatedPrivileges('groupdel', [name]);
     if (result.exitCode != 0) {
       throw ActionFailedException(
-        'Failed to remove group: ${result.stderr}', moduleId: id,
+        'Failed to remove group: ${result.stderr}',
+        moduleId: id,
       );
     }
   }
 
   Future<bool> _groupExists() async {
     final priv = privilegeEscalation;
-    final result = await priv.runWithElevatedPrivileges('getent', ['group', name]);
+    final result = await priv.runWithElevatedPrivileges('getent', [
+      'group',
+      name,
+    ]);
     return result.exitCode == 0;
   }
 

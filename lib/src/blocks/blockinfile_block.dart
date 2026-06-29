@@ -55,7 +55,8 @@ class BlockInFileBlock extends ActionBlock {
     if (status == null || status!.isEmpty) {
       status = (context.getVariable('state') as String?) ?? 'present';
     }
-    marker = (context.getVariable('marker') as String?) ??
+    marker =
+        (context.getVariable('marker') as String?) ??
         '# {mark} CONFIGR MANAGED BLOCK';
     this.block = switch (context.getVariable('block')) {
       String s => s,
@@ -97,10 +98,9 @@ class BlockInFileBlock extends ActionBlock {
       );
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Managing block in $filePath',
-    ));
+    emitEvent(
+      StartedEvent(moduleId: id, message: 'Managing block in $filePath'),
+    );
 
     try {
       final file = fileSystem.file(filePath);
@@ -146,17 +146,13 @@ class BlockInFileBlock extends ActionBlock {
         }
       }
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: 'Managed block in $filePath',
-      ));
+      emitEvent(
+        CompletedEvent(moduleId: id, message: 'Managed block in $filePath'),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;
-      throw ActionFailedException(
-        'blockinfile failed: $e',
-        moduleId: id,
-      );
+      throw ActionFailedException('blockinfile failed: $e', moduleId: id);
     }
   }
 

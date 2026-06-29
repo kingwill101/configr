@@ -83,24 +83,15 @@ class ReplaceBlock extends ActionBlock {
   Future<void> execute() async {
     final filePath = source.isNotEmpty ? source : destination;
     if (filePath.isEmpty) {
-      throw ActionFailedException(
-        'Path is required for replace',
-        moduleId: id,
-      );
+      throw ActionFailedException('Path is required for replace', moduleId: id);
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Replacing in $filePath',
-    ));
+    emitEvent(StartedEvent(moduleId: id, message: 'Replacing in $filePath'));
 
     try {
       final file = fileSystem.file(filePath);
       if (!await file.exists()) {
-        throw ActionFailedException(
-          'File not found: $filePath',
-          moduleId: id,
-        );
+        throw ActionFailedException('File not found: $filePath', moduleId: id);
       }
 
       if (backup) {
@@ -118,17 +109,11 @@ class ReplaceBlock extends ActionBlock {
 
       await file.writeAsString(content);
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: 'Replaced in $filePath',
-      ));
+      emitEvent(CompletedEvent(moduleId: id, message: 'Replaced in $filePath'));
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;
-      throw ActionFailedException(
-        'replace failed: $e',
-        moduleId: id,
-      );
+      throw ActionFailedException('replace failed: $e', moduleId: id);
     }
   }
 

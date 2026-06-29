@@ -61,9 +61,10 @@ void main() {
     });
 
     test('toString contains name and host count', () {
-      final role = Role(name: 'web', hosts: [
-        Host(name: 'web-01', address: '10.0.0.1'),
-      ]);
+      final role = Role(
+        name: 'web',
+        hosts: [Host(name: 'web-01', address: '10.0.0.1')],
+      );
 
       expect(role.toString(), contains('web'));
       expect(role.toString(), contains('1'));

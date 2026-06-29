@@ -59,34 +59,38 @@ class ScriptBlock extends ActionBlock {
       throw ActionFailedException('script is required', moduleId: id);
     }
 
-    if (creates.isNotEmpty && await fileService.pathExists(creates).then((r) => r.exists)) {
-      emitEvent(StatusUpdateEvent(
-        moduleId: id,
-        message: 'Skip script: $creates already exists',
-        level: StatusEvent.info,
-      ));
+    if (creates.isNotEmpty &&
+        await fileService.pathExists(creates).then((r) => r.exists)) {
+      emitEvent(
+        StatusUpdateEvent(
+          moduleId: id,
+          message: 'Skip script: $creates already exists',
+          level: StatusEvent.info,
+        ),
+      );
       status = 'completed';
       return;
     }
 
     if (removes.isNotEmpty && !(await fileService.pathExists(removes)).exists) {
-      emitEvent(StatusUpdateEvent(
-        moduleId: id,
-        message: 'Skip script: $removes does not exist',
-        level: StatusEvent.info,
-      ));
+      emitEvent(
+        StatusUpdateEvent(
+          moduleId: id,
+          message: 'Skip script: $removes does not exist',
+          level: StatusEvent.info,
+        ),
+      );
       status = 'completed';
       return;
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Running script: $script',
-    ));
+    emitEvent(StartedEvent(moduleId: id, message: 'Running script: $script'));
 
     try {
       final tempDir = fileSystem.systemTempDirectory;
-      final tempFile = tempDir.childFile('configr_script_${DateTime.now().millisecondsSinceEpoch}');
+      final tempFile = tempDir.childFile(
+        'configr_script_${DateTime.now().millisecondsSinceEpoch}',
+      );
       await fileService.copyFile(script, tempFile.path);
       await runCommand('chmod', ['+x', tempFile.path], requireElevation: true);
 
@@ -102,10 +106,9 @@ class ScriptBlock extends ActionBlock {
 
       await tempFile.delete();
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: 'Script $script completed',
-      ));
+      emitEvent(
+        CompletedEvent(moduleId: id, message: 'Script $script completed'),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;

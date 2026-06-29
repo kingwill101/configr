@@ -85,14 +85,16 @@ void main() {
       // Verify block execution occurred
       expect(actionBlocks, hasLength(1));
       expect(actionBlocks.first.blockType, equals('lua_block'));
-      
+
       // Verify file write occurred via exposed writeFile
       final outputFile = fileSystem.file('/output.txt');
       expect(await outputFile.exists(), isTrue);
       expect(await outputFile.readAsString(), equals('DONE'));
 
       // Verify event emission occurred via exposed emitStatusUpdate
-      final statusEvents = emittedEvents.whereType<StatusUpdateEvent>().toList();
+      final statusEvents = emittedEvents
+          .whereType<StatusUpdateEvent>()
+          .toList();
       expect(statusEvents, isNotEmpty);
       expect(statusEvents.first.message, equals('LUA_hello'));
 
@@ -137,8 +139,10 @@ void main() {
       expect(result, equals('first_second'));
     });
 
-    test('onConfigLoad and onConfigApplied configuration lifecycle hooks', () async {
-      final script = '''
+    test(
+      'onConfigLoad and onConfigApplied configuration lifecycle hooks',
+      () async {
+        final script = '''
         load_called = false
         applied_called = false
         
@@ -151,19 +155,20 @@ void main() {
         end
       ''';
 
-      final plugin = LuaPlugin(code: script, fileSystem: fileSystem);
-      await plugin.initialize();
+        final plugin = LuaPlugin(code: script, fileSystem: fileSystem);
+        await plugin.initialize();
 
-      final config = i3.Config.parse('set \$var "value"');
-      
-      await plugin.onConfigLoad(config);
-      await plugin.onConfigApplied(config);
+        final config = i3.Config.parse('set \$var "value"');
 
-      final loadVal = plugin.luaLike.getGlobal("load_called");
-      final appliedVal = plugin.luaLike.getGlobal("applied_called");
+        await plugin.onConfigLoad(config);
+        await plugin.onConfigApplied(config);
 
-      expect(loadVal is Value ? loadVal.raw : loadVal, isTrue);
-      expect(appliedVal is Value ? appliedVal.raw : appliedVal, isTrue);
-    });
+        final loadVal = plugin.luaLike.getGlobal("load_called");
+        final appliedVal = plugin.luaLike.getGlobal("applied_called");
+
+        expect(loadVal is Value ? loadVal.raw : loadVal, isTrue);
+        expect(appliedVal is Value ? appliedVal.raw : appliedVal, isTrue);
+      },
+    );
   });
 }

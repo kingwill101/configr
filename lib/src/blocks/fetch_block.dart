@@ -66,48 +66,48 @@ class FetchBlock extends ActionBlock {
   Future<void> execute() async {
     if (src.isEmpty || dest.isEmpty) {
       throw ActionFailedException(
-        'src and dest are required for fetch', moduleId: id,
+        'src and dest are required for fetch',
+        moduleId: id,
       );
     }
 
     if (!await fileService.fileExists(src)) {
       if (failOnMissing) {
-        throw ActionFailedException(
-          'src file not found: $src', moduleId: id,
-        );
+        throw ActionFailedException('src file not found: $src', moduleId: id);
       }
-      emitEvent(StatusUpdateEvent(
-        moduleId: id,
-        message: 'Skip fetch: $src does not exist',
-        level: StatusEvent.info,
-      ));
+      emitEvent(
+        StatusUpdateEvent(
+          moduleId: id,
+          message: 'Skip fetch: $src does not exist',
+          level: StatusEvent.info,
+        ),
+      );
       status = 'completed';
       return;
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Fetching $src to $dest',
-    ));
+    emitEvent(StartedEvent(moduleId: id, message: 'Fetching $src to $dest'));
 
     try {
       final targetPath = flat
           ? (await fileService.pathExists(dest)).isDir
-              ? p.join(dest, p.basename(src))
-              : dest
+                ? p.join(dest, p.basename(src))
+                : dest
           : p.join(dest, _hostname, src);
 
       final targetDir = p.dirname(targetPath);
       if (!await fileService.directoryExists(targetDir)) {
-        await fileService.createDirectoryWithPermissions(targetDir, requireElevation: false);
+        await fileService.createDirectoryWithPermissions(
+          targetDir,
+          requireElevation: false,
+        );
       }
 
       await fileService.copyFile(src, targetPath);
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: 'Fetched $src to $targetPath',
-      ));
+      emitEvent(
+        CompletedEvent(moduleId: id, message: 'Fetched $src to $targetPath'),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;

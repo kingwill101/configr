@@ -59,10 +59,9 @@ class RawBlock extends ActionBlock {
       throw ActionFailedException('command is required for raw', moduleId: id);
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Running raw command: $command',
-    ));
+    emitEvent(
+      StartedEvent(moduleId: id, message: 'Running raw command: $command'),
+    );
 
     try {
       var fullCommand = command;
@@ -71,10 +70,7 @@ class RawBlock extends ActionBlock {
 
       await runCommand(executable, ['-c', fullCommand]);
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: 'Raw command completed',
-      ));
+      emitEvent(CompletedEvent(moduleId: id, message: 'Raw command completed'));
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;

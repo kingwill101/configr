@@ -60,7 +60,9 @@ class LocalExecutionService implements ExecutionService {
     CommandOutputHandler? onOutput,
     String? stdin,
   }) async {
-    if (stdin != null || onOutput != null || (environment != null && environment.isNotEmpty)) {
+    if (stdin != null ||
+        onOutput != null ||
+        (environment != null && environment.isNotEmpty)) {
       return _runStreaming(
         command,
         arguments,
@@ -108,17 +110,17 @@ class LocalExecutionService implements ExecutionService {
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .forEach((line) {
-      stdoutBuf.writeln(line);
-      onOutput?.call(line, false);
-    });
+          stdoutBuf.writeln(line);
+          onOutput?.call(line, false);
+        });
 
     final stderrDone = process.stderr
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .forEach((line) {
-      stderrBuf.writeln(line);
-      onOutput?.call(line, true);
-    });
+          stderrBuf.writeln(line);
+          onOutput?.call(line, true);
+        });
 
     await Future.wait([stdoutDone, stderrDone]);
     final exitCode = await process.exitCode;

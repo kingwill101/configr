@@ -92,7 +92,8 @@ class Host {
     'port': port,
     'username': username,
     if (privateKey != null) 'private_key': privateKey,
-    if (privateKeyPassphrase != null) 'private_key_passphrase': privateKeyPassphrase,
+    if (privateKeyPassphrase != null)
+      'private_key_passphrase': privateKeyPassphrase,
     if (connectTimeout != null) 'connect_timeout': connectTimeout,
   };
 

@@ -70,7 +70,10 @@ void main() {
     ''');
 
     final block = blocks.first as dynamic;
-    expect(block.dryRunSummary(), equals('firewalld: service=http, state=enabled'));
+    expect(
+      block.dryRunSummary(),
+      equals('firewalld: service=http, state=enabled'),
+    );
   });
 
   test('should return minimal dry-run summary', () async {
@@ -82,6 +85,9 @@ void main() {
     ''');
 
     final block = blocks.first as dynamic;
-    expect(block.dryRunSummary(), equals('firewalld: port=443/tcp, state=disabled'));
+    expect(
+      block.dryRunSummary(),
+      equals('firewalld: port=443/tcp, state=disabled'),
+    );
   });
 }

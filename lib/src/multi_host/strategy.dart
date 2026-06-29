@@ -50,7 +50,11 @@ extension ExecutionEventBusExtension on EventBus {
   }
 
   /// Emit a host-completed event with automatic correlation.
-  void emitHostCompleted(String hostName, {Duration? duration, Map<String, dynamic>? metadata}) {
+  void emitHostCompleted(
+    String hostName, {
+    Duration? duration,
+    Map<String, dynamic>? metadata,
+  }) {
     emit(
       CompletedEvent(
         moduleId: hostName,
@@ -63,7 +67,11 @@ extension ExecutionEventBusExtension on EventBus {
   }
 
   /// Emit a host-failed event with automatic correlation.
-  void emitHostFailed(String hostName, dynamic error, {Map<String, dynamic>? metadata}) {
+  void emitHostFailed(
+    String hostName,
+    dynamic error, {
+    Map<String, dynamic>? metadata,
+  }) {
     emit(
       FailedEvent(
         moduleId: hostName,
@@ -77,7 +85,12 @@ extension ExecutionEventBusExtension on EventBus {
   }
 
   /// Emit a status update with automatic correlation.
-  void emitStatusUpdate(String moduleId, String message, {StatusEvent level = StatusEvent.info, Map<String, dynamic>? metadata}) {
+  void emitStatusUpdate(
+    String moduleId,
+    String message, {
+    StatusEvent level = StatusEvent.info,
+    Map<String, dynamic>? metadata,
+  }) {
     emit(
       StatusUpdateEvent(
         moduleId: moduleId,

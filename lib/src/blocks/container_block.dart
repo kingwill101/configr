@@ -59,9 +59,7 @@ class ContainerBlock extends ActionBlock {
   };
 
   @override
-  Map<String, bool> get additionalBoolProperties => {
-    if (pull) 'pull': pull,
-  };
+  Map<String, bool> get additionalBoolProperties => {if (pull) 'pull': pull};
 
   @override
   Future<void> readAdditionalProperties(
@@ -109,27 +107,37 @@ class ContainerBlock extends ActionBlock {
 
   Future<bool> _containerExists() async {
     final output = await _execDocker([
-      'ps', '-a', '--filter', 'name=^/${containerName}\$',
-      '--format', '{{.Names}}',
+      'ps',
+      '-a',
+      '--filter',
+      'name=^/$containerName\$',
+      '--format',
+      '{{.Names}}',
     ]);
     return output != null && output.contains(containerName);
   }
 
   Future<bool> _containerRunning() async {
     final output = await _execDocker([
-      'ps', '--filter', 'name=^/${containerName}\$',
-      '--filter', 'status=running',
-      '--format', '{{.Names}}',
+      'ps',
+      '--filter',
+      'name=^/$containerName\$',
+      '--filter',
+      'status=running',
+      '--format',
+      '{{.Names}}',
     ]);
     return output != null && output.contains(containerName);
   }
 
   Future<void> _pullImage() async {
-    emitEvent(StatusUpdateEvent(
-      moduleId: id,
-      level: StatusEvent.info,
-      message: 'Pulling image $image:$tag',
-    ));
+    emitEvent(
+      StatusUpdateEvent(
+        moduleId: id,
+        level: StatusEvent.info,
+        message: 'Pulling image $image:$tag',
+      ),
+    );
     await runCommand('docker', ['pull', '$image:$tag'], checkExitCode: false);
   }
 
@@ -162,20 +170,24 @@ class ContainerBlock extends ActionBlock {
       cmdArgs.addAll(command.split(' '));
     }
 
-    emitEvent(StatusUpdateEvent(
-      moduleId: id,
-      level: StatusEvent.info,
-      message: 'Starting container $containerName',
-    ));
+    emitEvent(
+      StatusUpdateEvent(
+        moduleId: id,
+        level: StatusEvent.info,
+        message: 'Starting container $containerName',
+      ),
+    );
     await runCommand('docker', cmdArgs, checkExitCode: false);
   }
 
   @override
   Future<void> execute() async {
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Managing container $containerName ($image:$tag)',
-    ));
+    emitEvent(
+      StartedEvent(
+        moduleId: id,
+        message: 'Managing container $containerName ($image:$tag)',
+      ),
+    );
 
     existed = await _containerExists();
     wasRunning = existed ? await _containerRunning() : false;
@@ -183,23 +195,30 @@ class ContainerBlock extends ActionBlock {
     if (state == 'absent') {
       if (existed) {
         if (wasRunning) {
-          emitEvent(StatusUpdateEvent(
+          emitEvent(
+            StatusUpdateEvent(
+              moduleId: id,
+              level: StatusEvent.info,
+              message: 'Stopping container $containerName',
+            ),
+          );
+          await runCommand('docker', [
+            'stop',
+            containerName,
+          ], checkExitCode: false);
+        }
+        emitEvent(
+          StatusUpdateEvent(
             moduleId: id,
             level: StatusEvent.info,
-            message: 'Stopping container $containerName',
-          ));
-          await runCommand('docker', ['stop', containerName],
-              checkExitCode: false);
-        }
-        emitEvent(StatusUpdateEvent(
-          moduleId: id,
-          level: StatusEvent.info,
-          message: 'Removing container $containerName',
-        ));
-        await runCommand('docker', ['rm', containerName],
-            checkExitCode: false);
+            message: 'Removing container $containerName',
+          ),
+        );
+        await runCommand('docker', ['rm', containerName], checkExitCode: false);
       } else {
-        logger.info('Container $containerName does not exist — nothing to remove.');
+        logger.info(
+          'Container $containerName does not exist — nothing to remove.',
+        );
       }
       status = 'completed';
       return;
@@ -212,13 +231,17 @@ class ContainerBlock extends ActionBlock {
     if (state == 'running' || state == 'started') {
       if (existed) {
         if (!wasRunning) {
-          emitEvent(StatusUpdateEvent(
-            moduleId: id,
-            level: StatusEvent.info,
-            message: 'Starting existing container $containerName',
-          ));
-          await runCommand('docker', ['start', containerName],
-              checkExitCode: false);
+          emitEvent(
+            StatusUpdateEvent(
+              moduleId: id,
+              level: StatusEvent.info,
+              message: 'Starting existing container $containerName',
+            ),
+          );
+          await runCommand('docker', [
+            'start',
+            containerName,
+          ], checkExitCode: false);
         } else {
           logger.info('Container $containerName is already running.');
         }
@@ -227,13 +250,17 @@ class ContainerBlock extends ActionBlock {
       }
     } else if (state == 'stopped') {
       if (existed && wasRunning) {
-        emitEvent(StatusUpdateEvent(
-          moduleId: id,
-          level: StatusEvent.info,
-          message: 'Stopping container $containerName',
-        ));
-        await runCommand('docker', ['stop', containerName],
-            checkExitCode: false);
+        emitEvent(
+          StatusUpdateEvent(
+            moduleId: id,
+            level: StatusEvent.info,
+            message: 'Stopping container $containerName',
+          ),
+        );
+        await runCommand('docker', [
+          'stop',
+          containerName,
+        ], checkExitCode: false);
       } else if (!existed) {
         logger.info('Container $containerName does not exist — cannot stop.');
       } else {
@@ -241,26 +268,35 @@ class ContainerBlock extends ActionBlock {
       }
     } else if (state == 'restarted') {
       if (existed) {
-        emitEvent(StatusUpdateEvent(
-          moduleId: id,
-          level: StatusEvent.info,
-          message: 'Restarting container $containerName',
-        ));
-        await runCommand('docker', ['restart', containerName],
-            checkExitCode: false);
+        emitEvent(
+          StatusUpdateEvent(
+            moduleId: id,
+            level: StatusEvent.info,
+            message: 'Restarting container $containerName',
+          ),
+        );
+        await runCommand('docker', [
+          'restart',
+          containerName,
+        ], checkExitCode: false);
       } else {
         await _startContainer();
       }
     }
 
-    if (healthCheck.isNotEmpty && (state == 'running' || state == 'started' || state == 'restarted')) {
-      emitEvent(StatusUpdateEvent(
-        moduleId: id,
-        level: StatusEvent.info,
-        message: 'Running health check: $healthCheck',
-      ));
+    if (healthCheck.isNotEmpty &&
+        (state == 'running' || state == 'started' || state == 'restarted')) {
+      emitEvent(
+        StatusUpdateEvent(
+          moduleId: id,
+          level: StatusEvent.info,
+          message: 'Running health check: $healthCheck',
+        ),
+      );
       final result = await runCommand('docker', [
-        'exec', containerName, ...healthCheck.split(' '),
+        'exec',
+        containerName,
+        ...healthCheck.split(' '),
       ], checkExitCode: false);
       if (result.exitCode != 0) {
         logger.warning('Health check failed for container $containerName');
@@ -272,34 +308,54 @@ class ContainerBlock extends ActionBlock {
 
   @override
   Future<void> rollback() async {
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Rolling back container operation on $containerName',
-    ));
+    emitEvent(
+      StartedEvent(
+        moduleId: id,
+        message: 'Rolling back container operation on $containerName',
+      ),
+    );
 
     if (state == 'absent') {
       if (!existed) return;
-      await runCommand('docker', ['start', containerName], checkExitCode: false);
+      await runCommand('docker', [
+        'start',
+        containerName,
+      ], checkExitCode: false);
       if (!wasRunning) {
-        await runCommand('docker', ['stop', containerName], checkExitCode: false);
+        await runCommand('docker', [
+          'stop',
+          containerName,
+        ], checkExitCode: false);
       }
     } else if (state == 'running' || state == 'started') {
       if (!existed) {
-        await runCommand('docker', ['rm', '-f', containerName], checkExitCode: false);
+        await runCommand('docker', [
+          'rm',
+          '-f',
+          containerName,
+        ], checkExitCode: false);
       } else if (!wasRunning) {
-        await runCommand('docker', ['stop', containerName], checkExitCode: false);
+        await runCommand('docker', [
+          'stop',
+          containerName,
+        ], checkExitCode: false);
       }
     } else if (state == 'stopped') {
       if (wasRunning) {
-        await runCommand('docker', ['start', containerName], checkExitCode: false);
+        await runCommand('docker', [
+          'start',
+          containerName,
+        ], checkExitCode: false);
       }
     } else if (state == 'restarted') {
       // no-op — container is in the restarted state
     }
 
-    emitEvent(CompletedEvent(
-      moduleId: id,
-      message: 'Container rollback completed for $containerName',
-    ));
+    emitEvent(
+      CompletedEvent(
+        moduleId: id,
+        message: 'Container rollback completed for $containerName',
+      ),
+    );
   }
 }

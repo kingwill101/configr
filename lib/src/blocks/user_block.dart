@@ -167,10 +167,12 @@ class _LinuxUserBlock extends UserBlock {
         await _createOrUpdateUser();
       }
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: 'User $name ${status == 'absent' ? 'removed' : 'managed'}',
-      ));
+      emitEvent(
+        CompletedEvent(
+          moduleId: id,
+          message: 'User $name ${status == 'absent' ? 'removed' : 'managed'}',
+        ),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;
@@ -200,7 +202,8 @@ class _LinuxUserBlock extends UserBlock {
       final result = await priv.runWithElevatedPrivileges('usermod', args);
       if (result.exitCode != 0) {
         throw ActionFailedException(
-          'Failed to modify user: ${result.stderr}', moduleId: id,
+          'Failed to modify user: ${result.stderr}',
+          moduleId: id,
         );
       }
     } else {
@@ -221,18 +224,21 @@ class _LinuxUserBlock extends UserBlock {
       final result = await priv.runWithElevatedPrivileges('useradd', args);
       if (result.exitCode != 0) {
         throw ActionFailedException(
-          'Failed to create user: ${result.stderr}', moduleId: id,
+          'Failed to create user: ${result.stderr}',
+          moduleId: id,
         );
       }
     }
 
     if (password.isNotEmpty) {
-      final chpasswd = await priv.runWithElevatedPrivileges(
-        'sh', ['-c', 'echo "$name:$password" | chpasswd'],
-      );
+      final chpasswd = await priv.runWithElevatedPrivileges('sh', [
+        '-c',
+        'echo "$name:$password" | chpasswd',
+      ]);
       if (chpasswd.exitCode != 0) {
         throw ActionFailedException(
-          'Failed to set password: ${chpasswd.stderr}', moduleId: id,
+          'Failed to set password: ${chpasswd.stderr}',
+          moduleId: id,
         );
       }
     }
@@ -248,7 +254,8 @@ class _LinuxUserBlock extends UserBlock {
     final result = await priv.runWithElevatedPrivileges('userdel', args);
     if (result.exitCode != 0) {
       throw ActionFailedException(
-        'Failed to remove user: ${result.stderr}', moduleId: id,
+        'Failed to remove user: ${result.stderr}',
+        moduleId: id,
       );
     }
   }
@@ -262,7 +269,10 @@ class _LinuxUserBlock extends UserBlock {
   @override
   Future<void> rollback() async {
     if (name.isEmpty) return;
-    await privilegeEscalation.runWithElevatedPrivileges('userdel', ['-r', name]);
+    await privilegeEscalation.runWithElevatedPrivileges('userdel', [
+      '-r',
+      name,
+    ]);
   }
 }
 

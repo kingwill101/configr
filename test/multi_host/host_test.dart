@@ -4,10 +4,7 @@ import 'package:configr/src/multi_host/host.dart';
 void main() {
   group('Host', () {
     test('creates host with required fields', () {
-      final host = Host(
-        name: 'web-01',
-        address: '10.0.0.1',
-      );
+      final host = Host(name: 'web-01', address: '10.0.0.1');
 
       expect(host.name, equals('web-01'));
       expect(host.address, equals('10.0.0.1'));
@@ -31,7 +28,9 @@ void main() {
         variables: {'ansible_os_family': 'Debian'},
         roles: ['database', 'primary'],
         groups: ['production'],
-        connectionConfig: {'hostKeyAlgorithms': ['ssh-rsa']},
+        connectionConfig: {
+          'hostKeyAlgorithms': ['ssh-rsa'],
+        },
       );
 
       expect(host.name, equals('db-master'));

@@ -67,7 +67,10 @@ void main() {
     ''');
 
     final block = blocks.first as dynamic;
-    expect(block.dryRunSummary(), equals('alternatives: java -> /usr/bin/java (selected)'));
+    expect(
+      block.dryRunSummary(),
+      equals('alternatives: java -> /usr/bin/java (selected)'),
+    );
   });
 
   test('should return minimal dry-run summary', () async {

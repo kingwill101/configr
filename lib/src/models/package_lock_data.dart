@@ -19,9 +19,7 @@ class PackageLockData {
   factory PackageLockData.fromJson(Map<String, dynamic> json) {
     return PackageLockData(
       packages: (json['packages'] as List? ?? [])
-          .map(
-            (e) => PackageLockRecord.fromJson(e as Map<String, dynamic>),
-          )
+          .map((e) => PackageLockRecord.fromJson(e as Map<String, dynamic>))
           .toList(),
       version: json['version'] as int? ?? 1,
       configChecksum: json['config_checksum'] as String?,

@@ -50,7 +50,14 @@ enum OsFamily {
   unknown;
 
   bool get isLinuxFamily => switch (this) {
-    linuxGeneric || debian || redhat || arch || suse || alpine || nixos || gentoo => true,
+    linuxGeneric ||
+    debian ||
+    redhat ||
+    arch ||
+    suse ||
+    alpine ||
+    nixos ||
+    gentoo => true,
     _ => false,
   };
 }
@@ -91,8 +98,7 @@ class OsFacts {
 
   /// Returns true if this is any BSD variant.
   bool get isBsd =>
-      os == OperatingSystem.freebsd ||
-      os == OperatingSystem.openbsd;
+      os == OperatingSystem.freebsd || os == OperatingSystem.openbsd;
 
   /// Throws [UnsupportedError] if [os] is not [OperatingSystem.linux],
   /// with a message explaining which block is Linux-only.
@@ -111,10 +117,10 @@ class OsFacts {
       return Platform.operatingSystem;
     }
     try {
-      final result = Process.runSync(
-        'sh',
-        ['-c', '. /etc/os-release 2>/dev/null && echo "\${ID:-unknown}"'],
-      );
+      final result = Process.runSync('sh', [
+        '-c',
+        '. /etc/os-release 2>/dev/null && echo "\${ID:-unknown}"',
+      ]);
       if (result.exitCode == 0) {
         final id = (result.stdout as String).trim();
         if (id.isNotEmpty) return id;
@@ -128,10 +134,10 @@ class OsFacts {
       return Platform.operatingSystemVersion;
     }
     try {
-      final result = Process.runSync(
-        'sh',
-        ['-c', '. /etc/os-release 2>/dev/null && echo "\${VERSION_ID:-}"'],
-      );
+      final result = Process.runSync('sh', [
+        '-c',
+        '. /etc/os-release 2>/dev/null && echo "\${VERSION_ID:-}"',
+      ]);
       if (result.exitCode == 0) {
         final id = (result.stdout as String).trim();
         if (id.isNotEmpty) return id;
@@ -151,10 +157,10 @@ class OsFacts {
     switch (os) {
       case OperatingSystem.linux:
         try {
-          final result = Process.runSync(
-            'sh',
-            ['-c', '. /etc/os-release 2>/dev/null && echo "\${ID_LIKE:-}"'],
-          );
+          final result = Process.runSync('sh', [
+            '-c',
+            '. /etc/os-release 2>/dev/null && echo "\${ID_LIKE:-}"',
+          ]);
           if (result.exitCode == 0) {
             final like = (result.stdout as String).trim().toLowerCase();
             if (like.contains('debian')) return OsFamily.debian;

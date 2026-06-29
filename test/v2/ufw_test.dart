@@ -76,7 +76,10 @@ void main() {
     ''');
 
     final block = blocks.first as dynamic;
-    expect(block.dryRunSummary(), equals('ufw: rule=allow, port=443, proto=tcp'));
+    expect(
+      block.dryRunSummary(),
+      equals('ufw: rule=allow, port=443, proto=tcp'),
+    );
   });
 
   test('should return minimal dry-run summary', () async {

@@ -53,9 +53,7 @@ class DependencyChecker {
     int timeout = 30,
   }) async {
     final target = _resolveHost(to);
-    logger.info(
-      'Dependency check: from=$from → $to ($target) type=$checkType',
-    );
+    logger.info('Dependency check: from=$from → $to ($target) type=$checkType');
 
     final deadline = DateTime.now().add(Duration(seconds: timeout));
     bool reached = false;
@@ -66,9 +64,10 @@ class DependencyChecker {
         reached = switch (checkType) {
           'ping' => await _checkPing(target),
           'port' => await _checkPort(target, port),
-          'network' => port > 0
-              ? await _checkPort(target, port)
-              : await _checkPing(target),
+          'network' =>
+            port > 0
+                ? await _checkPort(target, port)
+                : await _checkPing(target),
           _ => throw ArgumentError('Unknown check type: $checkType'),
         };
         if (reached) break;
@@ -139,11 +138,7 @@ class DependencySpec {
 
 Future<bool> _checkPing(String target) async {
   try {
-    final result = await Process.run('ping', [
-      '-c', '1',
-      '-W', '3',
-      target,
-    ]);
+    final result = await Process.run('ping', ['-c', '1', '-W', '3', target]);
     return result.exitCode == 0;
   } catch (_) {
     return false;

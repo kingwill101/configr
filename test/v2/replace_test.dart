@@ -64,7 +64,10 @@ void main() {
 
   // Note: this test demonstrates that `before` excludes the match line
   test('should not modify content after before match', () async {
-    await helper.createFile('/test.txt', 'old\nold_before\nmarker\nold_after\n');
+    await helper.createFile(
+      '/test.txt',
+      'old\nold_before\nmarker\nold_after\n',
+    );
 
     await helper.runConfig('''
       replace {

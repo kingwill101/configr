@@ -47,8 +47,7 @@ class SerialStrategy implements ExecutionStrategy {
         StatusUpdateEvent(
           moduleId: 'SerialStrategy',
           level: StatusEvent.info,
-          message:
-              'Starting boot group $priority: ${group.length} target(s)',
+          message: 'Starting boot group $priority: ${group.length} target(s)',
           correlationId: globalEventBus.executionId,
         ),
       );
@@ -79,7 +78,8 @@ class SerialStrategy implements ExecutionStrategy {
           globalEventBus.emit(
             CompletedEvent(
               moduleId: host.name,
-              message: 'Completed serial execution of target: ${target.strategy}',
+              message:
+                  'Completed serial execution of target: ${target.strategy}',
               duration: Duration.zero,
               correlationId: globalEventBus.executionId,
               metadata: {

@@ -11,10 +11,14 @@ class GcpSecretManagerProvider extends SecretProvider {
         ? 'projects/$profile/secrets/$key/versions/latest'
         : '$key/versions/latest';
     try {
-      final result = await Process.run(
-        'gcloud',
-        ['secrets', 'versions', 'access', 'latest', '--secret', secretName],
-      );
+      final result = await Process.run('gcloud', [
+        'secrets',
+        'versions',
+        'access',
+        'latest',
+        '--secret',
+        secretName,
+      ]);
       if (result.exitCode != 0) return null;
       return (result.stdout as String).trimRight();
     } catch (_) {

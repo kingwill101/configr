@@ -31,9 +31,21 @@ void main() {
     group('execute', () {
       test('executes targets in priority order (lowest first)', () async {
         final targets = [
-          Target(host: Host(name: 'web-01', address: '10.0.0.1'), strategy: 'serial', priority: 5),
-          Target(host: Host(name: 'db-01', address: '10.0.0.2'), strategy: 'serial', priority: 1),
-          Target(host: Host(name: 'cache-01', address: '10.0.0.3'), strategy: 'serial', priority: 10),
+          Target(
+            host: Host(name: 'web-01', address: '10.0.0.1'),
+            strategy: 'serial',
+            priority: 5,
+          ),
+          Target(
+            host: Host(name: 'db-01', address: '10.0.0.2'),
+            strategy: 'serial',
+            priority: 1,
+          ),
+          Target(
+            host: Host(name: 'cache-01', address: '10.0.0.3'),
+            strategy: 'serial',
+            priority: 10,
+          ),
         ];
 
         await strategy.execute(
@@ -49,8 +61,15 @@ void main() {
 
       test('executes unprioritized targets last (priority 99)', () async {
         final targets = [
-          Target(host: Host(name: 'web-01', address: '10.0.0.1'), strategy: 'serial', priority: 1),
-          Target(host: Host(name: 'worker-01', address: '10.0.0.2'), strategy: 'serial'),
+          Target(
+            host: Host(name: 'web-01', address: '10.0.0.1'),
+            strategy: 'serial',
+            priority: 1,
+          ),
+          Target(
+            host: Host(name: 'worker-01', address: '10.0.0.2'),
+            strategy: 'serial',
+          ),
         ];
 
         await strategy.execute(
@@ -66,9 +85,21 @@ void main() {
 
       test('executes targets with same priority in config order', () async {
         final targets = [
-          Target(host: Host(name: 'web-01', address: '10.0.0.1'), strategy: 'serial', priority: 1),
-          Target(host: Host(name: 'web-02', address: '10.0.0.2'), strategy: 'serial', priority: 1),
-          Target(host: Host(name: 'web-03', address: '10.0.0.3'), strategy: 'serial', priority: 1),
+          Target(
+            host: Host(name: 'web-01', address: '10.0.0.1'),
+            strategy: 'serial',
+            priority: 1,
+          ),
+          Target(
+            host: Host(name: 'web-02', address: '10.0.0.2'),
+            strategy: 'serial',
+            priority: 1,
+          ),
+          Target(
+            host: Host(name: 'web-03', address: '10.0.0.3'),
+            strategy: 'serial',
+            priority: 1,
+          ),
         ];
 
         await strategy.execute(
@@ -96,8 +127,16 @@ void main() {
 
       test('stops on first failure with fail-fast', () async {
         final targets = [
-          Target(host: Host(name: 'db-01', address: '10.0.0.1'), strategy: 'serial', priority: 1),
-          Target(host: Host(name: 'web-01', address: '10.0.0.2'), strategy: 'serial', priority: 5),
+          Target(
+            host: Host(name: 'db-01', address: '10.0.0.1'),
+            strategy: 'serial',
+            priority: 1,
+          ),
+          Target(
+            host: Host(name: 'web-01', address: '10.0.0.2'),
+            strategy: 'serial',
+            priority: 5,
+          ),
         ];
 
         final callback = recorder.failOnHosts(['db-01']);
@@ -119,8 +158,16 @@ void main() {
 
       test('continues on failure with fail-fast disabled', () async {
         final targets = [
-          Target(host: Host(name: 'db-01', address: '10.0.0.1'), strategy: 'serial', priority: 1),
-          Target(host: Host(name: 'web-01', address: '10.0.0.2'), strategy: 'serial', priority: 5),
+          Target(
+            host: Host(name: 'db-01', address: '10.0.0.1'),
+            strategy: 'serial',
+            priority: 1,
+          ),
+          Target(
+            host: Host(name: 'web-01', address: '10.0.0.2'),
+            strategy: 'serial',
+            priority: 5,
+          ),
         ];
 
         final callback = recorder.failOnHosts(['db-01']);
@@ -137,30 +184,53 @@ void main() {
         expect(recorder.failedHosts, equals(['db-01']));
       });
 
-      test('stops remaining targets in group on failure without fail-fast', () async {
-        final targets = [
-          Target(host: Host(name: 'db-01', address: '10.0.0.1'), strategy: 'serial', priority: 1),
-          Target(host: Host(name: 'db-02', address: '10.0.0.2'), strategy: 'serial', priority: 1),
-          Target(host: Host(name: 'web-01', address: '10.0.0.3'), strategy: 'serial', priority: 5),
-        ];
+      test(
+        'stops remaining targets in group on failure without fail-fast',
+        () async {
+          final targets = [
+            Target(
+              host: Host(name: 'db-01', address: '10.0.0.1'),
+              strategy: 'serial',
+              priority: 1,
+            ),
+            Target(
+              host: Host(name: 'db-02', address: '10.0.0.2'),
+              strategy: 'serial',
+              priority: 1,
+            ),
+            Target(
+              host: Host(name: 'web-01', address: '10.0.0.3'),
+              strategy: 'serial',
+              priority: 5,
+            ),
+          ];
 
-        final callback = recorder.failOnHosts(['db-01']);
+          final callback = recorder.failOnHosts(['db-01']);
 
-        await strategy.execute(
-          targets: targets,
-          executeOnHost: callback,
-          globalEventBus: eventBus,
-          dryRun: false,
-          failFast: false,
-        );
+          await strategy.execute(
+            targets: targets,
+            executeOnHost: callback,
+            globalEventBus: eventBus,
+            dryRun: false,
+            failFast: false,
+          );
 
-        expect(recorder.executedHosts, equals(['db-01', 'web-01']));
-      });
+          expect(recorder.executedHosts, equals(['db-01', 'web-01']));
+        },
+      );
 
       test('emits group status events', () async {
         final targets = [
-          Target(host: Host(name: 'db-01', address: '10.0.0.1'), strategy: 'serial', priority: 1),
-          Target(host: Host(name: 'web-01', address: '10.0.0.2'), strategy: 'serial', priority: 5),
+          Target(
+            host: Host(name: 'db-01', address: '10.0.0.1'),
+            strategy: 'serial',
+            priority: 1,
+          ),
+          Target(
+            host: Host(name: 'web-01', address: '10.0.0.2'),
+            strategy: 'serial',
+            priority: 5,
+          ),
         ];
 
         await strategy.execute(

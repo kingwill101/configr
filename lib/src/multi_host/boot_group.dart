@@ -82,8 +82,10 @@ Future<bool> runHealthCheck(
     return true;
   }
 
-  logger.info('  [boot] Running health check for group "${group.name}": '
-      '${group.healthCheck}');
+  logger.info(
+    '  [boot] Running health check for group "${group.name}": '
+    '${group.healthCheck}',
+  );
 
   try {
     final exitCode = await runCommand(group.healthCheck!);
@@ -91,8 +93,10 @@ Future<bool> runHealthCheck(
       logger.info('  [boot] Health check passed for group "${group.name}".');
       return true;
     } else {
-      logger.error('  [boot] Health check failed for group "${group.name}" '
-          '(exit code $exitCode).');
+      logger.error(
+        '  [boot] Health check failed for group "${group.name}" '
+        '(exit code $exitCode).',
+      );
       return false;
     }
   } catch (e) {

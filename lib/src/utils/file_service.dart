@@ -49,8 +49,11 @@ abstract class FileService {
   Future<Map<String, String>> getOwnership(String path);
   Future<String> getPermissions(String path);
   String generateBackupPath(String originalPath);
-  Future<Directory> copyDir(String source, String destination,
-      {bool recursive = false});
+  Future<Directory> copyDir(
+    String source,
+    String destination, {
+    bool recursive = false,
+  });
   Future<ProcessResult> executeCommand(
     String command,
     List<String> arguments, {
@@ -84,8 +87,9 @@ class LocalFileService implements FileService {
     return fs;
   }
 
-  ExecutionService get _executionService =>
-      di.isRegistered<ExecutionService>() ? di<ExecutionService>() : const LocalExecutionService();
+  ExecutionService get _executionService => di.isRegistered<ExecutionService>()
+      ? di<ExecutionService>()
+      : const LocalExecutionService();
 
   @override
   Future<bool> fileExists(String path) async {
@@ -209,30 +213,39 @@ class LocalFileService implements FileService {
       var digest = sha256.convert(utf8.encode(path));
       for (final child in childEntities) {
         final relativePath = p.relative(child.path, from: path);
-        digest = sha256.convert([...digest.bytes, ...utf8.encode(relativePath)]);
+        digest = sha256.convert([
+          ...digest.bytes,
+          ...utf8.encode(relativePath),
+        ]);
         if (!recursive || child is! Directory) {
-          final childHash = await computeFileHash(
-            child.path,
-            recursive: false,
-          );
+          final childHash = await computeFileHash(child.path, recursive: false);
           digest = sha256.convert([...digest.bytes, ...utf8.encode(childHash)]);
         }
       }
       return digest.toString();
     } else if (entity.type == FileSystemEntityType.link) {
       final target = await _fs.link(path).target();
-      return sha256
-          .convert([...utf8.encode(path), ...utf8.encode(target)])
-          .toString();
+      return sha256.convert([
+        ...utf8.encode(path),
+        ...utf8.encode(target),
+      ]).toString();
     }
     throw FileSystemException('Unsupported entity type', path);
   }
 
   @override
   Future<void> setOwner(String path, String owner) async {
-    final result = await _executionService.run('chown', [owner, path], runInShell: true);
+    final result = await _executionService.run('chown', [
+      owner,
+      path,
+    ], runInShell: true);
     if (result.exitCode != 0) {
-      throw ProcessException('chown', [owner, path], result.stderr.toString(), result.exitCode);
+      throw ProcessException(
+        'chown',
+        [owner, path],
+        result.stderr.toString(),
+        result.exitCode,
+      );
     }
     logger.info('Set owner of $path to $owner');
   }
@@ -253,9 +266,17 @@ class LocalFileService implements FileService {
         : owner ?? ':$group';
     final result = escalation != null
         ? await escalation.runWithElevatedPrivileges('chown', [chownArg, path])
-        : await _executionService.run('chown', [chownArg, path], runInShell: true);
+        : await _executionService.run('chown', [
+            chownArg,
+            path,
+          ], runInShell: true);
     if (result.exitCode != 0) {
-      throw ProcessException('chown', [chownArg, path], result.stderr.toString(), result.exitCode);
+      throw ProcessException(
+        'chown',
+        [chownArg, path],
+        result.stderr.toString(),
+        result.exitCode,
+      );
     }
     logger.info('Ownership changed for $path');
     return current;
@@ -272,7 +293,12 @@ class LocalFileService implements FileService {
         ? await escalation.runWithElevatedPrivileges('chmod', [mode, path])
         : await _executionService.run('chmod', [mode, path], runInShell: true);
     if (result.exitCode != 0) {
-      throw ProcessException('chmod', [mode, path], result.stderr.toString(), result.exitCode);
+      throw ProcessException(
+        'chmod',
+        [mode, path],
+        result.stderr.toString(),
+        result.exitCode,
+      );
     }
     logger.info('Permissions of $path changed to $mode');
     return current;
@@ -284,7 +310,12 @@ class LocalFileService implements FileService {
     final (cmd, args) = ops.getOwnership(path);
     final result = await _executionService.run(cmd, args, runInShell: true);
     if (result.exitCode != 0) {
-      throw ProcessException(cmd, args, result.stderr.toString(), result.exitCode);
+      throw ProcessException(
+        cmd,
+        args,
+        result.stderr.toString(),
+        result.exitCode,
+      );
     }
     final parts = (result.stdout as String).trim().split(' ');
     return {'owner': parts[0], 'group': parts[1]};
@@ -296,7 +327,12 @@ class LocalFileService implements FileService {
     final (cmd, args) = ops.getPermissions(path);
     final result = await _executionService.run(cmd, args, runInShell: true);
     if (result.exitCode != 0) {
-      throw ProcessException(cmd, args, result.stderr.toString(), result.exitCode);
+      throw ProcessException(
+        cmd,
+        args,
+        result.stderr.toString(),
+        result.exitCode,
+      );
     }
     return (result.stdout as String).trim();
   }
@@ -311,8 +347,11 @@ class LocalFileService implements FileService {
   }
 
   @override
-  Future<Directory> copyDir(String source, String destination,
-      {bool recursive = false}) async {
+  Future<Directory> copyDir(
+    String source,
+    String destination, {
+    bool recursive = false,
+  }) async {
     final src = _fs.directory(source);
     final dst = _fs.directory(destination);
     if (!await src.exists()) {
@@ -340,8 +379,12 @@ class LocalFileService implements FileService {
     String? workingDirectory,
     Map<String, String>? environment,
   }) async {
-    return _executionService.run(command, arguments,
-        workingDirectory: workingDirectory, environment: environment);
+    return _executionService.run(
+      command,
+      arguments,
+      workingDirectory: workingDirectory,
+      environment: environment,
+    );
   }
 
   @override
@@ -354,7 +397,10 @@ class LocalFileService implements FileService {
     final dir = p.dirname(path);
     if (!await directoryExists(dir)) {
       if (escalation != null) {
-        await createDirectoryWithPermissions(dir, requireElevation: requireElevation);
+        await createDirectoryWithPermissions(
+          dir,
+          requireElevation: requireElevation,
+        );
       } else {
         await createDirectory(dir, recursive: true);
       }
@@ -372,11 +418,13 @@ class LocalFileService implements FileService {
       }
     }
     if (escalation == null) {
-      throw Exception('Permission denied and no privilege escalation available for: $path');
+      throw Exception(
+        'Permission denied and no privilege escalation available for: $path',
+      );
     }
-    final tempFile = _fs.systemTempDirectory
-        .createTempSync()
-        .childFile('configr_temp_${DateTime.now().millisecondsSinceEpoch}');
+    final tempFile = _fs.systemTempDirectory.createTempSync().childFile(
+      'configr_temp_${DateTime.now().millisecondsSinceEpoch}',
+    );
     tempFile.writeAsStringSync(content);
     try {
       await escalation.runWithElevatedPrivileges('cp', [tempFile.path, path]);
@@ -408,7 +456,9 @@ class LocalFileService implements FileService {
     if (!requireElevation) return;
     final escalation = _escalation;
     if (escalation == null) {
-      throw Exception('Permission denied and no privilege escalation available for: $path');
+      throw Exception(
+        'Permission denied and no privilege escalation available for: $path',
+      );
     }
     await escalation.runWithElevatedPrivileges('mkdir', ['-p', path]);
   }

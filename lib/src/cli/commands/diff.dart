@@ -81,10 +81,7 @@ class DiffCommand extends BaseCommand {
     }
 
     try {
-      final lockMgr = V2LockfileManager(
-        lockPath,
-        fileSystem: fs,
-      );
+      final lockMgr = V2LockfileManager(lockPath, fileSystem: fs);
       final lockData = await lockMgr.read();
 
       if (lockData.appliedBlocks.isEmpty) {

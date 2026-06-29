@@ -46,10 +46,12 @@ class HostsCommand extends BaseCommand {
 
     io.section('Hosts (${inventory.hostCount})');
     for (final host in inventory.hosts) {
-      final roleStr =
-          host.roles.isNotEmpty ? ' [${host.roles.join(', ')}]' : '';
-      final groupStr =
-          host.groups.isNotEmpty ? ' (${host.groups.join(', ')})' : '';
+      final roleStr = host.roles.isNotEmpty
+          ? ' [${host.roles.join(', ')}]'
+          : '';
+      final groupStr = host.groups.isNotEmpty
+          ? ' (${host.groups.join(', ')})'
+          : '';
       io.line('  $host$roleStr$groupStr');
       if (host.variables.isNotEmpty) {
         for (final entry in host.variables.entries) {

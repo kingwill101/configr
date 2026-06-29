@@ -164,7 +164,7 @@ class DependencyBlock extends ActionBlock {
       if (!reached) {
         throw ActionFailedException(
           'dependency: $target not $state after ${timeout}s timeout'
-              '${lastError.isNotEmpty ? ' — $lastError' : ''}',
+          '${lastError.isNotEmpty ? ' — $lastError' : ''}',
           moduleId: id,
         );
       }
@@ -185,8 +185,10 @@ class DependencyBlock extends ActionBlock {
     switch (checkType) {
       case 'ping':
         final result = await Process.run('ping', [
-          '-c', '1',
-          '-W', '5',
+          '-c',
+          '1',
+          '-W',
+          '5',
           target,
         ]);
         return result.exitCode == 0;
@@ -205,8 +207,10 @@ class DependencyBlock extends ActionBlock {
           return await _checkPort(target, port);
         }
         final result = await Process.run('ping', [
-          '-c', '1',
-          '-W', '3',
+          '-c',
+          '1',
+          '-W',
+          '3',
           target,
         ]);
         return result.exitCode == 0;

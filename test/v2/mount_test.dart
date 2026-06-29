@@ -61,7 +61,10 @@ void main() {
     ''');
 
     final block = blocks.first as dynamic;
-    expect(block.dryRunSummary(), equals('mount: present /mnt/data (/dev/sdb1)'));
+    expect(
+      block.dryRunSummary(),
+      equals('mount: present /mnt/data (/dev/sdb1)'),
+    );
   });
 
   test('should return minimal dry-run summary', () async {

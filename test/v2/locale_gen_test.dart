@@ -30,7 +30,10 @@ void main() {
 
     expect(blocks, hasLength(1));
     final block = blocks.first as dynamic;
-    expect(block.locales, containsAll(['en_US.UTF-8', 'de_DE.UTF-8', 'fr_FR.UTF-8']));
+    expect(
+      block.locales,
+      containsAll(['en_US.UTF-8', 'de_DE.UTF-8', 'fr_FR.UTF-8']),
+    );
   });
 
   test('should use default value', () async {

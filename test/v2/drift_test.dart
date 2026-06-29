@@ -50,18 +50,28 @@ void main() {
     });
 
     test('reports unknown for blocks without destination', () async {
-      await _writeLockfile(V2LockfileData(appliedBlocks: [
-        _record(blockType: 'echo', destination: ''),
-      ]), lockfilePath, fs);
+      await _writeLockfile(
+        V2LockfileData(
+          appliedBlocks: [_record(blockType: 'echo', destination: '')],
+        ),
+        lockfilePath,
+        fs,
+      );
       final results = await checkDrift(configPath);
       expect(results, hasLength(1));
       expect(results[0].state, DriftState.unknown);
     });
 
     test('reports unknown for blocks without sha256', () async {
-      await _writeLockfile(V2LockfileData(appliedBlocks: [
-        _record(blockType: 'copy', destination: '/dest/file.txt'),
-      ]), lockfilePath, fs);
+      await _writeLockfile(
+        V2LockfileData(
+          appliedBlocks: [
+            _record(blockType: 'copy', destination: '/dest/file.txt'),
+          ],
+        ),
+        lockfilePath,
+        fs,
+      );
       final results = await checkDrift(configPath);
       expect(results, hasLength(1));
       expect(results[0].state, DriftState.unknown);
@@ -72,13 +82,19 @@ void main() {
       await fs.file('/dest/file.txt').writeAsString(content);
       final checksum = _hash('/dest/file.txt', content);
 
-      await _writeLockfile(V2LockfileData(appliedBlocks: [
-        _record(
-          blockType: 'copy',
-          destination: '/dest/file.txt',
-          sha256: checksum,
+      await _writeLockfile(
+        V2LockfileData(
+          appliedBlocks: [
+            _record(
+              blockType: 'copy',
+              destination: '/dest/file.txt',
+              sha256: checksum,
+            ),
+          ],
         ),
-      ]), lockfilePath, fs);
+        lockfilePath,
+        fs,
+      );
       final results = await checkDrift(configPath);
       expect(results, hasLength(1));
       expect(results[0].state, DriftState.synced);
@@ -90,26 +106,38 @@ void main() {
 
       await fs.file('/dest/file.txt').writeAsString('modified');
 
-      await _writeLockfile(V2LockfileData(appliedBlocks: [
-        _record(
-          blockType: 'copy',
-          destination: '/dest/file.txt',
-          sha256: checksum,
+      await _writeLockfile(
+        V2LockfileData(
+          appliedBlocks: [
+            _record(
+              blockType: 'copy',
+              destination: '/dest/file.txt',
+              sha256: checksum,
+            ),
+          ],
         ),
-      ]), lockfilePath, fs);
+        lockfilePath,
+        fs,
+      );
       final results = await checkDrift(configPath);
       expect(results, hasLength(1));
       expect(results[0].state, DriftState.drifted);
     });
 
     test('reports missing when file no longer exists', () async {
-      await _writeLockfile(V2LockfileData(appliedBlocks: [
-        _record(
-          blockType: 'copy',
-          destination: '/dest/file.txt',
-          sha256: 'abc123',
+      await _writeLockfile(
+        V2LockfileData(
+          appliedBlocks: [
+            _record(
+              blockType: 'copy',
+              destination: '/dest/file.txt',
+              sha256: 'abc123',
+            ),
+          ],
         ),
-      ]), lockfilePath, fs);
+        lockfilePath,
+        fs,
+      );
       final results = await checkDrift(configPath);
       expect(results, hasLength(1));
       expect(results[0].state, DriftState.missing);
@@ -123,13 +151,31 @@ void main() {
       final hashB = _hash('/dest/b.txt', 'bbb');
       await fs.file('/dest/b.txt').writeAsString('changed');
 
-      await _writeLockfile(V2LockfileData(appliedBlocks: [
-        _record(blockType: 'copy', destination: '/dest/a.txt', sha256: hashA),
-        _record(blockType: 'copy', destination: '/dest/b.txt', sha256: hashB),
-        _record(blockType: 'copy', destination: '/dest/c.txt', sha256: 'abc'),
-        _record(blockType: 'echo', destination: ''),
-        _record(blockType: 'copy', destination: '/dest/d.txt'),
-      ]), lockfilePath, fs);
+      await _writeLockfile(
+        V2LockfileData(
+          appliedBlocks: [
+            _record(
+              blockType: 'copy',
+              destination: '/dest/a.txt',
+              sha256: hashA,
+            ),
+            _record(
+              blockType: 'copy',
+              destination: '/dest/b.txt',
+              sha256: hashB,
+            ),
+            _record(
+              blockType: 'copy',
+              destination: '/dest/c.txt',
+              sha256: 'abc',
+            ),
+            _record(blockType: 'echo', destination: ''),
+            _record(blockType: 'copy', destination: '/dest/d.txt'),
+          ],
+        ),
+        lockfilePath,
+        fs,
+      );
 
       final results = await checkDrift(configPath);
       expect(results, hasLength(5));
@@ -167,7 +213,8 @@ AppliedBlockRecord _record({
 }
 
 String _hash(String path, String content) {
-  return sha256
-      .convert([...utf8.encode(path), ...utf8.encode(content)])
-      .toString();
+  return sha256.convert([
+    ...utf8.encode(path),
+    ...utf8.encode(content),
+  ]).toString();
 }

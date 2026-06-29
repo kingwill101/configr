@@ -93,10 +93,7 @@ class ParallelStrategy implements ExecutionStrategy {
           moduleId: host.name,
           message: 'Starting parallel execution of target: ${target.strategy}',
           correlationId: globalEventBus.executionId,
-          metadata: {
-            'target_index': index,
-            'target_total': total,
-          },
+          metadata: {'target_index': index, 'target_total': total},
         ),
       );
 
@@ -108,10 +105,7 @@ class ParallelStrategy implements ExecutionStrategy {
           message: 'Completed parallel execution of target: ${target.strategy}',
           duration: Duration.zero,
           correlationId: globalEventBus.executionId,
-          metadata: {
-            'target_index': index,
-            'target_total': total,
-          },
+          metadata: {'target_index': index, 'target_total': total},
         ),
       );
 
@@ -126,10 +120,7 @@ class ParallelStrategy implements ExecutionStrategy {
           errorCode: 'TARGET_EXECUTION_FAILED',
           cause: error,
           correlationId: globalEventBus.executionId,
-          metadata: {
-            'target_index': index,
-            'target_total': total,
-          },
+          metadata: {'target_index': index, 'target_total': total},
         ),
       );
 

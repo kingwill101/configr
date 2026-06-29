@@ -86,10 +86,7 @@ class PackageBlock extends ActionBlock {
       throw ActionFailedException('name is required for package', moduleId: id);
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Managing package: $name',
-    ));
+    emitEvent(StartedEvent(moduleId: id, message: 'Managing package: $name'));
 
     try {
       final pm = await _detectPackageManager();
@@ -103,10 +100,9 @@ class PackageBlock extends ActionBlock {
           await _ensureLatest(pm);
       }
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: 'Package $name ($state) via $pm',
-      ));
+      emitEvent(
+        CompletedEvent(moduleId: id, message: 'Package $name ($state) via $pm'),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;
@@ -117,70 +113,136 @@ class PackageBlock extends ActionBlock {
   Future<void> _ensurePresent(String pm) async {
     switch (pm) {
       case 'apt':
-        await runCommand('apt-get', ['install', '-y', name], requireElevation: true);
+        await runCommand('apt-get', [
+          'install',
+          '-y',
+          name,
+        ], requireElevation: true);
       case 'dnf':
-        await runCommand('dnf', ['install', '-y', name], requireElevation: true);
+        await runCommand('dnf', [
+          'install',
+          '-y',
+          name,
+        ], requireElevation: true);
       case 'yum':
-        await runCommand('yum', ['install', '-y', name], requireElevation: true);
+        await runCommand('yum', [
+          'install',
+          '-y',
+          name,
+        ], requireElevation: true);
       case 'pacman':
-        await runCommand('pacman', ['--noconfirm', '-S', name], requireElevation: true);
+        await runCommand('pacman', [
+          '--noconfirm',
+          '-S',
+          name,
+        ], requireElevation: true);
       case 'brew':
         await runCommand('brew', ['install', name]);
       case 'zypper':
-        await runCommand('zypper', ['--non-interactive', 'install', name], requireElevation: true);
+        await runCommand('zypper', [
+          '--non-interactive',
+          'install',
+          name,
+        ], requireElevation: true);
       case 'pkg':
-        await runCommand('pkg', ['install', '-y', name], requireElevation: true);
+        await runCommand('pkg', [
+          'install',
+          '-y',
+          name,
+        ], requireElevation: true);
       default:
-        throw ActionFailedException('Unsupported package manager: $pm',
-            moduleId: id);
+        throw ActionFailedException(
+          'Unsupported package manager: $pm',
+          moduleId: id,
+        );
     }
   }
 
   Future<void> _ensureAbsent(String pm) async {
     switch (pm) {
       case 'apt':
-        await runCommand('apt-get', ['remove', '-y', name], requireElevation: true);
+        await runCommand('apt-get', [
+          'remove',
+          '-y',
+          name,
+        ], requireElevation: true);
       case 'dnf':
         await runCommand('dnf', ['remove', '-y', name], requireElevation: true);
       case 'yum':
         await runCommand('yum', ['remove', '-y', name], requireElevation: true);
       case 'pacman':
-        await runCommand('pacman', ['--noconfirm', '-R', name], requireElevation: true);
+        await runCommand('pacman', [
+          '--noconfirm',
+          '-R',
+          name,
+        ], requireElevation: true);
       case 'brew':
         await runCommand('brew', ['uninstall', name]);
       case 'zypper':
-        await runCommand('zypper', ['--non-interactive', 'remove', name], requireElevation: true);
+        await runCommand('zypper', [
+          '--non-interactive',
+          'remove',
+          name,
+        ], requireElevation: true);
       case 'pkg':
         await runCommand('pkg', ['delete', '-y', name], requireElevation: true);
       default:
-        throw ActionFailedException('Unsupported package manager: $pm',
-            moduleId: id);
+        throw ActionFailedException(
+          'Unsupported package manager: $pm',
+          moduleId: id,
+        );
     }
   }
 
   Future<void> _ensureLatest(String pm) async {
     switch (pm) {
       case 'apt':
-        await runCommand('apt-get', ['install', '-y', '--only-upgrade', name], requireElevation: true);
+        await runCommand('apt-get', [
+          'install',
+          '-y',
+          '--only-upgrade',
+          name,
+        ], requireElevation: true);
       case 'dnf':
-        await runCommand('dnf', ['upgrade', '-y', name], requireElevation: true);
+        await runCommand('dnf', [
+          'upgrade',
+          '-y',
+          name,
+        ], requireElevation: true);
       case 'yum':
-        await runCommand('yum', ['upgrade', '-y', name], requireElevation: true);
+        await runCommand('yum', [
+          'upgrade',
+          '-y',
+          name,
+        ], requireElevation: true);
       case 'pacman':
-        await runCommand('pacman', ['--noconfirm', '-Syu', name], requireElevation: true);
+        await runCommand('pacman', [
+          '--noconfirm',
+          '-Syu',
+          name,
+        ], requireElevation: true);
       case 'brew':
         await runCommand('brew', ['upgrade', name]);
       case 'zypper':
-        await runCommand('zypper', ['--non-interactive', 'update', name], requireElevation: true);
+        await runCommand('zypper', [
+          '--non-interactive',
+          'update',
+          name,
+        ], requireElevation: true);
       case 'pkg':
-        await runCommand('pkg', ['upgrade', '-y', name], requireElevation: true);
+        await runCommand('pkg', [
+          'upgrade',
+          '-y',
+          name,
+        ], requireElevation: true);
       default:
-        throw ActionFailedException('Unsupported package manager: $pm',
-            moduleId: id);
+        throw ActionFailedException(
+          'Unsupported package manager: $pm',
+          moduleId: id,
+        );
     }
   }
 
   @override
-  Future<void> rollback() async {
-  }
+  Future<void> rollback() async {}
 }

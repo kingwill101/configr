@@ -41,7 +41,7 @@ void main() {
 
   test('should emit started event during execution', () async {
     helper.clearEvents();
-    
+
     await helper.runConfig('''
       resources {
         debug {

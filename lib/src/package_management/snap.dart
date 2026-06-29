@@ -1,8 +1,7 @@
 import 'package:configr/src/package_management/package_manger.dart';
 import 'package:configr/src/utils/logging.dart';
 
-class SnapPackageManager extends PackageManager
-    with GlobalInstallCapability {
+class SnapPackageManager extends PackageManager with GlobalInstallCapability {
   SnapPackageManager(super.privilegeEscalation);
 
   @override

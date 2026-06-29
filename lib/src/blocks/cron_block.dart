@@ -89,10 +89,7 @@ class CronBlock extends ActionBlock {
       );
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Managing cron job: $name',
-    ));
+    emitEvent(StartedEvent(moduleId: id, message: 'Managing cron job: $name'));
 
     try {
       final priv = privilegeEscalation;
@@ -106,9 +103,7 @@ class CronBlock extends ActionBlock {
         if (status == 'absent') {
           if (await file.exists()) {
             final lines = await file.readAsLines();
-            lines.removeWhere(
-              (l) => l.contains(job) && l.endsWith('#$name'),
-            );
+            lines.removeWhere((l) => l.contains(job) && l.endsWith('#$name'));
             await file.writeAsString('${lines.join('\n')}\n');
           }
         } else {
@@ -116,9 +111,7 @@ class CronBlock extends ActionBlock {
             await file.create(recursive: true);
           }
           final lines = await file.readAsLines();
-          final existingIndex = lines.indexWhere(
-            (l) => l.endsWith('#$name'),
-          );
+          final existingIndex = lines.indexWhere((l) => l.endsWith('#$name'));
           if (existingIndex >= 0) {
             lines[existingIndex] = cronLine;
           } else {
@@ -127,9 +120,10 @@ class CronBlock extends ActionBlock {
           await file.writeAsString('${lines.join('\n')}\n');
         }
       } else {
-        final currentCron = await priv.runWithElevatedPrivileges(
-          'sh', ['-c', 'crontab -u $targetUser -l 2>/dev/null'],
-        );
+        final currentCron = await priv.runWithElevatedPrivileges('sh', [
+          '-c',
+          'crontab -u $targetUser -l 2>/dev/null',
+        ]);
         final lines = (currentCron.stdout as String)
             .split('\n')
             .where((l) => l.trim().isNotEmpty)
@@ -138,9 +132,7 @@ class CronBlock extends ActionBlock {
         if (status == 'absent') {
           lines.removeWhere((l) => l.endsWith('#$name'));
         } else {
-          final existingIndex = lines.indexWhere(
-            (l) => l.endsWith('#$name'),
-          );
+          final existingIndex = lines.indexWhere((l) => l.endsWith('#$name'));
           if (existingIndex >= 0) {
             lines[existingIndex] = cronLine;
           } else {
@@ -149,9 +141,13 @@ class CronBlock extends ActionBlock {
         }
 
         final newCron = lines.join('\n');
-        final result = await priv.runWithElevatedPrivileges(
-          'sh', [r'-c', r'echo "$1" | crontab -u "$2" -', '_', newCron, targetUser],
-        );
+        final result = await priv.runWithElevatedPrivileges('sh', [
+          r'-c',
+          r'echo "$1" | crontab -u "$2" -',
+          '_',
+          newCron,
+          targetUser,
+        ]);
         if (result.exitCode != 0) {
           throw ActionFailedException(
             'Failed to update crontab: ${result.stderr}',
@@ -160,17 +156,16 @@ class CronBlock extends ActionBlock {
         }
       }
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: 'Cron job $name ${status == 'absent' ? 'removed' : 'added'}',
-      ));
+      emitEvent(
+        CompletedEvent(
+          moduleId: id,
+          message: 'Cron job $name ${status == 'absent' ? 'removed' : 'added'}',
+        ),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;
-      throw ActionFailedException(
-        'cron failed: $e',
-        moduleId: id,
-      );
+      throw ActionFailedException('cron failed: $e', moduleId: id);
     }
   }
 

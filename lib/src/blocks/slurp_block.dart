@@ -46,15 +46,10 @@ class SlurpBlock extends ActionBlock {
     }
 
     if (!await fileService.fileExists(src)) {
-      throw ActionFailedException(
-        'File not found: $src', moduleId: id,
-      );
+      throw ActionFailedException('File not found: $src', moduleId: id);
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Slurping file: $src',
-    ));
+    emitEvent(StartedEvent(moduleId: id, message: 'Slurping file: $src'));
 
     try {
       final content = await fileService.readBinaryFile(src);
@@ -64,10 +59,12 @@ class SlurpBlock extends ActionBlock {
       context.setVariable('slurp_encoding', 'base64');
       context.setVariable('slurp_size', content.length);
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: 'Slurped $src (${content.length} bytes)',
-      ));
+      emitEvent(
+        CompletedEvent(
+          moduleId: id,
+          message: 'Slurped $src (${content.length} bytes)',
+        ),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;

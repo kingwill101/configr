@@ -22,10 +22,7 @@ class FileEventHandler {
   final File _logFile;
   EventSubscription? _subscription;
 
-  FileEventHandler({
-    required this._eventBus,
-    required this._logFile,
-  });
+  FileEventHandler({required this._eventBus, required this._logFile});
 
   /// Start listening for events and writing them to the file.
   void start() {
@@ -42,10 +39,7 @@ class FileEventHandler {
   }
 
   void _writeLine(Map<String, dynamic> data) {
-    _logFile.writeAsStringSync(
-      '${jsonEncode(data)}\n',
-      mode: FileMode.append,
-    );
+    _logFile.writeAsStringSync('${jsonEncode(data)}\n', mode: FileMode.append);
   }
 
   /// Stop listening and write a session-end marker.

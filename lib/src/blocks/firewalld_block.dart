@@ -99,7 +99,12 @@ abstract class FirewalldBlock extends ActionBlock {
   }
 
   Future<ProcessResult> _runFirewallCmd(List<String> args) {
-    return runCommand('firewall-cmd', args, requireElevation: true, checkExitCode: false);
+    return runCommand(
+      'firewall-cmd',
+      args,
+      requireElevation: true,
+      checkExitCode: false,
+    );
   }
 
   Future<bool> _isRunning() async {
@@ -254,10 +259,7 @@ class _LinuxFirewalldBlock extends FirewalldBlock {
       await _manageRichRule();
 
       emitEvent(
-        CompletedEvent(
-          moduleId: id,
-          message: 'Firewalld rule applied',
-        ),
+        CompletedEvent(moduleId: id, message: 'Firewalld rule applied'),
       );
       status = 'completed';
     } catch (e) {

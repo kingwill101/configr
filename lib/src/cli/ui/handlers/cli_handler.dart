@@ -142,24 +142,15 @@ class CLIHandler implements UIHandler {
         final statusEvent = event as StatusUpdateEvent;
         switch (statusEvent.level) {
           case StatusEvent.warning:
-            _console.warn(
-              statusEvent.message,
-              verbosity: Verbosity.normal,
-            );
+            _console.warn(statusEvent.message, verbosity: Verbosity.normal);
           case StatusEvent.error:
-            _console.error(
-              statusEvent.message,
-              verbosity: Verbosity.normal,
-            );
+            _console.error(statusEvent.message, verbosity: Verbosity.normal);
           case StatusEvent.debug:
             if (_debugMode) {
               _console.writeln(statusEvent.message);
             }
           case StatusEvent.info:
-            _console.info(
-              statusEvent.message,
-              verbosity: Verbosity.normal,
-            );
+            _console.info(statusEvent.message, verbosity: Verbosity.normal);
         }
         break;
       case ModuleEventType.downloadProgress:
@@ -183,10 +174,7 @@ class CLIHandler implements UIHandler {
         break;
       case ModuleEventType.error:
         final errorEvent = event as ErrorEvent;
-        _console.error(
-          errorEvent.message,
-          verbosity: Verbosity.normal,
-        );
+        _console.error(errorEvent.message, verbosity: Verbosity.normal);
         break;
       case ModuleEventType.retry:
         final retryEvent = event as RetryEvent;
@@ -244,9 +232,7 @@ class CLIHandler implements UIHandler {
         break;
       case ModuleEventType.resourceRollbackStarted:
         final resourceEvent = event as ResourceRollbackStartedEvent;
-        _console.writeln(
-          'Rolling back resource: ${resourceEvent.resourceId}',
-        );
+        _console.writeln('Rolling back resource: ${resourceEvent.resourceId}');
         _console.writeln(
           '   Source: ${resourceEvent.source} → ${resourceEvent.destination}',
         );
@@ -269,9 +255,7 @@ class CLIHandler implements UIHandler {
         _console.writeln();
         break;
       default:
-        _console.writeln(
-          '${event.eventType.name}: ${event.toString()}',
-        );
+        _console.writeln('${event.eventType.name}: ${event.toString()}');
     }
   }
 

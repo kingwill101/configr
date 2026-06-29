@@ -8,19 +8,15 @@ class AwsSecretsManagerProvider extends SecretProvider {
 
   @override
   Future<String?> get(String project, String key, String? profile) async {
-    final args = [
-      'secretsmanager',
-      'get-secret-value',
-      '--secret-id',
-      key,
-    ];
+    final args = ['secretsmanager', 'get-secret-value', '--secret-id', key];
     if (profile != null && profile.isNotEmpty) {
       args.addAll(['--profile', profile]);
     }
     try {
       final result = await Process.run('aws', args);
       if (result.exitCode != 0) return null;
-      final decoded = json.decode(result.stdout as String) as Map<String, dynamic>;
+      final decoded =
+          json.decode(result.stdout as String) as Map<String, dynamic>;
       final secretString = decoded['SecretString'] as String?;
       return secretString?.trimRight();
     } catch (_) {

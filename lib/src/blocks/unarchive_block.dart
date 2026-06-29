@@ -71,7 +71,11 @@ class UnarchiveBlock extends ActionBlock {
   String _detectFormat(String srcPath) {
     final lower = srcPath.toLowerCase();
     if (lower.endsWith('.tar.gz') || lower.endsWith('.tgz')) return 'gzip';
-    if (lower.endsWith('.tar.bz2') || lower.endsWith('.tbz') || lower.endsWith('.tbz2')) return 'bzip2';
+    if (lower.endsWith('.tar.bz2') ||
+        lower.endsWith('.tbz') ||
+        lower.endsWith('.tbz2')) {
+      return 'bzip2';
+    }
     if (lower.endsWith('.tar.xz') || lower.endsWith('.txz')) return 'xz';
     if (lower.endsWith('.tar')) return 'tar';
     if (lower.endsWith('.zip')) return 'zip';
@@ -84,24 +88,25 @@ class UnarchiveBlock extends ActionBlock {
   Future<void> execute() async {
     if (src.isEmpty || dest.isEmpty) {
       throw ActionFailedException(
-        'src and dest are required for unarchive', moduleId: id,
+        'src and dest are required for unarchive',
+        moduleId: id,
       );
     }
 
-    if (creates.isNotEmpty && await fileService.pathExists(creates).then((r) => r.exists)) {
-      emitEvent(StatusUpdateEvent(
-        moduleId: id,
-        message: 'Skip unarchive: $creates already exists',
-        level: StatusEvent.info,
-      ));
+    if (creates.isNotEmpty &&
+        await fileService.pathExists(creates).then((r) => r.exists)) {
+      emitEvent(
+        StatusUpdateEvent(
+          moduleId: id,
+          message: 'Skip unarchive: $creates already exists',
+          level: StatusEvent.info,
+        ),
+      );
       status = 'completed';
       return;
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Extracting $src to $dest',
-    ));
+    emitEvent(StartedEvent(moduleId: id, message: 'Extracting $src to $dest'));
 
     try {
       if (!await fileService.directoryExists(dest)) {
@@ -120,40 +125,66 @@ class UnarchiveBlock extends ActionBlock {
       }
 
       final fmt = format == 'auto' ? _detectFormat(archivePath) : format;
-      final extraArgs = extraOpts.isNotEmpty ? extraOpts.split(' ') : <String>[];
+      final extraArgs = extraOpts.isNotEmpty
+          ? extraOpts.split(' ')
+          : <String>[];
 
       switch (fmt) {
         case 'gzip':
           await runCommand('tar', [
-            '-xzf', archivePath, '-C', dest, ...extraArgs,
+            '-xzf',
+            archivePath,
+            '-C',
+            dest,
+            ...extraArgs,
           ], requireElevation: true);
         case 'bzip2':
           await runCommand('tar', [
-            '-xjf', archivePath, '-C', dest, ...extraArgs,
+            '-xjf',
+            archivePath,
+            '-C',
+            dest,
+            ...extraArgs,
           ], requireElevation: true);
         case 'xz':
           await runCommand('tar', [
-            '-xJf', archivePath, '-C', dest, ...extraArgs,
+            '-xJf',
+            archivePath,
+            '-C',
+            dest,
+            ...extraArgs,
           ], requireElevation: true);
         case 'tar':
           await runCommand('tar', [
-            '-xf', archivePath, '-C', dest, ...extraArgs,
+            '-xf',
+            archivePath,
+            '-C',
+            dest,
+            ...extraArgs,
           ], requireElevation: true);
         case 'zip':
           await runCommand('unzip', [
-            archivePath, '-d', dest, ...extraArgs,
+            archivePath,
+            '-d',
+            dest,
+            ...extraArgs,
           ], requireElevation: true);
         case 'gunzip':
           await runCommand('gunzip', [
-            '-c', archivePath, ...extraArgs,
+            '-c',
+            archivePath,
+            ...extraArgs,
           ], requireElevation: true);
         case 'bunzip2':
           await runCommand('bunzip2', [
-            '-c', archivePath, ...extraArgs,
+            '-c',
+            archivePath,
+            ...extraArgs,
           ], requireElevation: true);
         default:
           throw ActionFailedException(
-            'Unsupported archive format: $fmt', moduleId: id,
+            'Unsupported archive format: $fmt',
+            moduleId: id,
           );
       }
 
@@ -169,10 +200,9 @@ class UnarchiveBlock extends ActionBlock {
         context.setVariable('unarchive_files', listResult.stdout as String);
       }
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: 'Extracted $src to $dest',
-      ));
+      emitEvent(
+        CompletedEvent(moduleId: id, message: 'Extracted $src to $dest'),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;

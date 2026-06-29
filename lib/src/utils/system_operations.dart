@@ -61,7 +61,11 @@ class SystemOperations {
     final lower = uname.trim().toLowerCase();
     if (lower.contains('linux')) return 'linux';
     if (lower.contains('darwin')) return 'macos';
-    if (lower.contains('windows') || lower.contains('mingw') || lower.contains('msys')) return 'windows';
+    if (lower.contains('windows') ||
+        lower.contains('mingw') ||
+        lower.contains('msys')) {
+      return 'windows';
+    }
     return lower.split(' ').first;
   }
 }

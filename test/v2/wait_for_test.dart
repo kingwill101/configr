@@ -86,7 +86,10 @@ void main() {
   });
 
   test('should succeed when file content matches search_regex', () async {
-    await helper.createFile('/var/log/app.log', '[INFO] Application started successfully\n');
+    await helper.createFile(
+      '/var/log/app.log',
+      '[INFO] Application started successfully\n',
+    );
 
     final blocks = await helper.runConfig('''
       wait_for {
@@ -133,7 +136,10 @@ void main() {
     ''');
 
     final block = blocks.first as dynamic;
-    expect(block.dryRunSummary(), equals('wait_for: db.example.com:5432 (timeout=300)'));
+    expect(
+      block.dryRunSummary(),
+      equals('wait_for: db.example.com:5432 (timeout=300)'),
+    );
   });
 
   test('should return correct dry-run summary with path', () async {

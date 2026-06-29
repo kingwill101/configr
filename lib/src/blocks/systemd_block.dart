@@ -429,10 +429,7 @@ class SystemdBlock extends ActionBlock {
   Future<void> _captureExistingContent() async {
     serviceFilePath = _getServiceFilePath();
     if (await fileService.fileExists(serviceFilePath!)) {
-      previousContent = await fileService.readFile(
-        serviceFilePath!,
-
-      );
+      previousContent = await fileService.readFile(serviceFilePath!);
     }
   }
 
@@ -459,11 +456,7 @@ class SystemdBlock extends ActionBlock {
       await fileService.createDirectory(dir);
     }
 
-    await fileService.writeFile(
-      serviceFilePath!,
-      content,
-
-    );
+    await fileService.writeFile(serviceFilePath!, content);
 
     // Reload systemd daemon
     await _runSystemctl('daemon-reload');
@@ -488,11 +481,7 @@ class SystemdBlock extends ActionBlock {
       await _validateServiceFile(content);
     }
 
-    await fileService.writeFile(
-      serviceFilePath!,
-      content,
-
-    );
+    await fileService.writeFile(serviceFilePath!, content);
     await _runSystemctl('daemon-reload');
   }
 
@@ -520,11 +509,7 @@ class SystemdBlock extends ActionBlock {
   Future<void> _rollbackCreate() async {
     if (previousContent != null) {
       // Restore previous content
-      await fileService.writeFile(
-        serviceFilePath!,
-        previousContent!,
-
-      );
+      await fileService.writeFile(serviceFilePath!, previousContent!);
     } else if (serviceFilePath != null &&
         await fileService.fileExists(serviceFilePath!)) {
       await fileService.deleteFile(serviceFilePath!);
@@ -533,11 +518,7 @@ class SystemdBlock extends ActionBlock {
 
   Future<void> _rollbackEdit() async {
     if (previousContent != null) {
-      await fileService.writeFile(
-        serviceFilePath!,
-        previousContent!,
-
-      );
+      await fileService.writeFile(serviceFilePath!, previousContent!);
       await _runSystemctl('daemon-reload');
     }
   }
@@ -549,11 +530,7 @@ class SystemdBlock extends ActionBlock {
       if (!await fileService.directoryExists(dir)) {
         await fileService.createDirectory(dir);
       }
-      await fileService.writeFile(
-        serviceFilePath!,
-        previousContent!,
-
-      );
+      await fileService.writeFile(serviceFilePath!, previousContent!);
       await _runSystemctl('daemon-reload');
     }
   }
@@ -636,7 +613,8 @@ class SystemdBlock extends ActionBlock {
       await tempFile.writeAsString(content);
 
       final result = await executionService.run('systemd-analyze', [
-        'verify', tempFile.path,
+        'verify',
+        tempFile.path,
       ]);
 
       if (result.exitCode != 0) {

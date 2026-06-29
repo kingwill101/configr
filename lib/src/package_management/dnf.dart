@@ -1,8 +1,7 @@
 import 'package:configr/src/package_management/package_manger.dart';
 import 'package:configr/src/utils/logging.dart';
 
-class DnfPackageManager extends PackageManager
-    with GlobalInstallCapability {
+class DnfPackageManager extends PackageManager with GlobalInstallCapability {
   DnfPackageManager(super.privilegeEscalation);
 
   @override
@@ -34,7 +33,11 @@ class DnfPackageManager extends PackageManager
 
   @override
   Future<String?> getInstalledVersion(String packageName) async {
-    final result = await runCommand('rpm', ['-q', '--queryformat=%{VERSION}', packageName]);
+    final result = await runCommand('rpm', [
+      '-q',
+      '--queryformat=%{VERSION}',
+      packageName,
+    ]);
     return result.exitCode == 0 ? result.stdout.toString().trim() : null;
   }
 

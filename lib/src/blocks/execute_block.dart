@@ -76,9 +76,8 @@ class ExecuteBlock extends ActionBlock {
   }
 
   @override
-  String dryRunSummary() => command.isNotEmpty
-      ? '$blockType: $command'
-      : super.dryRunSummary();
+  String dryRunSummary() =>
+      command.isNotEmpty ? '$blockType: $command' : super.dryRunSummary();
 
   @override
   Future<void> execute() async {
@@ -146,7 +145,8 @@ class ExecuteBlock extends ActionBlock {
     final workingDir = workingDirectory ?? Directory.current.path;
 
     return executionService.run(
-      'sh', ['-c', command],
+      'sh',
+      ['-c', command],
       environment: env,
       workingDirectory: workingDir,
       stdin: input,

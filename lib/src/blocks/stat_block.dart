@@ -74,13 +74,14 @@ class StatBlock extends ActionBlock {
       throw ActionFailedException('Stat block requires a path', moduleId: id);
     }
 
-try {
+    try {
       // Use fileSystem (package:file) which delegates to whatever FS is registered
       // in DI — local, memory, or remote (e.g. SFTP).
       // Detect symlinks via link().existsSync() (package:file has no isLinkSync)
       final linkExists = fileSystem.link(path).existsSync();
       final rawStat = fileSystem.statSync(path);
-      final exists = linkExists || rawStat.type != FileSystemEntityType.notFound;
+      final exists =
+          linkExists || rawStat.type != FileSystemEntityType.notFound;
 
       context.setVariable('stat_exists', exists.toString());
 
@@ -92,8 +93,12 @@ try {
         return;
       }
 
-      final isDir = linkExists ? false : rawStat.type == FileSystemEntityType.directory;
-      final isReg = linkExists ? false : rawStat.type == FileSystemEntityType.file;
+      final isDir = linkExists
+          ? false
+          : rawStat.type == FileSystemEntityType.directory;
+      final isReg = linkExists
+          ? false
+          : rawStat.type == FileSystemEntityType.file;
 
       context.setVariable('stat_islnk', linkExists.toString());
       context.setVariable('stat_isdir', isDir.toString());
@@ -136,20 +141,22 @@ try {
       final ops = SystemOperations(executionService.platform);
       try {
         final (uidCmd, uidArgs) = ops.uid(path);
-        final uidResult = await runCommand(uidCmd, uidArgs, checkExitCode: false);
+        final uidResult = await runCommand(
+          uidCmd,
+          uidArgs,
+          checkExitCode: false,
+        );
         if (uidResult.exitCode == 0) {
-          context.setVariable(
-            'stat_uid',
-            (uidResult.stdout as String).trim(),
-          );
+          context.setVariable('stat_uid', (uidResult.stdout as String).trim());
         }
         final (gidCmd, gidArgs) = ops.gid(path);
-        final gidResult = await runCommand(gidCmd, gidArgs, checkExitCode: false);
+        final gidResult = await runCommand(
+          gidCmd,
+          gidArgs,
+          checkExitCode: false,
+        );
         if (gidResult.exitCode == 0) {
-          context.setVariable(
-            'stat_gid',
-            (gidResult.stdout as String).trim(),
-          );
+          context.setVariable('stat_gid', (gidResult.stdout as String).trim());
         }
       } catch (_) {}
 

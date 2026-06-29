@@ -70,10 +70,9 @@ class KnownHostsBlock extends ActionBlock {
       );
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Managing known_hosts entry: $name',
-    ));
+    emitEvent(
+      StartedEvent(moduleId: id, message: 'Managing known_hosts entry: $name'),
+    );
 
     try {
       final knownPath = _resolvePath();
@@ -104,11 +103,13 @@ class KnownHostsBlock extends ActionBlock {
 
       await file.writeAsString('${lines.join('\n')}\n');
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message:
-            'Host $name ${status == 'absent' ? 'removed from' : 'added to'} $knownPath',
-      ));
+      emitEvent(
+        CompletedEvent(
+          moduleId: id,
+          message:
+              'Host $name ${status == 'absent' ? 'removed from' : 'added to'} $knownPath',
+        ),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;

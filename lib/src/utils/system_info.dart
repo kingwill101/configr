@@ -45,22 +45,26 @@ class SystemInfo {
     this.configrVersion = '1.0.0',
     this.configrCacheDir = '',
     this.configrBackupDir = '',
-  })  : osName = Platform.operatingSystem,
-        osVersion = Platform.operatingSystemVersion,
-        osArchitecture = _detectArchitecture(),
-        osKernel = _extractKernel(Platform.operatingSystemVersion),
-        osDistribution = _detectDistribution(),
-        osDistributionVersion = _detectDistributionVersion(),
-        osFamily = _detectFamily(Platform.operatingSystem, _detectDistribution()),
-        hostHostname = Platform.localHostname,
-        hostFqdn = _detectFqdn(),
-        userName = Platform.environment['USER'] ??
-            Platform.environment['USERNAME'] ??
-            'unknown',
-        userHome = Platform.environment['HOME'] ?? '/',
-        userShell = Platform.environment['SHELL'] ?? '',
-        now = DateTime.now(),
-        env = _collectEnv();
+  }) : osName = Platform.operatingSystem,
+       osVersion = Platform.operatingSystemVersion,
+       osArchitecture = _detectArchitecture(),
+       osKernel = _extractKernel(Platform.operatingSystemVersion),
+       osDistribution = _detectDistribution(),
+       osDistributionVersion = _detectDistributionVersion(),
+       osFamily = _detectFamily(
+         Platform.operatingSystem,
+         _detectDistribution(),
+       ),
+       hostHostname = Platform.localHostname,
+       hostFqdn = _detectFqdn(),
+       userName =
+           Platform.environment['USER'] ??
+           Platform.environment['USERNAME'] ??
+           'unknown',
+       userHome = Platform.environment['HOME'] ?? '/',
+       userShell = Platform.environment['SHELL'] ?? '',
+       now = DateTime.now(),
+       env = _collectEnv();
 
   /// Sets all system info variables on the given [context].
   ///
@@ -85,7 +89,12 @@ class SystemInfo {
     _setBoth(context, 'os_architecture', 'os.architecture', osArchitecture);
     _setBoth(context, 'os_kernel', 'os.kernel', osKernel);
     _setBoth(context, 'os_distribution', 'os.distribution', osDistribution);
-    _setBoth(context, 'os_distribution_version', 'os.distributionVersion', osDistributionVersion);
+    _setBoth(
+      context,
+      'os_distribution_version',
+      'os.distributionVersion',
+      osDistributionVersion,
+    );
     _setBoth(context, 'os_family', 'os.family', osFamily);
 
     // Host
@@ -110,14 +119,28 @@ class SystemInfo {
     _setBoth(context, 'date_hour', 'date.hour', h);
     _setBoth(context, 'date_minute', 'date.minute', mi);
     _setBoth(context, 'date_second', 'date.second', s);
-    _setBoth(context, 'date_timestamp', 'date.timestamp', now.toIso8601String());
-    _setBoth(context, 'date_epoch', 'date.epoch',
-        (now.millisecondsSinceEpoch ~/ 1000).toString());
+    _setBoth(
+      context,
+      'date_timestamp',
+      'date.timestamp',
+      now.toIso8601String(),
+    );
+    _setBoth(
+      context,
+      'date_epoch',
+      'date.epoch',
+      (now.millisecondsSinceEpoch ~/ 1000).toString(),
+    );
 
     // Configr
     _setBoth(context, 'configr_version', 'configr.version', configrVersion);
     _setBoth(context, 'configr_cache_dir', 'configr.cacheDir', configrCacheDir);
-    _setBoth(context, 'configr_backup_dir', 'configr.backupDir', configrBackupDir);
+    _setBoth(
+      context,
+      'configr_backup_dir',
+      'configr.backupDir',
+      configrBackupDir,
+    );
 
     // Environment (common vars)
     for (final entry in env.entries) {
@@ -216,7 +239,9 @@ class SystemInfo {
           if (result.exitCode == 0) {
             final like = (result.stdout as String).trim().toLowerCase();
             if (like.contains('debian')) return 'debian';
-            if (like.contains('rhel') || like.contains('fedora')) return 'redhat';
+            if (like.contains('rhel') || like.contains('fedora')) {
+              return 'redhat';
+            }
             if (like.contains('arch')) return 'arch';
             if (like.contains('suse')) return 'suse';
             if (like.contains('alpine')) return 'alpine';

@@ -192,7 +192,12 @@ abstract class MountBlock extends ActionBlock {
   }
 
   Future<bool> _isMounted() async {
-    final result = await runCommand('mount', [], requireElevation: true, checkExitCode: false);
+    final result = await runCommand(
+      'mount',
+      [],
+      requireElevation: true,
+      checkExitCode: false,
+    );
     if (result.exitCode != 0) return false;
     final output = result.stdout as String;
     for (final line in output.split('\n')) {
@@ -223,51 +228,64 @@ abstract class MountBlock extends ActionBlock {
   Future<void> execute() async {
     if (path.isEmpty) {
       throw ActionFailedException(
-        'path is required for mount block', moduleId: id,
+        'path is required for mount block',
+        moduleId: id,
       );
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Managing mount: $path (state=$state)',
-    ));
+    emitEvent(
+      StartedEvent(
+        moduleId: id,
+        message: 'Managing mount: $path (state=$state)',
+      ),
+    );
 
     try {
       switch (state) {
         case 'present':
           final changed = await _ensureFstabEntry();
           if (changed) {
-            emitEvent(CompletedEvent(
-              moduleId: id,
-              message: 'Mount entry for $path ensured in fstab',
-            ));
+            emitEvent(
+              CompletedEvent(
+                moduleId: id,
+                message: 'Mount entry for $path ensured in fstab',
+              ),
+            );
           } else {
-            emitEvent(StatusUpdateEvent(
-              moduleId: id,
-              message: 'Mount $path already present in fstab',
-              level: StatusEvent.info,
-            ));
+            emitEvent(
+              StatusUpdateEvent(
+                moduleId: id,
+                message: 'Mount $path already present in fstab',
+                level: StatusEvent.info,
+              ),
+            );
           }
 
         case 'mounted':
           final fstabChanged = await _ensureFstabEntry();
           if (!await _isMounted()) {
             await _mount();
-            emitEvent(CompletedEvent(
-              moduleId: id,
-              message: 'Mount $path mounted and fstab updated',
-            ));
+            emitEvent(
+              CompletedEvent(
+                moduleId: id,
+                message: 'Mount $path mounted and fstab updated',
+              ),
+            );
           } else if (fstabChanged) {
-            emitEvent(CompletedEvent(
-              moduleId: id,
-              message: 'Mount $path already mounted, fstab updated',
-            ));
+            emitEvent(
+              CompletedEvent(
+                moduleId: id,
+                message: 'Mount $path already mounted, fstab updated',
+              ),
+            );
           } else {
-            emitEvent(StatusUpdateEvent(
-              moduleId: id,
-              message: 'Mount $path already at desired state',
-              level: StatusEvent.info,
-            ));
+            emitEvent(
+              StatusUpdateEvent(
+                moduleId: id,
+                message: 'Mount $path already at desired state',
+                level: StatusEvent.info,
+              ),
+            );
           }
 
         case 'absent':
@@ -278,31 +296,36 @@ abstract class MountBlock extends ActionBlock {
           }
           final fstabRemoved = await _removeFstabEntry();
           if (changed || fstabRemoved) {
-            emitEvent(CompletedEvent(
-              moduleId: id,
-              message: 'Mount $path removed from fstab and unmounted',
-            ));
+            emitEvent(
+              CompletedEvent(
+                moduleId: id,
+                message: 'Mount $path removed from fstab and unmounted',
+              ),
+            );
           } else {
-            emitEvent(StatusUpdateEvent(
-              moduleId: id,
-              message: 'Mount $path is already absent',
-              level: StatusEvent.info,
-            ));
+            emitEvent(
+              StatusUpdateEvent(
+                moduleId: id,
+                message: 'Mount $path is already absent',
+                level: StatusEvent.info,
+              ),
+            );
           }
 
         case 'unmounted':
           if (await _isMounted()) {
             await _umount();
-            emitEvent(CompletedEvent(
-              moduleId: id,
-              message: 'Mount $path unmounted',
-            ));
+            emitEvent(
+              CompletedEvent(moduleId: id, message: 'Mount $path unmounted'),
+            );
           } else {
-            emitEvent(StatusUpdateEvent(
-              moduleId: id,
-              message: 'Mount $path is already unmounted',
-              level: StatusEvent.info,
-            ));
+            emitEvent(
+              StatusUpdateEvent(
+                moduleId: id,
+                message: 'Mount $path is already unmounted',
+                level: StatusEvent.info,
+              ),
+            );
           }
 
         case 'remounted':
@@ -310,10 +333,9 @@ abstract class MountBlock extends ActionBlock {
             await _umount();
           }
           await _mount();
-          emitEvent(CompletedEvent(
-            moduleId: id,
-            message: 'Mount $path remounted',
-          ));
+          emitEvent(
+            CompletedEvent(moduleId: id, message: 'Mount $path remounted'),
+          );
 
         default:
           throw ActionFailedException(

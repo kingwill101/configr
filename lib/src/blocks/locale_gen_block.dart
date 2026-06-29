@@ -108,10 +108,18 @@ class _DebianLocaleGenBlock extends LocaleGenBlock {
   @override
   Future<void> execute() async {
     if (locales.isEmpty) {
-      throw ActionFailedException('Name/locales is required for locale_gen', moduleId: id);
+      throw ActionFailedException(
+        'Name/locales is required for locale_gen',
+        moduleId: id,
+      );
     }
 
-    emitEvent(StartedEvent(moduleId: id, message: 'Generating locales: ${locales.join(', ')}'));
+    emitEvent(
+      StartedEvent(
+        moduleId: id,
+        message: 'Generating locales: ${locales.join(', ')}',
+      ),
+    );
 
     try {
       final priv = privilegeEscalation;
@@ -120,24 +128,32 @@ class _DebianLocaleGenBlock extends LocaleGenBlock {
       await validateAgainstSupported();
 
       // Get already-generated locales
-      final localeResult = await priv.runWithElevatedPrivileges('locale', ['-a']);
+      final localeResult = await priv.runWithElevatedPrivileges('locale', [
+        '-a',
+      ]);
       final existingLocales = localeResult.stdout;
 
       final changedLocales = <String>[];
 
       for (final locale in locales) {
         if (existingLocales.contains(locale)) {
-          emitEvent(StatusUpdateEvent(
-            moduleId: id, message: 'Locale $locale already generated',
-            level: StatusEvent.info,
-          ));
+          emitEvent(
+            StatusUpdateEvent(
+              moduleId: id,
+              message: 'Locale $locale already generated',
+              level: StatusEvent.info,
+            ),
+          );
           continue;
         }
 
         final localeGen = fileSystem.file('/etc/locale.gen');
         if (await localeGen.exists()) {
           String content = await localeGen.readAsString();
-          final pattern = RegExp('#\\s*${RegExp.escape(locale)}', multiLine: true);
+          final pattern = RegExp(
+            '#\\s*${RegExp.escape(locale)}',
+            multiLine: true,
+          );
           if (content.contains(pattern)) {
             content = content.replaceAll(pattern, locale);
             await localeGen.writeAsString(content);
@@ -159,15 +175,18 @@ class _DebianLocaleGenBlock extends LocaleGenBlock {
         final result = await priv.runWithElevatedPrivileges('locale-gen', []);
         if (result.exitCode != 0) {
           throw ActionFailedException(
-            'locale-gen failed: ${result.stderr}', moduleId: id,
+            'locale-gen failed: ${result.stderr}',
+            moduleId: id,
           );
         }
       }
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: 'Locales processed: ${changedLocales.join(', ')}',
-      ));
+      emitEvent(
+        CompletedEvent(
+          moduleId: id,
+          message: 'Locales processed: ${changedLocales.join(', ')}',
+        ),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;
@@ -189,12 +208,18 @@ class _ArchLocaleGenBlock extends LocaleGenBlock {
   @override
   Future<void> execute() async {
     if (locales.isEmpty) {
-      throw ActionFailedException('Name/locales is required for locale_gen', moduleId: id);
+      throw ActionFailedException(
+        'Name/locales is required for locale_gen',
+        moduleId: id,
+      );
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id, message: 'Generating locales on Arch: ${locales.join(', ')}',
-    ));
+    emitEvent(
+      StartedEvent(
+        moduleId: id,
+        message: 'Generating locales on Arch: ${locales.join(', ')}',
+      ),
+    );
 
     try {
       final priv = privilegeEscalation;
@@ -205,7 +230,8 @@ class _ArchLocaleGenBlock extends LocaleGenBlock {
         final localeGen = fileSystem.file('/etc/locale.gen');
         if (!await localeGen.exists()) {
           throw ActionFailedException(
-            '/etc/locale.gen not found on Arch Linux', moduleId: id,
+            '/etc/locale.gen not found on Arch Linux',
+            moduleId: id,
           );
         }
 
@@ -237,19 +263,25 @@ class _ArchLocaleGenBlock extends LocaleGenBlock {
         final result = await priv.runWithElevatedPrivileges('locale-gen', []);
         if (result.exitCode != 0) {
           throw ActionFailedException(
-            'locale-gen failed on Arch: ${result.stderr}', moduleId: id,
+            'locale-gen failed on Arch: ${result.stderr}',
+            moduleId: id,
           );
         }
       }
 
-      emitEvent(CompletedEvent(
-        moduleId: id,
-        message: 'Locales processed on Arch: ${changedLocales.join(', ')}',
-      ));
+      emitEvent(
+        CompletedEvent(
+          moduleId: id,
+          message: 'Locales processed on Arch: ${changedLocales.join(', ')}',
+        ),
+      );
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;
-      throw ActionFailedException('locale_gen failed on Arch: $e', moduleId: id);
+      throw ActionFailedException(
+        'locale_gen failed on Arch: $e',
+        moduleId: id,
+      );
     }
   }
 

@@ -36,8 +36,10 @@ void main() {
     test('redact replaces long values with <REDACTED>', () {
       mw.markSensitive('secret', 'mysecretpassword');
       expect(mw.redact('mysecretpassword'), equals('<REDACTED>'));
-      expect(mw.redact('prefix mysecretpassword suffix'),
-          equals('prefix <REDACTED> suffix'));
+      expect(
+        mw.redact('prefix mysecretpassword suffix'),
+        equals('prefix <REDACTED> suffix'),
+      );
     });
 
     test('redact skips short values (length < 4)', () {

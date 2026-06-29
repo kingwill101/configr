@@ -169,17 +169,13 @@ class _LinuxServiceBlock extends ServiceBlock {
       throw ActionFailedException('Service name is required', moduleId: id);
     }
 
-    emitEvent(
-      StartedEvent(moduleId: id, message: 'Managing service: $name'),
-    );
+    emitEvent(StartedEvent(moduleId: id, message: 'Managing service: $name'));
 
     try {
       await _handleState();
       await _handleEnabled();
 
-      emitEvent(
-        CompletedEvent(moduleId: id, message: 'Service $name managed'),
-      );
+      emitEvent(CompletedEvent(moduleId: id, message: 'Service $name managed'));
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;
@@ -270,7 +266,6 @@ class _LinuxServiceBlock extends ServiceBlock {
       }
     }
   }
-
 }
 
 // ---------------------------------------------------------------------------
@@ -284,10 +279,11 @@ class _MacOSServiceBlock extends ServiceBlock {
 
   Future<String?> _findPlist() async {
     try {
-      final result = await executionService.run(
-        'find',
-        ['/Library/LaunchDaemons', '-name', '$name.plist'],
-      );
+      final result = await executionService.run('find', [
+        '/Library/LaunchDaemons',
+        '-name',
+        '$name.plist',
+      ]);
       if (result.exitCode == 0 && (result.stdout as String).trim().isNotEmpty) {
         return (result.stdout as String).trim().split('\n').first;
       }
@@ -303,17 +299,13 @@ class _MacOSServiceBlock extends ServiceBlock {
 
     _plistPath ??= await _findPlist();
 
-    emitEvent(
-      StartedEvent(moduleId: id, message: 'Managing service: $name'),
-    );
+    emitEvent(StartedEvent(moduleId: id, message: 'Managing service: $name'));
 
     try {
       await _handleState();
       await _handleEnabled();
 
-      emitEvent(
-        CompletedEvent(moduleId: id, message: 'Service $name managed'),
-      );
+      emitEvent(CompletedEvent(moduleId: id, message: 'Service $name managed'));
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;
@@ -393,7 +385,6 @@ class _MacOSServiceBlock extends ServiceBlock {
       await _runInitCommand('launchctl', ['load', '-w', _plistPath!]);
     }
   }
-
 }
 
 // ---------------------------------------------------------------------------
@@ -409,17 +400,13 @@ class _FreeBSDServiceBlock extends ServiceBlock {
       throw ActionFailedException('Service name is required', moduleId: id);
     }
 
-    emitEvent(
-      StartedEvent(moduleId: id, message: 'Managing service: $name'),
-    );
+    emitEvent(StartedEvent(moduleId: id, message: 'Managing service: $name'));
 
     try {
       await _handleState();
       await _handleEnabled();
 
-      emitEvent(
-        CompletedEvent(moduleId: id, message: 'Service $name managed'),
-      );
+      emitEvent(CompletedEvent(moduleId: id, message: 'Service $name managed'));
       status = 'completed';
     } catch (e) {
       if (e is ActionFailedException) rethrow;
@@ -485,10 +472,7 @@ class _FreeBSDServiceBlock extends ServiceBlock {
 
   @override
   Future<void> _enable() async {
-    final result = await _runInitCommand(
-      'sysrc',
-      ['${name}_enable=YES'],
-    );
+    final result = await _runInitCommand('sysrc', ['${name}_enable=YES']);
     if (result.exitCode != 0) {
       throw ActionFailedException(
         'Failed to enable service $name: ${result.stderr}',
@@ -496,5 +480,4 @@ class _FreeBSDServiceBlock extends ServiceBlock {
       );
     }
   }
-
 }

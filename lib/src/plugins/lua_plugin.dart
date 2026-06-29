@@ -21,7 +21,7 @@ class LuaPlugin implements ConfigrPlugin, LuaPluginHost {
   bool _initialized = false;
 
   LuaPlugin({this.code, this.scriptPath, FileSystem? fileSystem})
-      : _fileSystem = fileSystem ?? const LocalFileSystem();
+    : _fileSystem = fileSystem ?? const LocalFileSystem();
 
   // --- LuaPluginHost implementation ---
 
@@ -104,12 +104,7 @@ class LuaPlugin implements ConfigrPlugin, LuaPluginHost {
     _eventBus = eventBus;
 
     _registeredBlocks.forEach((blockType, callbacks) {
-      final block = LuaActionBlock(
-        blockType,
-        _luaLike,
-        this,
-        callbacks,
-      );
+      final block = LuaActionBlock(blockType, _luaLike, this, callbacks);
       processor.registerBlockHandler(block);
     });
   }
@@ -124,8 +119,9 @@ class LuaPlugin implements ConfigrPlugin, LuaPluginHost {
     if (onConfigLoadFunc != null &&
         onConfigLoadFunc is Value &&
         onConfigLoadFunc.raw != null) {
-      await _luaLike.vm
-          .callFunction(onConfigLoadFunc, [Value(config.toJson())]);
+      await _luaLike.vm.callFunction(onConfigLoadFunc, [
+        Value(config.toJson()),
+      ]);
     }
   }
 
@@ -135,8 +131,9 @@ class LuaPlugin implements ConfigrPlugin, LuaPluginHost {
     if (onConfigAppliedFunc != null &&
         onConfigAppliedFunc is Value &&
         onConfigAppliedFunc.raw != null) {
-      await _luaLike.vm
-          .callFunction(onConfigAppliedFunc, [Value(config.toJson())]);
+      await _luaLike.vm.callFunction(onConfigAppliedFunc, [
+        Value(config.toJson()),
+      ]);
     }
   }
 }
@@ -158,7 +155,9 @@ class LuaActionBlock extends ActionBlock {
 
   @override
   Future<void> readAdditionalProperties(
-      i3.Block block, i3.Context context) async {
+    i3.Block block,
+    i3.Context context,
+  ) async {
     _currentContext = context;
     final props = <String, dynamic>{};
     for (final key in context.variables.keys) {
@@ -222,7 +221,11 @@ class LuaCommandHandler extends i3.BaseCommandHandler {
   final dynamic _commandFunc;
 
   LuaCommandHandler(
-      this.commandName, this._luaLike, this._block, this._commandFunc);
+    this.commandName,
+    this._luaLike,
+    this._block,
+    this._commandFunc,
+  );
 
   @override
   Future<void> handle(i3.Command command, i3.Context context) async {

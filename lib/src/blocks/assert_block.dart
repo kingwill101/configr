@@ -56,10 +56,7 @@ class AssertBlock extends ActionBlock {
       );
     }
 
-    emitEvent(StartedEvent(
-      moduleId: id,
-      message: 'Asserting: $condition',
-    ));
+    emitEvent(StartedEvent(moduleId: id, message: 'Asserting: $condition'));
 
     final evaluated = _evaluateCondition(condition);
 
@@ -70,17 +67,18 @@ class AssertBlock extends ActionBlock {
     }
 
     if (successMsg.isNotEmpty) {
-      emitEvent(StatusUpdateEvent(
-        moduleId: id,
-        message: successMsg,
-        level: StatusEvent.info,
-      ));
+      emitEvent(
+        StatusUpdateEvent(
+          moduleId: id,
+          message: successMsg,
+          level: StatusEvent.info,
+        ),
+      );
     }
 
-    emitEvent(CompletedEvent(
-      moduleId: id,
-      message: 'Assert passed: $condition',
-    ));
+    emitEvent(
+      CompletedEvent(moduleId: id, message: 'Assert passed: $condition'),
+    );
     status = 'completed';
   }
 

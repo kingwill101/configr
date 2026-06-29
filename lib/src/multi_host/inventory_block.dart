@@ -58,7 +58,11 @@ class InventoryBlock extends i3.BaseBlockHandler {
         if (rolesRaw is List) {
           roles = rolesRaw.cast<String>();
         } else if (rolesRaw is String) {
-          roles = rolesRaw.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+          roles = rolesRaw
+              .split(',')
+              .map((s) => s.trim())
+              .where((s) => s.isNotEmpty)
+              .toList();
         } else {
           roles = [];
         }
@@ -67,7 +71,11 @@ class InventoryBlock extends i3.BaseBlockHandler {
         if (groupsRaw is List) {
           hostGroups = groupsRaw.cast<String>();
         } else if (groupsRaw is String) {
-          hostGroups = groupsRaw.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+          hostGroups = groupsRaw
+              .split(',')
+              .map((s) => s.trim())
+              .where((s) => s.isNotEmpty)
+              .toList();
         } else {
           hostGroups = [];
         }
@@ -86,7 +94,10 @@ class InventoryBlock extends i3.BaseBlockHandler {
         hostsByName[name] = host;
 
         for (final role in roles) {
-          rolesByName.putIfAbsent(role, () => Role(name: role, hosts: [])).hosts.add(host);
+          rolesByName
+              .putIfAbsent(role, () => Role(name: role, hosts: []))
+              .hosts
+              .add(host);
         }
         for (final group in hostGroups) {
           if (!groups.contains(group)) groups.add(group);

@@ -64,7 +64,10 @@ void main() {
   });
 
   test('should add host entry to known_hosts file', () async {
-    await helper.createFile('/etc/ssh/ssh_known_hosts', 'existing.host ssh-rsa AAAAB3...\n');
+    await helper.createFile(
+      '/etc/ssh/ssh_known_hosts',
+      'existing.host ssh-rsa AAAAB3...\n',
+    );
 
     final blocks = await helper.runConfig('''
       known_hosts {

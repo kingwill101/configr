@@ -144,18 +144,15 @@ void main() {
       ''');
 
       final mgr = HookManager(hooksDir: hooksDir, fileSystem: fs);
-      final result = await mgr.runEvent('pre-block', extraVars: {
-        'block_type': 'echo',
-        'block_id': 'echo_0',
-      });
+      final result = await mgr.runEvent(
+        'pre-block',
+        extraVars: {'block_type': 'echo', 'block_id': 'echo_0'},
+      );
 
       expect(result, isTrue);
       final markerFile = fs.file('/tmp/hook_block.txt');
       expect(await markerFile.exists(), isTrue);
-      expect(
-        await markerFile.readAsString(),
-        'pre-block:echo:echo_0',
-      );
+      expect(await markerFile.readAsString(), 'pre-block:echo:echo_0');
     });
 
     test('known events list is comprehensive', () async {

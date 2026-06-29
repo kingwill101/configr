@@ -234,7 +234,10 @@ class CopyBlock extends ActionBlock {
             final dir = fileSystem.directory(destinationDir);
             final contents = await dir.list().toList();
             if (contents.isEmpty) {
-              await fileService.deleteDirectory(destinationDir!, recursive: true);
+              await fileService.deleteDirectory(
+                destinationDir!,
+                recursive: true,
+              );
             }
           }
         }
@@ -275,8 +278,7 @@ class CopyBlock extends ActionBlock {
     }
 
     // Track original content for rollback
-    final existsResult =
-        await fileService.pathExists(destination);
+    final existsResult = await fileService.pathExists(destination);
     if (existsResult.exists) {
       destinationFileExisted = true;
       try {

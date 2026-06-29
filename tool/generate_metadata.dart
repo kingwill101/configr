@@ -32,11 +32,7 @@ void main(List<String> args) async {
   await generateMetadata(
     lua,
     outputDir: outputDir,
-    formats: {
-      MetadataFormat.html,
-      MetadataFormat.json,
-      MetadataFormat.luals,
-    },
+    formats: {MetadataFormat.html, MetadataFormat.json, MetadataFormat.luals},
     includeStdlib: includeStdlib,
     packageName: 'configr',
     pageOptions: const DocPageOptions(
