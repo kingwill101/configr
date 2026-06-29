@@ -43,14 +43,14 @@ class ContainerTestHelper {
     required String testEnv,
     List<String>? commandOverride,
   }) async {
+    testcontainersConfig.ryukDisabled = true;
+    await _ensureImage(image);
     final container = DockerContainer(image)
-        .withName('configr-test-$testEnv-${DateTime.now().millisecondsSinceEpoch}')
-        .withEnv('CONFIGR_TEST_ENV', testEnv)
-        .withVolumeMapping(
-          Directory.current.path,
-          '/app',
-          'rw',
+        .withName(
+          'configr-test-$testEnv-${DateTime.now().millisecondsSinceEpoch}',
         )
+        .withEnv('CONFIGR_TEST_ENV', testEnv)
+        .withVolumeMapping(Directory.current.path, '/app', 'rw')
         .withCommand(commandOverride ?? ['tail', '-f', '/dev/null'])
         .withKwargs({
           'CapAdd': ['SYS_ADMIN', 'NET_ADMIN'],
@@ -58,6 +58,37 @@ class ContainerTestHelper {
 
     await container.start();
     return ContainerTestHelper._(container, testEnv);
+  }
+
+  static Future<void> _ensureImage(String image) async {
+    final inspect = await Process.run('docker', ['image', 'inspect', image]);
+    if (inspect.exitCode == 0) return;
+
+    final service = _composeServiceForImage(image);
+    if (service == null) return;
+
+    final build = await Process.run('docker', [
+      'compose',
+      '-f',
+      'testing/docker-compose.yml',
+      'build',
+      service,
+    ], workingDirectory: Directory.current.path);
+    if (build.exitCode != 0) {
+      throw ProcessException(
+        'docker',
+        ['compose', '-f', 'testing/docker-compose.yml', 'build', service],
+        '${build.stdout}${build.stderr}',
+        build.exitCode,
+      );
+    }
+  }
+
+  static String? _composeServiceForImage(String image) {
+    const prefix = 'testing-';
+    if (!image.startsWith(prefix)) return null;
+    final service = image.substring(prefix.length).split(':').first;
+    return service.isEmpty ? null : service;
   }
 
   /// Runs `dart pub get` inside the container.
@@ -96,20 +127,15 @@ class ContainerTestHelper {
 
   Future<ContainerProcessResult> _runCommand(List<String> command) async {
     final (exitCode, stdout) = await _container.exec(command);
-    return ContainerProcessResult(
-      exitCode,
-      String.fromCharCodes(stdout),
-      '',
-    );
+    return ContainerProcessResult(exitCode, String.fromCharCodes(stdout), '');
   }
 
   /// Copies a file or directory into the container.
-  Future<void> copyInto(BytesTransferable transferable, String destination) async {
-    await _container.copyIntoContainer(
-      transferable,
-      destination,
-      0x1A4,
-    );
+  Future<void> copyInto(
+    BytesTransferable transferable,
+    String destination,
+  ) async {
+    await _container.copyIntoContainer(transferable, destination, 0x1A4);
   }
 
   /// Stops and removes the container.
