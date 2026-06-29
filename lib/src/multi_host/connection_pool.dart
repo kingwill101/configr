@@ -1,5 +1,6 @@
 import 'package:configr/src/multi_host/host.dart' show Host;
-import 'package:configr/src/utils/ssh_execution_service.dart' show SSHExecutionService;
+import 'package:configr/src/utils/ssh_execution_service.dart'
+    show SSHExecutionService;
 
 /// Manages SSH connections to multiple hosts for multi-host operations.
 ///

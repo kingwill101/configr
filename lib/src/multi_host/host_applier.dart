@@ -43,7 +43,7 @@ Future<HostExecutionContext> applyOnHost({
     logger.info('[${host.name}] Uploading config to $remoteConfigPath');
     await ssh.putFile(configPath, remoteConfigPath);
 
-    final applyArgs = <String>['apply', remoteConfigPath];
+    final applyArgs = <String>['--config', remoteConfigPath, 'apply'];
     if (dryRun) applyArgs.add('--dry-run');
     if (failFast) applyArgs.add('--fail-fast');
     if (extraApplyArgs != null) applyArgs.addAll(extraApplyArgs);

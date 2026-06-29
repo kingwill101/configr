@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:i3config/i3config_v2.dart' as i3;
 import 'package:configr/src/multi_host/host.dart' show Host;
@@ -46,7 +47,10 @@ class InventoryBlock extends i3.BaseBlockHandler {
         final address = vars['address'] as String? ?? '';
         final portStr = vars['port'] as String?;
         final username = vars['username'] as String?;
-        final privateKey = vars['privateKey'] as String?;
+        var privateKey = vars['privateKey'] as String?;
+        if (privateKey != null && File(privateKey).existsSync()) {
+          privateKey = File(privateKey).readAsStringSync();
+        }
         final rolesRaw = vars['roles'];
         final groupsRaw = vars['groups'];
 

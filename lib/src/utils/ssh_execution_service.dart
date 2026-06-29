@@ -24,32 +24,39 @@ class SSHExecutionService implements ExecutionService {
     if (host == null || host.isEmpty) {
       throw ArgumentError('SSH host is required');
     }
-    final port = config['port'] as int? ?? 22;
-    final username = config['username'] as String? ?? 'root';
-    final password = config['password'] as String?;
-    final privateKeyPem = config['private_key'] as String?;
-    final privateKeyPassphrase = config['private_key_passphrase'] as String?;
 
     final socket = await SSHSocket.connect(
       host,
-      port,
+      config['port'] as int? ?? 22,
       timeout: Duration(seconds: config['connect_timeout'] as int? ?? 30),
     );
 
-    _client = SSHClient(
-      socket,
-      username: username,
-      onPasswordRequest: password != null ? () => password : null,
-      identities: privateKeyPem != null
-          ? SSHKeyPair.fromPem(privateKeyPem, privateKeyPassphrase)
-          : null,
+    final username = config['username'] as String? ?? 'root';
+    final password = _nonEmpty(config['password'] as String?);
+    final privateKeyPem = _nonEmpty(config['private_key'] as String?);
+    final privateKeyPassphrase = _nonEmpty(
+      config['private_key_passphrase'] as String?,
     );
 
-    await _client!.authenticated;
+    try {
+      _client = SSHClient(
+        socket,
+        username: username,
+        onPasswordRequest: password == null ? null : () => password,
+        identities: privateKeyPem == null
+            ? null
+            : SSHKeyPair.fromPem(privateKeyPem, privateKeyPassphrase),
+        disableHostkeyVerification: true,
+      );
 
-    _sftp = await _client!.sftp();
-
-    _platform = await _detectPlatform();
+      await _client!.authenticated;
+      _sftp = await _client!.sftp();
+      _platform = await _detectPlatform();
+    } catch (_) {
+      _client?.close();
+      _client = null;
+      rethrow;
+    }
   }
 
   Future<String> _detectPlatform() async {
@@ -88,73 +95,77 @@ class SSHExecutionService implements ExecutionService {
       throw StateError('Not connected. Call connect() first.');
     }
 
-    var cmd = runInShell
-        ? _buildShellCommand(command, arguments)
-        : '${command}${arguments.map((a) => ' ${_escapeArg(a)}').join()}';
-
+    var remoteCommand = _buildCommand(command, arguments);
     if (workingDirectory != null && workingDirectory.isNotEmpty) {
-      cmd = 'cd ${_escapeArg(workingDirectory)} && $cmd';
+      remoteCommand = 'cd ${_escapeArg(workingDirectory)} && $remoteCommand';
     }
-
     if (environment != null && environment.isNotEmpty) {
       final envVars = environment.entries
-          .map((e) => '${e.key}=${_escapeArg(e.value)}')
+          .map((entry) => '${entry.key}=${_escapeArg(entry.value)}')
           .join(' ');
-      cmd = '$envVars $cmd';
+      remoteCommand = '$envVars $remoteCommand';
     }
 
-    final session = await client.execute(cmd);
+    final session = await client.execute(remoteCommand);
+    if (stdin != null) {
+      session.stdin.add(utf8.encode(stdin));
+      await session.stdin.close();
+    }
 
-    final stdoutBuf = StringBuffer();
-    final stderrBuf = StringBuffer();
+    final stdoutBuffer = StringBuffer();
+    final stderrBuffer = StringBuffer();
 
-    final stdoutDone = session.stdout
-        .transform(const _Uint8ListCodec())
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .forEach((line) {
-      stdoutBuf.writeln(line);
-      onOutput?.call(line, false);
-    }).catchError((_) {});
-
-    final stderrDone = session.stderr
-        .transform(const _Uint8ListCodec())
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .forEach((line) {
-      stderrBuf.writeln(line);
-      onOutput?.call(line, true);
-    }).catchError((_) {});
+    final stdoutDone = _collectOutput(session.stdout, stdoutBuffer, onOutput);
+    final stderrDone = _collectOutput(
+      session.stderr,
+      stderrBuffer,
+      onOutput == null ? null : (line, _) => onOutput(line, true),
+    );
 
     await Future.wait([stdoutDone, stderrDone]);
-
     await session.done;
+
     final exitCode = session.exitCode ?? -1;
     session.close();
 
     return ProcessResult(
       0,
       exitCode,
-      stdoutBuf.toString(),
-      stderrBuf.toString(),
+      stdoutBuffer.toString(),
+      stderrBuffer.toString(),
     );
   }
 
-  String _buildShellCommand(String command, List<String> arguments) {
+  String _buildCommand(String command, List<String> arguments) {
     if (arguments.isEmpty) return command;
-    final buf = StringBuffer(command);
-    for (final arg in arguments) {
-      buf.write(' ');
-      buf.write(_escapeArg(arg));
-    }
-    return buf.toString();
+    return [command, ...arguments.map(_escapeArg)].join(' ');
   }
 
   String _escapeArg(String arg) {
-    if (arg.contains(' ') || arg.contains(r'$') || arg.contains('"')) {
+    if (arg.isEmpty ||
+        arg.contains(RegExp(r'''[\s$"`'\\]''')) ||
+        arg.contains('&') ||
+        arg.contains(';') ||
+        arg.contains('|')) {
       return "'${arg.replaceAll("'", "'\\''")}'";
     }
     return arg;
+  }
+
+  Future<void> _collectOutput(
+    Stream<Uint8List> stream,
+    StringBuffer buffer,
+    CommandOutputHandler? onOutput,
+  ) async {
+    final lines = stream
+        .transform(const _Uint8ListCodec())
+        .transform(utf8.decoder)
+        .transform(const LineSplitter());
+
+    await for (final line in lines) {
+      buffer.writeln(line);
+      onOutput?.call(line, false);
+    }
   }
 
   @override
@@ -169,16 +180,18 @@ class SSHExecutionService implements ExecutionService {
       throw FileSystemException('Source file not found', sourcePath);
     }
 
-    final mode = SftpFileOpenMode.write |
-        SftpFileOpenMode.create |
-        SftpFileOpenMode.truncate;
-    final file = await sftp.open(destinationPath, mode: mode);
+    final remoteFile = await sftp.open(
+      destinationPath,
+      mode:
+          SftpFileOpenMode.write |
+          SftpFileOpenMode.create |
+          SftpFileOpenMode.truncate,
+    );
 
     try {
-      final bytes = await sourceFile.readAsBytes();
-      await file.writeBytes(bytes);
+      await remoteFile.writeBytes(await sourceFile.readAsBytes());
     } finally {
-      await file.close();
+      await remoteFile.close();
     }
   }
 
@@ -189,15 +202,18 @@ class SSHExecutionService implements ExecutionService {
       throw StateError('SFTP not available. Call connect() first.');
     }
 
-    final file = await sftp.open(sourcePath, mode: SftpFileOpenMode.read);
-    final destFile = File(destinationPath);
+    final remoteFile = await sftp.open(sourcePath, mode: SftpFileOpenMode.read);
+    final destinationFile = File(destinationPath);
 
     try {
-      final bytes = await file.readBytes();
-      await destFile.writeAsBytes(bytes);
+      await destinationFile.writeAsBytes(await remoteFile.readBytes());
     } finally {
-      await file.close();
+      await remoteFile.close();
     }
+  }
+
+  String? _nonEmpty(String? value) {
+    return value == null || value.isEmpty ? null : value;
   }
 }
 
