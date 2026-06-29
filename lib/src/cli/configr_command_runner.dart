@@ -155,42 +155,50 @@ class ConfigrCommandRunner extends CommandRunner<void> {
 
   @override
   Future<void> run(Iterable<String> args) async {
-    final configPath = _argValue(args, '--config', '-c') ?? 'config';
+    // Parse args using the argParser instead of manual string matching.
+    // The argParser already defines every option with proper types, defaults,
+    // and error handling. We call parse() here to extract global option
+    // values before delegating to super.run() for command dispatch.
+    ArgResults? parsed;
+    try {
+      parsed = argParser.parse(args);
+    } on ArgParserException {
+      await super.run(args);
+      return;
+    }
+
+    final configPath = parsed['config'] as String? ?? 'config';
     final configDir = path.dirname(path.absolute(configPath));
     final configrDirs = ConfigrDirectories(
       projectConfigrPath: path.join(configDir, '.configr'),
     );
     initLogging(logDirectory: configrDirs.logsDir);
-    final useV2 = _hasFlag(args, '--v2');
-    final debugMode = _hasFlag(args, '--debug', '-d');
-    final dryRunMode = _hasFlag(args, '--dry-run');
-    final generateCompletion = _hasFlag(args, '--generate-completion');
-    final pluginDirs = _multiArgValues(args, '--plugin-dir');
-    final pluginFiles = _multiArgValues(args, '--plugin');
 
-    final sshHost = _argValue(args, '--host', '');
+    final useV2 = parsed['v2'] as bool? ?? false;
+    final debugMode = parsed['debug'] as bool? ?? false;
+    final dryRunMode = parsed['dry-run'] as bool? ?? false;
+    final generateCompletion = parsed['generate-completion'] as bool? ?? false;
+    final pluginDirs = (parsed['plugin-dir'] as List<String>?) ?? [];
+    final pluginFiles = (parsed['plugin'] as List<String>?) ?? [];
+
+    final sshHost = parsed['host'] as String?;
     final sshPort =
-        int.tryParse(_argValue(args, '--ssh-port', '') ?? '22') ?? 22;
-    final sshUser = _argValue(args, '--ssh-user', '');
-    final sshPassword = _argValue(args, '--ssh-password', '');
-    final sshKeyPath = _argValue(args, '--ssh-key', '');
-    final sshKeyPassphrase = _argValue(args, '--ssh-key-passphrase', '');
+        int.tryParse(parsed['ssh-port'] as String? ?? '22') ?? 22;
+    final sshUser = parsed['ssh-user'] as String? ?? 'root';
+    final sshPassword = parsed['ssh-password'] as String?;
+    final sshKeyPath = parsed['ssh-key'] as String?;
+    final sshKeyPassphrase = parsed['ssh-key-passphrase'] as String?;
 
     ConnectionConfig? connectionConfig;
     if (sshHost != null && sshHost.isNotEmpty) {
       String? privateKey;
       if (sshKeyPath != null && sshKeyPath.isNotEmpty) {
-        final keyFile =
-            (di.isRegistered<FileSystem>()
-                    ? di<FileSystem>()
-                    : const LocalFileSystem())
-                as dynamic;
-        privateKey = keyFile.file(sshKeyPath).readAsStringSync();
+        privateKey = File(sshKeyPath).readAsStringSync();
       }
       connectionConfig = ConnectionConfig(
         host: sshHost,
         port: sshPort,
-        username: sshUser ?? 'root',
+        username: sshUser,
         password: sshPassword?.isNotEmpty == true ? sshPassword : null,
         privateKey: privateKey,
         privateKeyPassphrase: sshKeyPassphrase?.isNotEmpty == true
@@ -204,9 +212,22 @@ class ConfigrCommandRunner extends CommandRunner<void> {
       return;
     }
 
-    final verboseMode = _verbosityLevel(args) >= 1;
-    final debugLevel = _verbosityLevel(args) >= 3;
-    final interactiveMode = !_hasFlag(args, '--no-interaction', '-n');
+    // Verbosity: count -v/--verbose occurrences in raw args since
+    // argParser reports --verbose as a boolean flag (negatable: false)
+    // rather than a counted option.
+    var vCount = 0;
+    for (final arg in args) {
+      if (arg == '--verbose' || arg == '-v') {
+        vCount++;
+      } else {
+        final match = RegExp(r'^-v+$').firstMatch(arg);
+        if (match != null) vCount += arg.length - 1;
+      }
+    }
+    final verboseMode = vCount >= 1;
+    final debugLevel = vCount >= 3;
+    final interactiveMode =
+        (parsed['no-interaction'] as bool? ?? false) == false;
 
     final eventBus = di.isRegistered<EventBus>() ? di<EventBus>() : EventBus();
     final fileSystem = di.isRegistered<FileSystem>()
@@ -270,71 +291,6 @@ class ConfigrCommandRunner extends CommandRunner<void> {
       uiHandler.stop();
       // await logger.shutdown();
     }
-  }
-
-  // ---------------------------------------------------------------------------
-  // Raw-arg helpers (avoid double-parsing with artisanal's built-in parsing)
-  // ---------------------------------------------------------------------------
-
-  List<String> _multiArgValues(Iterable<String> args, String long) {
-    final list = args.toList();
-    final values = <String>[];
-    for (int i = 0; i < list.length; i++) {
-      if (list[i] == long) {
-        if (i + 1 < list.length && !list[i + 1].startsWith('-')) {
-          values.add(list[i + 1]);
-        }
-      }
-      if (list[i].startsWith('$long=')) {
-        final val = list[i].substring('$long='.length);
-        for (final part in val.split(',')) {
-          final trimmed = part.trim();
-          if (trimmed.isNotEmpty) values.add(trimmed);
-        }
-      }
-    }
-    return values;
-  }
-
-  String? _argValue(Iterable<String> args, String long, String short) {
-    final list = args.toList();
-    for (int i = 0; i < list.length; i++) {
-      if (list[i] == long || list[i] == short) {
-        if (i + 1 < list.length && !list[i + 1].startsWith('-')) {
-          return list[i + 1];
-        }
-      }
-      if (list[i].startsWith('$long=')) {
-        return list[i].substring('$long='.length);
-      }
-      if (list[i].startsWith('$short=')) {
-        return list[i].substring('$short='.length);
-      }
-    }
-    return null;
-  }
-
-  bool _hasFlag(Iterable<String> args, String long, [String? short]) {
-    for (final arg in args) {
-      if (arg == long) return true;
-      if (short != null && arg == short) return true;
-    }
-    return false;
-  }
-
-  int _verbosityLevel(Iterable<String> args) {
-    var count = 0;
-    for (final arg in args) {
-      if (arg == '--verbose' || arg == '-v') {
-        count++;
-        continue;
-      }
-      final match = RegExp(r'^-v+$').firstMatch(arg);
-      if (match != null) {
-        count += arg.length - 1;
-      }
-    }
-    return count;
   }
 
   // ---------------------------------------------------------------------------
