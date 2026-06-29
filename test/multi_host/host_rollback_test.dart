@@ -31,13 +31,18 @@ void main() {
       return V2LockfileManager(path, fileSystem: fs);
     }
 
-    Future<void> writeLockfile(String hostName,
-        List<AppliedBlockRecord> records, {String? checksum}) async {
+    Future<void> writeLockfile(
+      String hostName,
+      List<AppliedBlockRecord> records, {
+      String? checksum,
+    }) async {
       final mgr = managerFor(HostLockfile.pathFor(configPath, hostName));
-      await mgr.write(V2LockfileData(
-        appliedBlocks: records,
-        configChecksum: checksum ?? 'abc123',
-      ));
+      await mgr.write(
+        V2LockfileData(
+          appliedBlocks: records,
+          configChecksum: checksum ?? 'abc123',
+        ),
+      );
     }
 
     test('returns 0 when no lockfile exists', () async {
@@ -83,7 +88,7 @@ void main() {
       final mgr = managerFor(HostLockfile.pathFor(configPath, 'web-01'));
       final data = await mgr.read();
       expect(data, isNotNull);
-      expect(data!.appliedBlocks, hasLength(1));
+      expect(data.appliedBlocks, hasLength(1));
     });
 
     test('deletes lockfile after rolling back all blocks', () async {
@@ -106,5 +111,42 @@ void main() {
       final lockPath = HostLockfile.pathFor(configPath, 'web-01');
       expect(await fs.file(lockPath).exists(), isFalse);
     });
+
+    test(
+      'preserves remaining lockfile entries after partial rollback',
+      () async {
+        final first = AppliedBlockRecord(
+          blockType: 'file',
+          id: 'first',
+          source: '/tmp/first',
+          destination: '/tmp/first',
+          appliedAt: '2026-01-01T00:00:00.000Z',
+        );
+        final second = AppliedBlockRecord(
+          blockType: 'file',
+          id: 'second',
+          source: '/tmp/second',
+          destination: '/tmp/second',
+          appliedAt: '2026-01-01T00:01:00.000Z',
+        );
+        await writeLockfile('web-01', [first, second]);
+
+        final count = await rollbackHost(
+          configPath: configPath,
+          hostName: 'web-01',
+          count: 1,
+          fileSystem: fs,
+        );
+
+        expect(count, equals(1));
+
+        final mgr = managerFor(HostLockfile.pathFor(configPath, 'web-01'));
+        final data = await mgr.read();
+        expect(data, isNotNull);
+        expect(data.appliedBlocks, hasLength(1));
+        expect(data.appliedBlocks.single.id, equals('first'));
+        expect(data.configChecksum, equals('abc123'));
+      },
+    );
   });
 }

@@ -108,6 +108,7 @@ class ConfigrRuntime {
     count: count,
     dryRun: dryRun,
     fileSystem: fileSystem,
+    connectionConfig: config.connectionConfig?.toMap(),
   );
 
   /// Parse and collect block snapshots without executing them.

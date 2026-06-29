@@ -153,7 +153,9 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
     renderedContent = context.getVariableAs<String>('_rendered_content');
     children = [];
 
-    final rawProps = <String, dynamic>{?context.getVariableAs<String>('type'): 'type'};
+    final rawProps = <String, dynamic>{
+      ?context.getVariableAs<String>('type'): 'type',
+    };
     if (rawProps.isNotEmpty) properties = rawProps;
 
     // ----- 2. Auto-generate friendly name for unnamed blocks -----
@@ -229,15 +231,18 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
       _context = context;
 
       // Run pre-block hook if a HookManager is registered
-      final hookMgr = context.globalContext.options['_hookManager']
-          as HookManager?;
+      final hookMgr =
+          context.globalContext.options['_hookManager'] as HookManager?;
       if (hookMgr != null) {
-        await hookMgr.runEvent('pre-block', extraVars: {
-          'block_type': blockType,
-          'block_id': id,
-          'block_source': source,
-          'block_destination': destination,
-        });
+        await hookMgr.runEvent(
+          'pre-block',
+          extraVars: {
+            'block_type': blockType,
+            'block_id': id,
+            'block_source': source,
+            'block_destination': destination,
+          },
+        );
       }
 
       // ----- 7a. Connect delegate SSH if delegate_to is set -----
@@ -245,21 +250,26 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
         try {
           _delegateService = await _connectToDelegate(delegateTo!, context);
         } catch (e) {
-          emitEvent(FailedEvent(
-            moduleId: id,
-            message: 'Failed to connect to delegate host "$delegateTo": $e',
-          ));
+          emitEvent(
+            FailedEvent(
+              moduleId: id,
+              message: 'Failed to connect to delegate host "$delegateTo": $e',
+            ),
+          );
           final errors =
               (context.globalContext.options['_errors']
                   as List<BlockErrorRecord>?) ??
               <BlockErrorRecord>[];
           context.globalContext.options['_errors'] = errors;
-          errors.add(BlockErrorRecord(
-            message: 'Failed $blockType block: could not connect to delegate host "$delegateTo": $e',
-            blockType: blockType,
-            blockId: id,
-            source: block.span != null ? _formatSpan(block.span!) : null,
-          ));
+          errors.add(
+            BlockErrorRecord(
+              message:
+                  'Failed $blockType block: could not connect to delegate host "$delegateTo": $e',
+              blockType: blockType,
+              blockId: id,
+              source: block.span != null ? _formatSpan(block.span!) : null,
+            ),
+          );
           return;
         }
       }
@@ -269,12 +279,15 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
 
         // Run post-block hook after successful execution
         if (hookMgr != null) {
-          await hookMgr.runEvent('post-block', extraVars: {
-            'block_type': blockType,
-            'block_id': id,
-            'block_source': source,
-            'block_destination': destination,
-          });
+          await hookMgr.runEvent(
+            'post-block',
+            extraVars: {
+              'block_type': blockType,
+              'block_id': id,
+              'block_source': source,
+              'block_destination': destination,
+            },
+          );
         }
 
         // Record this block in the lockfile collector (if present).
@@ -346,31 +359,31 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
     _context = null;
   }
 
-/// Override this to read type-specific properties from the context.
-   ///
-   /// Called by [afterChildrenProcessed] after common properties have been
-   /// read and before [execute] is called.
-   ///
-   /// Example:
-   /// ```dart
-   /// @override
-   /// Future<void> readAdditionalProperties(
-   ///   i3.Block block,
-   ///   i3.Context context,
-   /// ) async {
-   ///   message = (context.getVariable('message') as String?) ?? message;
-   /// }
-   /// ```
-   Future<void> readAdditionalProperties(
-     i3.Block block,
-     i3.Context context,
-   ) async {
-     delegateTo = context.getVariableAs<String>('delegate_to');
-   }
+  /// Override this to read type-specific properties from the context.
+  ///
+  /// Called by [afterChildrenProcessed] after common properties have been
+  /// read and before [execute] is called.
+  ///
+  /// Example:
+  /// ```dart
+  /// @override
+  /// Future<void> readAdditionalProperties(
+  ///   i3.Block block,
+  ///   i3.Context context,
+  /// ) async {
+  ///   message = (context.getVariable('message') as String?) ?? message;
+  /// }
+  /// ```
+  Future<void> readAdditionalProperties(
+    i3.Block block,
+    i3.Context context,
+  ) async {
+    delegateTo = context.getVariableAs<String>('delegate_to');
+  }
 
-   /// Context for the current block being processed.
-   /// Set during [afterChildrenProcessed] before calling [execute].
-   i3.Context? _context;
+  /// Context for the current block being processed.
+  /// Set during [afterChildrenProcessed] before calling [execute].
+  i3.Context? _context;
 
   /// Override this to provide a description of what this block would do
   /// during a dry-run. Called when `--dry-run` is active and `execute()`
@@ -480,6 +493,19 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
     );
   }
 
+  /// Restore block state from a lockfile record after [resetState].
+  ///
+  /// Subclasses override to restore block-specific properties needed for
+  /// rollback.
+  void restoreFromRecord(AppliedBlockRecord record) {
+    id = record.id;
+    source = record.source;
+    destination = record.destination;
+    sha256 = record.sha256;
+    status = record.status;
+    delegateTo = record.metadata?['delegate_to'] as String?;
+  }
+
   void emitEvent(ModuleEvent event) {
     final redacted = _redactEvent(event);
     eventBus.emit(redacted);
@@ -488,8 +514,9 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
   ModuleEvent _redactEvent(ModuleEvent event) {
     final ctx = _context;
     if (ctx == null) return event;
-    final sensitiveMw = ctx.globalContext.options['_sensitiveMiddleware']
-        as SensitiveVariableMiddleware?;
+    final sensitiveMw =
+        ctx.globalContext.options['_sensitiveMiddleware']
+            as SensitiveVariableMiddleware?;
     if (sensitiveMw == null || !sensitiveMw.hasSensitiveKeys) return event;
     final message = _getEventMessage(event);
     if (message == null || message.isEmpty) return event;
@@ -514,34 +541,57 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
   ModuleEvent _withRedactedMessage(ModuleEvent event, String message) {
     return switch (event) {
       StartedEvent e => StartedEvent(
-        moduleId: e.moduleId, message: message, correlationId: e.correlationId,
-        timestamp: e.timestamp, metadata: e.metadata,
+        moduleId: e.moduleId,
+        message: message,
+        correlationId: e.correlationId,
+        timestamp: e.timestamp,
+        metadata: e.metadata,
       ),
       ProgressEvent e => ProgressEvent(
-        moduleId: e.moduleId, message: message, current: e.current,
-        total: e.total, correlationId: e.correlationId,
-        timestamp: e.timestamp, metadata: e.metadata,
+        moduleId: e.moduleId,
+        message: message,
+        current: e.current,
+        total: e.total,
+        correlationId: e.correlationId,
+        timestamp: e.timestamp,
+        metadata: e.metadata,
       ),
       CompletedEvent e => CompletedEvent(
-        moduleId: e.moduleId, message: message, duration: e.duration,
-        correlationId: e.correlationId, timestamp: e.timestamp,
+        moduleId: e.moduleId,
+        message: message,
+        duration: e.duration,
+        correlationId: e.correlationId,
+        timestamp: e.timestamp,
         metadata: e.metadata,
       ),
       FailedEvent e => FailedEvent(
-        moduleId: e.moduleId, message: message, errorCode: e.errorCode,
-        cause: e.cause, correlationId: e.correlationId,
-        timestamp: e.timestamp, metadata: e.metadata,
+        moduleId: e.moduleId,
+        message: message,
+        errorCode: e.errorCode,
+        cause: e.cause,
+        correlationId: e.correlationId,
+        timestamp: e.timestamp,
+        metadata: e.metadata,
       ),
       StatusUpdateEvent e => StatusUpdateEvent(
-        moduleId: e.moduleId, message: message, level: e.level,
-        correlationId: e.correlationId, timestamp: e.timestamp,
+        moduleId: e.moduleId,
+        message: message,
+        level: e.level,
+        correlationId: e.correlationId,
+        timestamp: e.timestamp,
         metadata: e.metadata,
       ),
       ErrorEvent e => ErrorEvent(
-        moduleId: e.moduleId, message: message, errorCode: e.errorCode,
-        severity: e.severity, category: e.category,
-        isRetryable: e.isRetryable, retryAfter: e.retryAfter, cause: e.cause,
-        correlationId: e.correlationId, timestamp: e.timestamp,
+        moduleId: e.moduleId,
+        message: message,
+        errorCode: e.errorCode,
+        severity: e.severity,
+        category: e.category,
+        isRetryable: e.isRetryable,
+        retryAfter: e.retryAfter,
+        cause: e.cause,
+        correlationId: e.correlationId,
+        timestamp: e.timestamp,
         metadata: e.metadata,
       ),
       _ => event,
@@ -610,17 +660,24 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
     String? workingDirectory,
     bool checkExitCode = true,
   }) async {
-    final cmd = Command(
-      name: command,
-      command: command,
-      parameters: args,
-    );
-    final escalation = requireElevation
-        ? privilegeEscalation
-        : NoPrivilegeEscalation();
+    if (requireElevation) {
+      final result = await privilegeEscalation.runWithElevatedPrivileges(
+        command,
+        args,
+        workingDirectory: workingDirectory,
+        runInShell: true,
+      );
+      if (checkExitCode && result.exitCode != 0) {
+        final err = result.stderr.toString().trim();
+        throw Exception('Command failed: $err');
+      }
+      return result;
+    }
+
+    final cmd = Command(name: command, command: command, parameters: args);
     return CommandExecutor.execute(
       cmd,
-      escalation,
+      NoPrivilegeEscalation(),
       workingDirectory: workingDirectory,
       runInShell: true,
       checkExitCode: checkExitCode,

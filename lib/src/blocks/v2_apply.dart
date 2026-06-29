@@ -22,7 +22,8 @@ import 'package:configr/src/blocks/authorized_key_block.dart';
 import 'package:configr/src/blocks/backup_block.dart';
 import 'package:configr/src/blocks/connection_block.dart';
 import 'package:configr/src/multi_host/inventory_block.dart';
-import 'package:configr/src/multi_host/dependency_checker.dart' show DependencyChecker;
+import 'package:configr/src/multi_host/dependency_checker.dart'
+    show DependencyChecker;
 import 'package:configr/src/multi_host/inventory.dart';
 import 'package:configr/src/multi_host/target_resolver.dart';
 import 'package:configr/src/multi_host/host.dart' show Host;
@@ -89,11 +90,10 @@ import 'package:configr/src/blocks/user_block.dart';
 import 'package:configr/src/blocks/validate_block.dart';
 import 'package:configr/src/blocks/wait_for_block.dart';
 import 'package:configr/src/di.dart';
+import 'package:configr/src/blocks/di_setup.dart';
 import 'package:configr/src/models/v2_lockfile_data.dart';
-import 'package:configr/src/utils/command_runner.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/execution_service.dart';
-import 'package:configr/src/utils/file_service.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
 import 'package:file/file.dart' show FileSystem;
 import 'package:file/local.dart' show LocalFileSystem;
@@ -219,11 +219,10 @@ Future<void> applyV2(
         final exec = di.isRegistered<ExecutionService>()
             ? di<ExecutionService>()
             : const LocalExecutionService();
-        await exec.run(
-          '/bin/sh',
-          ['-c', script],
-          workingDirectory: fs.currentDirectory.path,
-        );
+        await exec.run('/bin/sh', [
+          '-c',
+          script,
+        ], workingDirectory: fs.currentDirectory.path);
       } catch (e) {
         logger.warning('Pre-apply script failed: $script — $e');
       }
@@ -316,9 +315,7 @@ Future<void> applyV2(
   }
 
   // Run pre-apply hook before processing blocks
-  await hookMgr.runEvent('pre-apply', extraVars: {
-    'config_path': configPath,
-  });
+  await hookMgr.runEvent('pre-apply', extraVars: {'config_path': configPath});
 
   // Process — each block executes as it is processed
   await processor.process(config);
@@ -397,9 +394,7 @@ Future<void> applyV2(
             errorMessage: ctx.errorMessage,
           );
           errors.add('Apply failed on ${host.name}: ${ctx.errorMessage}');
-          throw Exception(
-            'Apply failed on ${host.name}: ${ctx.errorMessage}',
-          );
+          throw Exception('Apply failed on ${host.name}: ${ctx.errorMessage}');
         }
         hostResults[host.name] = TargetLockEntry(
           hostName: host.name,
@@ -493,10 +488,13 @@ Future<void> applyV2(
 
   if (errors.isNotEmpty) {
     // Run on-error hook before reporting failure
-    await hookMgr.runEvent('on-error', extraVars: {
-      'config_path': configPath,
-      'error_count': errors.length.toString(),
-    });
+    await hookMgr.runEvent(
+      'on-error',
+      extraVars: {
+        'config_path': configPath,
+        'error_count': errors.length.toString(),
+      },
+    );
 
     logger.error(
       'Apply failed — ${errors.length} block(s) encountered errors:',
@@ -517,10 +515,13 @@ Future<void> applyV2(
   }
 
   // Run post-apply hook after successful processing
-  await hookMgr.runEvent('post-apply', extraVars: {
-    'config_path': configPath,
-    'block_count': appliedBlocks.length.toString(),
-  });
+  await hookMgr.runEvent(
+    'post-apply',
+    extraVars: {
+      'config_path': configPath,
+      'block_count': appliedBlocks.length.toString(),
+    },
+  );
 
   // Write lockfile with records of what was applied
   if (appliedBlocks.isNotEmpty) {
@@ -609,13 +610,7 @@ Future<void> rollbackV2(
 
   // 2. Register DI dependencies and build the same ActionBlock map used
   //    during apply so we can look up block instances by type.
-  di
-    ..allowReassignment = true
-    ..registerSingleton<DryRunFlag>(DryRunFlag(false))
-    ..registerSingleton<EventBus>(eventBus ?? EventBus())
-    ..registerSingleton<PrivilegeEscalation>(NonInteractiveSudoEscalation())
-    ..registerSingleton<FileSystem>(fs)
-    ..allowReassignment = false;
+  registerCoreDiServices(dryRun: false, eventBus: eventBus, fileSystem: fs);
 
   final actionBlockMap = <String, ActionBlock>{
     'alternatives': AlternativesBlock(),
@@ -705,12 +700,7 @@ Future<void> rollbackV2(
     }
 
     block.resetState();
-    block.id = record.id;
-    block.source = record.source;
-    block.destination = record.destination;
-    block.sha256 = record.sha256;
-    block.status = record.status;
-    block.delegateTo = record.metadata?['delegate_to'] as String?;
+    block.restoreFromRecord(record);
 
     try {
       await block.rollback();
@@ -844,8 +834,8 @@ Future<ResolvedConfig?> resolveConfigBlocks(
   }
 
   // Collect sensitive key names for redaction from the middleware
-  final sensitiveMw = globalCtx.options['_sensitiveMiddleware']
-      as SensitiveVariableMiddleware?;
+  final sensitiveMw =
+      globalCtx.options['_sensitiveMiddleware'] as SensitiveVariableMiddleware?;
   final sensitiveKeys = sensitiveMw?.sensitiveKeys ?? {};
 
   // Extract inventory if present
@@ -921,18 +911,13 @@ Future<void> _registerAllBlocks(
     executionService = const LocalExecutionService();
   }
 
-  di
-    ..allowReassignment = true
-    ..registerSingleton<DryRunFlag>(DryRunFlag(dryRun))
-    ..registerSingleton<EventBus>(eventBus ?? EventBus())
-    ..registerSingleton<PrivilegeEscalation>(
-      privilegeEscalation ?? NonInteractiveSudoEscalation(),
-    )
-    ..registerSingleton<FileSystem>(const LocalFileSystem())
-    ..registerSingleton<ExecutionService>(executionService)
-    ..registerSingleton<FileService>(LocalFileService())
-    ..registerSingleton<CommandRunner>(const LocalCommandRunner())
-    ..allowReassignment = false;
+  registerCoreDiServices(
+    dryRun: dryRun,
+    eventBus: eventBus,
+    privilegeEscalation: privilegeEscalation,
+    fileSystem: const LocalFileSystem(),
+    executionService: executionService,
+  );
 
   // Store processor reference so handlers (e.g. PluginBlockHandler)
   // can access it to register additional blocks during config processing.

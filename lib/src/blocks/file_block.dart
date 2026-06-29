@@ -1,6 +1,7 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
+import 'package:configr/src/models/v2_lockfile_data.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
@@ -64,6 +65,39 @@ class FileBlock extends ActionBlock {
     if (!createDirectories) 'create_directories': createDirectories,
     if (backupOriginal) 'backup_original': backupOriginal,
   };
+
+  @override
+  Map<String, dynamic>? get lockfileMetadata => {
+    if (delegateTo != null) 'delegate_to': delegateTo,
+    if (filePath.isNotEmpty) 'file_path': filePath,
+    'operation': operation,
+    if (content.isNotEmpty) 'content': content,
+    if (editMode != 'replace') 'edit_mode': editMode,
+    if (!createDirectories) 'create_directories': createDirectories,
+    if (backupOriginal) 'backup_original': backupOriginal,
+    if (backupSuffix != '.backup') 'backup_suffix': backupSuffix,
+    'operation_success': operationSuccess,
+    'file_existed': fileExisted,
+    if (originalContent != null) 'original_content': originalContent,
+    if (backupPath != null) 'backup_path': backupPath,
+  };
+
+  @override
+  void restoreFromRecord(AppliedBlockRecord record) {
+    super.restoreFromRecord(record);
+    filePath = record.metadata?['file_path'] as String? ?? source;
+    operation = record.metadata?['operation'] as String? ?? 'create';
+    content = record.metadata?['content'] as String? ?? '';
+    editMode = record.metadata?['edit_mode'] as String? ?? 'replace';
+    createDirectories =
+        record.metadata?['create_directories'] as bool? ?? true;
+    backupOriginal = record.metadata?['backup_original'] as bool? ?? false;
+    backupSuffix = record.metadata?['backup_suffix'] as String? ?? '.backup';
+    operationSuccess = record.metadata?['operation_success'] as bool? ?? true;
+    fileExisted = record.metadata?['file_existed'] as bool? ?? false;
+    originalContent = record.metadata?['original_content'] as String?;
+    backupPath = record.metadata?['backup_path'] as String?;
+  }
 
   @override
   Future<void> readAdditionalProperties(
