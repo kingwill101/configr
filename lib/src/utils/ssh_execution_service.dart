@@ -158,7 +158,7 @@ class SSHExecutionService implements ExecutionService {
     CommandOutputHandler? onOutput,
   ) async {
     final lines = stream
-        .transform(const _Uint8ListCodec())
+        .map<List<int>>((chunk) => chunk)
         .transform(utf8.decoder)
         .transform(const LineSplitter());
 
@@ -215,11 +215,4 @@ class SSHExecutionService implements ExecutionService {
   String? _nonEmpty(String? value) {
     return value == null || value.isEmpty ? null : value;
   }
-}
-
-class _Uint8ListCodec extends Converter<Uint8List, List<int>> {
-  const _Uint8ListCodec();
-
-  @override
-  List<int> convert(Uint8List input) => input;
 }
