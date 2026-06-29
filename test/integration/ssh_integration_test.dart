@@ -9,6 +9,14 @@ import 'package:configr/src/cli/cli_exit_exception.dart';
 const composeDir = 'test/integration/docker';
 const sshKeyPath = 'test/integration/docker/shared/ssh/id_ed25519';
 
+Future<void> ensureInheritedTmpDir() async {
+  final tmpDir = Platform.environment['TMPDIR'];
+  if (tmpDir == null || path.isAbsolute(tmpDir)) return;
+
+  await Directory(tmpDir).create(recursive: true);
+  await Directory(path.join(composeDir, tmpDir)).create(recursive: true);
+}
+
 Future<void> ensureSshKeyFixture() async {
   final result = await Process.run('bash', [
     'generate_keys.sh',
@@ -83,6 +91,7 @@ Future<void> main() async {
     late final DockerCompose compose;
 
     setUpAll(() async {
+      await ensureInheritedTmpDir();
       await ensureSshKeyFixture();
       compose = DockerCompose(context: composeDir, build: true, wait: true);
       await compose.start();
