@@ -15,6 +15,9 @@ AGENTS.md
 .idea/
 .doc/
 build/
+node_modules/
+.docusaurus/
+site-build/
 kingwill101/
 *.log
 third_party/
