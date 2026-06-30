@@ -5,7 +5,7 @@ import 'package:configr/src/utils/logging.dart';
 import 'package:file/file.dart' show File;
 import 'package:glob/glob.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' show posix;
 import 'package:configr/src/utils/fs.dart' show resolveHomeDirectory;
 
 /// Block handler for the `copy` config action.
@@ -156,7 +156,7 @@ class CopyBlock extends ActionBlock {
 
     destinationDir = isDirectorySource
         ? destination
-        : path.dirname(destination);
+        : posix.dirname(destination);
 
     if (!await fileService.directoryExists(destinationDir!)) {
       logger.info('Creating directory $destinationDir');
@@ -270,7 +270,7 @@ class CopyBlock extends ActionBlock {
     );
     destination = resolveHomeDirectory(destination);
 
-    final destDir = path.dirname(destination);
+    final destDir = posix.dirname(destination);
     if (!await fileService.directoryExists(destDir)) {
       await fileService.createDirectory(destDir);
       hadToCreateDstDir = true;
@@ -356,8 +356,8 @@ class CopyBlock extends ActionBlock {
 
     for (var i = 0; i < filesToCopy.length; i++) {
       final filePath = filesToCopy[i];
-      final relativePath = path.relative(filePath, from: source);
-      final destPath = path.join(destination, relativePath);
+      final relativePath = posix.relative(filePath, from: source);
+      final destPath = posix.join(destination, relativePath);
 
       if (showProgress) {
         final progress = ((i + 1) / filesToCopy.length * 100).round();
@@ -371,7 +371,7 @@ class CopyBlock extends ActionBlock {
         );
       }
 
-      final destDir = path.dirname(destPath);
+      final destDir = posix.dirname(destPath);
       if (!await fileService.directoryExists(destDir)) {
         await fileService.createDirectory(destDir);
       }
@@ -415,8 +415,8 @@ class CopyBlock extends ActionBlock {
   }
 
   bool _shouldIncludeFile(String filePath) {
-    final fileName = path.basename(filePath);
-    final relativePath = path.relative(filePath, from: source);
+    final fileName = posix.basename(filePath);
+    final relativePath = posix.relative(filePath, from: source);
 
     for (final pattern in excludePatterns) {
       if (_matches(fileName, pattern) || _matches(relativePath, pattern)) {

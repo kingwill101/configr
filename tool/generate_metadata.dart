@@ -29,10 +29,7 @@ void main(List<String> args) async {
 
   // Register the fixture assertion library for test documentation.
   lua.vm.libraryRegistry.register(
-    FixtureAssertionLibrary(
-      _StubFileSystem(),
-      StringBuffer(),
-    ),
+    FixtureAssertionLibrary(_StubFileSystem(), StringBuffer()),
   );
 
   print('Generating Lua API metadata → $outputDir');

@@ -26,8 +26,6 @@ Future<ProcessResult> _runScript(String scriptPath) async {
   return Process.run('bash', [scriptPath]);
 }
 
-
-
 void main() {
   final testEnv = Platform.environment['CONFIGR_TEST_ENV'] ?? '';
   final testRollback = switch (Platform.environment['CONFIGR_TEST_ROLLBACK']) {
@@ -207,7 +205,9 @@ void main() {
             }
 
             if (verifyRollbackScript != null) {
-              final verifyRollbackResult = await _runScript(verifyRollbackScript);
+              final verifyRollbackResult = await _runScript(
+                verifyRollbackScript,
+              );
               expect(
                 verifyRollbackResult.exitCode,
                 0,

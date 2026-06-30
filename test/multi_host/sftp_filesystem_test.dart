@@ -142,20 +142,23 @@ void main() {
       expect(fakeBackend.callCount, greaterThan(0));
     });
 
-    test('LuaPlugin without process backend uses default execution', () async {
-      final plugin = LuaPlugin(
-        code: '''
-          local f = io.popen("echo default_plugin")
-          local result = f:read("*a")
-          f:close()
+    test(
+      'LuaPlugin without process backend can still use file helpers',
+      () async {
+        final plugin = LuaPlugin(
+          code: '''
+          writeFile("/default_plugin.txt", "default_plugin")
         ''',
-        fileSystem: fs,
-      );
+          fileSystem: fs,
+        );
 
-      await plugin.initialize();
-      // Should not throw and should use default process backend
-      expect(true, isTrue);
-    });
+        await plugin.initialize();
+        expect(
+          await fs.file('/default_plugin.txt').readAsString(),
+          equals('default_plugin'),
+        );
+      },
+    );
 
     test('LuaHookRunner wires process backend into lualike', () async {
       final fakeBackend = _FakeProcessBackend();

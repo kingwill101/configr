@@ -193,10 +193,7 @@ class DependencyBlock extends ActionBlock {
     final target = host.isNotEmpty ? host : to;
     switch (checkType) {
       case 'ping':
-        final result = await executionService.run(
-          'ping',
-          _pingArgs(5),
-        );
+        final result = await executionService.run('ping', _pingArgs(5));
         return result.exitCode == 0;
 
       case 'port':
@@ -212,10 +209,7 @@ class DependencyBlock extends ActionBlock {
         if (port > 0) {
           return await _checkPort(target, port);
         }
-        final result = await executionService.run(
-          'ping',
-          _pingArgs(3),
-        );
+        final result = await executionService.run('ping', _pingArgs(3));
         return result.exitCode == 0;
 
       default:

@@ -11,7 +11,7 @@ import 'package:configr/src/utils/system_operations.dart';
 import 'package:crypto/crypto.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
-import 'package:path/path.dart' as p;
+import 'package:path/path.dart' show posix;
 
 /// Injectable file-system service that wraps [FileUtils]-style operations.
 ///
@@ -129,7 +129,7 @@ class LocalFileService implements FileService {
     bool recursive = false,
   }) async {
     if (recursive) {
-      final dir = p.dirname(path);
+      final dir = posix.dirname(path);
       if (!await _fs.directory(dir).exists()) {
         await _fs.directory(dir).create(recursive: true);
       }
@@ -212,7 +212,7 @@ class LocalFileService implements FileService {
       childEntities.sort((a, b) => a.path.compareTo(b.path));
       var digest = sha256.convert(utf8.encode(path));
       for (final child in childEntities) {
-        final relativePath = p.relative(child.path, from: path);
+        final relativePath = posix.relative(child.path, from: path);
         digest = sha256.convert([
           ...digest.bytes,
           ...utf8.encode(relativePath),
@@ -339,11 +339,11 @@ class LocalFileService implements FileService {
 
   @override
   String generateBackupPath(String originalPath) {
-    final dir = p.dirname(originalPath);
-    final name = p.basenameWithoutExtension(originalPath);
-    final ext = p.extension(originalPath);
+    final dir = posix.dirname(originalPath);
+    final name = posix.basenameWithoutExtension(originalPath);
+    final ext = posix.extension(originalPath);
     final ts = DateTime.now().toIso8601String().replaceAll(':', '');
-    return p.join(dir, '$name.bak.$ts$ext');
+    return posix.join(dir, '$name.bak.$ts$ext');
   }
 
   @override
@@ -361,12 +361,19 @@ class LocalFileService implements FileService {
       await dst.create(recursive: true);
     }
     for (final entity in src.listSync(recursive: recursive)) {
+      final relativePath = posix.relative(entity.path, from: source);
+      final targetPath = posix.join(destination, relativePath);
       if (entity is Directory) {
-        final newDir = p.join(destination, p.basename(entity.path));
-        await copyDir(newDir, entity.path, recursive: recursive);
+        final targetDir = _fs.directory(targetPath);
+        if (!await targetDir.exists()) {
+          await targetDir.create(recursive: true);
+        }
       } else if (entity is File) {
-        final newFile = p.join(destination, p.basename(entity.path));
-        await entity.copy(newFile);
+        final targetDir = _fs.directory(posix.dirname(targetPath));
+        if (!await targetDir.exists()) {
+          await targetDir.create(recursive: true);
+        }
+        await entity.copy(targetPath);
       }
     }
     return dst;
@@ -394,7 +401,7 @@ class LocalFileService implements FileService {
     bool requireElevation = false,
   }) async {
     final escalation = _escalation;
-    final dir = p.dirname(path);
+    final dir = posix.dirname(path);
     if (!await directoryExists(dir)) {
       if (escalation != null) {
         await createDirectoryWithPermissions(

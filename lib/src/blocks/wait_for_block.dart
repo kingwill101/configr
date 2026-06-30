@@ -184,10 +184,7 @@ class WaitForBlock extends ActionBlock {
 
   Future<bool> _checkHost() async {
     try {
-      final result = await executionService.run(
-        'ping',
-        _pingArgs(2),
-      );
+      final result = await executionService.run('ping', _pingArgs(2));
       return result.exitCode == 0;
     } catch (_) {
       return false;

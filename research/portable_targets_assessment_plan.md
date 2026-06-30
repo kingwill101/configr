@@ -1105,7 +1105,486 @@ The assessment is complete when we have:
 
 ---
 
-## 13. Key Design Decision
+## 13. Current Windows Findings To Fold Into The Plan
+
+The first Windows failure pass exposed two different classes of issues:
+
+1. Real portability bugs in Configr's implementation.
+2. Tests that accidentally exercise controller-local or platform-default behavior instead of Configr's target runtime abstractions.
+
+### 13.1 Windows Bugs From The Current Test Run
+
+| Issue | Root Cause | Fix Direction |
+|-------|------------|---------------|
+| `generate_keys.sh` fails with `$'\r'` | Script checked out or generated with CRLF line endings | Enforce LF for shell fixtures, or generate SSH keys from Dart setup instead of shell where possible |
+| Host lock paths use backslashes | Default `package:path` context follows the controller OS | Use `path.posix` for lockfile virtual paths in `MemoryFileSystem` tests and internal lock paths |
+| Host rollback lock path uses backslashes | Same default path context issue | Use `path.posix` for config lock path derivation |
+| Backup directory copy passes directories to `copyFile` | Directory traversal did not filter file entities | Skip directories and copy only files |
+| Copy/backup nested directory layout breaks | Recursive copy used basename-only joins and recursive re-entry | Copy each entity by relative path from the source root |
+| Lua plugin test hangs on Windows | Test calls `io.popen` without an injected process backend | Do not test default host shell execution in Configr's portable unit tests |
+
+### 13.2 Path Policy
+
+Configr needs a strict path policy because three path domains exist:
+
+| Domain | Examples | Path Context |
+|--------|----------|--------------|
+| Controller-local paths | CLI config path, local docs, local plugin source, local inventory source | Host `package:path` context or local filesystem path context |
+| Target paths | Remote file destinations, SFTP paths, target lock metadata | Target filesystem path context |
+| In-memory test paths | `MemoryFileSystem` fixtures, unit-test lockfiles | `path.posix` unless the test explicitly validates Windows-native local paths |
+
+Rules:
+
+- Do not use default `p.join` for paths that are stored inside `MemoryFileSystem`.
+- Do not use default `p.join` for paths that represent POSIX SFTP paths.
+- Prefer `fileSystem.path` when a concrete `FileSystem` path context is available.
+- Prefer `path.posix` for lockfile metadata paths and virtual paths used by cross-platform tests.
+- Keep default host path behavior for controller-local paths such as the config file selected by the CLI.
+
+### 13.3 Process Policy
+
+Tests and blocks should not depend on the controller's default process behavior unless that is the explicit subject under test.
+
+Rules:
+
+- Lua plugin/hook tests that validate process integration must inject a fake or target-aware `ProcessBackend`.
+- Lua plugin/hook tests that validate file integration should avoid `os.execute` and `io.popen`.
+- Blocks should call `ExecutionService`, not `Process.run`, when the process affects the target.
+- Shell hooks are POSIX-only unless we add a PowerShell hook type.
+
+---
+
+## 14. Detailed Assessment Work Items
+
+This section turns the research into implementation-sized work. Each item should produce either metadata, a test, a code change, or a docs update.
+
+### 14.1 Block Metadata
+
+Add a metadata model that can live next to each block class or in a central registry.
+
+Minimum fields:
+
+```dart
+class BlockSupportMetadata {
+  final String blockType;
+  final Set<String> supportedFamilies;
+  final Set<String> requiredCapabilities;
+  final bool supportsRollback;
+  final bool mutatesTarget;
+  final bool controllerOnly;
+  final String supportNotes;
+}
+```
+
+Acceptance criteria:
+
+- Every registered built-in block has metadata.
+- Dry-run can print unsupported-target warnings before execution.
+- Docs can render the block support table from the same metadata.
+- Tests assert that every block in the registry has metadata.
+
+### 14.2 Target Facts And Capabilities
+
+Unify target facts so blocks do not make their own decisions from controller APIs.
+
+Facts:
+
+- `os`: `linux`, `macos`, `windows`, `freebsd`, `unknown`
+- `family`: `posix`, `windows`, `unknown`
+- `distro`: `debian`, `ubuntu`, `fedora`, `arch`, `alpine`, `darwin`, `unknown`
+- `version`
+- `kernel`
+- `architecture`
+- `hostname`
+- `user`
+- `home`
+
+Capabilities:
+
+- shell: `sh`, `bash`, `powershell`
+- network: `curl`, `wget`, PowerShell web request, TCP probe
+- archive: `tar`, `gzip`, `zip`, `unzip`, PowerShell archive cmdlets
+- services: `systemd`, `launchctl`, Windows service cmdlets
+- packages: `apt`, `dnf`, `yum`, `pacman`, `apk`, `brew`, `winget`, `choco`
+- firewall: `ufw`, `firewall-cmd`, PowerShell NetSecurity
+- containers: Docker CLI and daemon availability
+
+Acceptance criteria:
+
+- Local runtime facts describe the local target.
+- SSH runtime facts describe the SSH target, not the controller.
+- Tests can inject fake facts without shelling out.
+- Blocks consume facts through DI or runtime context.
+
+### 14.3 Unsupported Target Errors
+
+Unsupported behavior should fail early and plainly.
+
+Error shape:
+
+```text
+Block "service" is not supported on target "windows".
+Required: one of os.systemd, os.launchd, os.windows_service.
+Detected: os=windows family=windows capabilities=exec.powershell.
+Suggestion: enable the Windows service strategy or tag this block linux/macos.
+```
+
+Acceptance criteria:
+
+- Unsupported errors include block type, target facts, required capabilities, and a useful suggestion.
+- Dry-run emits the same support information without mutating the target.
+- Tests cover at least one unsupported block per platform family.
+
+### 14.4 Lua Fixture Runner
+
+Add Lua fixture support to `test/integration/sweep_test.dart`.
+
+Fixture lifecycle:
+
+1. `setup.lua` if present, else `setup.sh`.
+2. Apply config.
+3. `verify.lua` if present, else `verify.sh`.
+4. Apply config again for idempotency.
+5. Rollback when fixture opts in or rollback verification exists.
+6. `verify_rollback.lua` if present, else `verify_rollback.sh`.
+7. `cleanup.lua` if present, else `cleanup.sh`.
+
+Runner context:
+
+- fixture directory
+- config directory
+- temp directory
+- target facts
+- target filesystem
+- target process backend
+- current test environment tag
+
+Acceptance criteria:
+
+- A Lua fixture can create, verify, and clean up files through the target filesystem.
+- A Lua fixture can run a command through an injected process backend when explicitly needed.
+- Portable fixtures do not require Bash on Windows.
+
+### 14.5 First Portable Fixture Set
+
+Convert these fixtures first because they prove the core model without system mutation:
+
+1. `file`
+2. `copy`
+3. `delete`
+4. `move`
+5. `touch`
+6. `lineinfile`
+7. `blockinfile`
+8. `replace`
+9. `template`
+10. `stat`
+11. `slurp`
+12. `set_fact`
+13. `assert`
+14. `echo`
+
+Each portable fixture should include:
+
+- `config`
+- `verify.lua`
+- `cleanup.lua`
+- `verify_rollback.lua` when rollback is supported
+- `tags` containing `portable`
+
+Acceptance criteria:
+
+- The portable fixture set passes on Linux.
+- The portable fixture set passes on macOS.
+- The portable fixture set passes on Windows or has explicit skip metadata tied to a missing target capability.
+
+---
+
+## 15. Remote Execution Semantics
+
+Configr's multi-host promise depends on being precise about where work happens.
+
+### 15.1 Controller-Side Work
+
+These operations happen on the controller:
+
+- Reading the config file passed to the CLI.
+- Resolving includes from local config directories.
+- Reading local inventory files.
+- Reading local plugin source files.
+- Reading local hook source files before staging.
+- Writing controller-side reports.
+- Writing controller-side cached downloads when `transfer_mode = "controller"`.
+
+### 15.2 Target-Side Work
+
+These operations happen on the active target:
+
+- File mutations from blocks.
+- Commands from blocks.
+- Lua file/process operations used by hooks/plugins during target apply.
+- Network calls from `download`, `uri`, `wait_for`, and `dependency` by default.
+- Bash/PowerShell hook execution after the hook file is staged to the target.
+
+### 15.3 Ambiguous Work Must Be Configurable
+
+Some work is valid in either place:
+
+- HTTP downloads.
+- Archive creation/extraction.
+- Template rendering when templates include target file reads.
+- Secret resolution from command providers.
+
+These need explicit mode fields instead of hidden behavior:
+
+```i3
+download {
+  source = "https://example.com/large.tar.gz"
+  destination = "/opt/app/large.tar.gz"
+  transfer_mode = "target" # target | controller | auto
+  allow_controller_fallback = false
+}
+```
+
+Default policy:
+
+- Remote target: prefer `target`.
+- Local target: `target` and `controller` are the same runtime, so behavior is local.
+- `auto` must not silently relay large downloads through the controller unless `allow_controller_fallback = true`.
+
+---
+
+## 16. Windows Portability Strategy
+
+Windows should not be treated as "POSIX with backslashes." It is a separate target family.
+
+### 16.1 What Can Be Portable Early
+
+Likely early support:
+
+- Controller-side analyze/unit tests.
+- Pure parser/config tests.
+- MemoryFileSystem-backed tests.
+- File blocks that avoid POSIX permissions.
+- Lua fixture verification through file helpers.
+- Metadata and unsupported-target behavior.
+
+### 16.2 What Needs Windows Strategies
+
+Requires PowerShell or Windows API strategy:
+
+- `execute`
+- `raw`
+- `script`
+- `download`
+- `uri`
+- `wait_for`
+- `dependency`
+- `service`
+- `user`
+- `group`
+- `hostname`
+- `timezone`
+- `cron` or scheduler behavior
+- package management
+- firewall management
+- permissions/ACLs
+
+### 16.3 PowerShell Backend Shape
+
+Windows command strategy should prefer PowerShell with no profile:
+
+```text
+pwsh -NoProfile -NonInteractive -Command <script>
+```
+
+Fallback:
+
+```text
+powershell.exe -NoProfile -NonInteractive -Command <script>
+```
+
+Rules:
+
+- Do not run through `cmd.exe` unless explicitly requested.
+- Quote arguments structurally, not by string concatenation.
+- Return stdout, stderr, and exit code through `ExecutionService`.
+- Expose the selected shell in target facts.
+
+### 16.4 Windows Test Rules
+
+Windows tests must avoid:
+
+- `/tmp`
+- `/bin/sh`
+- Bash scripts
+- `chmod`
+- `chown`
+- POSIX symlink assumptions
+- POSIX executable-bit assertions
+- `grep`, `sed`, `awk`, `rm`, `touch` unless run inside an explicitly declared POSIX environment
+
+Windows tests should use:
+
+- MemoryFileSystem for unit tests.
+- Lua file helper fixtures for portable integration tests.
+- PowerShell fixtures only for Windows-specific behavior.
+
+---
+
+## 17. macOS Portability Strategy
+
+macOS is a POSIX target, but not Linux.
+
+### 17.1 Safe Early Coverage
+
+Likely early support:
+
+- analyze
+- pure unit tests
+- Lua portable sweep
+- file blocks
+- process blocks that use `/bin/sh` carefully
+- Homebrew when installed and tagged
+
+### 17.2 Darwin-Specific Strategy Work
+
+Needs Darwin strategy:
+
+- `hostname`: `scutil`
+- `service`: `launchctl`
+- `user`: `dscl`
+- `group`: `dscl` / `dseditgroup`
+- `timezone`: `systemsetup`
+- package: `brew`
+- scheduler: launchd or crontab depending on semantics
+
+### 17.3 macOS Test Rules
+
+macOS public CI should avoid:
+
+- mutating hostname
+- creating system users/groups
+- changing timezone
+- changing services
+- package installs by default
+
+Those tests should be opt-in and tagged:
+
+- `destructive`
+- `needs-sudo`
+- `macos-system`
+
+---
+
+## 18. CI Re-Enable Plan
+
+### 18.1 Stage 1: Linux Stabilization
+
+Keep running:
+
+- `dart analyze`
+- unit tests
+- Linux container tests
+- Linux sweep tests
+
+Exit criteria:
+
+- Linux CI is green after Windows path-hygiene fixes.
+- No unit test fills `/tmp`; CI sets `TMPDIR` to a workspace temp directory where needed.
+
+### 18.2 Stage 2: macOS/Windows Analyze
+
+Re-enable analyze first.
+
+Exit criteria:
+
+- Analyze passes on macOS.
+- Analyze passes on Windows.
+- No generated files or path assumptions break dependency resolution.
+
+### 18.3 Stage 3: macOS/Windows Unit Tests
+
+Run only true unit tests:
+
+```bash
+dart test test/v2 test/secrets test/multi_host --exclude-tags integration --exclude-tags container
+```
+
+Exit criteria:
+
+- No Docker required.
+- No Bash required on Windows.
+- No Linux system mutation.
+- MemoryFileSystem paths are stable across host OSes.
+
+### 18.4 Stage 4: Portable Sweep
+
+Run only portable Lua fixtures:
+
+```bash
+CONFIGR_TEST_ENV=portable dart test test/integration/sweep_test.dart
+```
+
+Exit criteria:
+
+- Fixture selection honors `portable`, `linux`, `macos`, `windows`, `container`, `destructive`, and distro tags.
+- Portable fixtures use Lua verification.
+- Linux-only shell fixtures do not run on macOS/Windows.
+
+### 18.5 Stage 5: Platform-Specific Sweeps
+
+Enable platform-specific sweeps only after strategies exist.
+
+Examples:
+
+- macOS Homebrew fixture only when `brew` exists.
+- Windows PowerShell `execute` fixture only after PowerShell strategy lands.
+- Linux package/firewall fixtures only inside containers or privileged opt-in jobs.
+
+---
+
+## 19. Documentation Updates Required
+
+User-facing docs should explain target behavior without exposing internal Dart structure.
+
+Docs to add or update:
+
+- Target runtimes: local vs SSH vs future Windows.
+- What happens on the controller vs the target.
+- Block platform support table generated from metadata.
+- Transfer modes for downloads and HTTP.
+- Hooks:
+  - Lua hooks are portable and target-aware.
+  - Bash hooks are POSIX-target hooks and are staged before remote execution.
+  - PowerShell hooks are planned for Windows.
+- Test fixture authoring:
+  - portable Lua fixtures
+  - Linux shell fixtures
+  - platform tags
+- Troubleshooting:
+  - unsupported target errors
+  - missing target capabilities
+  - controller fallback disabled
+
+---
+
+## 20. Decision Log
+
+| Decision | Status | Rationale |
+|----------|--------|-----------|
+| Configr runs on controller and mutates target through runtime abstractions | Accepted | Preserves multi-host architecture and avoids copying the binary to targets |
+| Network blocks should run from target by default | Accepted | Target network perspective is usually what users expect and avoids controller relay for large downloads |
+| Controller download fallback must be explicit | Accepted | Hidden relay can be slow, expensive, and surprising |
+| Lua is the preferred portable fixture language | Accepted | We own the runtime and can inject target file/process backends |
+| Bash hooks are POSIX-only for now | Accepted | Windows needs a PowerShell hook strategy instead of Bash assumptions |
+| Windows is a separate target family | Accepted | POSIX semantics, paths, permissions, services, and users do not map directly |
+| macOS is POSIX plus Darwin strategies | Accepted | Many operations are similar but service/user/hostname/package tooling differs |
+| Not all blocks should work everywhere | Accepted | Explicit unsupported errors are better than unreliable no-ops or host-side behavior |
+
+---
+
+## 21. Key Design Decision
 
 Configr should not aim for "all blocks work everywhere."
 

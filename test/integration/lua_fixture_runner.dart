@@ -16,9 +16,9 @@ class LuaFixtureRunner {
     FileSystem? fileSystem,
     StringBuffer? stdout,
     StringBuffer? stderr,
-  })  : _fileSystem = fileSystem ?? const LocalFileSystem(),
-        _stdout = stdout ?? StringBuffer(),
-        _stderr = stderr ?? StringBuffer();
+  }) : _fileSystem = fileSystem ?? const LocalFileSystem(),
+       _stdout = stdout ?? StringBuffer(),
+       _stderr = stderr ?? StringBuffer();
 
   Future<ProcessResult> run(String scriptPath) async {
     _stdout.clear();

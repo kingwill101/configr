@@ -9,6 +9,7 @@ import 'package:configr/src/utils/privilege_escalation.dart';
 import 'package:crypto/crypto.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
+import 'package:path/path.dart' show posix;
 
 /// Utility class containing file system related helper methods
 class FileUtils {
@@ -209,11 +210,11 @@ class FileUtils {
 
   /// Generates a backup path with timestamp for a given file path
   static String generateBackupPath(String originalPath) {
-    final dir = p.dirname(originalPath);
-    final name = p.basenameWithoutExtension(originalPath);
-    final extension = p.extension(originalPath);
+    final dir = posix.dirname(originalPath);
+    final name = posix.basenameWithoutExtension(originalPath);
+    final extension = posix.extension(originalPath);
     final timestamp = DateTime.now().toIso8601String().replaceAll(':', '');
-    return p.join(dir, '$name.bak.$timestamp$extension');
+    return posix.join(dir, '$name.bak.$timestamp$extension');
   }
 
   /// Creates a symbolic link pointing to target at link path
@@ -265,7 +266,7 @@ class FileUtils {
 
       for (final child in childEntities) {
         // Add the relative path to capture directory structure
-        final relativePath = p.relative(child.path, from: path);
+        final relativePath = posix.relative(child.path, from: path);
 
         // Combine current digest with path
         digest = sha256.convert([
@@ -543,19 +544,21 @@ class FileUtils {
 
     // List the contents of the source directory
     for (var entity in sourceDir.listSync(recursive: recursive)) {
+      final relativePath = posix.relative(entity.path, from: source);
+      final targetPath = posix.join(destination, relativePath);
       if (entity is Directory) {
-        // Recursively copy subdirectories
-        final newDir = p.join(destination, p.basename(entity.path));
-        await copyDir(
-          newDir,
-          entity.path,
-          fileSystem: fileSystem,
-          recursive: recursive,
-        );
+        // Copy subdirectories while preserving their relative path.
+        final targetDir = fsToUse.directory(targetPath);
+        if (!targetDir.existsSync()) {
+          await targetDir.create(recursive: true);
+        }
       } else if (entity is File) {
-        // Copy files
-        final newFile = p.join(destination, p.basename(entity.path));
-        await entity.copy(newFile);
+        // Copy files while preserving their relative path.
+        final targetDir = fsToUse.directory(posix.dirname(targetPath));
+        if (!targetDir.existsSync()) {
+          await targetDir.create(recursive: true);
+        }
+        await entity.copy(targetPath);
       }
     }
     return Future.value(destinationDir);
@@ -586,7 +589,7 @@ class FileUtils {
     bool recursive = false,
   }) async {
     final fsToUse = fileSystem ?? fs;
-    final dir = p.dirname(path);
+    final dir = posix.dirname(path);
     final dirExists = await directoryExists(dir, fileSystem: fileSystem);
 
     if (!dirExists && recursive) {
@@ -609,7 +612,7 @@ class FileUtils {
 
     try {
       // Create parent directory if needed
-      final dir = p.dirname(path);
+      final dir = posix.dirname(path);
       final dirExists = await directoryExists(dir, fileSystem: fileSystem);
 
       if (!dirExists && recursive) {
@@ -1183,7 +1186,7 @@ class FileUtils {
 
     try {
       // Create parent directory if needed
-      final dir = p.dirname(path);
+      final dir = posix.dirname(path);
       final dirExists = await directoryExists(dir, fileSystem: fileSystem);
 
       if (!dirExists && recursive) {

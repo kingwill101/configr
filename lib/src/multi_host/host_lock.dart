@@ -1,6 +1,6 @@
 import 'package:file/file.dart';
 import 'package:file/local.dart';
-import 'package:path/path.dart' as p;
+import 'package:path/path.dart' show posix;
 
 /// mkdir-based host locking for multi-host deployment safety.
 ///
@@ -85,11 +85,11 @@ class HostLock {
     return locksDir
         .listSync()
         .whereType<Directory>()
-        .map((d) => p.basename(d.path))
+        .map((d) => posix.basename(d.path))
         .toList();
   }
 
-  String _locksDir() => p.join(baseDir, 'locks');
+  String _locksDir() => posix.join(baseDir, 'locks');
 
-  String _lockPath(String hostName) => p.join(_locksDir(), hostName);
+  String _lockPath(String hostName) => posix.join(_locksDir(), hostName);
 }

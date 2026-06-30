@@ -8,7 +8,7 @@ import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:crypto/crypto.dart' show sha256;
 import 'package:i3config/i3config_v2.dart' as i3;
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' show posix;
 
 /// Block handler for the `backup` config action.
 ///
@@ -119,7 +119,7 @@ class BackupBlock extends ActionBlock {
     }
 
     // Ensure destination directory exists
-    final destDir = path.dirname(destination);
+    final destDir = posix.dirname(destination);
     if (!await fileService.directoryExists(destDir)) {
       await fileService.createDirectory(destDir);
       hadToCreateDstDir = true;
@@ -175,7 +175,7 @@ class BackupBlock extends ActionBlock {
       }
 
       if (hadToCreateDstDir) {
-        final destDir = path.dirname(destination);
+        final destDir = posix.dirname(destination);
         if (await fileService.directoryExists(destDir)) {
           final dir = fileSystem.directory(destDir);
           final contents = await dir.list().toList();
@@ -217,9 +217,10 @@ class BackupBlock extends ActionBlock {
       // Copy directory contents manually using FileUtils
       final srcDir = fileSystem.directory(source);
       await for (final entity in srcDir.list(recursive: true)) {
-        final relPath = path.relative(entity.path, from: source);
-        final destPath = path.join(destination, relPath);
-        final destParent = fileSystem.directory(path.dirname(destPath));
+        if (entity is Directory) continue;
+        final relPath = posix.relative(entity.path, from: source);
+        final destPath = posix.join(destination, relPath);
+        final destParent = fileSystem.directory(posix.dirname(destPath));
         if (!await destParent.exists()) {
           await destParent.create(recursive: true);
         }
@@ -255,9 +256,9 @@ class BackupBlock extends ActionBlock {
     } else {
       // Copy only changed files
       for (final relativePath in changedFiles) {
-        final src = path.join(source, relativePath);
-        final dst = path.join(destination, relativePath);
-        final dstDir = path.dirname(dst);
+        final src = posix.join(source, relativePath);
+        final dst = posix.join(destination, relativePath);
+        final dstDir = posix.dirname(dst);
 
         if (!await fileService.directoryExists(dstDir)) {
           await fileService.createDirectory(dstDir);
@@ -283,7 +284,7 @@ class BackupBlock extends ActionBlock {
       final content = await fileService.readFile(sourcePath);
       archive.addFile(
         ArchiveFile(
-          path.basename(sourcePath),
+          posix.basename(sourcePath),
           content.length,
           content.codeUnits,
         ),
@@ -322,7 +323,7 @@ class BackupBlock extends ActionBlock {
     final archive = Archive();
 
     for (final relativePath in changedFiles) {
-      final fullPath = path.join(sourcePath, relativePath);
+      final fullPath = posix.join(sourcePath, relativePath);
       if (await fileService.fileExists(fullPath)) {
         final content = await fileService.readFile(fullPath);
         archive.addFile(
@@ -355,7 +356,7 @@ class BackupBlock extends ActionBlock {
     final dir = fileSystem.directory(dirPath);
     await for (final entity in dir.list(recursive: true)) {
       if (entity is File) {
-        final relativePath = path.relative(entity.path, from: dirPath);
+        final relativePath = posix.relative(entity.path, from: dirPath);
         final content = await fileService.readFile(entity.path);
         archive.addFile(
           ArchiveFile(relativePath, content.length, content.codeUnits),
@@ -379,7 +380,7 @@ class BackupBlock extends ActionBlock {
       final dir = fileSystem.directory(sourcePath);
       await for (final entity in dir.list(recursive: true)) {
         if (entity is File) {
-          final relativePath = path.relative(entity.path, from: sourcePath);
+          final relativePath = posix.relative(entity.path, from: sourcePath);
           final content = await fileService.readFile(entity.path);
           hashes[relativePath] = sha256
               .convert(utf8.encode(content))
@@ -388,7 +389,7 @@ class BackupBlock extends ActionBlock {
       }
     } else {
       final content = await fileService.readFile(sourcePath);
-      hashes[path.basename(sourcePath)] = sha256
+      hashes[posix.basename(sourcePath)] = sha256
           .convert(utf8.encode(content))
           .toString();
     }

@@ -215,10 +215,7 @@ class FixtureAssertionLibrary extends Library {
       ),
     );
 
-    context.define(
-      'osName',
-      builder.create((_) => Platform.operatingSystem),
-    );
+    context.define('osName', builder.create((_) => Platform.operatingSystem));
     context.describe(
       'osName',
       FunctionDoc(
