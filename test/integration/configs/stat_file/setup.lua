@@ -1,0 +1,4 @@
+os.execute('mkdir -p /tmp/configr_stat_test')
+local f = io.open('/tmp/configr_stat_test/test_file.txt', 'w')
+f:write('test content for stat\n')
+f:close()
