@@ -6,6 +6,10 @@ import 'package:configr/src/cli/cli_exit_exception.dart';
 
 void main() {
   final testEnv = Platform.environment['CONFIGR_TEST_ENV'] ?? '';
+  final testRollback = switch (Platform.environment['CONFIGR_TEST_ROLLBACK']) {
+    '1' || 'true' || 'yes' => true,
+    _ => false,
+  };
   if (testEnv.isEmpty) {
     test(
       'skip: sweep requires container environment (CONFIGR_TEST_ENV)',
@@ -28,6 +32,7 @@ void main() {
     final configFile = File('${dir.path}/config');
     final setupScript = File('${dir.path}/setup.sh');
     final verifyScript = File('${dir.path}/verify.sh');
+    final verifyRollbackScript = File('${dir.path}/verify_rollback.sh');
     final cleanupScript = File('${dir.path}/cleanup.sh');
     final tagsFile = File('${dir.path}/tags');
     final argsFile = File('${dir.path}/args');
@@ -41,6 +46,9 @@ void main() {
       tags = tagsFile.readAsStringSync().trim().split(RegExp(r'\s+'));
     }
 
+    if (tags.isEmpty && (testEnv == 'macos' || testEnv == 'windows')) {
+      continue;
+    }
     if (tags.isNotEmpty && !tags.contains(testEnv)) continue;
 
     final extraArgs = <String>[];
@@ -154,6 +162,44 @@ void main() {
             fail(
               'Second apply (idempotency) failed (exit ${e.exitCode}):\n$out2$err2',
             );
+          }
+
+          if (testRollback || verifyRollbackScript.existsSync()) {
+            final rollbackOut = StringBuffer();
+            final rollbackErr = StringBuffer();
+            final rollbackRunner = ConfigrCommandRunner(
+              out: (s) => rollbackOut.write(s),
+              err: (s) => rollbackErr.write(s),
+            );
+
+            try {
+              await rollbackRunner.run([
+                '--no-interaction',
+                'rollback',
+                '--v2',
+                '--config',
+                configFile.path,
+              ]);
+            } on CliExitException catch (e) {
+              fail(
+                'configr rollback failed (exit ${e.exitCode}):\n'
+                '$rollbackOut$rollbackErr',
+              );
+            }
+
+            if (verifyRollbackScript.existsSync()) {
+              final verifyRollbackResult = await Process.run('bash', [
+                verifyRollbackScript.path,
+              ]);
+              expect(
+                verifyRollbackResult.exitCode,
+                0,
+                reason:
+                    'verify_rollback.sh failed:\n'
+                    '${verifyRollbackResult.stdout}\n'
+                    '${verifyRollbackResult.stderr}',
+              );
+            }
           }
         },
         tags: tags.isEmpty ? null : tags,

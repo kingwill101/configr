@@ -1,0 +1,6 @@
+file {
+  file_path = "build/configr_cross_platform_sweep.txt"
+  content = "cross-platform sweep"
+  operation = "create"
+  create_directories = true
+}

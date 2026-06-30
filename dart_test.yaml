@@ -14,6 +14,10 @@ tags:
     description: "Tests that require Arch Linux environment"
   alpine:
     description: "Tests that require Alpine Linux environment"
+  macos:
+    description: "Tests that run on macOS hosts"
+  windows:
+    description: "Tests that run on Windows hosts"
   needs-docker:
     description: "Tests that require Docker-in-Docker or Docker socket"
   needs-systemd:
