@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:configr/src/cli/configr_command_runner.dart';
 import 'package:configr/src/cli/cli_exit_exception.dart';
+import 'lua_fixture_runner.dart';
 
 /// Resolves a script path by preferring Lua (.lua) over shell (.sh).
 String? _resolveScript(Directory dir, String name) {
@@ -16,24 +17,11 @@ String? _resolveScript(Directory dir, String name) {
   return null;
 }
 
-/// Returns the interpreter command for a given script path.
-String _interpreter(String scriptPath) {
-  return scriptPath.endsWith('.lua') ? 'lua' : 'bash';
-}
-
 /// Runs a Lua or shell script and returns the result.
 Future<ProcessResult> _runScript(String scriptPath) async {
-  final cmd = _interpreter(scriptPath);
-  if (cmd == 'lua') {
-    final helperPath =
-        '${Directory.current.path}/test/integration/lua_helper.lua';
-    final luaPath =
-        '${Directory.current.path}/test/integration/?.lua;${Platform.environment['LUA_PATH'] ?? ';'}';
-    return Process.run('lua', [scriptPath], environment: {
-      'LUA_PATH': luaPath,
-      'LUA_HELPER': helperPath,
-      ...Platform.environment,
-    });
+  if (scriptPath.endsWith('.lua')) {
+    final runner = LuaFixtureRunner();
+    return runner.run(scriptPath);
   }
   return Process.run('bash', [scriptPath]);
 }
