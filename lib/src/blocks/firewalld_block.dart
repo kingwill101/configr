@@ -29,11 +29,7 @@ abstract class FirewalldBlock extends ActionBlock {
   bool immediate = false;
   String richRule = '';
 
-  factory FirewalldBlock() {
-    final facts = OsFacts.detect();
-    facts.requireLinux('firewalld');
-    return _LinuxFirewalldBlock();
-  }
+  factory FirewalldBlock() => _LinuxFirewalldBlock();
 
   FirewalldBlock._();
 
@@ -218,6 +214,8 @@ class _LinuxFirewalldBlock extends FirewalldBlock {
 
   @override
   Future<void> execute() async {
+    OsFacts.detect().requireLinux('firewalld');
+
     if (service.isEmpty && port.isEmpty && source.isEmpty && richRule.isEmpty) {
       throw ActionFailedException(
         'One of service, port, source, or rich_rule is required',

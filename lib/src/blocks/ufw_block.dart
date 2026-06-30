@@ -31,11 +31,7 @@ abstract class UfwBlock extends ActionBlock {
   String interface = '';
   String log = '';
 
-  factory UfwBlock() {
-    final facts = OsFacts.detect();
-    facts.requireLinux('ufw');
-    return _LinuxUfwBlock();
-  }
+  factory UfwBlock() => _LinuxUfwBlock();
 
   UfwBlock._();
 
@@ -161,6 +157,8 @@ class _LinuxUfwBlock extends UfwBlock {
 
   @override
   Future<void> execute() async {
+    OsFacts.detect().requireLinux('ufw');
+
     emitEvent(
       StartedEvent(moduleId: id, message: 'Managing UFW: $dryRunSummary'),
     );
