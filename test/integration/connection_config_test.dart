@@ -1,3 +1,6 @@
+@Tags(['integration'])
+library;
+
 import 'package:configr/src/connection_config.dart';
 import 'package:configr/src/secrets/secret_provider.dart';
 import 'package:configr/src/secrets/secret_providers.dart';

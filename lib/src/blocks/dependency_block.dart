@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
@@ -184,7 +182,7 @@ class DependencyBlock extends ActionBlock {
     final target = host.isNotEmpty ? host : to;
     switch (checkType) {
       case 'ping':
-        final result = await Process.run('ping', [
+        final result = await executionService.run('ping', [
           '-c',
           '1',
           '-W',
@@ -206,7 +204,7 @@ class DependencyBlock extends ActionBlock {
         if (port > 0) {
           return await _checkPort(target, port);
         }
-        final result = await Process.run('ping', [
+        final result = await executionService.run('ping', [
           '-c',
           '1',
           '-W',
@@ -225,13 +223,12 @@ class DependencyBlock extends ActionBlock {
 
   Future<bool> _checkPort(String target, int port) async {
     try {
-      final socket = await Socket.connect(
+      final result = await networkService.probeTcp(
         target,
         port,
-        timeout: const Duration(seconds: 5),
+        timeoutSeconds: 5,
       );
-      await socket.close();
-      return true;
+      return result.success;
     } catch (_) {
       return false;
     }

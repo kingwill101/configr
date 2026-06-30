@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:io' show Platform;
 
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
@@ -607,8 +607,8 @@ class SystemdBlock extends ActionBlock {
 
   Future<void> _validateServiceFile(String content) async {
     // Write to temp file for validation
-    final tempDir = Directory.systemTemp.createTempSync('systemd_');
-    final tempFile = File('${tempDir.path}/$serviceName.$serviceType');
+    final tempDir = fileSystem.systemTempDirectory.createTempSync('systemd_');
+    final tempFile = fileSystem.file('${tempDir.path}/$serviceName.$serviceType');
     try {
       await tempFile.writeAsString(content);
 

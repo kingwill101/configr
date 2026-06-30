@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
@@ -153,17 +151,12 @@ class WaitForBlock extends ActionBlock {
   Future<bool> _checkPort() async {
     try {
       final address = host.isNotEmpty ? host : 'localhost';
-      final socket = await Socket.connect(
+      final result = await networkService.probeTcp(
         address,
         port,
-        timeout: const Duration(seconds: 2),
+        timeoutSeconds: 2,
       );
-      if (activeConnection) {
-        await socket.close();
-        return true;
-      }
-      await socket.close();
-      return true;
+      return result.success;
     } catch (_) {
       return false;
     }

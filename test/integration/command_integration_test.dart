@@ -1,3 +1,6 @@
+@Tags(['integration'])
+library;
+
 // CLI commands are in cli/commands/ - using relative imports
 import 'package:configr/src/cli/commands/add.dart';
 import 'package:configr/src/cli/commands/apply.dart';
