@@ -20,7 +20,7 @@ jobs:
           - os: ubuntu-latest
             output-name: configr-linux
           - os: windows-latest
-            output-name: configr.exe
+            output-name: configr-windows
           - os: macos-latest
             output-name: configr-macos
 
@@ -37,11 +37,23 @@ jobs:
       - name: Build executable
         run: dart compile exe bin/configr.dart -o ${{ matrix.output-name }}
 
+      - name: Package artifact
+        shell: bash
+        run: |
+          mkdir -p staging
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp "${{ matrix.output-name }}.exe" staging/configr
+            powershell -Command "Compress-Archive -Path staging/configr -DestinationPath ${{ matrix.output-name }}.zip -Force"
+          else
+            cp "${{ matrix.output-name }}" staging/configr
+            cd staging && zip -r "../${{ matrix.output-name }}.zip" configr && cd ..
+          fi
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.output-name }}
-          path: ${{ matrix.output-name }}
+          path: ${{ matrix.output-name }}.zip
 
   release:
     needs: build
@@ -56,9 +68,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            configr-linux
-            configr.exe
-            configr-macos
+            configr-linux.zip
+            configr-windows.zip
+            configr-macos.zip
           draft: false
           prerelease: false
         env:
