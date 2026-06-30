@@ -15,6 +15,7 @@ import 'package:lualike/lualike.dart';
 import 'package:lualike/src/docs/metadata_generator.dart';
 
 import 'package:configr/src/plugins/lua_library.dart';
+import '../test/integration/lua_fixture_runner.dart';
 
 void main(List<String> args) async {
   final outputDir = _parseArg(args, '--output-dir') ?? 'doc/api';
@@ -25,6 +26,14 @@ void main(List<String> args) async {
   // Register the ConfigrLibrary with a minimal stub host so the library can
   // be initialized and its documentation metadata collected.
   lua.vm.libraryRegistry.register(ConfigrLibrary(_StubLuaPluginHost()));
+
+  // Register the fixture assertion library for test documentation.
+  lua.vm.libraryRegistry.register(
+    FixtureAssertionLibrary(
+      _StubFileSystem(),
+      StringBuffer(),
+    ),
+  );
 
   print('Generating Lua API metadata → $outputDir');
   print('Include stdlib: $includeStdlib');
@@ -76,6 +85,12 @@ class _StubLuaPluginHost implements LuaPluginHost {
   }
 
   @override
-  // TODO: implement processBackend
   ProcessBackend? get processBackend => throw UnimplementedError();
+}
+
+/// Stub [FileSystem] used when generating metadata for [FixtureAssertionLibrary].
+class _StubFileSystem implements FileSystem {
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnsupportedError('Not available during metadata generation');
 }
