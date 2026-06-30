@@ -341,10 +341,10 @@ packages:
     dependency: "direct main"
     description:
       name: file_sftp
-      sha256: "18ae730d20e28fedb63a2ef0051556c7b4d1ad3fdf3a0ab20939e0b293e902a8"
+      sha256: af21fdf53ad5c199a4d22b34e7fdd41c7ed8b538616b7c16b3de63fd25dc2684
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.0"
+    version: "0.2.1"
   fixnum:
     dependency: transitive
     description:
@@ -461,10 +461,10 @@ packages:
     dependency: "direct main"
     description:
       name: i3config
-      sha256: ed59ea002caa5dc09cb5955985206072eca95a67d275a032c1976c0caf9dd374
+      sha256: "68361f1ebc49f33deea28a0260ba507fdf75cd5ad6f5d9a142acd6a5cbcae8fe"
       url: "https://pub.dev"
     source: hosted
-    version: "2.6.0"
+    version: "2.6.1"
   image:
     dependency: transitive
     description:
