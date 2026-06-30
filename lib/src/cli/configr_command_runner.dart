@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 import 'package:artisanal/args.dart';
+import 'package:configr/src/build_info.dart';
 import 'package:configr/src/cli/ui/handlers/cli_handler.dart';
 import 'package:configr/src/cli/ui/handlers/interactive_handler.dart';
 import 'package:configr/src/cli/ui/handlers/base_handler.dart';
@@ -33,9 +34,6 @@ import 'package:configr/src/cli/commands/watch.dart';
 import 'package:configr/src/connection_config.dart';
 
 class ConfigrCommandRunner extends CommandRunner<void> {
-  static const String version =
-      String.fromEnvironment('version', defaultValue: 'dev');
-
   ConfigrCommandRunner({
     void Function(String)? out,
     void Function(String)? err,
@@ -164,7 +162,9 @@ class ConfigrCommandRunner extends CommandRunner<void> {
   @override
   Future<void> run(Iterable<String> args) async {
     if (args.contains('--version')) {
-      print('configr $version');
+      for (final line in ConfigrBuildInfo.lines) {
+        print(line);
+      }
       return;
     }
 

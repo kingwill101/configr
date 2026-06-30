@@ -35,7 +35,20 @@ jobs:
         run: dart pub get
 
       - name: Build executable
-        run: dart compile exe -Dversion=${{ github.ref_name }} bin/configr.dart -o ${{ matrix.output-name }}
+        run: |
+          GIT_SHA="${{ github.sha }}"
+          GIT_SHORT_SHA="${GIT_SHA:0:7}"
+          BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          dart compile exe \
+            -DCONFIGR_VERSION=${{ github.ref_name }} \
+            -DCONFIGR_GIT_SHA=$GIT_SHA \
+            -DCONFIGR_GIT_SHORT_SHA=$GIT_SHORT_SHA \
+            -DCONFIGR_BUILD_DATE=$BUILD_DATE \
+            -DCONFIGR_BUILD_NUMBER=${{ github.run_number }} \
+            -DCONFIGR_BUILD_REF=${{ github.ref }} \
+            -DCONFIGR_BUILD_SOURCE=${{ github.server_url }}/${{ github.repository }} \
+            -DCONFIGR_BUILD_TARGET=${{ runner.os }} \
+            bin/configr.dart -o ${{ matrix.output-name }}
 
       - name: Package artifact
         shell: bash
