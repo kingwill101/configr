@@ -29,7 +29,7 @@
 | download | ✅ | ✅ | ❓ | ✅ | ✅ | via NetworkService | Windows: needs PowerShell/curl strategy |
 | uri | ✅ | ✅ | ❓ | ✅ | ✅ | via NetworkService | Windows: needs PowerShell/curl strategy |
 | network | ✅ | ✅ | ❓ | ✅ | ❌ | via NetworkService | Windows: needs PowerShell strategy |
-| wait_for | ✅ | ✅ | ❓ | ✅ | ❌ | ❌ `Socket.connect` | Has target-bug (direct Socket) |
+| wait_for | ✅ | ✅ | ✅ | ✅ | ❌ | `networkService.probeTcp` / `ExecutionService.run` | macOS/Linux ping fixed, Windows ping via `-n -w` |
 | unarchive | ✅ | ✅ | ❓ | ✅ | ❌ | via ExecutionService | |
 | compress | ✅ | ✅ | ❓ | ❌ | ❌ | via ExecutionService | |
 | decompress | ✅ | ✅ | ❓ | ❌ | ❌ | via ExecutionService | |
@@ -37,7 +37,7 @@
 | execute | ✅ | ✅ | ❓ | ✅ | ❌ | ✅ | |
 | raw | ✅ | ✅ | ❓ | ✅ | ❌ | via ExecutionService | |
 | git | ✅ | ✅ | ❓ | ✅ | ❌ | via ExecutionService | |
-| dependency | ✅ | ✅ | ❓ | ✅ | ❌ | ❌ `Process.run`+`Socket` | Has target-bugs (direct dart:io) |
+| dependency | ✅ | ✅ | ✅ | ✅ | ❌ | `networkService.probeTcp` / `ExecutionService.run` | macOS/Linux ping fixed, Windows ping via `-n -w` |
 | sync | ✅ | ✅ | ❓ | ✅ | ❌ | via ExecutionService | |
 
 ## Category C: OS Management Blocks (platform-specific strategies)
@@ -97,17 +97,24 @@
 | Category | Total | ✅ Linux | ✅ macOS | ✅ Windows | Remote-safe | Rollback |
 |----------|-------|---------|---------|-----------|-------------|----------|
 | A: File System | 14 | 14 | 14 | 11 | 14 | 14 |
-| B: Process/Network | 12 | 12 | 12 | 0 | 10 | 3 |
+| B: Process/Network | 12 | 12 | 12 | 2 | 10 | 3 |
 | C: OS Management | 14 | 14 | 5 | 0 | 14 | 10 |
 | D: Platform-specific | 9 | 8 | 1 | 0 | 9 | 7 |
 | E: Control/Meta | 14 | 14 | 14 | 13 | 12 | 0 |
-| **Total** | **63** | **62** | **46** | **24** | **59** | **34** |
+| **Total** | **63** | **62** | **46** | **26** | **59** | **34** |
 
 ## Known Target Bugs (from API audit)
 
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| `dependency_block.dart` | 187, 209 | `Process.run('ping', ...)` → use `executionService.run()` | Replace with execution service |
-| `dependency_block.dart` | 228 | `Socket.connect(...)` → use `networkService.probeTcp()` | Replace with network service |
-| `wait_for_block.dart` | 156 | `Socket.connect(...)` → use `networkService.probeTcp()` | Replace with network service |
+| `dependency_block.dart` | 181–187 | `_pingArgs` macOS `-W` was in seconds (must be ms) | Fixed — `'macos'` branch uses `timeoutSeconds * 1000` |
+| `dependency_block.dart` | 228 | `Socket.connect(...)` → use `networkService.probeTcp()` | Fixed |
+| `wait_for_block.dart` | 156 | `Socket.connect(...)` → use `networkService.probeTcp()` | Fixed |
+| `wait_for_block.dart` | 175–180 | `_pingArgs` macOS `-W` was in seconds (must be ms) | Fixed — `'macos'` branch uses `timeoutSeconds * 1000` |
 | `systemd_block.dart` | 610-611 | `Directory.systemTemp` + `File()` → use `fileSystem` | Replace with file system abstraction |
+| `system_info.dart` | 85 | `tempdir` uses `Directory.systemTemp.path` — backslash on Windows | Fixed — added `tempdir_uri` with forward slashes |
+| `lua_fixture_runner.dart` | 167–193 | `os.execute('mkdir -p')` / `os.execute('rm -rf')` in Lua scripts | Fixed — added `makeDir()`/`removeTree()` helpers |
+| `sweep_test.dart` | 67 | `effectiveConfig` redundant alias | Fixed |
+| `sweep_test.dart` | 104–115 | Duplicated lockfile teardown | Fixed — consolidated into single `tearDown` |
+| `generate_metadata.dart` | 18 | Import from `test/` directory | Fixed — moved `FixtureAssertionLibrary` to `lib/src/lua/` |
+| `secrets_redaction_test/config` | 2 | `file://$tempdir` — backslash broken on Windows | Fixed — uses `$tempdir_uri` (forward slashes) |

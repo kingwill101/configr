@@ -14,8 +14,8 @@ import 'package:lualike/docs.dart';
 import 'package:lualike/lualike.dart';
 import 'package:lualike/src/docs/metadata_generator.dart';
 
+import 'package:configr/src/lua/fixture_assertion_library.dart';
 import 'package:configr/src/plugins/lua_library.dart';
-import '../test/integration/lua_fixture_runner.dart';
 
 void main(List<String> args) async {
   final outputDir = _parseArg(args, '--output-dir') ?? 'doc/api';

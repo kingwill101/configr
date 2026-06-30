@@ -64,7 +64,6 @@ void main() {
     final outNotContainsFile = File('${dir.path}/out_not_contains');
 
     if (!configFile.existsSync()) continue;
-    final effectiveConfig = configFile;
 
     List<String> tags = [];
     if (tagsFile.existsSync()) {
@@ -101,18 +100,13 @@ void main() {
     }
 
     group(dirName, () {
-      if (cleanupScript != null) {
-        tearDown(() async {
+      tearDown(() async {
+        if (cleanupScript != null) {
           await _runScript(cleanupScript);
-          final lockFile = File('${effectiveConfig.path}.lock.json');
-          if (lockFile.existsSync()) lockFile.deleteSync();
-        });
-      } else {
-        tearDown(() async {
-          final lockFile = File('${effectiveConfig.path}.lock.json');
-          if (lockFile.existsSync()) lockFile.deleteSync();
-        });
-      }
+        }
+        final lockFile = File('${configFile.path}.lock.json');
+        if (lockFile.existsSync()) lockFile.deleteSync();
+      });
 
       test(
         'applies, verifies, and is idempotent',
@@ -139,7 +133,7 @@ void main() {
               'apply',
               '--v2',
               '--config',
-              effectiveConfig.path,
+              configFile.path,
               '-n',
               ...extraArgs,
             ]);
@@ -179,7 +173,7 @@ void main() {
               'apply',
               '--v2',
               '--config',
-              effectiveConfig.path,
+              configFile.path,
               '-n',
               ...extraArgs,
             ]);
@@ -203,7 +197,7 @@ void main() {
                 'rollback',
                 '--v2',
                 '--config',
-                effectiveConfig.path,
+                configFile.path,
               ]);
             } on CliExitException catch (e) {
               fail(

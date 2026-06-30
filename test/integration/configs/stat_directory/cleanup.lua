@@ -1,2 +1,1 @@
-local tmp = tempDir()
-os.execute('rm -rf "' .. tmp .. '/configr_stat_dir"')
+removeTree(tempDir() .. '/configr_stat_dir')

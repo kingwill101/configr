@@ -172,15 +172,22 @@ class WaitForBlock extends ActionBlock {
     return await fileSystem.file(path).exists();
   }
 
+  List<String> _pingArgs(int timeoutSeconds) {
+    if (executionService.platform == 'windows') {
+      return ['-n', '1', '-w', '${timeoutSeconds * 1000}', host];
+    }
+    if (executionService.platform == 'macos') {
+      return ['-c', '1', '-W', '${timeoutSeconds * 1000}', host];
+    }
+    return ['-c', '1', '-W', '$timeoutSeconds', host];
+  }
+
   Future<bool> _checkHost() async {
     try {
-      final result = await executionService.run('ping', [
-        '-c',
-        '1',
-        '-W',
-        '2',
-        host,
-      ]);
+      final result = await executionService.run(
+        'ping',
+        _pingArgs(2),
+      );
       return result.exitCode == 0;
     } catch (_) {
       return false;

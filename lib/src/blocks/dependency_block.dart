@@ -183,6 +183,9 @@ class DependencyBlock extends ActionBlock {
     if (executionService.platform == 'windows') {
       return ['-n', '1', '-w', '${timeoutSeconds * 1000}', target];
     }
+    if (executionService.platform == 'macos') {
+      return ['-c', '1', '-W', '${timeoutSeconds * 1000}', target];
+    }
     return ['-c', '1', '-W', '$timeoutSeconds', target];
   }
 
