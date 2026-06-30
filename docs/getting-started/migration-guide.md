@@ -42,11 +42,11 @@ permissions {
 
 ### 2. CLI Usage
 
-All commands now require the `--v2` flag to use the new pipeline:
+All commands use the v2 pipeline by default:
 
 ```bash
-configr apply --v2
-configr rollback --v2
+configr apply
+configr rollback
 ```
 
 ### 3. Config File Location
@@ -67,8 +67,7 @@ Configr v2 looks for a `config` file in the current directory. No more
 
 ### 5. Backward Compatibility
 
-- v1 config files still work without `--v2`
-- The `--v2` flag is opt-in
+- v1 config files still work
 - v1 lockfiles are not read by the v2 pipeline
 - `group { }`, `before`/`after` hooks, and named action blocks are v1-only
 

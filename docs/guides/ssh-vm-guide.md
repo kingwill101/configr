@@ -147,11 +147,11 @@ Use `--target` to select which host(s) to target:
 
 ```bash
 # Dry-run first
-configr apply --config deploy.i3 --v2 --no-interaction \
+configr apply --config deploy.i3 --no-interaction \
     --target vm1 --dry-run
 
 # Real apply
-configr apply --config deploy.i3 --v2 --no-interaction \
+configr apply --config deploy.i3 --no-interaction \
     --target vm1
 ```
 
@@ -159,21 +159,21 @@ configr apply --config deploy.i3 --v2 --no-interaction \
 
 ```bash
 # Apply to all hosts with role "web"
-configr apply --config deploy.i3 --v2 --no-interaction \
+configr apply --config deploy.i3 --no-interaction \
     --target-role web
 ```
 
 ### Targeting by group
 
 ```bash
-configr apply --config deploy.i3 --v2 --no-interaction \
+configr apply --config deploy.i3 --no-interaction \
     --target-group production
 ```
 
 ### Targeting multiple hosts
 
 ```bash
-configr apply --config deploy.i3 --v2 --no-interaction \
+configr apply --config deploy.i3 --no-interaction \
     --target vm1 --target vm2
 ```
 
@@ -183,15 +183,15 @@ Control **how** hosts are processed:
 
 ```bash
 # One at a time (default)
-configr apply --config deploy.i3 --v2 --no-interaction \
+configr apply --config deploy.i3 --no-interaction \
     --target vm1 --target vm2 --strategy linear
 
 # All at once
-configr apply --config deploy.i3 --v2 --no-interaction \
+configr apply --config deploy.i3 --no-interaction \
     --target vm1 --target vm2 --strategy parallel
 
 # Boot-group order (by host priority)
-configr apply --config deploy.i3 --v2 --no-interaction \
+configr apply --config deploy.i3 --no-interaction \
     --target vm1 --target vm2 --target vm3 --strategy serial
 ```
 
@@ -221,11 +221,11 @@ Rollback the changes on a specific host:
 
 ```bash
 # Via inventory (auto-resolves connection config from inventory block)
-configr rollback --config deploy.i3 --v2 --no-interaction \
+configr rollback --config deploy.i3 --no-interaction \
     --host vm1
 
 # Via explicit SSH flags
-configr rollback --config deploy.i3 --v2 --no-interaction \
+configr rollback --config deploy.i3 --no-interaction \
     --host localhost --ssh-port 2221 --ssh-key /path/to/id_ed25519
 ```
 
@@ -261,7 +261,7 @@ file {
 Then apply without `--target`:
 
 ```bash
-configr apply --config single.i3 --v2 --no-interaction
+configr apply --config single.i3 --no-interaction
 ```
 
 ## Lua Hooks and Plugins

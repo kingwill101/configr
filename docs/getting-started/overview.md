@@ -12,8 +12,7 @@ configuration files with full rollback support.
 
 Configr v2 uses the i3config v2 state machine for parsing and processing.
 Action blocks are registered as `BlockHandler` subclasses and executed
-automatically during config processing. The `--v2` flag enables the new
-pipeline.
+automatically during config processing.
 
 ### Action Blocks
 
@@ -53,15 +52,15 @@ permissions {
 
 See the [CLI Usage Guide](cli-usage.md) for detailed command reference.
 
-- `configr init --v2` — Initialize a configuration
-- `configr apply --v2` — Apply configuration
-- `configr rollback --v2` — Rollback changes
-- `configr diff --v2` — Show diff
-- `configr status --v2` — Show status
-- `configr format --v2` — Format config file
-- `configr add --v2` — Add a block
-- `configr edit --v2` — Edit config file
-- `configr watch --v2` — Watch and auto-apply
+- `configr init` — Initialize a configuration
+- `configr apply` — Apply configuration
+- `configr rollback` — Rollback changes
+- `configr diff` — Show diff
+- `configr status` — Show status
+- `configr format` — Format config file
+- `configr add` — Add a block
+- `configr edit` — Edit config file
+- `configr watch` — Watch and auto-apply
 
 ### Migration
 

@@ -50,13 +50,13 @@ Global flags to connect to a remote host:
 
 ```bash
 # Connect with password
-configr apply --v2 --host 192.168.1.100 --ssh-user deploy --ssh-password s3cret
+configr apply --host 192.168.1.100 --ssh-user deploy --ssh-password s3cret
 
 # Connect with SSH key
-configr apply --v2 --host server.example.com --ssh-key ~/.ssh/id_rsa
+configr apply --host server.example.com --ssh-key ~/.ssh/id_rsa
 
 # Custom port
-configr apply --v2 --host db.internal --ssh-port 2222 --ssh-user admin
+configr apply --host db.internal --ssh-port 2222 --ssh-user admin
 ```
 
 ## Inline Connection Block

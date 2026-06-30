@@ -14,7 +14,7 @@ configuration with Configr v2.
 ## Step 1: Initialize a Configuration
 
 ```bash
-configr init --v2
+configr init
 ```
 
 This creates a `config` file with example blocks:
@@ -40,17 +40,17 @@ symlink {
 
 ```bash
 # Add a copy block for your bashrc
-configr add --v2 --file ~/.bashrc --destination "~/.bashrc"
+configr add --file ~/.bashrc --destination "~/.bashrc"
 
 # Add a template block
-configr add --v2 --file templates/starship.toml.liquid \
+configr add --file templates/starship.toml.liquid \
   --type template --destination "~/.config/starship.toml"
 ```
 
 ## Step 3: Apply Configuration
 
 ```bash
-configr apply --v2
+configr apply
 ```
 
 You'll see live progress output:
@@ -67,7 +67,7 @@ A lockfile (`config.lock.json`) is written on success.
 ## Step 4: Check Status
 
 ```bash
-configr status --v2
+configr status
 ```
 
 Shows all configured blocks grouped by type with their status.
@@ -77,7 +77,7 @@ Shows all configured blocks grouped by type with their status.
 If something went wrong:
 
 ```bash
-configr rollback --v2
+configr rollback
 ```
 
 Each block's rollback reverses the operation.

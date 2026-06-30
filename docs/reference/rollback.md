@@ -16,10 +16,10 @@ using a lockfile-based approach.
 
 ```bash
 # Rollback all changes
-configr rollback --v2
+configr rollback
 
 # Rollback specific number of operations
-configr rollback --v2 --count 3
+configr rollback --count 3
 ```
 
 ## Lockfile Structure

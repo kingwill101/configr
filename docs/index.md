@@ -107,11 +107,11 @@ flowchart LR
 
 ```bash
 # Initialize a v2 configuration
-configr init --v2
+configr init
 
 # Apply configuration
-configr apply --v2
+configr apply
 
 # Rollback changes
-configr rollback --v2
+configr rollback
 ```

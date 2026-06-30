@@ -329,10 +329,10 @@ SSH-backed file system and process backend.
 
 ```bash
 # Rollback via inventory (auto-resolves SSH config)
-configr rollback --config deploy.i3 --v2 --host vm1
+configr rollback --config deploy.i3 --host vm1
 
 # Rollback via explicit SSH flags
-configr rollback --v2 --host 192.168.1.10 \
+configr rollback --host 192.168.1.10 \
     --ssh-port 2221 --ssh-key ~/.ssh/id_ed25519
 ```
 
@@ -385,7 +385,7 @@ find configuration drift:
 - Block count difference (blocks were added/removed)
 - Per-block comparison (type, source, sha256)
 
-This enables drift reporting when running `configr status --v2` across
+This enables drift reporting when running `configr status` across
 multiple hosts.
 
 ## Test Modes
@@ -405,7 +405,7 @@ Configr uses two different integration styles:
 ### Apply with multi-host flags
 
 ```bash
-configr apply [--v2] [--config <path>] \
+configr apply [--config <path>] \
   [--target <host>]...              \
   [--target-role <role>]...         \
   [--target-group <group>]...       \
@@ -418,7 +418,7 @@ configr apply [--v2] [--config <path>] \
 ### Rollback with host targeting
 
 ```bash
-configr rollback [--v2] [--config <path>] \
+configr rollback [--config <path>] \
   [--host <hostname>]                      \
   [--ssh-port <port>]                      \
   [--ssh-key <path>]                       \

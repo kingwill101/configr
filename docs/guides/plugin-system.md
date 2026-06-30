@@ -190,7 +190,7 @@ logInfo(getContext("hostname"))
 Use `--plugin-dir` to add directories for plugin discovery:
 
 ```bash
-configr apply --v2 --plugin-dir ./plugins
+configr apply --plugin-dir ./plugins
 ```
 
 Or in your config file:

@@ -25,7 +25,6 @@ configr <command> [options]
 | Option | Description |
 |--------|-------------|
 | `-c, --config <path>` | Path to the configuration file (defaults to `config`) |
-| `--v2` | Use the v2 i3config-based ActionBlock pipeline |
 | `-d, --debug` | Enable debug output with timestamps |
 | `--dry-run` | Show what would be done without making changes |
 | `--plugin-dir <path>` | Directory to discover plugins from (repeatable) |
@@ -48,7 +47,7 @@ configr <command> [options]
 Initialize a new configuration repository with a template config file.
 
 ```bash
-configr init --v2
+configr init
 ```
 
 Generates a `config` file with example blocks for copy, file, symlink,
@@ -60,25 +59,25 @@ Apply configuration changes to the system.
 
 ```bash
 # Apply configuration
-configr apply --v2
+configr apply
 
 # Force re-apply (ignore lockfile)
-configr apply --v2 --force
+configr apply --force
 
 # Preview mode (no changes made)
-configr apply --v2 --dry-run
+configr apply --dry-run
 
 # Stop at first error
-configr apply --v2 --fail-fast
+configr apply --fail-fast
 
 # Watch for changes and re-apply automatically
-configr apply --v2 --watch
+configr apply --watch
 
 # Apply to a remote host via SSH
-configr apply --v2 --host server.example.com --ssh-user deploy
+configr apply --host server.example.com --ssh-user deploy
 
 # Apply with SSH key authentication
-configr apply --v2 --host db.internal --ssh-key ~/.ssh/id_rsa
+configr apply --host db.internal --ssh-key ~/.ssh/id_rsa
 ```
 
 ### `rollback`
@@ -87,10 +86,10 @@ Rollback applied changes using the lockfile.
 
 ```bash
 # Rollback all changes
-configr rollback --v2
+configr rollback
 
 # Rollback specific number of operations
-configr rollback --v2 --count 3
+configr rollback --count 3
 ```
 
 ### `diff`
@@ -99,7 +98,7 @@ Show differences between current and target configuration by listing
 parsed action blocks with their status.
 
 ```bash
-configr diff --v2
+configr diff
 ```
 
 ### `status`
@@ -107,7 +106,7 @@ configr diff --v2
 Show the current status of all configured action blocks.
 
 ```bash
-configr status --v2
+configr status
 ```
 
 Groups blocks by type and shows each block's status (pending/completed/failed).
@@ -117,7 +116,7 @@ Groups blocks by type and shows each block's status (pending/completed/failed).
 Format the configuration file in-place.
 
 ```bash
-configr format --v2
+configr format
 ```
 
 Re-serializes the config through the i3config v2 format boundary,
@@ -129,10 +128,10 @@ Add a file to the configuration by appending a block.
 
 ```bash
 # Add a copy block (default)
-configr add --v2 --file ~/.bashrc
+configr add --file ~/.bashrc
 
 # Specify block type and destination
-configr add --v2 --file ~/.config/starship.toml --type template --destination "~/.config/starship.toml"
+configr add --file ~/.config/starship.toml --type template --destination "~/.config/starship.toml"
 ```
 
 ### `edit`
@@ -140,7 +139,7 @@ configr add --v2 --file ~/.config/starship.toml --type template --destination "~
 Open the configuration file in your default editor (uses `$EDITOR` or `$VISUAL`).
 
 ```bash
-configr edit --v2
+configr edit
 ```
 
 ### `watch`
@@ -148,10 +147,10 @@ configr edit --v2
 Watch configuration files and apply changes automatically.
 
 ```bash
-configr watch --v2
+configr watch
 
 # Apply once and exit
-configr watch --v2 --once
+configr watch --once
 ```
 
 ## Configuration File Format
@@ -198,15 +197,15 @@ resource {
 
 ```bash
 # Initialize, add files, and apply
-configr init --v2
-configr add --v2 --file ~/.bashrc --destination "~/.bashrc"
-configr apply --v2
+configr init
+configr add --file ~/.bashrc --destination "~/.bashrc"
+configr apply
 
 # Dry-run to preview changes
-configr apply --v2 --dry-run
+configr apply --dry-run
 
 # Rollback if something went wrong
-configr rollback --v2
+configr rollback
 ```
 
 ## Error Handling

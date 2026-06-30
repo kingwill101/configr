@@ -28,15 +28,17 @@ A flexible configuration management tool that helps you manage dotfiles, system 
 
 ## Installation
 
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/configr.git
+Download the latest pre-built binary for your platform from the [Releases page](https://github.com/kingwill101/configr/releases).
 
-# Build the project
-cd configr
-dart pub get
-dart compile exe bin/configr.dart -o configr
+```bash
+# Download and make executable
+chmod +x configr
+
+# (Optional) Move to a directory on your PATH
+sudo mv configr /usr/local/bin/
 ```
+
+> Alternatively, build from source: clone the repo, run `dart compile exe bin/configr.dart -o configr`, and place the resulting binary on your PATH.
 
 ## Quick Start
 
@@ -44,7 +46,7 @@ dart compile exe bin/configr.dart -o configr
 
 ```bash
 # Initialize a new configuration repository
-dart bin/main.dart init
+configr init
 ```
 
 ### 2. Create a config file:
@@ -72,36 +74,36 @@ resources {
 
 ```bash
 # Add a single file
-dart bin/main.dart add --file ~/.bashrc
+configr add --file ~/.bashrc
 
 # Add multiple files
-dart bin/main.dart add --file ~/.vimrc --file ~/.gitconfig
+configr add --file ~/.vimrc --file ~/.gitconfig
 ```
 
 4. Apply your configuration:
 
 ```bash
 # Apply with default settings
-dart bin/main.dart apply
+configr apply
 
 # Force apply all resources
-dart bin/main.dart apply --force
+configr apply --force
 ```
 
 5. Check status and manage your configuration:
 
 ```bash
 # View current status
-dart bin/main.dart status
+configr status
 
 # See what would change
-dart bin/main.dart diff
+configr diff
 
 # Rollback changes if needed
-dart bin/main.dart rollback
+configr rollback
 
 # Rollback specific number of operations
-dart bin/main.dart rollback --count 3
+configr rollback --count 3
 ```
 
 ## CLI Usage
@@ -110,10 +112,10 @@ dart bin/main.dart rollback --count 3
 
 ```bash
 # Show all available commands
-dart bin/main.dart --help
+configr --help
 
 # Get help for a specific command
-dart bin/main.dart <command> --help
+configr <command> --help
 ```
 
 ### Global Options
@@ -125,31 +127,31 @@ dart bin/main.dart <command> --help
 
 ```bash
 # Initialize configuration
-dart bin/main.dart init
+configr init
 
 # Add files to configuration
-dart bin/main.dart add --file ~/.bashrc --file ~/.vimrc
+configr add --file ~/.bashrc --file ~/.vimrc
 
 # Apply configuration
-dart bin/main.dart apply --force
+configr apply --force
 
 # Check status
-dart bin/main.dart status
+configr status
 
 # View differences
-dart bin/main.dart diff
+configr diff
 
 # Edit configuration
-dart bin/main.dart edit
+configr edit
 
 # Format configuration
-dart bin/main.dart format
+configr format
 
 # Rollback changes
-dart bin/main.dart rollback --count 2
+configr rollback --count 2
 
 # Rollback all changes
-dart bin/main.dart rollback
+configr rollback
 ```
 
 ### Output Format
@@ -190,13 +192,11 @@ dart test
 
 # Run specific test file
 dart test test/config_management_test.dart
-
 ```
 
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details
-
 
 ## Contributing
 
