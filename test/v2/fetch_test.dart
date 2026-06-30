@@ -75,25 +75,31 @@ void main() {
     expect(block.dryRunSummary(), startsWith('fetch: /var/log/syslog ->'));
   });
 
-  test('should keep absolute source paths under destination in non-flat mode', () async {
-    await helper.createFile('/etc/hostname', 'test-host');
+  test(
+    'should keep absolute source paths under destination in non-flat mode',
+    () async {
+      await helper.createFile('/etc/hostname', 'test-host');
 
-    await helper.runConfig('''
+      await helper.runConfig('''
       fetch {
         src = "/etc/hostname"
         dest = "/tmp/fetch_test"
       }
     ''');
 
-    final copiedFiles = helper.fileSystem
-        .directory('/tmp/fetch_test')
-        .listSync(recursive: true)
-        .whereType<File>()
-        .where((entry) => entry.path.endsWith('/etc/hostname'))
-        .toList();
-    expect(copiedFiles, hasLength(1));
-    expect(await helper.readFile(copiedFiles.single.path), equals('test-host'));
-  });
+      final copiedFiles = helper.fileSystem
+          .directory('/tmp/fetch_test')
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where((entry) => entry.path.endsWith('/etc/hostname'))
+          .toList();
+      expect(copiedFiles, hasLength(1));
+      expect(
+        await helper.readFile(copiedFiles.single.path),
+        equals('test-host'),
+      );
+    },
+  );
 
   test('should return correct dry-run summary empty', () async {
     final blocks = await helper.processConfig('''

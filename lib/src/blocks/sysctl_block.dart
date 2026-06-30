@@ -177,8 +177,11 @@ class _LinuxSysctlBlock extends SysctlBlock {
     final lines = await sysctlFile.readAsLines();
     for (final line in lines) {
       final trimmed = line.trim();
-      if (trimmed.isEmpty || trimmed.startsWith('#') || trimmed.startsWith(';'))
+      if (trimmed.isEmpty ||
+          trimmed.startsWith('#') ||
+          trimmed.startsWith(';')) {
         continue;
+      }
       if (!trimmed.contains('=')) continue;
       final eq = trimmed.indexOf('=');
       final key = trimmed.substring(0, eq).trim();
@@ -198,8 +201,9 @@ class _LinuxSysctlBlock extends SysctlBlock {
         final trimmed = lines[i].trim();
         if (trimmed.isEmpty ||
             trimmed.startsWith('#') ||
-            trimmed.startsWith(';'))
+            trimmed.startsWith(';')) {
           continue;
+        }
         if (!trimmed.contains('=')) continue;
         final eq = trimmed.indexOf('=');
         final key = trimmed.substring(0, eq).trim();
@@ -222,8 +226,11 @@ class _LinuxSysctlBlock extends SysctlBlock {
     final lines = await sysctlFile.readAsLines();
     lines.removeWhere((line) {
       final trimmed = line.trim();
-      if (trimmed.isEmpty || trimmed.startsWith('#') || trimmed.startsWith(';'))
+      if (trimmed.isEmpty ||
+          trimmed.startsWith('#') ||
+          trimmed.startsWith(';')) {
         return false;
+      }
       if (!trimmed.contains('=')) return false;
       final eq = trimmed.indexOf('=');
       return trimmed.substring(0, eq).trim() == name;
@@ -385,8 +392,9 @@ class _FreeBSDSysctlBlock extends SysctlBlock {
         final trimmed = lines[i].trim();
         if (trimmed.isEmpty ||
             trimmed.startsWith('#') ||
-            trimmed.startsWith(';'))
+            trimmed.startsWith(';')) {
           continue;
+        }
         if (!trimmed.contains('=')) continue;
         final eq = trimmed.indexOf('=');
         final key = trimmed.substring(0, eq).trim();
@@ -407,8 +415,11 @@ class _FreeBSDSysctlBlock extends SysctlBlock {
     final lines = await sysctlFile.readAsLines();
     lines.removeWhere((line) {
       final trimmed = line.trim();
-      if (trimmed.isEmpty || trimmed.startsWith('#') || trimmed.startsWith(';'))
+      if (trimmed.isEmpty ||
+          trimmed.startsWith('#') ||
+          trimmed.startsWith(';')) {
         return false;
+      }
       if (!trimmed.contains('=')) return false;
       final eq = trimmed.indexOf('=');
       return trimmed.substring(0, eq).trim() == name;

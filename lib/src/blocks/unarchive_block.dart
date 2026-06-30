@@ -73,8 +73,9 @@ class UnarchiveBlock extends ActionBlock {
     if (lower.endsWith('.tar.gz') || lower.endsWith('.tgz')) return 'gzip';
     if (lower.endsWith('.tar.bz2') ||
         lower.endsWith('.tbz') ||
-        lower.endsWith('.tbz2'))
+        lower.endsWith('.tbz2')) {
       return 'bzip2';
+    }
     if (lower.endsWith('.tar.xz') || lower.endsWith('.txz')) return 'xz';
     if (lower.endsWith('.tar')) return 'tar';
     if (lower.endsWith('.zip')) return 'zip';
