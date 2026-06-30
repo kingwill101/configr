@@ -111,6 +111,9 @@ file {
 8. Block handlers receive the SSH-backed execution service and file system
 9. All `run()`, `putFile()`, `fetchFile()`, and runtime file-system calls go
    over the SSH/SFTP session
+10. Network-aware blocks use the target network where possible, so remote
+    downloads, HTTP checks, DNS probes, TCP checks, and ping checks observe the
+    remote host instead of the controller
 
 The remote machine does not need Configr installed. It only needs SSH access
 and any operating-system tools required by the blocks being applied.
@@ -123,6 +126,24 @@ with that host's remote file system and process backend.
 
 - `putFile(source, dest)` — uploads via SFTP (`SftpFileOpenMode.write | create | truncate`)
 - `fetchFile(source, dest)` — downloads via SFTP (`SftpFileOpenMode.read`)
+
+### Network Operations
+
+Configr treats networking as part of the active target runtime:
+
+- `download` uses the remote host's network by default when `curl` and checksum
+  tooling are available.
+- `download transfer_mode = "controller"` downloads on the controller and then
+  copies the file to the target with SFTP.
+- `download transfer_mode = "remote"` requires the remote host to download
+  directly and fails if the required tools are missing.
+- `uri`, `network`, DNS, TCP, and ping checks run from the target perspective.
+
+For Linux and macOS SSH targets, Configr probes for common target tools such as
+`curl`, `getent`, `host`, `nslookup`, `nc`, `ping`, `timeout`, checksum tools,
+and `openssl`. Windows SSH targets currently need a PowerShell/.NET network
+backend for target-side HTTP and probe operations; `download` can still use
+`transfer_mode = "controller"` as an explicit relay path.
 
 ### Command Execution
 
