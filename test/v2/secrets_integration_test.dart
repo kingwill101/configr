@@ -7,7 +7,8 @@ import 'package:configr/src/secrets/secret_resolver.dart';
 import 'package:configr/src/secrets/providers/providers.dart';
 import 'package:test/test.dart';
 
-final _tmpDir = Directory.systemTemp.path;
+String _tmpPath(String name) =>
+    Directory.systemTemp.uri.resolve(name).toFilePath();
 
 void main() {
   setUp(() {
@@ -146,8 +147,9 @@ void main() {
 
   group('FileProvider', () {
     test('returns content of existing file', () async {
-      final tmpFile =
-          '$_tmpDir/_configr_test_file_${DateTime.now().millisecondsSinceEpoch}';
+      final tmpFile = _tmpPath(
+        '_configr_test_file_${DateTime.now().millisecondsSinceEpoch}',
+      );
       try {
         await File(tmpFile).writeAsString('file_secret_value\n');
         final provider = const FileProvider();
@@ -167,8 +169,9 @@ void main() {
 
   group('DotenvProvider', () {
     test('returns value from dotenv file', () async {
-      final tmpFile =
-          '$_tmpDir/_configr_dotenv_test_${DateTime.now().millisecondsSinceEpoch}';
+      final tmpFile = _tmpPath(
+        '_configr_dotenv_test_${DateTime.now().millisecondsSinceEpoch}',
+      );
       try {
         await File(
           tmpFile,
@@ -183,8 +186,9 @@ void main() {
     });
 
     test('returns value for second key in dotenv', () async {
-      final tmpFile =
-          '$_tmpDir/_configr_dotenv_test2_${DateTime.now().millisecondsSinceEpoch}';
+      final tmpFile = _tmpPath(
+        '_configr_dotenv_test2_${DateTime.now().millisecondsSinceEpoch}',
+      );
       try {
         await File(tmpFile).writeAsString('KEY1=val1\nKEY2=val2\n');
         final provider = const DotenvProvider();
@@ -202,8 +206,9 @@ void main() {
     });
 
     test('resolve resolves dotenv URI with ?name= query param', () async {
-      final tmpFile =
-          '$_tmpDir/_configr_dotenv_resolve_${DateTime.now().millisecondsSinceEpoch}';
+      final tmpFile = _tmpPath(
+        '_configr_dotenv_resolve_${DateTime.now().millisecondsSinceEpoch}',
+      );
       try {
         await File(tmpFile).writeAsString('DB_PASS=s3cret\n');
         final registry = SecretProviders();
@@ -216,8 +221,9 @@ void main() {
     });
 
     test('resolve returns null for dotenv with missing name key', () async {
-      final tmpFile =
-          '$_tmpDir/_configr_dotenv_missing_${DateTime.now().millisecondsSinceEpoch}';
+      final tmpFile = _tmpPath(
+        '_configr_dotenv_missing_${DateTime.now().millisecondsSinceEpoch}',
+      );
       try {
         await File(tmpFile).writeAsString('DB_PASS=s3cret\n');
         final registry = SecretProviders();
