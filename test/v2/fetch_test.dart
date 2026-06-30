@@ -1,4 +1,5 @@
 import 'package:configr/src/events/module_events.dart';
+import 'package:file/file.dart' show File;
 import 'package:test/test.dart';
 import 'v2_test_helper.dart';
 
@@ -72,6 +73,26 @@ void main() {
 
     final block = blocks.first as dynamic;
     expect(block.dryRunSummary(), startsWith('fetch: /var/log/syslog ->'));
+  });
+
+  test('should keep absolute source paths under destination in non-flat mode', () async {
+    await helper.createFile('/etc/hostname', 'test-host');
+
+    await helper.runConfig('''
+      fetch {
+        src = "/etc/hostname"
+        dest = "/tmp/fetch_test"
+      }
+    ''');
+
+    final copiedFiles = helper.fileSystem
+        .directory('/tmp/fetch_test')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((entry) => entry.path.endsWith('/etc/hostname'))
+        .toList();
+    expect(copiedFiles, hasLength(1));
+    expect(await helper.readFile(copiedFiles.single.path), equals('test-host'));
   });
 
   test('should return correct dry-run summary empty', () async {
