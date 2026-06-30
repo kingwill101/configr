@@ -1,4 +1,4 @@
 touch {
-  source = "/tmp/configr_touch_test.txt"
+  source = "$tempdir/configr_touch_test.txt"
   create_if_missing = true
 }

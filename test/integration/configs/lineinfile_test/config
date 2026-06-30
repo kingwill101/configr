@@ -1,5 +1,5 @@
 lineinfile {
-  path = "/tmp/test_lineinfile"
+  path = "$tempdir/test_lineinfile"
   line = "managed by configr"
   state = "present"
 }

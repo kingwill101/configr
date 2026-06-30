@@ -1,1 +1,1 @@
-os.remove('/tmp/configr_touch_test.txt')
+os.remove(tempDir() .. '/configr_touch_test.txt')

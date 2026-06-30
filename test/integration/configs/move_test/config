@@ -1,4 +1,4 @@
 move {
-  source = "/tmp/configr_move_source.txt"
-  destination = "/tmp/configr_move_dest.txt"
+  source = "$tempdir/configr_move_source.txt"
+  destination = "$tempdir/configr_move_dest.txt"
 }

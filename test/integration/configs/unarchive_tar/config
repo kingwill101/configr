@@ -1,4 +1,4 @@
 unarchive {
-  src = "/tmp/test_archive.tar.gz"
-  dest = "/tmp/unarchive_test"
+  src = "$tempdir/test_archive.tar.gz"
+  dest = "$tempdir/unarchive_test"
 }

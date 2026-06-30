@@ -1,1 +1,1 @@
-assertFileExists('/tmp/configr_copy_dest.txt')
+assertFileExists(tempDir() .. '/configr_copy_dest.txt')

@@ -1,4 +1,4 @@
-import 'dart:io' show ProcessResult;
+import 'dart:io' show Platform, ProcessResult;
 
 import 'package:file/file.dart';
 import 'package:file/local.dart';
@@ -163,6 +163,34 @@ class FixtureAssertionLibrary extends Library {
         example: r"assertDirNotExists('/tmp/deleted_dir')",
       ),
     );
+
+    context.define(
+      'tempDir',
+      builder.create((_) => _fileSystem.systemTempDirectory.path),
+    );
+    context.describe(
+      'tempDir',
+      FunctionDoc(
+        summary: 'Returns the OS temporary directory path.',
+        returns: 'string',
+        category: 'system',
+        example: "local tmp = tempDir()",
+      ),
+    );
+
+    context.define(
+      'osName',
+      builder.create((_) => Platform.operatingSystem),
+    );
+    context.describe(
+      'osName',
+      FunctionDoc(
+        summary: 'Returns the OS name (linux, macos, windows, etc).',
+        returns: 'string',
+        category: 'system',
+        example: "if osName() == 'windows' then ... end",
+      ),
+    );
   }
 
   static String _stringArg(List<Object?> args, [int index = 0]) {
@@ -186,6 +214,9 @@ class LuaFixtureRunner {
         _stderr = stderr ?? StringBuffer();
 
   Future<ProcessResult> run(String scriptPath) async {
+    _stdout.clear();
+    _stderr.clear();
+
     final lua = LuaLike();
 
     await useFileSystem(_fileSystem);

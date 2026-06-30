@@ -1,3 +1,3 @@
 slurp {
-  src = "/tmp/configr_slurp_test.txt"
+  src = "$tempdir/configr_slurp_test.txt"
 }

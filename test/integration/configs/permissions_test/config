@@ -1,5 +1,5 @@
 permissions {
-  path = "/tmp/test_perms"
+  path = "$tempdir/test_perms"
   mode = "0644"
   owner = "root"
 }

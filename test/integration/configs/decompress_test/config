@@ -1,4 +1,4 @@
 decompress {
-  source = "/tmp/configr_compressed.zip"
-  destination = "/tmp/configr_decompressed"
+  source = "$tempdir/configr_compressed.zip"
+  destination = "$tempdir/configr_decompressed"
 }

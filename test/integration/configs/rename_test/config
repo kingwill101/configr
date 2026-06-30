@@ -1,4 +1,4 @@
 rename {
-  source = "/tmp/configr_rename_test.txt"
-  destination = "/tmp/configr_renamed_test.txt"
+  source = "$tempdir/configr_rename_test.txt"
+  destination = "$tempdir/configr_renamed_test.txt"
 }

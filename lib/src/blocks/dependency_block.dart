@@ -178,17 +178,22 @@ class DependencyBlock extends ActionBlock {
     status = 'completed';
   }
 
+  List<String> _pingArgs(int timeoutSeconds) {
+    final target = host.isNotEmpty ? host : to;
+    if (executionService.platform == 'windows') {
+      return ['-n', '1', '-w', '${timeoutSeconds * 1000}', target];
+    }
+    return ['-c', '1', '-W', '$timeoutSeconds', target];
+  }
+
   Future<bool> _check() async {
     final target = host.isNotEmpty ? host : to;
     switch (checkType) {
       case 'ping':
-        final result = await executionService.run('ping', [
-          '-c',
-          '1',
-          '-W',
-          '5',
-          target,
-        ]);
+        final result = await executionService.run(
+          'ping',
+          _pingArgs(5),
+        );
         return result.exitCode == 0;
 
       case 'port':
@@ -204,13 +209,10 @@ class DependencyBlock extends ActionBlock {
         if (port > 0) {
           return await _checkPort(target, port);
         }
-        final result = await executionService.run('ping', [
-          '-c',
-          '1',
-          '-W',
-          '3',
-          target,
-        ]);
+        final result = await executionService.run(
+          'ping',
+          _pingArgs(3),
+        );
         return result.exitCode == 0;
 
       default:

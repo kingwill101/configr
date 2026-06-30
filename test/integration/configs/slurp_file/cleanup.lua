@@ -1,1 +1,1 @@
-os.remove('/tmp/configr_slurp_test.txt')
+os.remove(tempDir() .. '/configr_slurp_test.txt')

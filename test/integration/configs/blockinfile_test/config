@@ -1,5 +1,5 @@
 blockinfile {
-  path = "/tmp/test_blockinfile"
+  path = "$tempdir/test_blockinfile"
   block = "managed block content"
   state = "present"
 }

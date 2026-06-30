@@ -1,1 +1,1 @@
-assertDirExists('/tmp/configr_stat_dir')
+assertDirExists(tempDir() .. '/configr_stat_dir')

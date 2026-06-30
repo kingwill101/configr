@@ -3,5 +3,5 @@ sysctl {
   value = "1"
   sysctl_set = true
   reload = false
-  sysctl_file = "/tmp/configr_sysctl_test.conf"
+  sysctl_file = "$tempdir/configr_sysctl_test.conf"
 }

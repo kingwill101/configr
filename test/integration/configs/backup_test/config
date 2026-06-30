@@ -1,4 +1,4 @@
 backup {
-  source = "/tmp/configr_backup_src/file.txt"
-  destination = "/tmp/configr_backup_dest.zip"
+  source = "$tempdir/configr_backup_src/file.txt"
+  destination = "$tempdir/configr_backup_dest.zip"
 }
