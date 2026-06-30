@@ -26,8 +26,7 @@ Future<ProcessResult> _runScript(String scriptPath) async {
   return Process.run('bash', [scriptPath]);
 }
 
-/// Returns the platform temp directory path.
-String _platformTempDir() => Directory.systemTemp.path;
+
 
 void main() {
   final testEnv = Platform.environment['CONFIGR_TEST_ENV'] ?? '';
@@ -85,8 +84,6 @@ void main() {
         if (arg.isNotEmpty) extraArgs.add(arg);
       }
     }
-    // Pass platform temp directory as a variable for $tempdir in configs
-    extraArgs.addAll(['--var', 'tempdir=${_platformTempDir()}']);
 
     // Output expectations
     String? outContains;

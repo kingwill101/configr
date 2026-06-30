@@ -82,6 +82,7 @@ class SystemInfo {
     context.setVariable('cwd', configDir);
     context.setVariable('configrCacheDir', configrCacheDir);
     context.setVariable('configrBackupDir', configrBackupDir);
+    context.setVariable('tempdir', Directory.systemTemp.path);
 
     // OS — flat (primary) + dotted (secondary)
     _setBoth(context, 'os_name', 'os.name', osName);
