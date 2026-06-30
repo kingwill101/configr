@@ -56,7 +56,6 @@ jobs:
       - run: dart test --exclude-tags container --exclude-tags integration
 
   sweep-tests:
-    if: ${{ false }} # Temporarily disabled while platform portability is assessed.
     name: sweep-tests (${{ matrix.test-env }})
     runs-on: ${{ matrix.os }}
     strategy:
@@ -73,6 +72,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1
+      - name: Install Lua
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            brew install lua
+          elif [ "$RUNNER_OS" = "Windows" ]; then
+            choco install lua --no-progress
+          else
+            sudo apt-get -qq install lua5.4
+          fi
+        shell: bash
       - run: dart pub get
       - name: Run sweep apply and rollback tests
         env:
