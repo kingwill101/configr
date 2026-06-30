@@ -56,9 +56,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            configr-linux/*
-            configr.exe/*
-            configr-macos/*
+            configr-linux
+            configr.exe
+            configr-macos
           draft: false
           prerelease: false
         env:
