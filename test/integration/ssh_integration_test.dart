@@ -9,6 +9,8 @@ import 'package:testcontainers_compose/testcontainers_compose.dart';
 import 'package:configr/src/cli/configr_command_runner.dart';
 import 'package:configr/src/cli/cli_exit_exception.dart';
 
+import '../support/docker_test_environment.dart';
+
 const composeDir = 'test/integration/docker';
 const sshKeyPath = 'test/integration/docker/shared/ssh/id_ed25519';
 
@@ -97,48 +99,51 @@ Future<void> cleanLocalHooks() async {
 }
 
 Future<void> main() async {
-  group('SSH Integration', () {
-    late final DockerCompose compose;
+  group(
+    'SSH Integration',
+    skip: DockerTestEnvironment.dockerComposeAndBash.skip,
+    () {
+      DockerCompose? compose;
 
-    setUpAll(() async {
-      await ensureInheritedTmpDir();
-      await ensureSshKeyFixture();
-      compose = DockerCompose(context: composeDir, build: true, wait: true);
-      await compose.start();
-      for (var i = 0; i < 180; i++) {
-        final containers = compose.containers();
-        final vmHealthy = containers.where((c) {
-          final service = c.service;
-          return service != null &&
-              service.startsWith('vm') &&
-              c.health == 'healthy';
-        }).length;
-        if (vmHealthy >= 3) {
-          await syncSshKeyFixtureFromCompose();
-          return;
+      setUpAll(() async {
+        await ensureInheritedTmpDir();
+        await ensureSshKeyFixture();
+        compose = DockerCompose(context: composeDir, build: true, wait: true);
+        await compose!.start();
+        for (var i = 0; i < 180; i++) {
+          final containers = compose!.containers();
+          final vmHealthy = containers.where((c) {
+            final service = c.service;
+            return service != null &&
+                service.startsWith('vm') &&
+                c.health == 'healthy';
+          }).length;
+          if (vmHealthy >= 3) {
+            await syncSshKeyFixtureFromCompose();
+            return;
+          }
+          await Future<void>.delayed(const Duration(seconds: 2));
         }
-        await Future<void>.delayed(const Duration(seconds: 2));
-      }
-      throw StateError('Containers did not become healthy in time');
-    });
+        throw StateError('Containers did not become healthy in time');
+      });
 
-    tearDownAll(() async {
-      compose.stop();
-    });
+      tearDownAll(() async {
+        compose?.stop();
+      });
 
-    test('can apply a config file to vm1 via SSH', () async {
-      await cleanLocalHooks();
-      final configPath = '/tmp/configr_test_apply';
-      final lockPath = '$configPath.lock.json';
+      test('can apply a config file to vm1 via SSH', () async {
+        await cleanLocalHooks();
+        final configPath = '/tmp/configr_test_apply';
+        final lockPath = '$configPath.lock.json';
 
-      if (File(lockPath).existsSync()) {
-        File(lockPath).deleteSync();
-      }
+        if (File(lockPath).existsSync()) {
+          File(lockPath).deleteSync();
+        }
 
-      final absoluteKey = path.absolute(sshKeyPath);
+        final absoluteKey = path.absolute(sshKeyPath);
 
-      final config =
-          '''
+        final config =
+            '''
 inventory {
   host "localhost" {
     address = "localhost"
@@ -155,42 +160,42 @@ file {
 }
 ''';
 
-      await File(configPath).writeAsString(config);
+        await File(configPath).writeAsString(config);
 
-      final output = await runConfigr([
-        'apply',
-        '--config',
-        configPath,
-        '--v2',
-        '--no-interaction',
-        '--target',
-        'localhost',
-        '--dry-run',
-      ]);
+        final output = await runConfigr([
+          'apply',
+          '--config',
+          configPath,
+          '--v2',
+          '--no-interaction',
+          '--target',
+          'localhost',
+          '--dry-run',
+        ]);
 
-      expect(
-        output.contains('localhost') ||
-            output.contains('dry-run') ||
-            output.contains('DRY-RUN'),
-        isTrue,
-        reason: 'Expected apply dry-run output, got: $output',
-      );
-    });
+        expect(
+          output.contains('localhost') ||
+              output.contains('dry-run') ||
+              output.contains('DRY-RUN'),
+          isTrue,
+          reason: 'Expected apply dry-run output, got: $output',
+        );
+      });
 
-    test('can create a file on vm1 via SSH deploy', () async {
-      await cleanLocalHooks();
-      await vmExec(1, ['rm -f /tmp/configr_e2e_test']);
-      final configPath = '/tmp/configr_real_apply';
-      final lockPath = '$configPath.lock.json';
+      test('can create a file on vm1 via SSH deploy', () async {
+        await cleanLocalHooks();
+        await vmExec(1, ['rm -f /tmp/configr_e2e_test']);
+        final configPath = '/tmp/configr_real_apply';
+        final lockPath = '$configPath.lock.json';
 
-      if (File(lockPath).existsSync()) {
-        File(lockPath).deleteSync();
-      }
+        if (File(lockPath).existsSync()) {
+          File(lockPath).deleteSync();
+        }
 
-      final absoluteKey = path.absolute(sshKeyPath);
+        final absoluteKey = path.absolute(sshKeyPath);
 
-      final config =
-          '''
+        final config =
+            '''
 inventory {
   host "localhost" {
     address = "localhost"
@@ -207,36 +212,36 @@ file {
 }
 ''';
 
-      await File(configPath).writeAsString(config);
+        await File(configPath).writeAsString(config);
 
-      await runConfigr([
-        'apply',
-        '--config',
-        configPath,
-        '--v2',
-        '--no-interaction',
-        '--target',
-        'localhost',
-      ]);
+        await runConfigr([
+          'apply',
+          '--config',
+          configPath,
+          '--v2',
+          '--no-interaction',
+          '--target',
+          'localhost',
+        ]);
 
-      final remoteContent = await vmExec(1, ['cat', '/tmp/configr_e2e_test']);
-      expect(remoteContent.trim(), equals('deployed by configr e2e'));
-    });
+        final remoteContent = await vmExec(1, ['cat', '/tmp/configr_e2e_test']);
+        expect(remoteContent.trim(), equals('deployed by configr e2e'));
+      });
 
-    test('can rollback a file on vm1 via SSH', () async {
-      await cleanLocalHooks();
-      await vmExec(1, ['rm -f /tmp/configr_e2e_test']);
-      final configPath = '/tmp/configr_real_apply';
-      final lockPath = '$configPath.lock.json';
+      test('can rollback a file on vm1 via SSH', () async {
+        await cleanLocalHooks();
+        await vmExec(1, ['rm -f /tmp/configr_e2e_test']);
+        final configPath = '/tmp/configr_real_apply';
+        final lockPath = '$configPath.lock.json';
 
-      if (File(lockPath).existsSync()) {
-        File(lockPath).deleteSync();
-      }
+        if (File(lockPath).existsSync()) {
+          File(lockPath).deleteSync();
+        }
 
-      final absoluteKey = path.absolute(sshKeyPath);
+        final absoluteKey = path.absolute(sshKeyPath);
 
-      final config =
-          '''
+        final config =
+            '''
 inventory {
   host "localhost" {
     address = "localhost"
@@ -253,53 +258,53 @@ file {
 }
 ''';
 
-      await File(configPath).writeAsString(config);
+        await File(configPath).writeAsString(config);
 
-      await runConfigr([
-        'apply',
-        '--config',
-        configPath,
-        '--v2',
-        '--no-interaction',
-        '--target',
-        'localhost',
-      ]);
+        await runConfigr([
+          'apply',
+          '--config',
+          configPath,
+          '--v2',
+          '--no-interaction',
+          '--target',
+          'localhost',
+        ]);
 
-      final rollbackOutput = await runConfigr([
-        'rollback',
-        '--config',
-        configPath,
-        '--v2',
-        '--no-interaction',
-        '--host',
-        'localhost',
-        '--ssh-port',
-        '2221',
-        '--ssh-key',
-        absoluteKey,
-      ]);
+        final rollbackOutput = await runConfigr([
+          'rollback',
+          '--config',
+          configPath,
+          '--v2',
+          '--no-interaction',
+          '--host',
+          'localhost',
+          '--ssh-port',
+          '2221',
+          '--ssh-key',
+          absoluteKey,
+        ]);
 
-      expect(rollbackOutput.toLowerCase(), contains('rollback'));
+        expect(rollbackOutput.toLowerCase(), contains('rollback'));
 
-      final afterRollback = await vmExec(1, [
-        'test -f /tmp/configr_e2e_test && cat /tmp/configr_e2e_test || echo __MISSING__',
-      ]);
-      expect(afterRollback.trim(), equals('__MISSING__'));
-    });
+        final afterRollback = await vmExec(1, [
+          'test -f /tmp/configr_e2e_test && cat /tmp/configr_e2e_test || echo __MISSING__',
+        ]);
+        expect(afterRollback.trim(), equals('__MISSING__'));
+      });
 
-    test('can run a lua plugin on vm1 via SSH', () async {
-      await cleanLocalHooks();
-      final configPath = '/tmp/configr_lua_plugin_ssh';
-      final lockPath = '$configPath.lock.json';
+      test('can run a lua plugin on vm1 via SSH', () async {
+        await cleanLocalHooks();
+        final configPath = '/tmp/configr_lua_plugin_ssh';
+        final lockPath = '$configPath.lock.json';
 
-      if (File(lockPath).existsSync()) {
-        File(lockPath).deleteSync();
-      }
+        if (File(lockPath).existsSync()) {
+          File(lockPath).deleteSync();
+        }
 
-      final absoluteKey = path.absolute(sshKeyPath);
+        final absoluteKey = path.absolute(sshKeyPath);
 
-      final pluginPath = '/tmp/configr_lua_plugin_test.lua';
-      await File(pluginPath).writeAsString('''
+        final pluginPath = '/tmp/configr_lua_plugin_test.lua';
+        await File(pluginPath).writeAsString('''
 name = "test_ssh_plugin"
 version = "1.0.0"
 description = "Test plugin for SSH remote execution"
@@ -318,8 +323,8 @@ function onConfigApplied(config)
 end
 ''');
 
-      final config =
-          '''
+        final config =
+            '''
 inventory {
   host "localhost" {
     address = "localhost"
@@ -337,48 +342,52 @@ plugin {
 ssh_plugin_file {}
 ''';
 
-      await File(configPath).writeAsString(config);
+        await File(configPath).writeAsString(config);
 
-      await runConfigr([
-        'apply',
-        '--config',
-        configPath,
-        '--v2',
-        '--no-interaction',
-        '--target',
-        'localhost',
-      ]);
+        await runConfigr([
+          'apply',
+          '--config',
+          configPath,
+          '--v2',
+          '--no-interaction',
+          '--target',
+          'localhost',
+        ]);
 
-      final fsOutput = await vmExec(1, [
-        'cat /tmp/configr_lua_plugin_remote_fs',
-      ]);
-      expect(fsOutput.trim(), equals('plugin wrote remote fs'));
+        final fsOutput = await vmExec(1, [
+          'cat /tmp/configr_lua_plugin_remote_fs',
+        ]);
+        expect(fsOutput.trim(), equals('plugin wrote remote fs'));
 
-      final processOutput = await vmExec(1, [
-        'cat /tmp/configr_lua_plugin_remote_process',
-      ]);
-      expect(processOutput.trim(), equals('plugin_process'));
-    });
+        final processOutput = await vmExec(1, [
+          'cat /tmp/configr_lua_plugin_remote_process',
+        ]);
+        expect(processOutput.trim(), equals('plugin_process'));
+      });
 
-    test('can run a lua hook on vm1 via SSH', () async {
-      await cleanLocalHooks();
-      final configPath = '/tmp/configr_lua_hook_ssh';
-      final lockPath = '$configPath.lock.json';
+      test('can run a lua hook on vm1 via SSH', () async {
+        await cleanLocalHooks();
+        final configPath = '/tmp/configr_lua_hook_ssh';
+        final lockPath = '$configPath.lock.json';
 
-      if (File(lockPath).existsSync()) {
-        File(lockPath).deleteSync();
-      }
+        if (File(lockPath).existsSync()) {
+          File(lockPath).deleteSync();
+        }
 
-      final absoluteKey = path.absolute(sshKeyPath);
-      final hooksDir = path.join(path.dirname(configPath), '.configr', 'hooks');
-      await Directory(hooksDir).create(recursive: true);
-      await File(path.join(hooksDir, 'pre-apply.lua')).writeAsString('''
+        final absoluteKey = path.absolute(sshKeyPath);
+        final hooksDir = path.join(
+          path.dirname(configPath),
+          '.configr',
+          'hooks',
+        );
+        await Directory(hooksDir).create(recursive: true);
+        await File(path.join(hooksDir, 'pre-apply.lua')).writeAsString('''
 writeFile("/tmp/configr_lua_hook_remote_fs", event_name)
 runCommand("printf hook_process > /tmp/configr_lua_hook_remote_process")
 ''');
 
-      final config =
-          '''
+        final config =
+            '''
 inventory {
   host "localhost" {
     address = "localhost"
@@ -394,25 +403,28 @@ execute {
 }
 ''';
 
-      await File(configPath).writeAsString(config);
+        await File(configPath).writeAsString(config);
 
-      await runConfigr([
-        'apply',
-        '--config',
-        configPath,
-        '--v2',
-        '--no-interaction',
-        '--target',
-        'localhost',
-      ]);
+        await runConfigr([
+          'apply',
+          '--config',
+          configPath,
+          '--v2',
+          '--no-interaction',
+          '--target',
+          'localhost',
+        ]);
 
-      final fsOutput = await vmExec(1, ['cat /tmp/configr_lua_hook_remote_fs']);
-      expect(fsOutput.trim(), equals('pre-apply'));
+        final fsOutput = await vmExec(1, [
+          'cat /tmp/configr_lua_hook_remote_fs',
+        ]);
+        expect(fsOutput.trim(), equals('pre-apply'));
 
-      final processOutput = await vmExec(1, [
-        'cat /tmp/configr_lua_hook_remote_process',
-      ]);
-      expect(processOutput.trim(), equals('hook_process'));
-    });
-  });
+        final processOutput = await vmExec(1, [
+          'cat /tmp/configr_lua_hook_remote_process',
+        ]);
+        expect(processOutput.trim(), equals('hook_process'));
+      });
+    },
+  );
 }
