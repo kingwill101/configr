@@ -1,0 +1,10 @@
+resource {
+  type "file"
+  source "test_dir"
+
+  actions {
+    delete {
+      recursive true
+    }
+  }
+}

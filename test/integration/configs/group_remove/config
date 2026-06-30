@@ -1,0 +1,4 @@
+group {
+  name = "testgrp_rm"
+  status = "absent"
+}

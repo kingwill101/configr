@@ -1,0 +1,4 @@
+backup {
+  source = "/tmp/configr_backup_src/file.txt"
+  destination = "/tmp/configr_backup_dest.zip"
+}

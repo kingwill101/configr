@@ -1,0 +1,14 @@
+# Locale_gen block: manage system locales
+
+locale_gen {
+  name = "en_US.UTF-8"
+}
+
+locale_gen {
+  locales = "de_DE.UTF-8,fr_FR.UTF-8"
+}
+
+locale_gen {
+  name = "en_US.UTF-8"
+  status = "absent"
+}

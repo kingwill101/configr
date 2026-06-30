@@ -1,0 +1,24 @@
+# Connection block — inline SSH configuration
+connection {
+    host = "server.example.com"
+    port = 22
+    username = "root"
+    private_key = "~/.ssh/id_rsa"
+    connect_timeout = 30
+}
+
+# All blocks below run on server.example.com
+execute {
+    command = "hostname"
+}
+
+package {
+    name = "nginx"
+    state = "present"
+}
+
+service {
+    name = "nginx"
+    state = "started"
+    enabled = true
+}

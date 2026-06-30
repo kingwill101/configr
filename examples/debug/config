@@ -1,0 +1,17 @@
+# Debug block: log messages and variable values for troubleshooting
+
+resource {
+  actions {
+    debug {
+      msg = "Starting debug output"
+    }
+  }
+}
+
+resource {
+  actions {
+    debug {
+      var = "os_family"
+    }
+  }
+}

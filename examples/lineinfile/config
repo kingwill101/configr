@@ -1,0 +1,81 @@
+# Lineinfile block: ensure a line is present/absent in a file
+# Mirrors ansible.builtin.lineinfile behavior
+
+resources {
+  # === PRESENT: add a line if not already there ===
+
+  resource {
+    type "file"
+    destination "examples/lineinfile/sshd_config"
+
+    actions {
+      lineinfile {
+        path "/etc/ssh/sshd_config"
+        line "PermitRootLogin no"
+        regexp "^#?PermitRootLogin"
+        state "present"
+        backup "true"
+      }
+    }
+  }
+
+  # === Pattern-based replacement ===
+
+  resource {
+    type "file"
+    destination "examples/lineinfile/hosts"
+
+    actions {
+      lineinfile {
+        path "/etc/hosts"
+        regexp "^127\\.0\\.0\\.1"
+        line "127.0.0.1 localhost.localdomain localhost"
+      }
+    }
+  }
+
+  # === ABSENT: remove a line ===
+
+  resource {
+    type "file"
+    destination "examples/lineinfile/shells"
+
+    actions {
+      lineinfile {
+        path "/etc/shells"
+        line "/usr/bin/fish"
+        state "absent"
+      }
+    }
+  }
+
+  # === Insert at specific position ===
+
+  resource {
+    type "file"
+    destination "examples/lineinfile/insert_example"
+
+    actions {
+      lineinfile {
+        path "/etc/aliases"
+        line "root: admin@example.com"
+        insertafter "EOF"
+      }
+    }
+  }
+
+  # === Create file if it doesn't exist ===
+
+  resource {
+    type "file"
+    destination "examples/lineinfile/create_example"
+
+    actions {
+      lineinfile {
+        path "/etc/sysctl.d/99-custom.conf"
+        line "vm.swappiness=10"
+        create "true"
+      }
+    }
+  }
+}

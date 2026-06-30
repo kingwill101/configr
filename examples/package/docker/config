@@ -1,0 +1,21 @@
+# Docker Package Manager — Container images
+#
+# Usage:
+#   configr apply -n --dry-run        # preview
+#   configr apply -n                   # execute (requires Docker daemon)
+#
+# The docker block maps `install` to `docker pull`.
+
+# Pull base images
+docker {
+  source = "hello-world alpine"
+  operation = "install"
+  skip_if_installed = true
+}
+
+# Pull service images
+docker {
+  source = "nginx:alpine redis:alpine postgres:16-alpine"
+  operation = "install"
+  skip_if_installed = true
+}

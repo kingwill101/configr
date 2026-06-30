@@ -1,0 +1,21 @@
+# Firewalld block: manage firewalld rules
+
+firewalld {
+  service = "http"
+  zone = "public"
+  state = "enabled"
+  permanent = true
+  immediate = true
+}
+
+firewalld {
+  port = "8080/tcp"
+  zone = "internal"
+  state = "enabled"
+}
+
+firewalld {
+  service = "telnet"
+  zone = "public"
+  state = "disabled"
+}

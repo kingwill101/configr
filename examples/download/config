@@ -2,19 +2,27 @@ resource {
   type "file"
   source "https://get.docker.com/"
   destination docker.sh
+  sgdfgsdf sdfg
 
   actions {
     download {
       overwrite true
     }
 
+    download {
+      overwrite true
+      destination docker2.sh
+    }
+
     copy {
         source docker.sh
         destination docker.copied.sh
     }
+
     delete{
       source docker.sh
     }
+
     delete{
       source docker.copied.sh
     }

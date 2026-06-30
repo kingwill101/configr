@@ -1,0 +1,18 @@
+# Simple template test
+resources {
+  resource {
+    id "simple-test"
+    source "simple_test.template"
+    destination "generated/simple_output.txt"
+    
+    actions {
+      template {
+        app_name "TestApp"
+        version "1.0.0"
+        debug true
+        port 3000
+        host "localhost"
+      }
+    }
+  }
+}

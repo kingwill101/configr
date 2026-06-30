@@ -1,0 +1,5 @@
+known_hosts {
+  hostname = "example.com"
+  key = "example.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI"
+  state = "present"
+}

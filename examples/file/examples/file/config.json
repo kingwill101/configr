@@ -1,0 +1,14 @@
+{
+  "name": "Configr Demo",
+  "version": "1.0.0",
+  "settings": {
+    "theme": "dark",
+    "auto_save": true,
+    "backup_enabled": true
+  },
+  "features": [
+    "file_management",
+    "git_integration",
+    "rollback_support"
+  ]
+}

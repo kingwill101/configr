@@ -1,0 +1,97 @@
+resources {
+  resource {
+    type "directory"
+    destination "examples/git/oh-my-zsh"
+
+    actions {
+      git {
+        operation "clone"
+        repository_url "https://github.com/robbyrussell/oh-my-zsh.git"
+        local_path "examples/git/oh-my-zsh"
+        branch "master"
+        stream_output "true"
+        show_progress "true"
+      }
+    }
+  }
+
+  resource {
+    type "directory"
+    destination "examples/git/oh-my-zsh"
+
+    actions {
+      git {
+        operation "pull"
+        local_path "examples/git/oh-my-zsh"
+        branch "master"
+      }
+    }
+  }
+
+  resource {
+    type "directory"
+    destination "examples/git/test-repo"
+
+    actions {
+      git {
+        operation "clone"
+        repository_url "https://github.com/octocat/Hello-World.git"
+        local_path "examples/git/test-repo"
+        branch "master"
+      }
+    }
+  }
+
+  resource {
+    type "file"
+    destination "examples/git/test-repo/configr-demo.txt"
+
+    actions {
+      file {
+        operation "create"
+        content "This is a demo file created by Configr for git operations demonstration.\nCreated at: {{timestamp}}\n\nThis file demonstrates:\n- File creation using the File Module\n- Git integration for version control\n- Rollback capabilities\n- Dotfile management workflows"
+        create_directories "true"
+      }
+    }
+  }
+
+  resource {
+    type "file"
+    destination "examples/git/test-repo/.gitignore"
+
+    actions {
+      file {
+        operation "create"
+        content "# Configr Demo Gitignore\n*.log\n*.tmp\n.DS_Store\n.vscode/\n.idea/\nnode_modules/\n*.backup"
+        create_directories "true"
+      }
+    }
+  }
+
+  resource {
+    type "file"
+    destination "examples/git/test-repo/README.md"
+
+    actions {
+      file {
+        operation "create"
+        content "# Configr Git Integration Demo\n\nThis repository demonstrates the integration between Configr's File Module and Git Module.\n\n## Features Demonstrated\n\n- **File Creation**: Using the File Module to create files\n- **Git Operations**: Clone, pull, and commit operations\n- **Version Control**: Proper git workflow integration\n- **Rollback Support**: Complete rollback of all changes\n\n## Files Created\n\n- `configr-demo.txt`: Main demonstration file\n- `.gitignore`: Git ignore file for the repository\n- `README.md`: This documentation file\n\n## Usage\n\nThis example shows how to:\n\n1. Clone a repository\n2. Create new files using the File Module\n3. Commit changes to git\n4. Rollback all changes if needed\n\n## Integration Benefits\n\n- **Automated Workflows**: File creation and git operations in one configuration\n- **Consistent State**: All operations are tracked and can be rolled back\n- **Dotfile Management**: Perfect for managing configuration files with version control"
+        create_directories "true"
+      }
+    }
+  }
+
+  resource {
+    type "directory"
+    destination "examples/git/test-repo"
+
+    actions {
+      git {
+        operation "commit"
+        local_path "examples/git/test-repo"
+        commit_message "Add example file for Configr git demo"
+      }
+    }
+  }
+
+}

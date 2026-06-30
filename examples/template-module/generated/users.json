@@ -1,0 +1,29 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john@example.com",
+      "role": "administrator",
+      "active": true
+    },
+    {
+      "id": 2,
+      "name": "Jane Smith",
+      "email": "jane@example.com",
+      "role": "user",
+      "active": true
+    },
+    {
+      "id": 3,
+      "name": "Bob Wilson",
+      "email": "bob@example.com",
+      "role": "user",
+      "active": true
+    }
+  ],
+  "metadata": {
+    "total_users": 3,
+    "generated_at": "2024-09-28"
+  }
+}

@@ -1,0 +1,3 @@
+secrets {
+    test_value = "dotenv:///tmp/configr_test_dotenv"
+}

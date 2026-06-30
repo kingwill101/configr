@@ -1,0 +1,23 @@
+# Decompress block: extract archives
+
+resource {
+  actions {
+    decompress {
+      source = "/tmp/myapp.tar.gz"
+      destination = "/opt/myapp"
+      format = "tar.gz"
+    }
+  }
+}
+
+resource {
+  actions {
+    decompress {
+      source = "/tmp/data.zip"
+      destination = "/opt/data"
+      include = "*.json"
+      exclude = "*.test.*"
+      preserve_structure = true
+    }
+  }
+}

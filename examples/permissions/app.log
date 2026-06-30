@@ -1,0 +1,9 @@
+
+SEVERE: 2026-06-21 20:14:56.892982: Apply failed — 1 block(s) encountered errors:
+
+SEVERE: 2026-06-21 20:14:56.893218:   - permissions: Failed permissions block: ModuleException: Source path not found: /path/to/permissions/target
+Error Code: SOURCE_NOT_FOUND
+Severity: high
+Category: fileSystem
+Operation: file_access
+ (line 5, column 17)

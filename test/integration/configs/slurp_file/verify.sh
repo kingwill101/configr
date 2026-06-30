@@ -1,0 +1,2 @@
+# Slurp is a pure read operation — no side effects
+exit 0

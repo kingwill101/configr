@@ -1,0 +1,16 @@
+# Hooks example
+#
+# This config is processed alongside .configr/hooks/ which contains
+# Lua hook scripts for pre-apply, post-apply, pre-block, post-block,
+# and on-error lifecycle events.
+#
+# Hooks are discovered automatically from .configr/hooks/ and run
+# at the appropriate points during apply.
+
+echo {
+  message = "Hello from configr hooks example"
+}
+
+echo {
+  message = "Each block triggers pre-block and post-block hooks"
+}

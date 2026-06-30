@@ -1,0 +1,6 @@
+mount {
+  source = "/dev/sdb1"
+  destination = "/mnt/data"
+  fstype = "ext4"
+  state = "mounted"
+}

@@ -1,0 +1,3 @@
+secrets {
+    test_value = "cmd://echo cmd_secret_output"
+}

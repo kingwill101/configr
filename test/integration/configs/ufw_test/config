@@ -1,0 +1,5 @@
+ufw {
+  port = "22/tcp"
+  rule = "allow"
+  state = "enabled"
+}

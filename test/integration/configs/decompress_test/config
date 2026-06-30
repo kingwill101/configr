@@ -1,0 +1,4 @@
+decompress {
+  source = "/tmp/configr_compressed.zip"
+  destination = "/tmp/configr_decompressed"
+}

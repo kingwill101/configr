@@ -1,0 +1,5 @@
+uri {
+  url = "http://example.com"
+  method = "GET"
+  status_code = 200
+}

@@ -1,0 +1,8 @@
+resource {
+  actions {
+    fetch {
+      src = "/var/log/syslog"
+      dest = "./backups/"
+    }
+  }
+}

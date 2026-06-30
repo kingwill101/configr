@@ -1,0 +1,9 @@
+resource {
+  actions {
+    script {
+      script = "./deploy.sh"
+      args = "--verbose"
+      chdir = "/tmp"
+    }
+  }
+}

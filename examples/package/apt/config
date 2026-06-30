@@ -1,0 +1,40 @@
+# APT Package Manager — Debian/Ubuntu
+#
+# Usage:
+#   configr apply -n --dry-run        # preview
+#   configr apply -n                   # execute (requires sudo)
+#
+# Each apt block declares packages via `source` (space-separated string).
+
+# Development tools
+apt {
+  source = "git curl wget vim nano htop tree build-essential"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
+
+# Web server stack with custom repository
+apt {
+  source = "nginx php-fpm mysql-server redis-server"
+  operation = "install"
+  repositories = ["ppa:ondrej/php"]
+  update_cache = true
+  skip_if_installed = false
+}
+
+# Security tools
+apt {
+  source = "fail2ban ufw clamav rkhunter unattended-upgrades"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
+
+# System utilities
+apt {
+  source = "htop iotop ncdu rsync zip unzip jq yq"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}

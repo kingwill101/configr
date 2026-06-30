@@ -1,0 +1,68 @@
+name: "configr-test"
+
+volumes:
+  shared:
+  ssh:
+
+services:
+  shared:
+    build:
+      context: shared
+    volumes:
+      - shared:/shared
+
+  vm1:
+    platform: linux/amd64
+    build:
+      context: ../../../ 
+      dockerfile: test/integration/docker/vm/Dockerfile
+    volumes:
+      - shared:/shared
+      - ssh:/root/.ssh
+    ports:
+      - "2221:22"
+    depends_on:
+      shared:
+        condition: service_healthy
+
+  vm2:
+    platform: linux/amd64
+    build:
+      context: ../../../ 
+      dockerfile: test/integration/docker/vm/Dockerfile
+    volumes:
+      - shared:/shared
+      - ssh:/root/.ssh
+    ports:
+      - "2222:22"
+    depends_on:
+      shared:
+        condition: service_healthy
+
+  vm3:
+    platform: linux/amd64
+    build:
+      context: ../../../ 
+      dockerfile: test/integration/docker/vm/Dockerfile
+    volumes:
+      - shared:/shared
+      - ssh:/root/.ssh
+    ports:
+      - "2223:22"
+    depends_on:
+      shared:
+        condition: service_healthy
+
+  deployer:
+    platform: linux/amd64
+    build:
+      context: ../../../
+      dockerfile: test/integration/docker/deployer/Dockerfile
+    volumes:
+      - ../../../:/configr
+      - shared:/shared
+      - ssh:/root/.ssh
+    depends_on:
+      - vm1
+      - vm2
+      - vm3

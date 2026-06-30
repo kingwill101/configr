@@ -1,0 +1,16 @@
+# Alternatives block: manage command alternatives
+
+alternatives {
+  name = "editor"
+  path = "/usr/bin/vim.basic"
+  link = "/usr/bin/editor"
+  priority = 50
+}
+
+alternatives {
+  name = "java"
+  path = "/usr/lib/jvm/java-17-openjdk/bin/java"
+  link = "/usr/bin/java"
+  priority = 100
+  state = "selected"
+}

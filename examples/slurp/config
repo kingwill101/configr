@@ -1,0 +1,7 @@
+resource {
+  actions {
+    slurp {
+      src = "/etc/hostname"
+    }
+  }
+}

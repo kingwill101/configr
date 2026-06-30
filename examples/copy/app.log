@@ -1,0 +1,50 @@
+
+WARNING: 2025-10-02 13:10:39.141092: Failed to update state
+
+Error: FileSystemException: Cannot open file, path = '/run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/copy' (OS Error: Is a directory, errno = 21)
+
+StackTrace: #0      _checkForErrorResponse (dart:io/common.dart:58:9)
+#1      _File.open.<anonymous closure> (dart:io/file_impl.dart:442:7)
+<asynchronous suspension>
+#2      _File.readAsBytes.<anonymous closure> (dart:io/file_impl.dart:649:24)
+<asynchronous suspension>
+#3      _File.readAsString (dart:io/file_impl.dart:716:18)
+<asynchronous suspension>
+#4      FileUtils.readFile (package:configr/utils/file_utils.dart:564:12)
+<asynchronous suspension>
+#5      FileCopyModule.execute (package:configr/modules/resource/copy.dart:99:25)
+<asynchronous suspension>
+#6      ResourceModule.call (package:configr/modules/resource/resource_module.dart:197:7)
+<asynchronous suspension>
+#7      ResourceModule.executeModules (package:configr/modules/resource/resource_module.dart:272:11)
+<asynchronous suspension>
+#8      GenericResourceModule.execute (package:configr/modules/resource/resource_module.dart:371:5)
+<asynchronous suspension>
+#9      ResourceModule.call (package:configr/modules/resource/resource_module.dart:197:7)
+<asynchronous suspension>
+#10     ConfigManager.applyConfig (package:configr/config_manager.dart:365:17)
+<asynchronous suspension>
+#11     ApplyCommand.executeCommand (package:configr/commands/apply.dart:20:5)
+<asynchronous suspension>
+
+
+SEVERE: 2026-06-21 20:14:11.279602: Failed to create directory 
+
+Error: PathNotFoundException: Creation failed, path = '' (OS Error: No such file or directory, errno = 2)
+
+StackTrace: #0      _Directory.createSync (dart:io/directory_impl.dart:136)
+#1      ForwardingDirectory.createSync (package:file/src/forwarding/forwarding_directory.dart:20)
+#2      FileUtils.createDirectory.<anonymous closure> (package:configr/src/utils/file_utils.dart:175)
+#3      Future._propagateToListeners.handleValueCallback (dart:async/future_impl.dart:948)
+#4      Future._propagateToListeners (dart:async/future_impl.dart:977)
+#5      Future._completeWithValue (dart:async/future_impl.dart:720)
+#6      Future._asyncCompleteWithValue.<anonymous closure> (dart:async/future_impl.dart:804)
+#7      _microtaskLoop (dart:async/schedule_microtask.dart:40)
+#8      _startMicrotaskLoop (dart:async/schedule_microtask.dart:49)
+#9      _runPendingImmediateCallback (dart:isolate-patch/isolate_patch.dart:127)
+#10     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193)
+
+
+SEVERE: 2026-06-21 20:14:11.280: Apply failed — 1 block(s) encountered errors:
+
+SEVERE: 2026-06-21 20:14:11.280057:   - copy: Failed copy block: PathNotFoundException: Creation failed, path = '' (OS Error: No such file or directory, errno = 2) (line 16, column 12)

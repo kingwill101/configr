@@ -1,0 +1,37 @@
+# DNF Package Manager — Fedora / RHEL 8+
+#
+# Usage:
+#   configr apply -n --dry-run        # preview
+#   configr apply -n                   # execute (requires sudo)
+
+# Development tools
+dnf {
+  source = "git curl wget vim nano htop tree gcc make"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
+
+# Web server stack
+dnf {
+  source = "nginx php-fpm mariadb-server redis"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = false
+}
+
+# Security tools
+dnf {
+  source = "fail2ban ufw clamav rkhunter"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
+
+# System utilities
+dnf {
+  source = "htop iotop ncdu rsync zip unzip jq yq"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}

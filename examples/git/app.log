@@ -1,0 +1,52 @@
+
+SEVERE: 2026-06-21 20:14:47.823363: Apply failed — 4 block(s) encountered errors:
+
+SEVERE: 2026-06-21 20:14:47.823561:   - git: Failed git block: ModuleException: Git clone failed: examples/git/oh-my-zsh
+Error Code: ACTION_FAILED
+Severity: medium
+Category: execution
+Operation: action_execution
+Module: git_0
+Retryable: Yes
+Cause: ProcessException: No such file or directory
+  Command: git -C examples/git/oh-my-zsh clone --branch master examples/git/oh-my-zsh examples/git/oh-my-zsh
+ (line 7, column 10)
+
+SEVERE: 2026-06-21 20:14:47.823628:   - git: Failed git block: ModuleException: Git pull failed: examples/git/oh-my-zsh
+Error Code: ACTION_FAILED
+Severity: medium
+Category: execution
+Operation: action_execution
+Module: git_1
+Retryable: Yes
+Cause: ProcessException: No such file or directory
+  Command: git -C examples/git/oh-my-zsh pull origin master
+ (line 23, column 8)
+
+SEVERE: 2026-06-21 20:14:47.823681:   - git: Failed git block: ModuleException: Git clone failed: examples/git/test-repo
+Error Code: ACTION_FAILED
+Severity: medium
+Category: execution
+Operation: action_execution
+Module: git_2
+Retryable: Yes
+Cause: ProcessException: No such file or directory
+  Command: git -C examples/git/test-repo clone --branch master examples/git/test-repo examples/git/test-repo
+ (line 36, column 6)
+
+SEVERE: 2026-06-21 20:14:47.823735:   - git: Failed git block: ModuleException: Git commit failed: examples/git/test-repo
+Error Code: ACTION_FAILED
+Severity: medium
+Category: execution
+Operation: action_execution
+Module: git_3
+Retryable: Yes
+Cause: ModuleException: Git command failed: fatal: cannot change to 'examples/git/test-repo': No such file or directory
+Error Code: ACTION_FAILED
+Severity: medium
+Category: execution
+Operation: action_execution
+Module: git_3
+Retryable: Yes
+
+ (line 88, column 12)

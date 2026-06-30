@@ -1,0 +1,6 @@
+dependency {
+  host = "127.0.0.1"
+  type = "network"
+  state = "reachable"
+  timeout = 5
+}

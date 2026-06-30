@@ -1,0 +1,5 @@
+replace {
+  path = "/tmp/test_replace"
+  regexp = "old_text"
+  replace = "new_text"
+}

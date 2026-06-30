@@ -1,0 +1,4 @@
+echo {
+  message = "test message from integration"
+  level = "info"
+}

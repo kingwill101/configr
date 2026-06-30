@@ -1,0 +1,7 @@
+# Simple Test Template
+Hello {{ app_name }}!
+Version: {{ version }}
+Debug: {{ debug }}
+Port: {{ port }}
+Host: {{ host }}
+

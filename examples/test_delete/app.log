@@ -1,0 +1,20 @@
+
+INFO: 2025-09-28 01:47:07.252522: No valid lockfile found, will apply all resources
+
+INFO: 2025-09-28 01:47:07.286974: StartResource(test_dir): delete
+
+INFO: 2025-09-28 01:47:07.303410: Executing modules
+
+INFO: 2025-09-28 01:47:07.303755: Modules executed
+
+INFO: 2025-09-28 01:47:07.304513: Deleting directory /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/test_delete/test_dir (recursive: true)
+
+INFO: 2025-09-28 01:47:07.306996: Directory /run/media/kingwill101/disk2/code/code/dart_packages/configr/examples/test_delete/test_dir deleted
+
+INFO: 2025-09-28 01:47:07.315029: EndResource(test_dir): delete
+
+WARNING: 2026-06-21 04:17:47.082236: Path test_dir does not exist, skipping deletion
+
+WARNING: 2026-06-21 18:55:48.597620: Path test_dir does not exist, skipping deletion
+
+WARNING: 2026-06-21 19:12:53.532543: Path test_dir does not exist, skipping deletion

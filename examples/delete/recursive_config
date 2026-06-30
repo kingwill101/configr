@@ -1,0 +1,46 @@
+# Example: Recursive Directory Deletion
+# This example demonstrates how to safely delete entire directory trees
+# with backup support for rollback operations
+
+# Delete a temporary directory recursively
+resource {
+  type "directory"
+  source "temp_extracted_files/"
+
+  actions {
+    delete {
+      recursive true
+      backup {
+        backup_path "backups/temp_files.tar.gz"
+      }
+    }
+  }
+}
+
+# Delete build artifacts
+resource {
+  type "directory"
+  source "build/"
+
+  actions {
+    delete {
+      recursive true
+      # No backup needed for build artifacts
+    }
+  }
+}
+
+# Clean up extracted archive with backup
+resource {
+  type "directory"
+  source "mydir"
+
+  actions {
+    delete {
+      recursive true
+      backup {
+        backup_path "backups/mydir_$(date +%Y%m%d).tar.gz"
+      }
+    }
+  }
+}

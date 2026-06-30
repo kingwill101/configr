@@ -1,0 +1,30 @@
+# Remote execution with secrets
+connection {
+    host = "db.internal"
+    username = "deploy"
+    private_key = "~/.ssh/deploy_key"
+    connect_timeout = 15
+}
+
+secrets {
+    profile = "production"
+    provider "vault" = "cmd://vault kv get -field=value -mount=secret/production/"
+
+    db_password = "vault://db/password"
+    api_key     = "env://API_KEY"
+}
+
+execute {
+    command = "echo 'Deploying to ${connection.host}'"
+}
+
+copy {
+    source = "app.conf"
+    destination = "/etc/app.conf"
+    content = "DATABASE_URL=postgresql://app:${secrets.db_password}@localhost/mydb"
+}
+
+service {
+    name = "app"
+    state = "restarted"
+}

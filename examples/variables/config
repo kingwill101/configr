@@ -1,0 +1,57 @@
+# Built-in Variables Example
+#
+# Demonstrates all built-in variables Configr exposes.
+# Run: configr apply --v2
+
+echo { message = "Config directory:       $cwd" }
+
+# OS facts (flat names — work everywhere)
+echo { message = "OS name:                $os_name" }
+echo { message = "OS version:             $os_version" }
+echo { message = "OS architecture:        $os_architecture" }
+echo { message = "OS kernel:              $os_kernel" }
+echo { message = "OS distribution:        $os_distribution" }
+echo { message = "OS distro version:      $os_distribution_version" }
+echo { message = "OS family:              $os_family" }
+
+# Host facts
+echo { message = "Host hostname:          $host_hostname" }
+echo { message = "Host FQDN:              $host_fqdn" }
+
+# User facts
+echo { message = "User:                   $user_username" }
+echo { message = "User home:              $user_home" }
+echo { message = "User shell:             $user_shell" }
+
+# Date/time
+# Note: avoid `-` directly after a variable — i3config includes `-` in the
+# variable-name pattern and would greedily consume it. Use spaces or `/`.
+echo { message = "Date:                   $date_year / $date_month / $date_day" }
+echo { message = "Time:                   $date_hour:$date_minute:$date_second" }
+echo { message = "ISO timestamp:          $date_timestamp" }
+echo { message = "Unix epoch:             $date_epoch" }
+
+# Configr info
+echo { message = "Configr version:        $configr_version" }
+echo { message = "Cache dir:              $configr_cache_dir" }
+echo { message = "Backup dir:             $configr_backup_dir" }
+
+# Environment variables
+echo { message = "HOME:                   $env_HOME" }
+echo { message = "USER:                   $env_USER" }
+echo { message = "SHELL:                  $env_SHELL" }
+echo { message = "TERM:                   $env_TERM" }
+
+# Legacy shortcuts
+echo { message = "cwd (shortcut):         $cwd" }
+echo { message = "Cache dir (shortcut):   $configrCacheDir" }
+echo { message = "Backup dir (shortcut):  $configrBackupDir" }
+
+# Variables also resolve inside block properties
+touch { source = "/tmp/configr-example" create_if_missing = true }
+
+# Dynamic blocks repeat child blocks for each item in a list
+dynamic {
+  for_each = ["one", "two", "three"]
+  echo { message = "Dynamic item: $item" }
+}

@@ -1,0 +1,22 @@
+# Cron block: manage cron jobs
+
+cron {
+  name = "daily backup"
+  job = "/usr/local/bin/backup.sh"
+  hour = "2"
+  minute = "0"
+  user = "root"
+}
+
+cron {
+  name = "log rotation"
+  job = "/usr/sbin/logrotate /etc/logrotate.conf"
+  hour = "3"
+  minute = "30"
+  disabled = false
+}
+
+cron {
+  name = "old job"
+  status = "absent"
+}

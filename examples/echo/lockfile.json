@@ -1,0 +1,52 @@
+{
+  "resources": [
+    {
+      "id": "resource_7fe6077e",
+      "source": "",
+      "destination": "",
+      "type": null,
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "60552298",
+          "type": "echo",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2026-06-21T20:24:11.075255",
+          "sha256": null,
+          "actions": [],
+          "properties": {
+            "message": "Starting deployment",
+            "color": "true",
+            "verbose": "true",
+            "level": "info"
+          },
+          "state": {},
+          "parent": null
+        },
+        {
+          "id": "5f334283",
+          "type": "echo",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2026-06-21T20:24:11.075267",
+          "sha256": null,
+          "actions": [],
+          "properties": {
+            "message": "Warning: disk space low",
+            "level": "warning"
+          },
+          "state": {},
+          "parent": null
+        }
+      ],
+      "commands": [],
+      "sha256": "",
+      "properties": {}
+    }
+  ],
+  "commands": [],
+  "packages": [],
+  "configChecksum": "e97d68d9bc18938d82f8083a1eca0e2129a50c1fbe43e9367406277ec7557be4"
+}

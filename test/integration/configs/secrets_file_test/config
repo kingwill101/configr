@@ -1,0 +1,3 @@
+secrets {
+    test_value = "file:///tmp/configr_test_secret_file"
+}

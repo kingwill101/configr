@@ -1,0 +1,18 @@
+# Service block: manage service state across init systems
+
+service {
+  name = "nginx"
+  state = "started"
+  enabled = true
+}
+
+service {
+  name = "apache2"
+  state = "stopped"
+  enabled = false
+}
+
+service {
+  name = "sshd"
+  state = "restarted"
+}

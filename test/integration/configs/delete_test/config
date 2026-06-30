@@ -1,0 +1,3 @@
+delete {
+  source = "/tmp/configr_delete_test.txt"
+}

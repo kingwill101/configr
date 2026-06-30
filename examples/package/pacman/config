@@ -1,0 +1,45 @@
+# Pacman Package Manager — Arch Linux
+#
+# Usage:
+#   configr apply -n --dry-run        # preview
+#   configr apply -n                   # execute (requires sudo)
+
+# Development tools
+pacman {
+  source = "git curl wget vim nano htop tree base-devel"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
+
+# Web server stack
+pacman {
+  source = "nginx php-fpm mariadb redis"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = false
+}
+
+# Security tools
+pacman {
+  source = "fail2ban ufw clamav rkhunter"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
+
+# System utilities
+pacman {
+  source = "htop iotop ncdu rsync zip unzip jq yq"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
+
+# Multimedia
+pacman {
+  source = "steam vlc gimp krita obs-studio"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}

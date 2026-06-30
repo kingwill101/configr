@@ -1,0 +1,298 @@
+
+SEVERE: 2026-06-21 18:02:59.761763: File not copied successfully
+
+Error: PathAccessException: Cannot copy file to '/etc/nginx/nginx.conf', path = 'nginx.conf' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _checkForErrorResponse (dart:io/common.dart:58)
+#1      _File.copy.<anonymous closure> (dart:io/file_impl.dart:406)
+<asynchronous suspension>
+#2      ForwardingFile.copy (package:file/src/forwarding/forwarding_file.dart:29)
+<asynchronous suspension>
+#3      FileUtils.copyFile.<anonymous closure> (package:configr/src/utils/file_utils.dart:32)
+<asynchronous suspension>
+
+
+SEVERE: 2026-06-21 18:02:59.762960: Failed to create directory /etc/myapp
+
+Error: PathAccessException: Creation failed, path = '/etc/myapp' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _Directory.createSync (dart:io/directory_impl.dart:136)
+#1      ForwardingDirectory.createSync (package:file/src/forwarding/forwarding_directory.dart:20)
+#2      FileUtils.createDirectory.<anonymous closure> (package:configr/src/utils/file_utils.dart:174)
+#3      Future._propagateToListeners.handleValueCallback (dart:async/future_impl.dart:948)
+#4      Future._propagateToListeners (dart:async/future_impl.dart:977)
+#5      Future._completeWithValue (dart:async/future_impl.dart:720)
+#6      Future._asyncCompleteWithValue.<anonymous closure> (dart:async/future_impl.dart:804)
+#7      _microtaskLoop (dart:async/schedule_microtask.dart:40)
+#8      _startMicrotaskLoop (dart:async/schedule_microtask.dart:49)
+#9      _runPendingImmediateCallback (dart:isolate-patch/isolate_patch.dart:127)
+#10     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193)
+
+
+SEVERE: 2026-06-21 18:02:59.763678: Failed to create directory /home/user/.config/myapp
+
+Error: PathAccessException: Creation failed, path = '/home/user' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _Directory.createSync (dart:io/directory_impl.dart:136)
+#1      _Directory.createSync (dart:io/directory_impl.dart:131)
+#2      _Directory.createSync (dart:io/directory_impl.dart:131)
+#3      ForwardingDirectory.createSync (package:file/src/forwarding/forwarding_directory.dart:20)
+#4      FileUtils.createDirectory.<anonymous closure> (package:configr/src/utils/file_utils.dart:174)
+#5      Future._propagateToListeners.handleValueCallback (dart:async/future_impl.dart:948)
+#6      Future._propagateToListeners (dart:async/future_impl.dart:977)
+#7      Future._completeWithValue (dart:async/future_impl.dart:720)
+#8      Future._asyncCompleteWithValue.<anonymous closure> (dart:async/future_impl.dart:804)
+#9      _microtaskLoop (dart:async/schedule_microtask.dart:40)
+#10     _startMicrotaskLoop (dart:async/schedule_microtask.dart:49)
+#11     _runPendingImmediateCallback (dart:isolate-patch/isolate_patch.dart:127)
+#12     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193)
+
+
+SEVERE: 2026-06-21 18:02:59.791462: Failed to create directory /var/log/myapp
+
+Error: PathAccessException: Creation failed, path = '/var/log/myapp' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _Directory.createSync (dart:io/directory_impl.dart:136)
+#1      ForwardingDirectory.createSync (package:file/src/forwarding/forwarding_directory.dart:20)
+#2      FileUtils.createDirectory.<anonymous closure> (package:configr/src/utils/file_utils.dart:174)
+#3      Future._propagateToListeners.handleValueCallback (dart:async/future_impl.dart:948)
+#4      Future._propagateToListeners (dart:async/future_impl.dart:977)
+#5      Future._completeWithValue (dart:async/future_impl.dart:720)
+#6      Future._asyncCompleteWithValue.<anonymous closure> (dart:async/future_impl.dart:804)
+#7      _microtaskLoop (dart:async/schedule_microtask.dart:40)
+#8      _startMicrotaskLoop (dart:async/schedule_microtask.dart:49)
+#9      _runPendingImmediateCallback (dart:isolate-patch/isolate_patch.dart:127)
+#10     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193)
+
+
+SEVERE: 2026-06-21 18:02:59.792225: Failed to create directory /home/user/.config/myapp
+
+Error: PathAccessException: Creation failed, path = '/home/user' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _Directory.createSync (dart:io/directory_impl.dart:136)
+#1      _Directory.createSync (dart:io/directory_impl.dart:131)
+#2      _Directory.createSync (dart:io/directory_impl.dart:131)
+#3      ForwardingDirectory.createSync (package:file/src/forwarding/forwarding_directory.dart:20)
+#4      FileUtils.createDirectory.<anonymous closure> (package:configr/src/utils/file_utils.dart:174)
+#5      Future._propagateToListeners.handleValueCallback (dart:async/future_impl.dart:948)
+#6      Future._propagateToListeners (dart:async/future_impl.dart:977)
+#7      Future._completeWithValue (dart:async/future_impl.dart:720)
+#8      Future._asyncCompleteWithValue.<anonymous closure> (dart:async/future_impl.dart:804)
+#9      _microtaskLoop (dart:async/schedule_microtask.dart:40)
+#10     _startMicrotaskLoop (dart:async/schedule_microtask.dart:49)
+#11     _runPendingImmediateCallback (dart:isolate-patch/isolate_patch.dart:127)
+#12     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193)
+
+
+SEVERE: 2026-06-21 18:02:59.811961: File not copied successfully
+
+Error: PathAccessException: Cannot copy file to '/etc/hosts.backup', path = 'hosts' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _checkForErrorResponse (dart:io/common.dart:58)
+#1      _File.copy.<anonymous closure> (dart:io/file_impl.dart:406)
+<asynchronous suspension>
+#2      ForwardingFile.copy (package:file/src/forwarding/forwarding_file.dart:29)
+<asynchronous suspension>
+#3      FileUtils.copyFile.<anonymous closure> (package:configr/src/utils/file_utils.dart:32)
+<asynchronous suspension>
+
+
+SEVERE: 2026-06-21 18:55:56.716723: File not copied successfully
+
+Error: PathAccessException: Cannot copy file to '/etc/nginx/nginx.conf', path = 'nginx.conf' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _checkForErrorResponse (dart:io/common.dart:58)
+#1      _File.copy.<anonymous closure> (dart:io/file_impl.dart:406)
+<asynchronous suspension>
+#2      ForwardingFile.copy (package:file/src/forwarding/forwarding_file.dart:29)
+<asynchronous suspension>
+#3      FileUtils.copyFile.<anonymous closure> (package:configr/src/utils/file_utils.dart:32)
+<asynchronous suspension>
+
+
+SEVERE: 2026-06-21 18:55:56.718858: Failed to create directory /etc/myapp
+
+Error: PathAccessException: Creation failed, path = '/etc/myapp' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _Directory.createSync (dart:io/directory_impl.dart:136)
+#1      ForwardingDirectory.createSync (package:file/src/forwarding/forwarding_directory.dart:20)
+#2      FileUtils.createDirectory.<anonymous closure> (package:configr/src/utils/file_utils.dart:174)
+#3      Future._propagateToListeners.handleValueCallback (dart:async/future_impl.dart:948)
+#4      Future._propagateToListeners (dart:async/future_impl.dart:977)
+#5      Future._completeWithValue (dart:async/future_impl.dart:720)
+#6      Future._asyncCompleteWithValue.<anonymous closure> (dart:async/future_impl.dart:804)
+#7      _microtaskLoop (dart:async/schedule_microtask.dart:40)
+#8      _startMicrotaskLoop (dart:async/schedule_microtask.dart:49)
+#9      _runPendingImmediateCallback (dart:isolate-patch/isolate_patch.dart:127)
+#10     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193)
+
+
+SEVERE: 2026-06-21 18:55:56.719781: Failed to create directory /home/user/.config/myapp
+
+Error: PathAccessException: Creation failed, path = '/home/user' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _Directory.createSync (dart:io/directory_impl.dart:136)
+#1      _Directory.createSync (dart:io/directory_impl.dart:131)
+#2      _Directory.createSync (dart:io/directory_impl.dart:131)
+#3      ForwardingDirectory.createSync (package:file/src/forwarding/forwarding_directory.dart:20)
+#4      FileUtils.createDirectory.<anonymous closure> (package:configr/src/utils/file_utils.dart:174)
+#5      Future._propagateToListeners.handleValueCallback (dart:async/future_impl.dart:948)
+#6      Future._propagateToListeners (dart:async/future_impl.dart:977)
+#7      Future._completeWithValue (dart:async/future_impl.dart:720)
+#8      Future._asyncCompleteWithValue.<anonymous closure> (dart:async/future_impl.dart:804)
+#9      _microtaskLoop (dart:async/schedule_microtask.dart:40)
+#10     _startMicrotaskLoop (dart:async/schedule_microtask.dart:49)
+#11     _runPendingImmediateCallback (dart:isolate-patch/isolate_patch.dart:127)
+#12     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193)
+
+
+SEVERE: 2026-06-21 18:55:56.742678: Failed to create directory /var/log/myapp
+
+Error: PathAccessException: Creation failed, path = '/var/log/myapp' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _Directory.createSync (dart:io/directory_impl.dart:136)
+#1      ForwardingDirectory.createSync (package:file/src/forwarding/forwarding_directory.dart:20)
+#2      FileUtils.createDirectory.<anonymous closure> (package:configr/src/utils/file_utils.dart:174)
+#3      Future._propagateToListeners.handleValueCallback (dart:async/future_impl.dart:948)
+#4      Future._propagateToListeners (dart:async/future_impl.dart:977)
+#5      Future._completeWithValue (dart:async/future_impl.dart:720)
+#6      Future._asyncCompleteWithValue.<anonymous closure> (dart:async/future_impl.dart:804)
+#7      _microtaskLoop (dart:async/schedule_microtask.dart:40)
+#8      _startMicrotaskLoop (dart:async/schedule_microtask.dart:49)
+#9      _runPendingImmediateCallback (dart:isolate-patch/isolate_patch.dart:127)
+#10     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193)
+
+
+SEVERE: 2026-06-21 18:55:56.743309: Failed to create directory /home/user/.config/myapp
+
+Error: PathAccessException: Creation failed, path = '/home/user' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _Directory.createSync (dart:io/directory_impl.dart:136)
+#1      _Directory.createSync (dart:io/directory_impl.dart:131)
+#2      _Directory.createSync (dart:io/directory_impl.dart:131)
+#3      ForwardingDirectory.createSync (package:file/src/forwarding/forwarding_directory.dart:20)
+#4      FileUtils.createDirectory.<anonymous closure> (package:configr/src/utils/file_utils.dart:174)
+#5      Future._propagateToListeners.handleValueCallback (dart:async/future_impl.dart:948)
+#6      Future._propagateToListeners (dart:async/future_impl.dart:977)
+#7      Future._completeWithValue (dart:async/future_impl.dart:720)
+#8      Future._asyncCompleteWithValue.<anonymous closure> (dart:async/future_impl.dart:804)
+#9      _microtaskLoop (dart:async/schedule_microtask.dart:40)
+#10     _startMicrotaskLoop (dart:async/schedule_microtask.dart:49)
+#11     _runPendingImmediateCallback (dart:isolate-patch/isolate_patch.dart:127)
+#12     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193)
+
+
+SEVERE: 2026-06-21 18:55:56.763244: File not copied successfully
+
+Error: PathAccessException: Cannot copy file to '/etc/hosts.backup', path = 'hosts' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _checkForErrorResponse (dart:io/common.dart:58)
+#1      _File.copy.<anonymous closure> (dart:io/file_impl.dart:406)
+<asynchronous suspension>
+#2      ForwardingFile.copy (package:file/src/forwarding/forwarding_file.dart:29)
+<asynchronous suspension>
+#3      FileUtils.copyFile.<anonymous closure> (package:configr/src/utils/file_utils.dart:32)
+<asynchronous suspension>
+
+
+SEVERE: 2026-06-21 19:13:36.696425: File not copied successfully
+
+Error: PathAccessException: Cannot copy file to '/etc/nginx/nginx.conf', path = 'nginx.conf' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _checkForErrorResponse (dart:io/common.dart:58)
+#1      _File.copy.<anonymous closure> (dart:io/file_impl.dart:406)
+<asynchronous suspension>
+#2      ForwardingFile.copy (package:file/src/forwarding/forwarding_file.dart:29)
+<asynchronous suspension>
+#3      FileUtils.copyFile.<anonymous closure> (package:configr/src/utils/file_utils.dart:32)
+<asynchronous suspension>
+
+
+SEVERE: 2026-06-21 19:13:36.697273: Failed to create directory /etc/myapp
+
+Error: PathAccessException: Creation failed, path = '/etc/myapp' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _Directory.createSync (dart:io/directory_impl.dart:136)
+#1      ForwardingDirectory.createSync (package:file/src/forwarding/forwarding_directory.dart:20)
+#2      FileUtils.createDirectory.<anonymous closure> (package:configr/src/utils/file_utils.dart:174)
+#3      Future._propagateToListeners.handleValueCallback (dart:async/future_impl.dart:948)
+#4      Future._propagateToListeners (dart:async/future_impl.dart:977)
+#5      Future._completeWithValue (dart:async/future_impl.dart:720)
+#6      Future._asyncCompleteWithValue.<anonymous closure> (dart:async/future_impl.dart:804)
+#7      _microtaskLoop (dart:async/schedule_microtask.dart:40)
+#8      _startMicrotaskLoop (dart:async/schedule_microtask.dart:49)
+#9      _runPendingImmediateCallback (dart:isolate-patch/isolate_patch.dart:127)
+#10     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193)
+
+
+SEVERE: 2026-06-21 19:13:36.697901: Failed to create directory /home/user/.config/myapp
+
+Error: PathAccessException: Creation failed, path = '/home/user' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _Directory.createSync (dart:io/directory_impl.dart:136)
+#1      _Directory.createSync (dart:io/directory_impl.dart:131)
+#2      _Directory.createSync (dart:io/directory_impl.dart:131)
+#3      ForwardingDirectory.createSync (package:file/src/forwarding/forwarding_directory.dart:20)
+#4      FileUtils.createDirectory.<anonymous closure> (package:configr/src/utils/file_utils.dart:174)
+#5      Future._propagateToListeners.handleValueCallback (dart:async/future_impl.dart:948)
+#6      Future._propagateToListeners (dart:async/future_impl.dart:977)
+#7      Future._completeWithValue (dart:async/future_impl.dart:720)
+#8      Future._asyncCompleteWithValue.<anonymous closure> (dart:async/future_impl.dart:804)
+#9      _microtaskLoop (dart:async/schedule_microtask.dart:40)
+#10     _startMicrotaskLoop (dart:async/schedule_microtask.dart:49)
+#11     _runPendingImmediateCallback (dart:isolate-patch/isolate_patch.dart:127)
+#12     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193)
+
+
+SEVERE: 2026-06-21 19:13:36.719182: Failed to create directory /var/log/myapp
+
+Error: PathAccessException: Creation failed, path = '/var/log/myapp' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _Directory.createSync (dart:io/directory_impl.dart:136)
+#1      ForwardingDirectory.createSync (package:file/src/forwarding/forwarding_directory.dart:20)
+#2      FileUtils.createDirectory.<anonymous closure> (package:configr/src/utils/file_utils.dart:174)
+#3      Future._propagateToListeners.handleValueCallback (dart:async/future_impl.dart:948)
+#4      Future._propagateToListeners (dart:async/future_impl.dart:977)
+#5      Future._completeWithValue (dart:async/future_impl.dart:720)
+#6      Future._asyncCompleteWithValue.<anonymous closure> (dart:async/future_impl.dart:804)
+#7      _microtaskLoop (dart:async/schedule_microtask.dart:40)
+#8      _startMicrotaskLoop (dart:async/schedule_microtask.dart:49)
+#9      _runPendingImmediateCallback (dart:isolate-patch/isolate_patch.dart:127)
+#10     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193)
+
+
+SEVERE: 2026-06-21 19:13:36.719730: Failed to create directory /home/user/.config/myapp
+
+Error: PathAccessException: Creation failed, path = '/home/user' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _Directory.createSync (dart:io/directory_impl.dart:136)
+#1      _Directory.createSync (dart:io/directory_impl.dart:131)
+#2      _Directory.createSync (dart:io/directory_impl.dart:131)
+#3      ForwardingDirectory.createSync (package:file/src/forwarding/forwarding_directory.dart:20)
+#4      FileUtils.createDirectory.<anonymous closure> (package:configr/src/utils/file_utils.dart:174)
+#5      Future._propagateToListeners.handleValueCallback (dart:async/future_impl.dart:948)
+#6      Future._propagateToListeners (dart:async/future_impl.dart:977)
+#7      Future._completeWithValue (dart:async/future_impl.dart:720)
+#8      Future._asyncCompleteWithValue.<anonymous closure> (dart:async/future_impl.dart:804)
+#9      _microtaskLoop (dart:async/schedule_microtask.dart:40)
+#10     _startMicrotaskLoop (dart:async/schedule_microtask.dart:49)
+#11     _runPendingImmediateCallback (dart:isolate-patch/isolate_patch.dart:127)
+#12     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193)
+
+
+SEVERE: 2026-06-21 19:13:36.736532: File not copied successfully
+
+Error: PathAccessException: Cannot copy file to '/etc/hosts.backup', path = 'hosts' (OS Error: Permission denied, errno = 13)
+
+StackTrace: #0      _checkForErrorResponse (dart:io/common.dart:58)
+#1      _File.copy.<anonymous closure> (dart:io/file_impl.dart:406)
+<asynchronous suspension>
+#2      ForwardingFile.copy (package:file/src/forwarding/forwarding_file.dart:29)
+<asynchronous suspension>
+#3      FileUtils.copyFile.<anonymous closure> (package:configr/src/utils/file_utils.dart:32)
+<asynchronous suspension>
+
+
+SEVERE: 2026-06-21 19:13:36.750686: Rollback failed for copy: copy_6 — PathAccessException: Cannot delete file, path = '/etc/hosts' (OS Error: Permission denied, errno = 13)
+
+SEVERE: 2026-06-21 19:13:36.751368: Rollback failed for copy: copy_3 — PathAccessException: Cannot delete file, path = '/etc/systemd/system/myapp.service' (OS Error: Permission denied, errno = 13)

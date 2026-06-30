@@ -1,0 +1,4 @@
+template {
+  source = "/tmp/test_src"
+  destination = "/tmp/test_dst"
+}

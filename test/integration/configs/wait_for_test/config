@@ -1,0 +1,6 @@
+wait_for {
+  host = "localhost"
+  port = 8080
+  timeout = 5
+  state = "stopped"
+}

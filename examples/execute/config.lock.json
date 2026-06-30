@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "config_checksum": "1b36abc102cd6dc0fb995b6fc3252d9505ce5ad044268fd96587a02e04dda646",
+  "applied_blocks": [
+    {
+      "block_type": "execute",
+      "id": "execute_0",
+      "source": "/path/to/source",
+      "destination": "",
+      "applied_at": "2026-06-22T01:14:48.002975Z",
+      "status": "completed"
+    }
+  ]
+}

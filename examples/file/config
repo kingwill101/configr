@@ -1,0 +1,142 @@
+resources {
+  # Example 1: Create a new configuration file
+  resource {
+    type "file"
+    destination "examples/file/app.conf"
+
+    actions {
+      file {
+        operation "create"
+        content "app_name=ConfigrDemo\nversion=1.0.0\ndebug=false\nlog_level=info"
+        create_directories "true"
+      }
+    }
+  }
+
+  # Example 2: Create a shell script
+  resource {
+    type "file"
+    destination "examples/file/setup.sh"
+
+    actions {
+      file {
+        operation "create"
+        content "#!/bin/bash\n# Configr Demo Setup Script\necho \"Setting up demo environment...\"\necho \"Creating directories...\"\nmkdir -p ~/.config/configr\necho \"Setup complete!\""
+        create_directories "true"
+      }
+    }
+  }
+
+  # Example 3: Create a JSON configuration file
+  resource {
+    type "file"
+    destination "examples/file/config.json"
+
+    actions {
+      file {
+        operation "create"
+        content "{\n  \"name\": \"Configr Demo\",\n  \"version\": \"1.0.0\",\n  \"settings\": {\n    \"theme\": \"dark\",\n    \"auto_save\": true,\n    \"backup_enabled\": true\n  },\n  \"features\": [\n    \"file_management\",\n    \"git_integration\",\n    \"rollback_support\"\n  ]\n}"
+        create_directories "true"
+      }
+    }
+  }
+
+  # Example 4: Edit an existing file (append mode)
+  resource {
+    type "file"
+    destination "examples/file/app.conf"
+
+    actions {
+      file {
+        operation "edit"
+        content "\n# Additional settings\nfeature_enabled=true\nmax_connections=100"
+        edit_mode "append"
+        backup_original "true"
+      }
+    }
+  }
+
+  # Example 5: Create a README file
+  resource {
+    type "file"
+    destination "examples/file/README.md"
+
+    actions {
+      file {
+        operation "create"
+        content "# Configr File Module Demo\n\nThis example demonstrates the capabilities of the Configr File Module.\n\n## Features Demonstrated\n\n- File creation with custom content\n- Directory creation\n- File editing with different modes\n- Backup functionality\n- Rollback support\n\n## Files Created\n\n- `app.conf`: Application configuration file\n- `setup.sh`: Shell script for setup\n- `config.json`: JSON configuration file\n- `README.md`: This documentation file\n\n## Usage\n\nRun this example with:\n\n```bash\ndart run ../../bin/main.dart apply\n```\n\nTo rollback all changes:\n\n```bash\ndart run ../../bin/main.dart rollback\n```"
+        create_directories "true"
+      }
+    }
+  }
+
+  # Example 6: Create a temporary file that will be removed
+  resource {
+    type "file"
+    destination "examples/file/temp.txt"
+
+    actions {
+      file {
+        operation "create"
+        content "This is a temporary file that will be removed in the next step."
+        create_directories "true"
+      }
+    }
+  }
+
+  # Example 7: Remove the temporary file
+  resource {
+    type "file"
+    destination "examples/file/temp.txt"
+
+    actions {
+      file {
+        operation "remove"
+        backup_original "true"
+      }
+    }
+  }
+
+  # Example 8: Create a complex configuration file
+  resource {
+    type "file"
+    destination "examples/file/nginx.conf"
+
+    actions {
+      file {
+        operation "create"
+        content "server {\n    listen 80;\n    server_name example.com;\n    \n    location / {\n        root /var/www/html;\n        index index.html index.htm;\n        try_files $uri $uri/ =404;\n    }\n    \n    location /api {\n        proxy_pass http://localhost:3000;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n    }\n    \n    # Security headers\n    add_header X-Frame-Options DENY;\n    add_header X-Content-Type-Options nosniff;\n    add_header X-XSS-Protection \"1; mode=block\";\n}"
+        create_directories "true"
+      }
+    }
+  }
+
+  # Example 9: Edit the nginx config (prepend mode)
+  resource {
+    type "file"
+    destination "examples/file/nginx.conf"
+
+    actions {
+      file {
+        operation "edit"
+        content "# Configr Generated Nginx Configuration\n# Created: {{timestamp}}\n\n"
+        edit_mode "prepend"
+        backup_original "true"
+      }
+    }
+  }
+
+  # Example 10: Create a Python script
+  resource {
+    type "file"
+    destination "examples/file/demo.py"
+
+    actions {
+      file {
+        operation "create"
+        content "#!/usr/bin/env python3\n\"\"\"\nConfigr File Module Demo Script\n\"\"\"\n\nimport json\nimport os\nfrom pathlib import Path\n\n\ndef main():\n    print(\"Configr File Module Demo\")\n    print(\"=\" * 30)\n    \n    # Read the JSON config\n    config_path = Path(\"config.json\")\n    if config_path.exists():\n        with open(config_path) as f:\n            config = json.load(f)\n        \n        print(f\"App Name: {config['name']}\")\n        print(f\"Version: {config['version']}\")\n        print(f\"Theme: {config['settings']['theme']}\")\n        print(f\"Auto Save: {config['settings']['auto_save']}\")\n        \n        print(\"\\nFeatures:\")\n        for feature in config['features']:\n            print(f\"  - {feature}\")\n    else:\n        print(\"Config file not found!\")\n\n\nif __name__ == \"__main__\":\n    main()"
+        create_directories "true"
+      }
+    }
+  }
+}

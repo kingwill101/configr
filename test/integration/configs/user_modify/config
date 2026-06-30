@@ -1,0 +1,5 @@
+user {
+  name = "testusr_mod"
+  shell = "/bin/sh"
+  comment = "Modified User"
+}

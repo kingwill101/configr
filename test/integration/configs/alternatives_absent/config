@@ -1,0 +1,5 @@
+alternatives {
+  name = "editor"
+  path = "/bin/nano"
+  state = "absent"
+}

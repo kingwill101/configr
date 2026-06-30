@@ -1,0 +1,26 @@
+# pip Package Manager — Python packages
+#
+# Usage:
+#   configr apply -n --dry-run        # preview
+#   configr apply -n                   # execute
+
+# Data science packages
+pip {
+  source = "numpy pandas matplotlib scikit-learn"
+  operation = "install"
+  skip_if_installed = true
+}
+
+# Web development
+pip {
+  source = "flask django requests beautifulsoup4"
+  operation = "install"
+  skip_if_installed = true
+}
+
+# Development tools
+pip {
+  source = "pytest black flake8 mypy"
+  operation = "install"
+  skip_if_installed = true
+}

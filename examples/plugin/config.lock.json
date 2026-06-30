@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "config_checksum": "178732deca77b1fe92207b86f6967d512cb82942d260b9c15f67417fc08cc557",
+  "applied_blocks": [
+    {
+      "block_type": "notify",
+      "id": "notify_0",
+      "source": "",
+      "destination": "",
+      "applied_at": "2026-06-22T13:42:04.353513Z",
+      "status": "completed"
+    },
+    {
+      "block_type": "file",
+      "id": "file_0",
+      "source": "template.txt",
+      "destination": "hello.txt",
+      "applied_at": "2026-06-22T13:42:04.354041Z",
+      "status": "completed"
+    },
+    {
+      "block_type": "notify",
+      "id": "notify_1",
+      "source": "",
+      "destination": "",
+      "applied_at": "2026-06-22T13:42:04.354648Z",
+      "status": "completed"
+    }
+  ]
+}

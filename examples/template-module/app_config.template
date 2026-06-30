@@ -1,0 +1,26 @@
+# Application Configuration
+# Generated from template on {{ "now" | date: "%Y-%m-%d %H:%M:%S" }}
+
+[application]
+name = {{ app_name }}
+version = {{ version }}
+debug = {{ debug }}
+
+[server]
+host = {{ host }}
+port = {{ port }}
+
+[logging]
+level = {% if debug %}debug{% else %}info{% endif %}
+file = /var/log/{{ app_name | downcase }}.log
+
+# Environment-specific settings
+{% if debug %}
+[development]
+hot_reload = true
+verbose_logging = true
+{% else %}
+[production]
+performance_mode = true
+{% endif %}
+

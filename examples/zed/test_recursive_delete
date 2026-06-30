@@ -1,0 +1,21 @@
+resource {
+  type "file"
+  source "https://github.com/zed-industries/zed/archive/refs/tags/v0.168.2.zip"
+
+  actions {
+        download github {
+            overwrite true
+            destination zed.zip
+        }
+
+        decompress decompress_zed {
+            source zed.zip
+            destination zed_test
+        }
+
+        delete delete_zed_dir {
+            source zed_test
+            recursive true
+        }
+    }
+}

@@ -1,0 +1,80 @@
+Kamal's design is really well-considered. Here are the ideas that stand out as most relevant for configr:
+
+Kamal Design Ideas Worth Considering for Configr
+
+### 1. **Configuration validation with schema docs**
+Kamal validates YAML config against schema documentation YAML files. This is a powerful pattern - the docs ARE the schema. Configr could validate its i3config blocks against similar schemas.
+
+### 2. **Multiple secret vault adapters**
+Kamal has 10+ secret adapters (AWS, GCP, 1Password, Bitwarden, LastPass, Doppler, Enpass, Passbolt, etc.) all extending a common base. Configr has 6 providers but the adapter pattern is cleaner - each adapter has `fetch`, `login`, `check_dependencies!` methods.
+
+### 3. **Hook system**
+Kamal runs local hooks at lifecycle points (pre-deploy, post-deploy, pre-app-boot, etc.) with rich environment variables. Configr has `pre_apply_scripts`/`post_apply_scripts` but no formal hook system.
+
+### 4. **Destination/merge config**
+Kamal merges configs per destination: `deploy.yml` base + `deploy.staging.yml` overrides. Configr doesn't have this.
+
+### 5. **Audit logging**
+Kamal appends audit events to a log file on remote hosts. Configr has event bus but no persistent audit trail.
+
+### 6. **Lock mechanism**
+Kamal uses a mkdir-based mutex to prevent concurrent deploys. Configr's lockfile is an apply-tracking mechanism, not a concurrency lock.
+
+### 7. **Boot strategy / gradual rollout**
+Kamal's `boot.limit` (int or %) and `boot.wait` controls how many hosts update simultaneously. Configr doesn't have this concept.
+
+### 8. **Health checks with poller + barrier**
+Kamal waits for container health before proceeding. Configr has some polling (e.g., wait_for block) but no formal health check framework.
+
+### 9. **Redacted sensitive values**
+Kamal's `Utils::Sensitive` wraps sensitive values and marks them redactable for SSHKit output. Configr has `SensitiveValue` but the Kamal pattern is more general.
+
+### 10. **Command aliases**
+Kamal allows defining custom CLI commands in config. Configr doesn't have this.
+
+### 11. **Config output command**
+`kamal config` shows the merged configuration with secrets redacted. Configr could benefit from a similar view.
+
+### 12. **Remote builder architecture**
+Kamal supports multiple build strategies (local, remote, hybrid, cloud, pack). Configr could support different execution strategies.
+
+### 13. **Role-based server grouping**
+Kamal groups servers by role (web, workers) with different configurations per role. Configr doesn't have this grouping concept.
+
+### 14. **Env file generation for secrets**
+Kamal generates a Docker-compatible env file on the host with secrets. Configr injects secrets into process env but doesn't generate files.
+
+### 15. **Git metadata tagging**
+Kamal tags deployments with `KAMAL_VERSION` (Git SHA), performer info, and timestamps. Useful for audit trail.
+
+### 16. **Clean `config` command**
+`kamal config` shows the merged config with secrets redacted. Configr doesn't have a `config` display command.
+
+What I think is most relevant for configr as a general-purpose config management tool (not just Docker deployment):
+
+1. **Hook system** - Formal pre/post hooks per lifecycle event
+2. **Secret vault adapters** - Cleaner adapter pattern with login/check support
+3. **Config validation** - Schema-driven validation
+4. **Destination config merging** - Base + override configs
+5. **Audit logging** - Persistent audit trail
+6. **Config output** - Display merged config with redacted secrets
+7. **Lock mechanism** - Concurrency prevention
+8. **Aliases** - Custom commands
+
+Let me present these to the user for discussion.
+
+
+### High value, low effort
+1. **Config validation via schema docs** — Kamal validates YAML against its own docs YAML. The docs *are* the schema. Configr could validate i3config blocks the same way instead of failing at runtime.
+2. **`kamal config` command** — Shows merged config with secrets redacted. Configr has nothing equivalent; would be trivial to add.
+3. **Alias commands** — `config.aliases` lets users define custom CLI shorthand in config. Configr could support this in the config file itself.
+
+### Medium effort, high value
+4. **Formal hook system** — Kamal runs scripts at lifecycle points (`pre-deploy`, `post-deploy`, `pre-app-boot`, etc.) with rich env vars (`KAMAL_VERSION`, `KAMAL_HOSTS`, `KAMAL_PERFORMER`). Configr has `pre_apply_scripts`/`post_apply_scripts` but only at the top level — no per-block hooks, no standard env vars, no hook directory convention.
+5. **Destination config merging** — `deploy.yml` + `deploy.staging.yml` deep-merged with ERB preprocessing. Configr's includes are manual (`include` directive); a destination/role overlay system would be cleaner.
+6. **Audit logging** — Kamal appends to a remote audit log for every command. Configr's event bus is in-memory only; a file-based audit trail would help with rollback debugging.
+
+### Larger features worth discussing
+7. **Secret adapter protocol** — Kamal has 10+ vault adapters (AWS, GCP, 1Password, Bitwarden, LastPass, Doppler, Enpass, Passbolt) all implementing a common `#fetch`, `#login`, `#check_dependencies!` interface. Configr's providers are similar but less structured — no `login` step, no dependency check, and key extraction from URIs is fragile (as we just discovered with dotenv). Formalizing the adapter contract would make third-party providers easier to write.
+8. **Lock mechanism** — Kamal uses `mkdir` as a distributed mutex to prevent concurrent deploys. Configr's lockfile tracks applied state but doesn't prevent concurrent runs.
+9. **Redaction at the transport layer** — Kamal's `Utils::Sensitive` integrates with SSHKit so redaction happens in the output formatter automatically. Configr redacts in ActionBlock but it's ad-hoc. A transport-level redaction layer would catch every output path.

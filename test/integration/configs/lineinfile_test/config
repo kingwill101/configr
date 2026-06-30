@@ -1,0 +1,5 @@
+lineinfile {
+  path = "/tmp/test_lineinfile"
+  line = "managed by configr"
+  state = "present"
+}

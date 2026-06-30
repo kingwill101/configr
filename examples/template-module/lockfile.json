@@ -1,0 +1,247 @@
+{
+  "resources": [
+    {
+      "id": "resource_1",
+      "source": "app_config.template",
+      "destination": "generated/app_config.conf",
+      "type": "file",
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "template_1",
+          "type": "template",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-09-28T16:03:24.479401",
+          "sha256": "843972c1338f430a58c71e13075bb77e3f1b4a2859da114bc20bbadfd6b59250",
+          "actions": [],
+          "properties": {
+            "app_name": "MyApplication",
+            "version": "1.0.0",
+            "debug": false,
+            "port": 8080,
+            "host": "localhost",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "templateFileExisted": true,
+            "originalContent": null,
+            "templateContent": "# Application Configuration\n# Generated from template on {{ \"now\" | date: \"%Y-%m-%d %H:%M:%S\" }}\n\n[application]\nname = {{ app_name }}\nversion = {{ version }}\ndebug = {{ debug }}\n\n[server]\nhost = {{ host }}\nport = {{ port }}\n\n[logging]\nlevel = {% if debug %}debug{% else %}info{% endif %}\nfile = /var/log/{{ app_name | downcase }}.log\n\n# Environment-specific settings\n{% if debug %}\n[development]\nhot_reload = true\nverbose_logging = true\n{% else %}\n[production]\nperformance_mode = true\n{% endif %}\n\n",
+            "renderedContent": "# Application Configuration\n# Generated from template on %Y-%3-%28 %21:%9:%455\n\n[application]\nname = MyApplication\nversion = 1.0.0\ndebug = false\n\n[server]\nhost = localhost\nport = 8080\n\n[logging]\nlevel = info\nfile = /var/log/myapplication.log\n\n# Environment-specific settings\n\n[production]\nperformance_mode = true\n\n\n",
+            "templateVars": {
+              "app_name": "MyApplication",
+              "version": "1.0.0",
+              "debug": false,
+              "port": 8080,
+              "host": "localhost"
+            },
+            "validateTemplate": true,
+            "showProgress": true,
+            "processedTemplates": 1,
+            "totalTemplates": 0,
+            "failedTemplates": 0,
+            "includePatterns": [],
+            "excludePatterns": [],
+            "templateEngine": "liquid",
+            "backupOriginal": false,
+            "backupSuffix": ".backup"
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": ""
+    },
+    {
+      "id": "resource_2",
+      "source": "nginx_config.template",
+      "destination": "generated/nginx.conf",
+      "type": "file",
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "template_2",
+          "type": "template",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-09-28T16:03:24.497962",
+          "sha256": "aae2f6dadec6a6d35897cd3fb42e9c95b0ff4ad84c9e879a83886cf50239a515",
+          "actions": [],
+          "properties": {
+            "domain": "myapp.example.com",
+            "ssl_enabled": true,
+            "ssl_cert": "/etc/ssl/certs/myapp.crt",
+            "ssl_key": "/etc/ssl/private/myapp.key",
+            "backend_host": "127.0.0.1",
+            "backend_port": 8080,
+            "enable_logging": true,
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "templateFileExisted": true,
+            "originalContent": null,
+            "templateContent": "# Nginx Configuration for {{ domain }}\n# Generated from template\n\nserver {\n    listen 80;\n    server_name {{ domain }};\n    \n    {% if ssl_enabled %}\n    # Redirect HTTP to HTTPS\n    return 301 https://$server_name$request_uri;\n}\n\nserver {\n    listen 443 ssl http2;\n    server_name {{ domain }};\n    \n    # SSL Configuration\n    ssl_certificate {{ ssl_cert }};\n    ssl_certificate_key {{ ssl_key }};\n    ssl_protocols TLSv1.2 TLSv1.3;\n    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;\n    ssl_prefer_server_ciphers off;\n    {% endif %}\n    \n    # Proxy to backend\n    location / {\n        proxy_pass http://{{ backend_host }}:{{ backend_port }};\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header X-Forwarded-Proto $scheme;\n    }\n    \n    {% if enable_logging %}\n    # Logging\n    access_log /var/log/nginx/{{ domain }}.access.log;\n    error_log /var/log/nginx/{{ domain }}.error.log;\n    {% endif %}\n    \n    # Security headers\n    add_header X-Frame-Options DENY;\n    add_header X-Content-Type-Options nosniff;\n    add_header X-XSS-Protection \"1; mode=block\";\n}\n\n",
+            "renderedContent": "# Nginx Configuration for myapp.example.com\n# Generated from template\n\nserver {\n    listen 80;\n    server_name myapp.example.com;\n    \n    \n    # Redirect HTTP to HTTPS\n    return 301 https://$server_name$request_uri;\n}\n\nserver {\n    listen 443 ssl http2;\n    server_name myapp.example.com;\n    \n    # SSL Configuration\n    ssl_certificate /etc/ssl/certs/myapp.crt;\n    ssl_certificate_key /etc/ssl/private/myapp.key;\n    ssl_protocols TLSv1.2 TLSv1.3;\n    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;\n    ssl_prefer_server_ciphers off;\n    \n    \n    # Proxy to backend\n    location / {\n        proxy_pass http://127.0.0.1:8080;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header X-Forwarded-Proto $scheme;\n    }\n    \n    \n    # Logging\n    access_log /var/log/nginx/myapp.example.com.access.log;\n    error_log /var/log/nginx/myapp.example.com.error.log;\n    \n    \n    # Security headers\n    add_header X-Frame-Options DENY;\n    add_header X-Content-Type-Options nosniff;\n    add_header X-XSS-Protection \"1; mode=block\";\n}\n\n",
+            "templateVars": {
+              "domain": "myapp.example.com",
+              "ssl_enabled": true,
+              "ssl_cert": "/etc/ssl/certs/myapp.crt",
+              "ssl_key": "/etc/ssl/private/myapp.key",
+              "backend_host": "127.0.0.1",
+              "backend_port": 8080,
+              "enable_logging": true
+            },
+            "validateTemplate": true,
+            "showProgress": true,
+            "processedTemplates": 1,
+            "totalTemplates": 0,
+            "failedTemplates": 0,
+            "includePatterns": [],
+            "excludePatterns": [],
+            "templateEngine": "liquid",
+            "backupOriginal": false,
+            "backupSuffix": ".backup"
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": ""
+    },
+    {
+      "id": "resource_3",
+      "source": "users_config.template",
+      "destination": "generated/users.json",
+      "type": "file",
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "template_3",
+          "type": "template",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-09-28T16:03:24.507001",
+          "sha256": "3c7bad0a8e50ef6f402d083b55bd104a631a402a2bde1ffe0bb7577b2db99c2b",
+          "actions": [],
+          "properties": {
+            "user1_id": 1,
+            "user1_name": "John Doe",
+            "user1_email": "john@example.com",
+            "user1_role": "administrator",
+            "user2_id": 2,
+            "user2_name": "Jane Smith",
+            "user2_email": "jane@example.com",
+            "user2_role": "user",
+            "user3_id": 3,
+            "user3_name": "Bob Wilson",
+            "user3_email": "bob@example.com",
+            "user3_role": "user",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "templateFileExisted": true,
+            "originalContent": null,
+            "templateContent": "{\n  \"users\": [\n    {\n      \"id\": {{ user1_id }},\n      \"name\": \"{{ user1_name }}\",\n      \"email\": \"{{ user1_email }}\",\n      \"role\": \"{{ user1_role }}\",\n      \"active\": true\n    },\n    {\n      \"id\": {{ user2_id }},\n      \"name\": \"{{ user2_name }}\",\n      \"email\": \"{{ user2_email }}\",\n      \"role\": \"{{ user2_role }}\",\n      \"active\": true\n    },\n    {\n      \"id\": {{ user3_id }},\n      \"name\": \"{{ user3_name }}\",\n      \"email\": \"{{ user3_email }}\",\n      \"role\": \"{{ user3_role }}\",\n      \"active\": true\n    }\n  ],\n  \"metadata\": {\n    \"total_users\": 3,\n    \"generated_at\": \"2024-09-28\"\n  }\n}\n",
+            "renderedContent": "{\n  \"users\": [\n    {\n      \"id\": 1,\n      \"name\": \"John Doe\",\n      \"email\": \"john@example.com\",\n      \"role\": \"administrator\",\n      \"active\": true\n    },\n    {\n      \"id\": 2,\n      \"name\": \"Jane Smith\",\n      \"email\": \"jane@example.com\",\n      \"role\": \"user\",\n      \"active\": true\n    },\n    {\n      \"id\": 3,\n      \"name\": \"Bob Wilson\",\n      \"email\": \"bob@example.com\",\n      \"role\": \"user\",\n      \"active\": true\n    }\n  ],\n  \"metadata\": {\n    \"total_users\": 3,\n    \"generated_at\": \"2024-09-28\"\n  }\n}\n",
+            "templateVars": {
+              "user1_id": 1,
+              "user1_name": "John Doe",
+              "user1_email": "john@example.com",
+              "user1_role": "administrator",
+              "user2_id": 2,
+              "user2_name": "Jane Smith",
+              "user2_email": "jane@example.com",
+              "user2_role": "user",
+              "user3_id": 3,
+              "user3_name": "Bob Wilson",
+              "user3_email": "bob@example.com",
+              "user3_role": "user"
+            },
+            "validateTemplate": true,
+            "showProgress": true,
+            "processedTemplates": 1,
+            "totalTemplates": 0,
+            "failedTemplates": 0,
+            "includePatterns": [],
+            "excludePatterns": [],
+            "templateEngine": "liquid",
+            "backupOriginal": false,
+            "backupSuffix": ".backup"
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": ""
+    },
+    {
+      "id": "resource_4",
+      "source": "service_config.template",
+      "destination": "generated/service.conf",
+      "type": "file",
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "template_4",
+          "type": "template",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-09-28T16:03:24.518126",
+          "sha256": "abd886e6b8dbe1894046abb6f9bd39c66b788f2edd68dbb762511e5f38f8b2ee",
+          "actions": [],
+          "properties": {
+            "service_name": "myapp",
+            "service_user": "myapp",
+            "service_group": "myapp",
+            "log_level": "info",
+            "max_connections": 100,
+            "backup_original": true,
+            "backup_suffix": ".bak",
+            "validate_template": true,
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "templateFileExisted": true,
+            "originalContent": null,
+            "templateContent": "# Systemd Service Configuration for {{ service_name }}\n\n[Unit]\nDescription={{ service_name | capitalize }} Application\nAfter=network.target\nWants=network.target\n\n[Service]\nType=simple\nUser={{ service_user }}\nGroup={{ service_group }}\nWorkingDirectory=/opt/{{ service_name }}\nExecStart=/opt/{{ service_name }}/bin/{{ service_name }}\nExecReload=/bin/kill -HUP $MAINPID\nRestart=always\nRestartSec=5\n\n# Environment variables\nEnvironment=LOG_LEVEL={{ log_level }}\nEnvironment=MAX_CONNECTIONS={{ max_connections }}\n\n# Security settings\nNoNewPrivileges=true\nPrivateTmp=true\nProtectSystem=strict\nProtectHome=true\nReadWritePaths=/opt/{{ service_name }}/logs\nReadWritePaths=/var/log/{{ service_name }}\n\n# Resource limits\nLimitNOFILE=65536\nLimitNPROC=4096\n\n[Install]\nWantedBy=multi-user.target\n\n",
+            "renderedContent": "# Systemd Service Configuration for myapp\n\n[Unit]\nDescription=Myapp Application\nAfter=network.target\nWants=network.target\n\n[Service]\nType=simple\nUser=myapp\nGroup=myapp\nWorkingDirectory=/opt/myapp\nExecStart=/opt/myapp/bin/myapp\nExecReload=/bin/kill -HUP $MAINPID\nRestart=always\nRestartSec=5\n\n# Environment variables\nEnvironment=LOG_LEVEL=info\nEnvironment=MAX_CONNECTIONS=100\n\n# Security settings\nNoNewPrivileges=true\nPrivateTmp=true\nProtectSystem=strict\nProtectHome=true\nReadWritePaths=/opt/myapp/logs\nReadWritePaths=/var/log/myapp\n\n# Resource limits\nLimitNOFILE=65536\nLimitNPROC=4096\n\n[Install]\nWantedBy=multi-user.target\n\n",
+            "templateVars": {
+              "service_name": "myapp",
+              "service_user": "myapp",
+              "service_group": "myapp",
+              "log_level": "info",
+              "max_connections": 100,
+              "backup_original": true,
+              "backup_suffix": ".bak",
+              "validate_template": true
+            },
+            "validateTemplate": true,
+            "showProgress": true,
+            "processedTemplates": 1,
+            "totalTemplates": 0,
+            "failedTemplates": 0,
+            "includePatterns": [],
+            "excludePatterns": [],
+            "templateEngine": "liquid",
+            "backupOriginal": true,
+            "backupSuffix": ".bak"
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": ""
+    }
+  ],
+  "commands": [],
+  "packages": [],
+  "configChecksum": "9536543caa2fec41158a6b5aa33c1441c44d99f44b76b2be5c71dc2c27a79186"
+}

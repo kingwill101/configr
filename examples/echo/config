@@ -1,0 +1,18 @@
+include imports.conf
+resource {
+  actions {
+    echo {
+      message = "Starting deployment"
+      color = true  # some comment
+      verbose = true
+      level = "info"
+    }
+    # some comment
+    echo {
+      # some comment
+      message = "Warning: disk space low"
+      level = "warning"
+    }
+  }
+}
+

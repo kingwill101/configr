@@ -1,0 +1,375 @@
+{
+  "resources": [
+    {
+      "id": "resource_1",
+      "source": "",
+      "destination": "examples/git/oh-my-zsh",
+      "type": "directory",
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "git_1",
+          "type": "git",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-10-02T13:13:04.995864",
+          "sha256": null,
+          "actions": [],
+          "properties": {
+            "operation": "clone",
+            "repository_url": "https://github.com/robbyrussell/oh-my-zsh.git",
+            "local_path": "examples/git/oh-my-zsh",
+            "branch": "master",
+            "stream_output": "true",
+            "show_progress": "true",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "repositoryUrl": "https://github.com/robbyrussell/oh-my-zsh.git",
+            "localPath": "examples/git/oh-my-zsh",
+            "branch": "master",
+            "commitMessage": "",
+            "operationSuccess": true,
+            "lastCommitHash": null,
+            "operationDuration": 3211,
+            "operationOutput": "Successfully cloned repository to examples/git/oh-my-zsh on branch master",
+            "operationError": null,
+            "streamOutput": true,
+            "showProgress": true,
+            "streamingOutput": null,
+            "progressPercentage": 0
+          },
+          "parent": {
+            "type": "directory",
+            "destination": "examples/git/oh-my-zsh"
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": "",
+      "properties": {
+        "type": "directory",
+        "destination": "examples/git/oh-my-zsh"
+      }
+    },
+    {
+      "id": "resource_2",
+      "source": "",
+      "destination": "examples/git/oh-my-zsh",
+      "type": "directory",
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "git_2",
+          "type": "git",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-10-02T13:13:05.599547",
+          "sha256": null,
+          "actions": [],
+          "properties": {
+            "operation": "pull",
+            "local_path": "examples/git/oh-my-zsh",
+            "branch": "master",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "repositoryUrl": "",
+            "localPath": "examples/git/oh-my-zsh",
+            "branch": "master",
+            "commitMessage": "",
+            "operationSuccess": true,
+            "lastCommitHash": null,
+            "operationDuration": 602,
+            "operationOutput": "Repository is already up to date with remote",
+            "operationError": null,
+            "streamOutput": false,
+            "showProgress": true,
+            "streamingOutput": null,
+            "progressPercentage": 0
+          },
+          "parent": {
+            "type": "directory",
+            "destination": "examples/git/oh-my-zsh"
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": "",
+      "properties": {
+        "type": "directory",
+        "destination": "examples/git/oh-my-zsh"
+      }
+    },
+    {
+      "id": "resource_3",
+      "source": "",
+      "destination": "examples/git/test-repo",
+      "type": "directory",
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "git_3",
+          "type": "git",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-10-02T13:13:06.438441",
+          "sha256": null,
+          "actions": [],
+          "properties": {
+            "operation": "clone",
+            "repository_url": "https://github.com/octocat/Hello-World.git",
+            "local_path": "examples/git/test-repo",
+            "branch": "master",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "repositoryUrl": "https://github.com/octocat/Hello-World.git",
+            "localPath": "examples/git/test-repo",
+            "branch": "master",
+            "commitMessage": "",
+            "operationSuccess": true,
+            "lastCommitHash": null,
+            "operationDuration": 838,
+            "operationOutput": "Successfully cloned repository to examples/git/test-repo on branch master",
+            "operationError": null,
+            "streamOutput": false,
+            "showProgress": true,
+            "streamingOutput": null,
+            "progressPercentage": 0
+          },
+          "parent": {
+            "type": "directory",
+            "destination": "examples/git/test-repo"
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": "",
+      "properties": {
+        "type": "directory",
+        "destination": "examples/git/test-repo"
+      }
+    },
+    {
+      "id": "resource_4",
+      "source": "",
+      "destination": "examples/git/test-repo/configr-demo.txt",
+      "type": "file",
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "file_1",
+          "type": "file",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-10-02T13:13:06.446618",
+          "sha256": null,
+          "actions": [],
+          "properties": {
+            "operation": "create",
+            "content": "This is a demo file created by Configr for git operations demonstration.nCreated at: {{timestamp}}nnThis file demonstrates:n- File creation using the File Modulen- Git integration for version controln- Rollback capabilitiesn- Dotfile management workflows",
+            "create_directories": "true",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "operation": "create",
+            "content": "This is a demo file created by Configr for git operations demonstration.nCreated at: {{timestamp}}nnThis file demonstrates:n- File creation using the File Modulen- Git integration for version controln- Rollback capabilitiesn- Dotfile management workflows",
+            "filePath": "examples/git/test-repo/configr-demo.txt",
+            "source": "",
+            "destination": "examples/git/test-repo/configr-demo.txt",
+            "createDirectories": true,
+            "backupOriginal": false,
+            "backupSuffix": ".backup",
+            "editMode": "replace",
+            "originalContent": null,
+            "backupPath": null,
+            "fileExisted": false,
+            "operationSuccess": true
+          },
+          "parent": {
+            "type": "file",
+            "destination": "examples/git/test-repo/configr-demo.txt"
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": "",
+      "properties": {
+        "type": "file",
+        "destination": "examples/git/test-repo/configr-demo.txt"
+      }
+    },
+    {
+      "id": "resource_5",
+      "source": "",
+      "destination": "examples/git/test-repo/.gitignore",
+      "type": "file",
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "file_2",
+          "type": "file",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-10-02T13:13:06.447499",
+          "sha256": null,
+          "actions": [],
+          "properties": {
+            "operation": "create",
+            "content": "# Configr Demo Gitignoren*.logn*.tmpn.DS_Storen.vscode/n.idea/nnode_modules/n*.backup",
+            "create_directories": "true",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "operation": "create",
+            "content": "# Configr Demo Gitignoren*.logn*.tmpn.DS_Storen.vscode/n.idea/nnode_modules/n*.backup",
+            "filePath": "examples/git/test-repo/.gitignore",
+            "source": "",
+            "destination": "examples/git/test-repo/.gitignore",
+            "createDirectories": true,
+            "backupOriginal": false,
+            "backupSuffix": ".backup",
+            "editMode": "replace",
+            "originalContent": null,
+            "backupPath": null,
+            "fileExisted": false,
+            "operationSuccess": true
+          },
+          "parent": {
+            "type": "file",
+            "destination": "examples/git/test-repo/.gitignore"
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": "",
+      "properties": {
+        "type": "file",
+        "destination": "examples/git/test-repo/.gitignore"
+      }
+    },
+    {
+      "id": "resource_6",
+      "source": "",
+      "destination": "examples/git/test-repo/README.md",
+      "type": "file",
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "file_3",
+          "type": "file",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-10-02T13:13:06.448491",
+          "sha256": null,
+          "actions": [],
+          "properties": {
+            "operation": "create",
+            "content": "# Configr Git Integration DemonnThis repository demonstrates the integration between Configr's File Module and Git Module.nn## Features Demonstratednn- **File Creation**: Using the File Module to create filesn- **Git Operations**: Clone, pull, and commit operationsn- **Version Control**: Proper git workflow integrationn- **Rollback Support**: Complete rollback of all changesnn## Files Creatednn- `configr-demo.txt`: Main demonstration filen- `.gitignore`: Git ignore file for the repositoryn- `README.md`: This documentation filenn## UsagennThis example shows how to:nn1. Clone a repositoryn2. Create new files using the File Modulen3. Commit changes to gitn4. Rollback all changes if needednn## Integration Benefitsnn- **Automated Workflows**: File creation and git operations in one configurationn- **Consistent State**: All operations are tracked and can be rolled backn- **Dotfile Management**: Perfect for managing configuration files with version control",
+            "create_directories": "true",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "operation": "create",
+            "content": "# Configr Git Integration DemonnThis repository demonstrates the integration between Configr's File Module and Git Module.nn## Features Demonstratednn- **File Creation**: Using the File Module to create filesn- **Git Operations**: Clone, pull, and commit operationsn- **Version Control**: Proper git workflow integrationn- **Rollback Support**: Complete rollback of all changesnn## Files Creatednn- `configr-demo.txt`: Main demonstration filen- `.gitignore`: Git ignore file for the repositoryn- `README.md`: This documentation filenn## UsagennThis example shows how to:nn1. Clone a repositoryn2. Create new files using the File Modulen3. Commit changes to gitn4. Rollback all changes if needednn## Integration Benefitsnn- **Automated Workflows**: File creation and git operations in one configurationn- **Consistent State**: All operations are tracked and can be rolled backn- **Dotfile Management**: Perfect for managing configuration files with version control",
+            "filePath": "examples/git/test-repo/README.md",
+            "source": "",
+            "destination": "examples/git/test-repo/README.md",
+            "createDirectories": true,
+            "backupOriginal": false,
+            "backupSuffix": ".backup",
+            "editMode": "replace",
+            "originalContent": null,
+            "backupPath": null,
+            "fileExisted": false,
+            "operationSuccess": true
+          },
+          "parent": {
+            "type": "file",
+            "destination": "examples/git/test-repo/README.md"
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": "",
+      "properties": {
+        "type": "file",
+        "destination": "examples/git/test-repo/README.md"
+      }
+    },
+    {
+      "id": "resource_7",
+      "source": "",
+      "destination": "examples/git/test-repo",
+      "type": "directory",
+      "status": "completed",
+      "template": null,
+      "actions": [
+        {
+          "id": "git_4",
+          "type": "git",
+          "backupPath": null,
+          "status": "completed",
+          "timestamp": "2025-10-02T13:13:16.190067",
+          "sha256": null,
+          "actions": [],
+          "properties": {
+            "operation": "commit",
+            "local_path": "examples/git/test-repo",
+            "commit_message": "Add example file for Configr git demo",
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "repositoryUrl": "",
+            "localPath": "examples/git/test-repo",
+            "branch": "main",
+            "commitMessage": "Add example file for Configr git demo",
+            "operationSuccess": true,
+            "lastCommitHash": "e865b8799d2b18744030a18e7e526f2c2c0c9be8",
+            "operationDuration": 9740,
+            "operationOutput": "Successfully committed changes: e865b8799d2b18744030a18e7e526f2c2c0c9be8 Add example file for Configr git demo",
+            "operationError": null,
+            "streamOutput": false,
+            "showProgress": true,
+            "streamingOutput": null,
+            "progressPercentage": 0
+          },
+          "parent": {
+            "type": "directory",
+            "destination": "examples/git/test-repo"
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": "",
+      "properties": {
+        "type": "directory",
+        "destination": "examples/git/test-repo"
+      }
+    }
+  ],
+  "commands": [],
+  "packages": [],
+  "configChecksum": "2d842637853a2d4037e63e3accd77b1b4a4a9ac874bb7b24ec8efba87d1a7e61"
+}

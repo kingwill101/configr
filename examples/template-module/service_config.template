@@ -1,0 +1,36 @@
+# Systemd Service Configuration for {{ service_name }}
+
+[Unit]
+Description={{ service_name | capitalize }} Application
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User={{ service_user }}
+Group={{ service_group }}
+WorkingDirectory=/opt/{{ service_name }}
+ExecStart=/opt/{{ service_name }}/bin/{{ service_name }}
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+
+# Environment variables
+Environment=LOG_LEVEL={{ log_level }}
+Environment=MAX_CONNECTIONS={{ max_connections }}
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/{{ service_name }}/logs
+ReadWritePaths=/var/log/{{ service_name }}
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target
+

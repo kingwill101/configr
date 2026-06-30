@@ -1,0 +1,11 @@
+
+WARNING: 2026-06-21 20:14:10.977564: Path /path/to/delete/target does not exist, skipping deletion
+
+SEVERE: 2026-06-21 20:14:10.977787: Apply failed — 1 block(s) encountered errors:
+
+SEVERE: 2026-06-21 20:14:10.977836:   - backup: Failed backup block: ModuleException: Source path not found: /path/to/delete/target
+Error Code: SOURCE_NOT_FOUND
+Severity: high
+Category: fileSystem
+Operation: file_access
+ (line 7, column 13)

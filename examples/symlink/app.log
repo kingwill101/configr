@@ -1,0 +1,12 @@
+
+SEVERE: 2026-06-21 20:14:57.244954: Apply failed — 1 block(s) encountered errors:
+
+SEVERE: 2026-06-21 20:14:57.246003:   - symlink: Failed symlink block: ModuleException: Failed to create symlinks myfile.txt → 
+Error Code: ACTION_FAILED
+Severity: medium
+Category: execution
+Operation: action_execution
+Module: symlink_0
+Retryable: Yes
+Cause: PathNotFoundException: Cannot create link to target 'myfile.txt', path = '' (OS Error: No such file or directory, errno = 2)
+ (line 5, column 15)

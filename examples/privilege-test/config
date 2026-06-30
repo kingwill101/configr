@@ -1,0 +1,184 @@
+# Global privilege lock setting - keeps elevated privileges across multiple commands
+keep_privilege_lock = true
+
+# Example 1: System configuration file that requires root privileges
+resource {
+  type "file"
+  source "nginx.conf"
+  destination "/etc/nginx/nginx.conf"
+  require_root = true  # All child actions will run with elevated privileges
+
+  actions {
+    copy {
+      # Inherits require_root = true from parent resource
+    }
+    permissions {
+      mode "644"
+      # Inherits require_root = true from parent resource
+    }
+    backup {
+      # Inherits require_root = true from parent resource
+    }
+  }
+}
+
+# Example 2: Mixed privilege requirements - some actions need root, others don't
+resource {
+  type "file"
+  source "app_config.yml"
+  destination "/etc/myapp/config.yml"
+  require_root = true  # Default: all actions privileged
+
+  actions {
+    copy {
+      # Inherits require_root = true from parent
+    }
+    permissions {
+      mode "644"
+      require_root = false  # Override: this action runs without privileges
+    }
+    validate {
+      # Inherits require_root = true from parent
+    }
+  }
+}
+
+# Example 3: User configuration that doesn't need privileges by default
+resource {
+  type "file"
+  source "user_settings.json"
+  destination "/home/user/.config/myapp/settings.json"
+  require_root = false  # Default: no privileges needed
+
+  actions {
+    copy {
+      # Inherits require_root = false from parent
+    }
+    permissions {
+      mode "600"
+      require_root = true  # Override: this action needs privileges
+    }
+    backup {
+      # Inherits require_root = false from parent
+    }
+  }
+}
+
+# Example 4: System service configuration with complex inheritance
+resource {
+  type "file"
+  source "myapp.service"
+  destination "/etc/systemd/system/myapp.service"
+  require_root = true
+  environment = "production"
+  service_type = "systemd"
+
+  actions {
+    copy {
+      # Inherits require_root = true, environment, service_type from parent
+    }
+    permissions {
+      mode "644"
+      # Inherits require_root = true, environment, service_type from parent
+    }
+    systemd_reload {
+      require_root = true  # Explicit override (same as parent)
+      # Inherits environment, service_type from parent
+    }
+    validate {
+      require_root = false  # Override: no privileges needed for validation
+      # Inherits environment, service_type from parent
+    }
+  }
+}
+
+# Example 5: Package installation that requires root
+resource {
+  type "package"
+  name "nginx"
+  require_root = true  # Package operations need root
+
+  actions {
+    install {
+      # Inherits require_root = true from parent
+    }
+    enable {
+      # Inherits require_root = true from parent
+    }
+    start {
+      # Inherits require_root = true from parent
+    }
+  }
+}
+
+# Example 6: Multiple files with different privilege requirements
+resource {
+  type "file"
+  source "log_config.conf"
+  destination "/var/log/myapp/config.conf"
+  require_root = true
+
+  actions {
+    copy {
+    }
+    permissions {
+      mode "640"
+    }
+  }
+}
+
+resource {
+  type "file"
+  source "user_log_config.conf"
+  destination "/home/user/.config/myapp/log.conf"
+  require_root = false
+
+  actions {
+    copy {
+    }
+    permissions {
+      mode "600"
+    }
+  }
+}
+
+# Example 7: Network configuration requiring root
+resource {
+  type "file"
+  source "hosts"
+  destination "/etc/hosts"
+  require_root = true
+
+  actions {
+    copy {
+    }
+    permissions {
+      mode "644"
+    }
+    backup {
+      destination "/etc/hosts.backup"
+    }
+  }
+}
+
+# Example 8: SSL certificate installation
+resource {
+  type "file"
+  source "ssl_cert.pem"
+  destination "/etc/ssl/certs/myapp.pem"
+  require_root = true
+
+  actions {
+    copy {
+    }
+    permissions {
+      mode "644"
+    }
+    validate {
+      require_root = false  # Certificate validation doesn't need root
+    }
+  }
+}
+
+
+

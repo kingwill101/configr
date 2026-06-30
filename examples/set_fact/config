@@ -1,0 +1,7 @@
+# Set_fact block: define context variables for later use
+
+set_fact {
+  deployment_root = "/opt/myapp"
+  app_user = "myapp"
+  app_group = "myapp"
+}

@@ -1,0 +1,53 @@
+# Pamac Package Manager — Manjaro Linux
+#
+# Usage:
+#   configr apply -n --dry-run        # preview
+#   configr apply -n                   # execute (requires sudo)
+
+# Development tools
+pamac {
+  source = "git curl wget vim nano htop tree base-devel"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
+
+# Web server stack
+pamac {
+  source = "nginx php-fpm mariadb redis"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = false
+}
+
+# AUR packages (Pamac has built-in AUR support)
+pamac {
+  source = "google-chrome visual-studio-code-bin spotify"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
+
+# Security tools
+pamac {
+  source = "fail2ban ufw clamav rkhunter"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
+
+# System utilities
+pamac {
+  source = "htop iotop ncdu rsync zip unzip jq yq"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}
+
+# Manjaro-specific packages
+pamac {
+  source = "manjaro-tools mhwd pamac-gtk pamac-tray-applet"
+  operation = "install"
+  update_cache = true
+  skip_if_installed = true
+}

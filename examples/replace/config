@@ -1,0 +1,81 @@
+# Replace block: find-and-replace using regex in a file
+# Mirrors ansible.builtin.replace behavior
+
+resources {
+  # === Simple string replacement ===
+
+  resource {
+    type "file"
+    destination "examples/replace/index.html"
+
+    actions {
+      replace {
+        path "/var/www/html/index.html"
+        regexp "Copyright 2023"
+        replace "Copyright 2024"
+        backup "true"
+      }
+    }
+  }
+
+  # === Regex capture group replacement ===
+
+  resource {
+    type "file"
+    destination "examples/replace/config_app"
+
+    actions {
+      replace {
+        path "/etc/myapp/config.yml"
+        regexp "(password|secret):\\s+.*"
+        replace "\\1: ****"
+      }
+    }
+  }
+
+  # === Multi-line replacement with modifier flags ===
+
+  resource {
+    type "file"
+    destination "examples/replace/multiline_example"
+
+    actions {
+      replace {
+        path "/etc/nginx/sites-enabled/default"
+        regexp "(?sm)^server \\{.*?^\\}"
+        replace "server {\n    listen 80 default_server;\n    root /var/www/html;\n}"
+      }
+    }
+  }
+
+  # === Remove matching lines ===
+
+  resource {
+    type "file"
+    destination "examples/replace/remove_example"
+
+    actions {
+      replace {
+        path "/etc/sudoers"
+        regexp "^#includedir\\s+/etc/sudoers\\.d"
+        replace ""
+      }
+    }
+  }
+
+  # === After / before anchoring ===
+
+  resource {
+    type "file"
+    destination "examples/replace/anchored_example"
+
+    actions {
+      replace {
+        path "/etc/ssh/sshd_config"
+        regexp "^#?Port\\s+\\d+"
+        replace "Port 2222"
+        before "^#?Subsystem"
+      }
+    }
+  }
+}

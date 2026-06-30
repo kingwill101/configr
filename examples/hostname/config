@@ -1,0 +1,7 @@
+# Hostname block: manage system hostname
+
+hostname {
+  name = "webserver01.example.com"
+}
+
+# On Linux this uses hostnamectl; falls back to /etc/hostname

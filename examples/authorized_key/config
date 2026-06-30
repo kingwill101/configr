@@ -1,0 +1,14 @@
+# Authorized_key block: manage SSH authorized keys
+
+authorized_key {
+  user = "deploy"
+  key = "ssh-ed25519 AAAAC3... user@host"
+  key_options = 'command="/usr/bin/rsync --server",no-port-forwarding'
+  manage_dir = true
+}
+
+authorized_key {
+  user = "deploy"
+  key = "ssh-rsa AAAAB3... oldkey@host"
+  status = "absent"
+}

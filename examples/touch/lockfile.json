@@ -1,0 +1,40 @@
+{
+  "resources": [
+    {
+      "id": "resource_1",
+      "source": "",
+      "destination": "/path/to/touch/target",
+      "type": "file",
+      "status": "failed",
+      "template": null,
+      "actions": [
+        {
+          "id": "touch_1",
+          "type": "touch",
+          "backupPath": null,
+          "status": null,
+          "timestamp": null,
+          "sha256": null,
+          "actions": [],
+          "properties": {
+            "create_if_missing": true,
+            "status": null,
+            "timestamp": null,
+            "sha256": null
+          },
+          "state": {
+            "originalModificationTime": null,
+            "fileCreated": false,
+            "createIfMissing": false,
+            "rollbackCompleted": true
+          }
+        }
+      ],
+      "commands": [],
+      "sha256": ""
+    }
+  ],
+  "commands": [],
+  "packages": [],
+  "configChecksum": "8898cc66aea7d1aae8daa3ecd504eb45102a57d961ffe1d8372dc2d950b4cb96"
+}

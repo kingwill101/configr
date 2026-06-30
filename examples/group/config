@@ -1,0 +1,29 @@
+group {
+  type resource
+  destination .group
+
+  actions {
+    copy {
+    }
+  }
+
+  items += folder1
+  items += folder2
+  items += file1.txt
+  items += file2.txt
+}
+
+group {
+  type resource
+  destination .group
+
+  actions {
+    symlink {
+    }
+  }
+
+  items += folder1
+  items += folder2
+  items += file1.txt
+  items += file2.txt
+}
