@@ -46,10 +46,7 @@ abstract class UserBlock extends ActionBlock {
       case OperatingSystem.freebsd:
         return _FreeBSDUserBlock();
       default:
-        throw UnsupportedError(
-          'User management not supported on ${Platform.operatingSystem}. '
-          'Currently supported: Linux.',
-        );
+        return _UnsupportedUserBlock();
     }
   }
 
@@ -279,6 +276,21 @@ class _LinuxUserBlock extends UserBlock {
 // ---------------------------------------------------------------------------
 // macOS stub
 // ---------------------------------------------------------------------------
+
+class _UnsupportedUserBlock extends UserBlock {
+  _UnsupportedUserBlock() : super._();
+
+  @override
+  Future<void> execute() async {
+    throw UnsupportedError(
+      'User management not supported on ${Platform.operatingSystem}. '
+      'Currently supported: Linux.',
+    );
+  }
+
+  @override
+  Future<void> rollback() async {}
+}
 
 class _MacOSUserBlock extends UserBlock {
   _MacOSUserBlock() : super._();

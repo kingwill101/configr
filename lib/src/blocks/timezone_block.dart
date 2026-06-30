@@ -23,10 +23,7 @@ abstract class TimezoneBlock extends ActionBlock {
       case OperatingSystem.freebsd:
         return _FreeBSDTimezoneBlock();
       default:
-        throw UnsupportedError(
-          'Timezone not supported on ${Platform.operatingSystem}. '
-          'Currently supported: Linux.',
-        );
+        return _UnsupportedTimezoneBlock();
     }
   }
 
@@ -135,6 +132,21 @@ class _MacOSTimezoneBlock extends TimezoneBlock {
 // ---------------------------------------------------------------------------
 // FreeBSD stub  (tzsetup)
 // ---------------------------------------------------------------------------
+
+class _UnsupportedTimezoneBlock extends TimezoneBlock {
+  _UnsupportedTimezoneBlock() : super._();
+
+  @override
+  Future<void> execute() async {
+    throw UnsupportedError(
+      'Timezone not supported on ${Platform.operatingSystem}. '
+      'Currently supported: Linux.',
+    );
+  }
+
+  @override
+  Future<void> rollback() async {}
+}
 
 class _FreeBSDTimezoneBlock extends TimezoneBlock {
   _FreeBSDTimezoneBlock() : super._();
