@@ -19,6 +19,7 @@ RUN apk add --no-cache \
     python3 py3-pip \
     nodejs npm \
     sudo \
+    zip \
     unzip
 
 # Install Dart SDK (Alpine uses musl, use the Dart SDK tarball)

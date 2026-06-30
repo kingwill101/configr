@@ -17,6 +17,7 @@ RUN dnf install -y \
     python3-pip \
     nodejs npm \
     sudo \
+    zip \
     unzip \
     && dnf clean all
 

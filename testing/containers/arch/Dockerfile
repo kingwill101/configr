@@ -17,6 +17,7 @@ RUN pacman -Syu --noconfirm \
     python-pip \
     nodejs npm \
     sudo \
+    zip \
     unzip \
     && pacman -Scc --noconfirm
 

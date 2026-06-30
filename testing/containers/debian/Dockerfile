@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nodejs npm \
     sudo \
     nano \
+    zip unzip \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Dart SDK

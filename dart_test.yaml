@@ -6,6 +6,8 @@ tags:
     description: "Tests require a running Docker daemon (slow, opt-in)"
   debian:
     description: "Tests that require Debian/Ubuntu environment"
+  ubuntu:
+    description: "Tests that require Ubuntu environment"
   fedora:
     description: "Tests that require Fedora/RHEL environment"
   arch:
