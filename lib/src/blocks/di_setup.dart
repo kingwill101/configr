@@ -3,6 +3,7 @@ import 'package:configr/src/utils/command_runner.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/execution_service.dart';
 import 'package:configr/src/utils/file_service.dart';
+import 'package:configr/src/utils/network_service.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
 import 'package:file/file.dart' show FileSystem;
 import 'package:file/local.dart' show LocalFileSystem;
@@ -19,7 +20,10 @@ void registerCoreDiServices({
   PrivilegeEscalation? privilegeEscalation,
   FileSystem? fileSystem,
   ExecutionService? executionService,
+  NetworkService? networkService,
 }) {
+  final exec = executionService ?? const LocalExecutionService();
+  final fs = fileSystem ?? const LocalFileSystem();
   di
     ..allowReassignment = true
     ..registerSingleton<DryRunFlag>(DryRunFlag(dryRun))
@@ -27,9 +31,13 @@ void registerCoreDiServices({
     ..registerSingleton<PrivilegeEscalation>(
       privilegeEscalation ?? NonInteractiveSudoEscalation(),
     )
-    ..registerSingleton<FileSystem>(fileSystem ?? const LocalFileSystem())
-    ..registerSingleton<ExecutionService>(
-      executionService ?? const LocalExecutionService(),
+    ..registerSingleton<FileSystem>(fs)
+    ..registerSingleton<ExecutionService>(exec)
+    ..registerSingleton<NetworkService>(
+      networkService ??
+          (exec is LocalExecutionService
+              ? LocalNetworkService(fileSystem: fs)
+              : ExecutionNetworkService(exec)),
     )
     ..registerSingleton<FileService>(LocalFileService())
     ..registerSingleton<CommandRunner>(const LocalCommandRunner())

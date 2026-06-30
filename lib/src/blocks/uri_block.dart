@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
+import 'package:configr/src/utils/network_service.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
 class UriBlock extends ActionBlock {
@@ -87,40 +86,27 @@ class UriBlock extends ActionBlock {
     emitEvent(StartedEvent(moduleId: id, message: '$method $url'));
 
     try {
-      final parsed = Uri.parse(url);
-      final client = HttpClient()
-        ..connectionTimeout = Duration(seconds: timeout);
-
-      if (!validateCerts) {
-        client.badCertificateCallback = (_, _, _) => true;
-      }
-
-      final request = await client.openUrl(method, parsed);
-
-      for (final entry in headers.entries) {
-        request.headers.set(entry.key, entry.value);
-      }
-
-      if (body.isNotEmpty && method != 'GET' && method != 'HEAD') {
-        request.write(body);
-      }
-
-      final response = await request.close().timeout(
-        Duration(seconds: timeout),
+      final response = await networkService.request(
+        NetworkRequest(
+          method: method,
+          uri: Uri.parse(url),
+          headers: headers,
+          body: body,
+          timeoutSeconds: timeout,
+          validateCertificates: validateCerts,
+        ),
       );
-      final responseBody = await response.transform(utf8.decoder).join();
-      client.close();
 
       if (response.statusCode != statusCode) {
         throw ActionFailedException(
           'Expected status $statusCode but got ${response.statusCode}: '
-          '$responseBody',
+          '${response.body}',
           moduleId: id,
         );
       }
 
       context.setVariable('uri_status', response.statusCode);
-      context.setVariable('uri_content', responseBody);
+      context.setVariable('uri_content', response.body);
       context.setVariable('uri_method', method);
       context.setVariable('uri_url', url);
 

@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:configr/src/di.dart';
 import 'package:configr/src/utils/execution_service.dart';
+import 'package:configr/src/utils/network_service.dart';
 import 'package:configr/src/utils/ssh_execution_service.dart';
+import 'package:file/file.dart' show FileSystem;
 import 'package:i3config/i3config_v2.dart' as i3;
 
 class ConnectionBlock extends i3.BaseBlockHandler {
@@ -34,6 +36,8 @@ class ConnectionBlock extends i3.BaseBlockHandler {
 
     di.allowReassignment = true;
     di.registerSingleton<ExecutionService>(ssh);
+    di.registerSingleton<FileSystem>(ssh.fileSystem);
+    di.registerSingleton<NetworkService>(ExecutionNetworkService(ssh));
     di.allowReassignment = false;
 
     context.globalContext.options['_connectionConfig'] = config;

@@ -1,10 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:http/http.dart' as http;
+import 'package:configr/src/utils/network_service.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
 /// Block handler for the `network` config action.
@@ -195,119 +194,90 @@ class NetworkBlock extends ActionBlock {
   // ---------------------------------------------------------------------------
 
   Future<void> _executeConnectivity() async {
-    final startTime = DateTime.now();
-    try {
-      final result = await InternetAddress.lookup(
-        Uri.parse(source).host,
-      ).timeout(Duration(seconds: timeout));
-      connectivitySuccess = result.isNotEmpty;
-      resolvedIP = result.first.address;
-      dnsResolutionTimeMs = DateTime.now().difference(startTime).inMilliseconds;
-    } on SocketException {
-      connectivitySuccess = false;
-      dnsResolutionTimeMs = DateTime.now().difference(startTime).inMilliseconds;
-    }
+    final result = await networkService.probeConnectivity(
+      source,
+      timeoutSeconds: timeout,
+    );
+    connectivitySuccess = result.success;
+    resolvedIP = result.resolvedAddress;
+    dnsResolutionTimeMs = result.elapsedMs;
   }
 
   Future<void> _executeHttp() async {
-    final client = http.Client();
-    try {
-      final uri = Uri.parse(source);
-      final startTime = DateTime.now();
+    final headers = <String, String>{};
+    if (contentType != null) {
+      headers['Content-Type'] = contentType!;
+    }
+    if (username != null && password != null) {
+      final credentials = base64Encode(utf8.encode('$username:$password'));
+      headers['Authorization'] = 'Basic $credentials';
+    }
 
-      final request = http.Request(method, uri);
-      if (requestBody != null) {
-        request.body = requestBody!;
-      }
-      if (contentType != null) {
-        request.headers['Content-Type'] = contentType!;
-      }
-      if (username != null && password != null) {
-        final credentials = base64Encode(utf8.encode('$username:$password'));
-        request.headers['Authorization'] = 'Basic $credentials';
-      }
+    final result = await networkService.probeHttp(
+      NetworkRequest(
+        method: method,
+        uri: Uri.parse(source),
+        headers: headers,
+        body: requestBody ?? '',
+        timeoutSeconds: timeout,
+        validateCertificates: validateCertificate,
+      ),
+    );
+    responseCode = result.statusCode;
+    responseBody = result.body;
+    responseTimeMs = result.elapsedMs;
 
-      final streamedResponse = await client.send(request);
-      responseCode = streamedResponse.statusCode;
-      final response = await http.Response.fromStream(streamedResponse);
-      responseBody = response.body;
-      responseTimeMs = DateTime.now().difference(startTime).inMilliseconds;
+    if (expectedStatus != null && responseCode != expectedStatus) {
+      throw ActionFailedException(
+        'Expected status $expectedStatus, got $responseCode',
+        moduleId: id,
+      );
+    }
 
-      // Validate response
-      if (expectedStatus != null && responseCode != expectedStatus) {
+    if (expectedText != null && !responseBody!.contains(expectedText!)) {
+      throw ActionFailedException(
+        'Response body does not contain expected text: "$expectedText"',
+        moduleId: id,
+      );
+    }
+
+    if (expectedContentType != null) {
+      final ct = result.headers['content-type'] ?? '';
+      if (!ct.contains(expectedContentType!)) {
         throw ActionFailedException(
-          'Expected status $expectedStatus, got $responseCode',
+          'Expected content-type "$expectedContentType", got "$ct"',
           moduleId: id,
         );
       }
-
-      if (expectedText != null && !responseBody!.contains(expectedText!)) {
-        throw ActionFailedException(
-          'Response body does not contain expected text: "$expectedText"',
-          moduleId: id,
-        );
-      }
-
-      if (expectedContentType != null) {
-        final ct = response.headers['content-type'] ?? '';
-        if (!ct.contains(expectedContentType!)) {
-          throw ActionFailedException(
-            'Expected content-type "$expectedContentType", got "$ct"',
-            moduleId: id,
-          );
-        }
-      }
-    } finally {
-      client.close();
     }
   }
 
   Future<void> _executeTcp() async {
-    final startTime = DateTime.now();
-    try {
-      final socket = await Socket.connect(
-        source,
-        port,
-      ).timeout(Duration(seconds: timeout));
-      await socket.close();
-      responseTimeMs = DateTime.now().difference(startTime).inMilliseconds;
-      connectivitySuccess = true;
-    } on SocketException {
-      connectivitySuccess = false;
-      responseTimeMs = DateTime.now().difference(startTime).inMilliseconds;
-    }
+    final result = await networkService.probeTcp(
+      source,
+      port,
+      timeoutSeconds: timeout,
+    );
+    responseTimeMs = result.elapsedMs;
+    connectivitySuccess = result.success;
   }
 
   Future<void> _executeDns() async {
-    final startTime = DateTime.now();
-    try {
-      final results = await InternetAddress.lookup(
-        source,
-      ).timeout(Duration(seconds: timeout));
-      resolvedIP = results.first.address;
-      dnsResolutionTimeMs = DateTime.now().difference(startTime).inMilliseconds;
-      connectivitySuccess = true;
-    } on SocketException {
-      connectivitySuccess = false;
-      dnsResolutionTimeMs = DateTime.now().difference(startTime).inMilliseconds;
-    }
+    final result = await networkService.probeDns(
+      source,
+      timeoutSeconds: timeout,
+    );
+    resolvedIP = result.resolvedAddress;
+    dnsResolutionTimeMs = result.elapsedMs;
+    connectivitySuccess = result.success;
   }
 
   Future<void> _executePing() async {
-    final startTime = DateTime.now();
-    try {
-      final result = await executionService.run('ping', [
-        '-c',
-        '1',
-        '-W',
-        timeout.toString(),
-        source,
-      ]);
-      responseTimeMs = DateTime.now().difference(startTime).inMilliseconds;
-      connectivitySuccess = result.exitCode == 0;
-    } catch (e) {
-      connectivitySuccess = false;
-      responseTimeMs = DateTime.now().difference(startTime).inMilliseconds;
-    }
+    final result = await networkService.probePing(
+      source,
+      timeoutSeconds: timeout,
+    );
+    responseTimeMs = result.elapsedMs;
+    connectivitySuccess = result.success;
   }
 }

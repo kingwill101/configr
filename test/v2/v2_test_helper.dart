@@ -81,6 +81,7 @@ import 'package:test/test.dart';
 import 'package:configr/src/di.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/utils/execution_service.dart';
+import 'package:configr/src/utils/network_service.dart';
 
 /// Test helper for v2 ActionBlock tests.
 ///
@@ -225,6 +226,9 @@ class V2TestHelper {
       ..registerSingleton<PrivilegeEscalation>(_DenyingPrivilegeEscalation())
       ..registerSingleton<FileSystem>(fileSystem)
       ..registerSingleton<ExecutionService>(_DenyingExecutionService())
+      ..registerSingleton<NetworkService>(
+        LocalNetworkService(fileSystem: fileSystem),
+      )
       ..registerSingleton<FileService>(LocalFileService())
       ..registerSingleton<CommandRunner>(LocalCommandRunner())
       ..allowReassignment = false;

@@ -14,6 +14,7 @@ import 'package:configr/src/utils/execution_service.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/file_service.dart';
 import 'package:configr/src/utils/logging.dart' show logger;
+import 'package:configr/src/utils/network_service.dart';
 import 'package:configr/src/utils/privilege_escalation.dart'
     show NoPrivilegeEscalation, PrivilegeEscalation;
 import 'package:configr/src/utils/ssh_execution_service.dart'
@@ -74,6 +75,7 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
   FileSystem get fileSystem => di<FileSystem>();
   FileService get fileService => di<FileService>();
   CommandRunner get commandRunner => di<CommandRunner>();
+  NetworkService get networkService => di<NetworkService>();
 
   /// When true, [execute] is skipped during processing.
   /// Used by tests that only want to verify property parsing.

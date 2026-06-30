@@ -1,12 +1,11 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
-
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/multi_host/variable_precedence.dart'
     show PrecedenceLayer, VariablePrecedence;
 import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/platform.dart';
+import 'package:configr/src/utils/target_system.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
 class GatherFactsBlock extends ActionBlock {
@@ -63,14 +62,15 @@ class GatherFactsBlock extends ActionBlock {
   Future<void> execute() async {
     emitEvent(StartedEvent(moduleId: id, message: 'Gathering facts'));
     try {
-      final osFacts = OsFacts.detect();
+      final targetFacts = await TargetSystemProbe(executionService).detect();
+      final osFacts = targetFacts.toOsFacts();
       final facts = <String, dynamic>{
         'os_family': osFacts.family.name,
         'distribution': osFacts.distribution,
         'distribution_version': osFacts.distributionVersion,
         'architecture': osFacts.architecture,
         'system': osFacts.os.name,
-        'hostname': Platform.localHostname,
+        'hostname': targetFacts.hostname,
       };
 
       context.setVariable('os_family', facts['os_family'] as String);

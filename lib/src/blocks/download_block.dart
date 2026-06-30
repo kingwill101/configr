@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
-import 'package:crypto/crypto.dart' show sha256, md5, sha1;
-import 'package:http/http.dart' as http;
+import 'package:configr/src/utils/network_service.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
 /// Block handler for the `download` config action.
@@ -19,6 +17,7 @@ import 'package:i3config/i3config_v2.dart' as i3;
 ///   destination = "/tmp/file.zip"
 ///   checksum = "abc123..."
 ///   checksum_algorithm = "sha256"     # sha256 | md5 | sha1
+///   transfer_mode = "auto"            # auto | remote | controller
 ///   overwrite = true
 ///   resume = true
 ///   auth_type = "bearer"
@@ -38,6 +37,7 @@ class DownloadBlock extends ActionBlock {
   String checksumAlgorithm = 'sha256';
   bool overwrite = false;
   bool resumeEnabled = false;
+  DownloadTransferMode transferMode = DownloadTransferMode.auto;
   String? authType;
   String? authToken;
   String? username;
@@ -64,9 +64,35 @@ class DownloadBlock extends ActionBlock {
   // ---------------------------------------------------------------------------
 
   @override
+  void resetState() {
+    super.resetState();
+    checksum = null;
+    expectedChecksum = null;
+    checksumAlgorithm = 'sha256';
+    overwrite = false;
+    resumeEnabled = false;
+    transferMode = DownloadTransferMode.auto;
+    authType = null;
+    authToken = null;
+    username = null;
+    password = null;
+    destinationFileExisted = false;
+    originalContent = null;
+    actualChecksum = null;
+    receivedBytes = 0;
+    totalBytes = -1;
+    isResumed = false;
+    resumePosition = 0;
+    downloadSpeed = 0;
+    downloadDurationMs = 0;
+  }
+
+  @override
   Map<String, String> get additionalProperties => {
     'checksum': ?checksum,
     if (checksumAlgorithm != 'sha256') 'checksum_algorithm': checksumAlgorithm,
+    if (transferMode != DownloadTransferMode.auto)
+      'transfer_mode': transferMode.name,
     'auth_type': ?authType,
     'auth_token': ?authToken,
     'username': ?username,
@@ -87,8 +113,15 @@ class DownloadBlock extends ActionBlock {
     await super.readAdditionalProperties(block, context);
 
     checksum = context.getVariable('checksum') as String?;
+    expectedChecksum = checksum;
     checksumAlgorithm =
         (context.getVariable('checksum_algorithm') as String?) ?? 'sha256';
+    transferMode = DownloadTransferMode.parse(
+      (context.getVariable('transfer_mode') ??
+              context.getVariable('download_mode') ??
+              'auto')
+          .toString(),
+    );
 
     overwrite = switch (context.getVariable('overwrite')) {
       true || 'true' => true,
@@ -143,19 +176,40 @@ class DownloadBlock extends ActionBlock {
 
     try {
       final startTime = DateTime.now();
-      final checksum = await _downloadWithProgress(source, destination);
+      final result = await networkService.downloadToFile(
+        url: source,
+        destinationPath: destination,
+        checksumAlgorithm: checksumAlgorithm,
+        headers: _authenticationHeaders(),
+        resume: resumeEnabled,
+        transferMode: transferMode,
+        onProgress: (current, total, message) {
+          receivedBytes = current;
+          totalBytes = total;
+          emitEvent(
+            DownloadProgressEvent(
+              current: current,
+              total: total,
+              message: message,
+              moduleId: id,
+            ),
+          );
+        },
+      );
       final endTime = DateTime.now();
       final duration = endTime.difference(startTime);
       downloadDurationMs = duration.inMilliseconds;
+      receivedBytes = result.receivedBytes;
       downloadSpeed = duration.inMilliseconds > 0
           ? (receivedBytes * 1000 / duration.inMilliseconds).round()
           : 0;
+      actualChecksum = result.checksum;
 
       // Verify checksum if expected
-      if (expectedChecksum != null && checksum != expectedChecksum) {
+      if (expectedChecksum != null && result.checksum != expectedChecksum) {
         await fileService.deleteFile(destination);
         throw ActionFailedException(
-          'Checksum validation failed: expected $expectedChecksum, got $checksum',
+          'Checksum validation failed: expected $expectedChecksum, got ${result.checksum}',
           moduleId: id,
         );
       }
@@ -220,91 +274,16 @@ class DownloadBlock extends ActionBlock {
   // Internal helpers
   // ---------------------------------------------------------------------------
 
-  Future<String> _downloadWithProgress(
-    String url,
-    String destinationPath,
-  ) async {
-    final client = http.Client();
-    final fSys = fileSystem;
-    try {
-      final request = http.Request('GET', Uri.parse(url));
-      _addAuthenticationHeaders(request);
-
-      // Handle resume
-      if (resumeEnabled) {
-        final destFile = fSys.file(destinationPath);
-        if (await destFile.exists()) {
-          resumePosition = await destFile.length();
-          request.headers['Range'] = 'bytes=$resumePosition-';
-          isResumed = true;
-        }
-      }
-
-      final response = await client.send(request);
-
-      if (response.statusCode != 200 && response.statusCode != 206) {
-        throw ActionFailedException(
-          'Failed to download: HTTP ${response.statusCode}',
-          moduleId: id,
-        );
-      }
-
-      totalBytes = response.contentLength ?? -1;
-      receivedBytes = 0;
-
-      final destFile = fSys.file(destinationPath);
-      final sink = destFile.openWrite(
-        mode: isResumed ? FileMode.append : FileMode.write,
-      );
-
-      try {
-        await for (final chunk in response.stream) {
-          sink.add(chunk);
-          receivedBytes += chunk.length;
-
-          emitEvent(
-            DownloadProgressEvent(
-              current: receivedBytes,
-              total: totalBytes,
-              message: isResumed ? 'Resuming download...' : 'Downloading...',
-              moduleId: id,
-            ),
-          );
-        }
-      } finally {
-        await sink.close();
-      }
-
-      final fileBytes = await destFile.readAsBytes();
-      final hash = _calculateChecksum(fileBytes);
-      actualChecksum = hash;
-
-      return hash;
-    } finally {
-      client.close();
-    }
-  }
-
-  void _addAuthenticationHeaders(http.Request request) {
+  Map<String, String> _authenticationHeaders() {
+    final headers = <String, String>{};
     if (authType == 'basic' && username != null && password != null) {
       final credentials = base64Encode(utf8.encode('$username:$password'));
-      request.headers['Authorization'] = 'Basic $credentials';
+      headers['Authorization'] = 'Basic $credentials';
     } else if (authType == 'bearer' && authToken != null) {
-      request.headers['Authorization'] = 'Bearer $authToken';
+      headers['Authorization'] = 'Bearer $authToken';
     } else if (authType == 'api_key' && authToken != null) {
-      request.headers['X-API-Key'] = authToken!;
+      headers['X-API-Key'] = authToken!;
     }
-  }
-
-  String _calculateChecksum(List<int> bytes) {
-    switch (checksumAlgorithm.toLowerCase()) {
-      case 'md5':
-        return md5.convert(bytes).toString();
-      case 'sha1':
-        return sha1.convert(bytes).toString();
-      case 'sha256':
-      default:
-        return sha256.convert(bytes).toString();
-    }
+    return headers;
   }
 }
