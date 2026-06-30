@@ -4,7 +4,7 @@ import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
 
-import 'package:path/path.dart' as p;
+import 'package:path/path.dart' show posix;
 import 'package:i3config/i3config_v2.dart' as i3;
 
 class FetchBlock extends ActionBlock {
@@ -56,7 +56,7 @@ class FetchBlock extends ActionBlock {
   @override
   String dryRunSummary() {
     if (src.isEmpty) return '$blockType: (empty)';
-    final target = flat ? dest : p.join(dest, _hostname, _relativeSrc);
+    final target = flat ? dest : posix.join(dest, _hostname, _relativeSrc);
     return '$blockType: $src -> $target';
   }
 
@@ -93,11 +93,11 @@ class FetchBlock extends ActionBlock {
     try {
       final targetPath = flat
           ? (await fileService.pathExists(dest)).isDir
-                ? p.join(dest, p.basename(src))
+                ? posix.join(dest, posix.basename(src))
                 : dest
-          : p.join(dest, _hostname, _relativeSrc);
+          : posix.join(dest, _hostname, _relativeSrc);
 
-      final targetDir = p.dirname(targetPath);
+      final targetDir = posix.dirname(targetPath);
       if (!await fileService.directoryExists(targetDir)) {
         await fileService.createDirectoryWithPermissions(
           targetDir,
