@@ -35,7 +35,7 @@ jobs:
         run: dart pub get
 
       - name: Build executable
-        run: dart compile exe bin/configr.dart -o ${{ matrix.output-name }}
+        run: dart compile exe -Dversion=${{ github.ref_name }} bin/configr.dart -o ${{ matrix.output-name }}
 
       - name: Package artifact
         shell: bash

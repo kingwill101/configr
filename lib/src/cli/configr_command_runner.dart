@@ -33,6 +33,9 @@ import 'package:configr/src/cli/commands/watch.dart';
 import 'package:configr/src/connection_config.dart';
 
 class ConfigrCommandRunner extends CommandRunner<void> {
+  static const String version =
+      String.fromEnvironment('version', defaultValue: 'dev');
+
   ConfigrCommandRunner({
     void Function(String)? out,
     void Function(String)? err,
@@ -52,6 +55,12 @@ class ConfigrCommandRunner extends CommandRunner<void> {
          setExitCode: setExitCode,
          ansi: ansi,
        ) {
+    argParser.addFlag(
+      'version',
+      help: 'Print the version information and exit.',
+      negatable: false,
+    );
+
     argParser.addOption(
       'config',
       abbr: 'c',
@@ -154,6 +163,11 @@ class ConfigrCommandRunner extends CommandRunner<void> {
 
   @override
   Future<void> run(Iterable<String> args) async {
+    if (args.contains('--version')) {
+      print('configr $version');
+      return;
+    }
+
     // Parse args using the argParser instead of manual string matching.
     // The argParser already defines every option with proper types, defaults,
     // and error handling. We call parse() here to extract global option
