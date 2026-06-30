@@ -197,43 +197,7 @@ dart test test/config_management_test.dart
 
 MIT License - see [LICENSE](LICENSE) for details
 
-## Stack Drivers
 
-Stack drivers allow you to group multiple channels under a single channel name and apply middleware independently to each underlying channel:
-
-```dart
-// Configure channels for different purposes
-final fileDriver = DailyFileLogDriver('logs/app.log');
-final slackDriver = WebhookLogDriver(slackWebhook);
-
-// Create a stack that sends to both channels
-final stackDriver = StackLogDriver({
-  'file': fileDriver,
-  'slack': slackDriver,
-}, ignoreExceptions: true);
-
-// Add the stack as a channel
-logger.addDriver('notifications', stackDriver);
-
-// Add channel-specific middleware
-logger.addDriverMiddleware('file', FileFormatter());
-logger.addDriverMiddleware('slack', SlackFormatter());
-
-// Log through the stack
-logger.to(['notifications']).error('Critical system failure');
-```
-
-When using a stack driver:
-- Each channel in the stack processes logs independently
-- Channel-specific middleware applies to individual channels
-- Global middleware applies to all channels
-- Errors in one channel won't affect others if ignoreExceptions is true
-
-This makes stack drivers ideal for:
-- Sending critical logs to multiple destinations
-- Applying different formatting to each output channel
-- Creating backup logging channels
-- Setting up monitoring and notification systems
 ## Contributing
 
 1. Fork the repository
