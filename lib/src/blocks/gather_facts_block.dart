@@ -14,6 +14,8 @@ class GatherFactsBlock extends ActionBlock {
   String get blockType => 'gather_facts';
 
   String gatherSubset = 'all';
+  @override
+  String destination = '';
 
   GatherFactsBlock();
 

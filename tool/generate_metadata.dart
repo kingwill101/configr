@@ -74,4 +74,8 @@ class _StubLuaPluginHost implements LuaPluginHost {
   void registerBlockInPlugin(String blockType, Object? callbacks) {
     // Not called during metadata generation.
   }
+  
+  @override
+  // TODO: implement processBackend
+  ProcessBackend? get processBackend => throw UnimplementedError();
 }

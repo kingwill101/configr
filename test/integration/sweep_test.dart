@@ -104,6 +104,7 @@ void main() {
           try {
             await runner.run([
               'apply',
+              '--v2',
               '--config',
               configFile.path,
               '-n',
@@ -143,6 +144,7 @@ void main() {
           try {
             await runner2.run([
               'apply',
+              '--v2',
               '--config',
               configFile.path,
               '-n',

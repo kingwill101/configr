@@ -1,121 +1,244 @@
-# Configr
+# configr
 
-Configr is a declarative configuration tool for local machines and SSH
-targets. You describe files, packages, services, commands, hooks, secrets, and
-multi-host inventories in one config file, then apply or roll back those
-changes from the `configr` CLI.
+A flexible configuration management tool that helps you manage dotfiles, system configurations, and file operations with rollback support.
 
-## What It Does
+## Features
 
-- Applies repeatable configuration blocks for files, templates, packages,
-  services, users, groups, cron, firewalls, mounts, HTTP checks, and more.
-- Runs locally or against remote hosts over SSH/SFTP without copying the
-  Configr binary to the remote machine.
-- Tracks successful applies in lockfiles so changes can be rolled back.
-- Supports dry runs, named commands, Lua hooks/plugins, secrets, includes, and
-  multi-host inventory execution.
+- File Operations
+  - Copy files and directories
+  - Create backups before modifications
+  - Set permissions and ownership
+  - Create symbolic links
+  - Compress/decompress archives
 
-## Install
+- Templates
+  - Generate files from templates
+  - Variable substitution
+  - Support for multiple template formats
 
-Download a CLI artifact from the latest GitHub Actions run or tagged GitHub
-Release. Each archive includes a SHA-256 checksum file.
+- Validation
+  - Format validation (JSON, YAML, etc.)
+  - Checksum verification
+
+- Safety Features
+  - Automatic backups
+  - Rollback on failure
+  - Dry run mode
+  - File integrity checks
+
+## Installation
 
 ```bash
-tar -xzf configr-linux-x64.tar.gz
-shasum -a 256 -c configr-linux-x64.tar.gz.sha256
-./configr-linux-x64/configr --version
-```
+# Clone the repository
+git clone https://github.com/yourusername/configr.git
 
-For source builds:
-
-```bash
+# Build the project
+cd configr
 dart pub get
 dart compile exe bin/configr.dart -o configr
-./configr --version
 ```
-
-CI builds embed version, Git SHA, build date, run number, source, and target
-metadata. Use `configr --version` to inspect the binary you are running.
 
 ## Quick Start
 
+### 1. Initialize Configuration
+
 ```bash
-configr init
-configr apply --dry-run
-configr apply
-configr status
-configr rollback --count 1
+# Initialize a new configuration repository
+dart bin/main.dart init
 ```
 
-Example `config`:
+### 2. Create a config file:
 
-```i3
-include "packages/*.config"
+```
+resources {
+  resource {
+    source "bashrc"
+    destination "~/.bashrc"
 
-file {
-  destination = "~/.config/myapp/settings.toml"
-  content = "theme = \"dark\"\n"
-  operation = "create"
-}
-
-copy {
-  source = "dotfiles/bashrc"
-  destination = "~/.bashrc"
-  backup_original = true
-}
-
-commands {
-  command "verify" {
-    command = "sh"
-    parameters "-c" "test -f ~/.bashrc && echo ok"
+    actions {
+      backup {
+        backup_path "~/.bashrc.bak"
+      }
+      copy {}
+      permissions {
+        mode "644"
+      }
+    }
   }
 }
 ```
 
-Run a named command from the config:
+3. Add files to your configuration:
 
 ```bash
-configr run verify
-configr run verify -- --extra-arg
+# Add a single file
+dart bin/main.dart add --file ~/.bashrc
+
+# Add multiple files
+dart bin/main.dart add --file ~/.vimrc --file ~/.gitconfig
 ```
 
-## Remote Hosts
-
-Run the same local config against a remote machine:
+4. Apply your configuration:
 
 ```bash
-configr apply \
-  --host server.example.com \
-  --ssh-user deploy \
-  --ssh-key ~/.ssh/id_ed25519
+# Apply with default settings
+dart bin/main.dart apply
+
+# Force apply all resources
+dart bin/main.dart apply --force
 ```
 
-Configr uses SSH/SFTP for remote processes and files. The config stays on the
-control machine; file and process operations are routed to the target host.
+5. Check status and manage your configuration:
 
-For multiple hosts, define an inventory and select hosts, roles, or groups from
-the CLI. See the docs for inventory, execution strategies, and remote rollback.
+```bash
+# View current status
+dart bin/main.dart status
+
+# See what would change
+dart bin/main.dart diff
+
+# Rollback changes if needed
+dart bin/main.dart rollback
+
+# Rollback specific number of operations
+dart bin/main.dart rollback --count 3
+```
+
+## CLI Usage
+
+### Available Commands
+
+```bash
+# Show all available commands
+dart bin/main.dart --help
+
+# Get help for a specific command
+dart bin/main.dart <command> --help
+```
+
+### Global Options
+
+- `-c, --config <path>`: Path to configuration file (defaults to "config")
+- `-h, --help`: Print usage information
+
+### Command Examples
+
+```bash
+# Initialize configuration
+dart bin/main.dart init
+
+# Add files to configuration
+dart bin/main.dart add --file ~/.bashrc --file ~/.vimrc
+
+# Apply configuration
+dart bin/main.dart apply --force
+
+# Check status
+dart bin/main.dart status
+
+# View differences
+dart bin/main.dart diff
+
+# Edit configuration
+dart bin/main.dart edit
+
+# Format configuration
+dart bin/main.dart format
+
+# Rollback changes
+dart bin/main.dart rollback --count 2
+
+# Rollback all changes
+dart bin/main.dart rollback
+```
+
+### Output Format
+
+The CLI provides clean, text-focused output:
+
+```
+[module-id] Starting: Operation description
+[module-id] Progress: 50% - Processing...
+[module-id] Completed: Operation completed successfully
+```
 
 ## Documentation
 
-- Docs site: <https://kingwill101.github.io/configr/>
-- CLI guide: [docs/getting-started/cli-usage.md](docs/getting-started/cli-usage.md)
-- Config organization and `include`: [docs/guides/config-organization.md](docs/guides/config-organization.md)
-- Remote execution: [docs/guides/remote-execution.md](docs/guides/remote-execution.md)
-- Multi-host execution: [docs/guides/multi-host.md](docs/guides/multi-host.md)
-- Block reference: [docs/index.md](docs/index.md)
+- [CLI Usage Guide](docs/cli-usage.md)
+- [Terminal UI System](docs/terminal-ui.md)
+- [Developer Guide](docs/developer/command-creation.md)
+- [Migration Guide](docs/migration-guide.md)
+- [Module Documentation](docs/modules/README.md)
+- [Getting Started Tutorial](docs/modules/tutorial.md)
+- [Configuration Format](docs/basics.md)
+
+## Examples
+
+Check out the [examples](examples) directory for common configuration scenarios:
+
+- Basic file operations
+- Template usage
+- Archive management
+- System configuration
+- Dotfiles management
 
 ## Development
 
 ```bash
-dart format --output=none --set-exit-if-changed .
-dart analyze
+# Run tests
 dart test
-npm run docs:build
-```
 
-Container-backed and SSH integration tests require Docker.
+# Run specific test file
+dart test test/config_management_test.dart
+
+```
 
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+MIT License - see [LICENSE](LICENSE) for details
+
+## Stack Drivers
+
+Stack drivers allow you to group multiple channels under a single channel name and apply middleware independently to each underlying channel:
+
+```dart
+// Configure channels for different purposes
+final fileDriver = DailyFileLogDriver('logs/app.log');
+final slackDriver = WebhookLogDriver(slackWebhook);
+
+// Create a stack that sends to both channels
+final stackDriver = StackLogDriver({
+  'file': fileDriver,
+  'slack': slackDriver,
+}, ignoreExceptions: true);
+
+// Add the stack as a channel
+logger.addDriver('notifications', stackDriver);
+
+// Add channel-specific middleware
+logger.addDriverMiddleware('file', FileFormatter());
+logger.addDriverMiddleware('slack', SlackFormatter());
+
+// Log through the stack
+logger.to(['notifications']).error('Critical system failure');
+```
+
+When using a stack driver:
+- Each channel in the stack processes logs independently
+- Channel-specific middleware applies to individual channels
+- Global middleware applies to all channels
+- Errors in one channel won't affect others if ignoreExceptions is true
+
+This makes stack drivers ideal for:
+- Sending critical logs to multiple destinations
+- Applying different formatting to each output channel
+- Creating backup logging channels
+- Setting up monitoring and notification systems
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+For more information, see [CONTRIBUTING.md](CONTRIBUTING.md)

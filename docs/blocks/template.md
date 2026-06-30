@@ -16,7 +16,7 @@ The template module provides advanced file generation from templates using the L
 
 ### Basic Template Processing
 
-**Inside a resource:**
+**Inside a resource (v1 style):**
 
 ```
 resource {
@@ -36,7 +36,7 @@ resource {
 }
 ```
 
-### Standalone Template Block
+### Standalone Template Block (v2 flat syntax)
 
 ```
 template {
@@ -50,7 +50,7 @@ template {
 }
 ```
 
-### In-Memory Resource-Scoped Templating
+### In-Memory Templating (v2 resource-scoped)
 
 When `template { }` is placed directly inside a `resource { }` (not under `actions { }`), it renders in-memory without writing to disk. Child actions (like `copy { }`) inherit the rendered content:
 

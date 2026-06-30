@@ -19,11 +19,8 @@ import 'package:i3config/i3config_v2.dart' as i3;
 ///
 /// The [ConfigBuilder] is stored in the processor's context options under
 /// `'configBuilder'` and is populated as the processor walks the AST.
-i3.ConfigProcessor createConfigrProcessor(
-  ConfigBuilder builder, {
-  i3.FileSystem? fileSystem,
-}) {
-  final processor = i3.ConfigProcessor(fileSystem: fileSystem);
+i3.ConfigProcessor createConfigrProcessor(ConfigBuilder builder) {
+  final processor = i3.ConfigProcessor();
 
   // Store the ConfigBuilder in the processor's root context
   processor.context.options['configBuilder'] = builder;

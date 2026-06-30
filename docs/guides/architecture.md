@@ -1,76 +1,138 @@
-# How Configr Applies Changes
+# Architecture Overview
 
-Configr has one main rule: the config stays where you run the CLI, while the
-target can be either the local machine or an SSH host.
+## Core Abstraction: ExecutionService
 
-## Local Apply
+The central architectural decision in Configr v2 is the **`ExecutionService`**
+interface — a transport-layer abstraction that replaces all direct
+`Process.run` / `Process.start` calls. Every block handler, package manager,
+and file service goes through this single interface.
 
-```mermaid
-flowchart LR
-    Config[config file] --> CLI[configr apply]
-    CLI --> Target[local machine]
-    Target --> Lockfile[config.lock.json]
-```
+```dart
+abstract class ExecutionService {
+  String get platform;
+  bool get isConnected;
 
-Use this for dotfiles, workstation bootstrap, and local server setup.
+  Future<ProcessResult> run(
+    String command,
+    List<String> arguments, {
+    String? workingDirectory,
+    bool runInShell = false,
+    Map<String, String>? environment,
+    CommandOutputHandler? onOutput,
+    String? stdin,
+  });
 
-```bash
-configr apply --dry-run
-configr apply
-```
-
-## Remote Apply
-
-```mermaid
-flowchart LR
-    Config[local config file] --> CLI[configr apply --host]
-    CLI --> SSH[SSH/SFTP connection]
-    SSH --> Remote[remote host files and processes]
-    Remote --> Lockfile[per-host lockfile]
-```
-
-Use this when your control machine should keep the config, hooks, and plugins,
-but file and process operations must happen on another host.
-
-```bash
-configr apply \
-  --host server.example.com \
-  --ssh-user deploy \
-  --ssh-key ~/.ssh/id_ed25519
-```
-
-## Multi-Host Apply
-
-Inventories let one config target several hosts by name, role, or group. The
-same blocks can run serially, in priority groups, or in parallel depending on
-the selected strategy.
-
-```i3
-inventory {
-  host "web-1" {
-    hostname = "web-1.internal"
-    user = "deploy"
-  }
-
-  role "web" {
-    hosts "web-1"
-  }
+  Future<void> connect(Map<String, dynamic> config);
+  Future<void> disconnect();
+  Future<void> putFile(String source, String destination);
+  Future<void> fetchFile(String source, String destination);
 }
 ```
 
-## Rollback
+### Implementations
 
-Successful applies write lockfiles. Rollback reads those records in reverse
-order and restores the previous state for the selected local or remote target.
+| Implementation | Scope | Backend |
+|----------------|-------|---------|
+| `LocalExecutionService` | Local machine | `dart:io` `Process.run` / `Process.start` |
+| `SSHExecutionService` | Remote host | `dartssh2` SSH/SFTP |
 
-```bash
-configr rollback
-configr rollback --count 1
+## Dependency Injection
+
+Configr uses a lightweight DI container (`package:configr/src/di.dart`).
+Services are registered in `_registerAllBlocks()` (in `v2_apply.dart`):
+
+```dart
+di
+  ..registerSingleton<ExecutionService>(executionService)
+  ..registerSingleton<FileSystem>(const LocalFileSystem())
+  ..registerSingleton<FileService>(LocalFileService())
+  ..registerSingleton<CommandRunner>(const LocalCommandRunner())
+  ..registerSingleton<PrivilegeEscalation>(escalation)
+  ..registerSingleton<EventBus>(eventBus)
+  ..registerSingleton<DryRunFlag>(DryRunFlag(dryRun));
 ```
 
-## Safety Boundaries
+The `ExecutionService` selection happens at registration time:
+- If `connectionConfig` has a non-empty `host` → `SSHExecutionService`
+- Otherwise → `LocalExecutionService`
 
-- `--dry-run` previews changes without applying them.
-- Lockfiles are written only after successful work is recorded.
-- Remote applies route file and process operations over SSH/SFTP.
-- Secrets are redacted from normal output and event logs.
+### Overriding at Runtime
+
+Block handlers can override DI singletons during processing. For example,
+the `ConnectionBlock` replaces `LocalExecutionService` with
+`SSHExecutionService` when an inline `connection { }` block is processed:
+
+```dart
+final ssh = SSHExecutionService();
+await ssh.connect(config);
+di.allowReassignment = true;
+di.registerSingleton<ExecutionService>(ssh);
+di.allowReassignment = false;
+```
+
+## Secrets Pipeline
+
+```mermaid
+flowchart LR
+    Config[secrets { } block] --> Parse[Key = URI pairs]
+    Parse --> Registry[SecretProviders registry]
+    Registry --> Resolver[SecretResolver]
+    Resolver --> Provider[Provider.get()]
+    Provider --> Sensitive[SensitiveValue wrapper]
+    Sensitive --> Middleware[SensitiveVariableMiddleware]
+    Middleware --> Context[context.globalContext]
+    Context --> Blocks[Other blocks reference secrets.key]
+    Context --> Redact[Redaction via middleware.redact()]
+```
+
+1. `SecretsBlock.afterChildrenProcessed()` iterates context variables
+2. Each value is resolved via `SecretResolver.resolveWithSensitivity()`
+3. Resolved values are stored via `context.globalContext.registerBlock()`
+4. Sensitive key names are registered with the `SensitiveVariableMiddleware`
+5. Other blocks reference secrets via native `secrets.key` dot-notation
+6. `emitEvent()` and dry-run `print()` call `middleware.redact()` to replace
+   actual sensitive values with `<SENSITIVE>`
+
+## Block Processing Pipeline
+
+```mermaid
+flowchart TB
+    Parse[i3.Config.parse] --> Processor[ConfigProcessor]
+    Processor --> Register[Register block handlers]
+    Register --> Pre[Pre-apply scripts]
+    Pre --> Process[processor.process]
+    Process --> AfterChildren[afterChildrenProcessed]
+    AfterChildren --> Execute[ActionBlock.execute]
+    Execute --> Lock[Write lockfile]
+    Lock --> Post[Post-apply scripts]
+```
+
+## Event System
+
+All operations emit events through `EventBus`. Events carry the block name,
+status, message, and metadata. The `FileEventHandler` persists events to a
+JSONL log file for audit trails.
+
+Events are automatically redacted before emission — any sensitive values
+present in the event message are replaced with `<SENSITIVE>`.
+
+## Key Design Decisions
+
+1. **Single transport interface** — Every OS interaction goes through
+   `ExecutionService`, making it trivial to add new transports (e.g.,
+   Docker exec, Kubernetes exec, WinRM)
+
+2. **Native BlockReference for secrets** — Secret values use i3config's
+   native `secrets.key` dot-notation, not template syntax like `{{ secret }}`.
+   No changes needed to existing block subclasses.
+
+3. **Centralised redaction** — Sensitive values are tracked by the
+   `SensitiveVariableMiddleware`, which knows the set of sensitive key names and
+   their actual values. Redaction happens in two choke points (`emitEvent`
+   and dry-run `print`), so no individual block needs to worry about leaking
+   secrets. The middleware is registered at the processor level so it
+   propagates to all contexts automatically.
+
+4. **DI over globals** — Services are registered in a DI container rather
+   than accessed via static globals, making unit testing easier and allowing
+   runtime substitution (e.g., swapping `LocalExecutionService` for SSH).

@@ -1,6 +1,6 @@
 # Secrets Management
 
-Configr includes a provider-agnostic secrets system for resolving sensitive
+Configr v2 includes a provider-agnostic secrets system for resolving sensitive
 values at apply time without hardcoding them in config files.
 
 ## Overview

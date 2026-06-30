@@ -239,9 +239,8 @@ class SystemInfo {
           if (result.exitCode == 0) {
             final like = (result.stdout as String).trim().toLowerCase();
             if (like.contains('debian')) return 'debian';
-            if (like.contains('rhel') || like.contains('fedora')) {
+            if (like.contains('rhel') || like.contains('fedora'))
               return 'redhat';
-            }
             if (like.contains('arch')) return 'arch';
             if (like.contains('suse')) return 'suse';
             if (like.contains('alpine')) return 'alpine';

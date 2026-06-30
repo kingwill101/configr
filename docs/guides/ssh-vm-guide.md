@@ -2,7 +2,8 @@
 
 This guide walks through launching Docker-based VM containers and applying
 configr configurations to them over SSH — exactly what the integration tests
-do, but manually so you can understand every step.
+do for host-driven multi-host execution, but manually so you can understand
+every step.
 
 ## Architecture
 
@@ -10,27 +11,28 @@ do, but manually so you can understand every step.
 Host machine                     Docker network
 ┌─────────────────┐             ┌──────────────────────┐
 │  configr CLI     │   SSH :2221 │  vm1 (Ubuntu 22.04)  │
-│  SSH/SFTP        │────────────▶│  openssh-server       │
-│                  │             │  target filesystem    │
+│  dartssh2/SFTP   │────────────▶│  openssh-server       │
+│  local config    │             │  remote FS/process    │
 │  inventory {     │             └──────────────────────┘
 │    host "vm1" {  │
-│      hostname =  │             ┌──────────────────────┐
+│      address =   │             ┌──────────────────────┐
 │      "localhost" │   SSH :2222 │  vm2 (Ubuntu 22.04)  │
 │      port = 2221 │────────────▶│  openssh-server       │
-│      user = root │             │  configr binary       │
+│      user = root │             │  remote FS/process    │
 │    }             │             └──────────────────────┘
 │  }               │
 └─────────────────┘                    ...
 ```
 
 Each VM is a Docker container running `openssh-server`. The host machine acts
-as the controller: it keeps the config locally and sends file and process
-operations to the VMs over SSH/SFTP.
+as the **controller**: it reads configs, hooks, and plugins locally, then uses
+dartssh2/SFTP so block file operations and process operations run on the VMs.
+The VMs do not need a Configr binary.
 
 ## Prerequisites
 
 - **Docker** with `docker compose` plugin
-- **configr** binary on the host machine
+- **configr** compiled binary or `dart run` access on the host machine
 - SSH key pair (Ed25519 recommended)
 
 ## Step 1: Generate SSH Keys
@@ -71,8 +73,8 @@ configr-test-vm2-1         configr-test-vm2                healthy  (port 2222)
 configr-test-vm3-1         configr-test-vm3                healthy  (port 2223)
 ```
 
-> Each VM has the configr binary at `/usr/local/bin/configr` and SSH access
-> for `root` (and `tester`) using the generated Ed25519 key.
+> Each VM exposes SSH access for `root` (and `tester`) using the generated
+> Ed25519 key. Configr itself runs on the host machine.
 
 ## Step 3: Verify SSH Access
 
@@ -145,11 +147,11 @@ Use `--target` to select which host(s) to target:
 
 ```bash
 # Dry-run first
-configr apply --config deploy.i3 --no-interaction \
+configr apply --config deploy.i3 --v2 --no-interaction \
     --target vm1 --dry-run
 
 # Real apply
-configr apply --config deploy.i3 --no-interaction \
+configr apply --config deploy.i3 --v2 --no-interaction \
     --target vm1
 ```
 
@@ -157,21 +159,21 @@ configr apply --config deploy.i3 --no-interaction \
 
 ```bash
 # Apply to all hosts with role "web"
-configr apply --config deploy.i3 --no-interaction \
+configr apply --config deploy.i3 --v2 --no-interaction \
     --target-role web
 ```
 
 ### Targeting by group
 
 ```bash
-configr apply --config deploy.i3 --no-interaction \
+configr apply --config deploy.i3 --v2 --no-interaction \
     --target-group production
 ```
 
 ### Targeting multiple hosts
 
 ```bash
-configr apply --config deploy.i3 --no-interaction \
+configr apply --config deploy.i3 --v2 --no-interaction \
     --target vm1 --target vm2
 ```
 
@@ -181,15 +183,15 @@ Control **how** hosts are processed:
 
 ```bash
 # One at a time (default)
-configr apply --config deploy.i3 --no-interaction \
+configr apply --config deploy.i3 --v2 --no-interaction \
     --target vm1 --target vm2 --strategy linear
 
 # All at once
-configr apply --config deploy.i3 --no-interaction \
+configr apply --config deploy.i3 --v2 --no-interaction \
     --target vm1 --target vm2 --strategy parallel
 
 # Boot-group order (by host priority)
-configr apply --config deploy.i3 --no-interaction \
+configr apply --config deploy.i3 --v2 --no-interaction \
     --target vm1 --target vm2 --target vm3 --strategy serial
 ```
 
@@ -210,17 +212,20 @@ ls -la deploy.i3.*.lock.json
 # → deploy.i3.vm1.lock.json
 ```
 
+The lockfile is written on the controller. The file created by the `file`
+block is written on `vm1` through the SSH-backed file system.
+
 ## Step 8: Rollback
 
 Rollback the changes on a specific host:
 
 ```bash
 # Via inventory (auto-resolves connection config from inventory block)
-configr rollback --config deploy.i3 --no-interaction \
+configr rollback --config deploy.i3 --v2 --no-interaction \
     --host vm1
 
 # Via explicit SSH flags
-configr rollback --config deploy.i3 --no-interaction \
+configr rollback --config deploy.i3 --v2 --no-interaction \
     --host localhost --ssh-port 2221 --ssh-key /path/to/id_ed25519
 ```
 
@@ -256,8 +261,24 @@ file {
 Then apply without `--target`:
 
 ```bash
-configr apply --config single.i3 --no-interaction
+configr apply --config single.i3 --v2 --no-interaction
 ```
+
+## Lua Hooks and Plugins
+
+Lua hook and plugin source files are read from the host checkout. When the
+config targets a VM, Lua IO APIs and Configr's file helpers use the VM runtime
+file-system backend:
+
+```lua
+writeFile("/tmp/configr_lua_test", "written on the VM\n")
+runCommand("printf remote >> /tmp/configr_lua_test")
+```
+
+Configr's file helpers are optional convenience APIs. Standard Lua IO should
+still work through the same file-system integration. Command execution is the
+exception: use `runCommand(command)` so Configr can route the command through
+the VM's SSH process backend.
 
 ## Cleanup
 

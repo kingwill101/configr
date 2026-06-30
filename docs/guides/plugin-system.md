@@ -1,11 +1,56 @@
 # Plugin System
 
-Configr supports Lua plugins for project-specific blocks and hooks. Use plugins
-when the built-in blocks are close but you need a small custom operation.
+Configr supports extending the v2 action block pipeline through plugins.
+Plugins can register custom block handlers, command handlers, and hook
+into the configuration lifecycle.
 
-## Lua Plugins
+## Plugin Types
 
-Lua plugins define block handlers directly in Lua scripts.
+### Dart Plugins
+
+Implement the `ConfigrPlugin` interface to register custom block handlers:
+
+```dart
+class GreetPlugin extends ConfigrPlugin {
+  @override
+  String get name => 'greet';
+
+  @override
+  String get description => 'Adds a "greet" action block';
+
+  @override
+  void registerBlocks(i3.ConfigProcessor processor, {EventBus? eventBus}) {
+    processor.registerBlockHandler(GreetBlock(eventBus: eventBus));
+  }
+
+  @override
+  Future<void> onConfigLoad(i3.Config config) async {
+    // Called after config is parsed, before execution
+  }
+
+  @override
+  Future<void> onConfigApplied(i3.Config config) async {
+    // Called after all blocks have been processed
+  }
+}
+```
+
+Register plugins programmatically when building `ConfigrConfig`:
+
+```dart
+final pluginLoader = ConfigrPluginLoader()
+  ..registerPlugin(GreetPlugin());
+
+final config = ConfigrConfig(
+  pluginLoader: pluginLoader,
+  // ...
+);
+```
+
+### Lua Plugins
+
+Lua plugins use the `lualike` package to define block handlers directly
+in Lua scripts, without writing Dart code.
 
 #### Config File Registration
 
@@ -79,10 +124,28 @@ end
 | `readFile(path)` | Read file contents |
 | `writeFile(path, content)` | Write to file |
 | `appendFile(path, content)` | Append to file |
+| `runCommand(command)` | Run a shell command through Configr's process backend |
 | `configrCacheDir()` | Get Configr cache directory |
 | `configrBackupDir()` | Get Configr backup directory |
 | `emitStatusUpdate(moduleId, level, message)` | Emit a status event |
 | `getContext(key)` | Get a value from the context table |
+
+The standard Lua IO APIs and Configr's file helper functions use the runtime
+file-system backend for the current apply. In normal local runs they operate
+on the local machine. In SSH or multi-host runs they operate on the target host
+through the SFTP file system.
+
+Command execution is the exception. Use `runCommand(command)` for Lua plugin
+process work so Configr can route the command through the active process
+backend, including SSH remotes.
+
+The other Configr helpers are optional convenience APIs. Use them when they
+make a plugin clearer or when you need Configr-specific behavior such as
+`configrCacheDir()`, `configrBackupDir()`, or `emitStatusUpdate(...)`.
+
+Plugin source files are always read from the controller's file system. This
+keeps plugin code local while still allowing the plugin's file and process
+effects to target each remote host.
 
 #### Default Context Info
 
@@ -127,7 +190,7 @@ logInfo(getContext("hostname"))
 Use `--plugin-dir` to add directories for plugin discovery:
 
 ```bash
-configr apply --plugin-dir ./plugins
+configr apply --v2 --plugin-dir ./plugins
 ```
 
 Or in your config file:
@@ -145,5 +208,5 @@ manifest:
 name: my-plugin
 version: 1.0.0
 description: "A sample plugin"
-entry: main.lua
+entry_point: lib/main.dart
 ```

@@ -69,7 +69,7 @@ uri {
 | macOS | Full |
 | FreeBSD | Full |
 
-Cross-platform. HTTP requests use Configr's built-in runtime helpers.
+Cross-platform — uses Dart's `dart:io` `HttpClient`.
 
 ## Rollback
 

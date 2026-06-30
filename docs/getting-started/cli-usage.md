@@ -2,9 +2,8 @@
 
 ## Overview
 
-Configr is driven from the `configr` command. Use it to initialize configs,
-preview changes, apply locally or remotely, run named commands, inspect status,
-and roll back previous applies.
+Configr uses an Artisanal-powered command-line interface for styled output,
+progress indicators, and interactive prompts.
 
 ## Basic Usage
 
@@ -15,16 +14,18 @@ configr --help
 # Show help for a specific command
 configr <command> --help
 
-# Run a command
+# Execute a command
 configr <command> [options]
 ```
+
+> **Note**: Compile the binary first: `dart compile exe bin/configr.dart -o build/cli/linux_x64/bundle/bin/configr`
 
 ## Global Options
 
 | Option | Description |
 |--------|-------------|
 | `-c, --config <path>` | Path to the configuration file (defaults to `config`) |
-| `--version` | Print embedded version and build metadata |
+| `--v2` | Use the v2 i3config-based ActionBlock pipeline |
 | `-d, --debug` | Enable debug output with timestamps |
 | `--dry-run` | Show what would be done without making changes |
 | `--plugin-dir <path>` | Directory to discover plugins from (repeatable) |
@@ -47,7 +48,7 @@ configr <command> [options]
 Initialize a new configuration repository with a template config file.
 
 ```bash
-configr init
+configr init --v2
 ```
 
 Generates a `config` file with example blocks for copy, file, symlink,
@@ -59,25 +60,25 @@ Apply configuration changes to the system.
 
 ```bash
 # Apply configuration
-configr apply
+configr apply --v2
 
 # Force re-apply (ignore lockfile)
-configr apply --force
+configr apply --v2 --force
 
 # Preview mode (no changes made)
-configr apply --dry-run
+configr apply --v2 --dry-run
 
 # Stop at first error
-configr apply --fail-fast
+configr apply --v2 --fail-fast
 
 # Watch for changes and re-apply automatically
-configr apply --watch
+configr apply --v2 --watch
 
 # Apply to a remote host via SSH
-configr apply --host server.example.com --ssh-user deploy
+configr apply --v2 --host server.example.com --ssh-user deploy
 
 # Apply with SSH key authentication
-configr apply --host db.internal --ssh-key ~/.ssh/id_rsa
+configr apply --v2 --host db.internal --ssh-key ~/.ssh/id_rsa
 ```
 
 ### `rollback`
@@ -86,10 +87,10 @@ Rollback applied changes using the lockfile.
 
 ```bash
 # Rollback all changes
-configr rollback
+configr rollback --v2
 
 # Rollback specific number of operations
-configr rollback --count 3
+configr rollback --v2 --count 3
 ```
 
 ### `diff`
@@ -98,7 +99,7 @@ Show differences between current and target configuration by listing
 parsed action blocks with their status.
 
 ```bash
-configr diff
+configr diff --v2
 ```
 
 ### `status`
@@ -106,7 +107,7 @@ configr diff
 Show the current status of all configured action blocks.
 
 ```bash
-configr status
+configr status --v2
 ```
 
 Groups blocks by type and shows each block's status (pending/completed/failed).
@@ -116,10 +117,10 @@ Groups blocks by type and shows each block's status (pending/completed/failed).
 Format the configuration file in-place.
 
 ```bash
-configr format
+configr format --v2
 ```
 
-Re-serializes the config through the i3config format boundary,
+Re-serializes the config through the i3config v2 format boundary,
 producing clean, consistently-formatted output.
 
 ### `add`
@@ -127,11 +128,11 @@ producing clean, consistently-formatted output.
 Add a file to the configuration by appending a block.
 
 ```bash
-# Add a copy block
-configr add --file ~/.bashrc
+# Add a copy block (default)
+configr add --v2 --file ~/.bashrc
 
 # Specify block type and destination
-configr add --file ~/.config/starship.toml --type template --destination "~/.config/starship.toml"
+configr add --v2 --file ~/.config/starship.toml --type template --destination "~/.config/starship.toml"
 ```
 
 ### `edit`
@@ -139,7 +140,7 @@ configr add --file ~/.config/starship.toml --type template --destination "~/.con
 Open the configuration file in your default editor (uses `$EDITOR` or `$VISUAL`).
 
 ```bash
-configr edit
+configr edit --v2
 ```
 
 ### `watch`
@@ -147,42 +148,15 @@ configr edit
 Watch configuration files and apply changes automatically.
 
 ```bash
-configr watch
+configr watch --v2
 
 # Apply once and exit
-configr watch --once
-```
-
-### `run`
-
-Run a named command from the top-level `commands {}` section.
-
-```i3
-commands {
-  command "test" {
-    command = "make"
-    parameters "test"
-  }
-}
-```
-
-```bash
-# Run the command
-configr run test
-
-# Append extra arguments to the configured parameters
-configr run test -- --coverage
-
-# Run from a specific directory
-configr run test --working-directory /path/to/project
-
-# Run through SSH using the global remote execution flags
-configr run test --host server.example.com --ssh-user deploy
+configr watch --v2 --once
 ```
 
 ## Configuration File Format
 
-Configr uses i3config-format blocks:
+Configr v2 uses i3config-format blocks:
 
 ```i3
 # Copy a file
@@ -209,7 +183,7 @@ execute {
   command = "echo 'Setup complete!'"
 }
 
-# Resource-scoped blocks
+# Nested blocks (v1-compatible)
 resource {
   source = "myapp.conf"
   destination = "/etc/myapp.conf"
@@ -224,15 +198,15 @@ resource {
 
 ```bash
 # Initialize, add files, and apply
-configr init
-configr add --file ~/.bashrc --destination "~/.bashrc"
-configr apply
+configr init --v2
+configr add --v2 --file ~/.bashrc --destination "~/.bashrc"
+configr apply --v2
 
 # Dry-run to preview changes
-configr apply --dry-run
+configr apply --v2 --dry-run
 
 # Rollback if something went wrong
-configr rollback
+configr rollback --v2
 ```
 
 ## Error Handling

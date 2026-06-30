@@ -1,19 +1,36 @@
 # Remote Execution via SSH
 
-Configr can execute configuration management over SSH, allowing you to
+Configr v2 can execute configuration management over SSH, allowing you to
 manage remote machines with the same declarative i3config files.
 
-## How It Works
+Configr runs the configuration pipeline on the controller. Config files, hook
+files, plugin files, event reporting, and lockfile writes stay local. Block
+file operations and process operations use the active runtime backend; with
+SSH that backend is dartssh2 plus SFTP.
 
-When a remote host is selected, Configr keeps the config on the control machine
-and sends file and process operations over SSH/SFTP:
+## Architecture
+
+The `ExecutionService` abstraction sits between block handlers and the
+operating system. Two implementations exist:
+
+- **`LocalExecutionService`** — runs commands and file operations on the
+  local machine via `dart:io` `Process.run` / `Process.start`
+- **`SSHExecutionService`** — runs commands and file operations on a remote
+  machine over SSH/SFTP using `dartssh2`
+
+For direct `--host` or `connection { }` runs, the DI container selects which
+transport to use based on the presence of a `host` key in the connection
+configuration:
 
 ```mermaid
 flowchart LR
     CLI[CLI --host flag] --> Config[ConnectionConfig]
     Inline[connection { } block] --> Config
-    Config --> SSH[SSH/SFTP session]
-    SSH --> Remote[Remote host]
+    Config --> DI[DI: ExecutionService]
+    DI --> Local[LocalExecutionService]
+    DI --> SSH[SSHExecutionService]
+    SSH --> SSH2[dartssh2]
+    SSH2 --> Remote[Remote host]
 ```
 
 ## CLI Flags
@@ -33,13 +50,13 @@ Global flags to connect to a remote host:
 
 ```bash
 # Connect with password
-configr apply --host 192.168.1.100 --ssh-user deploy --ssh-password s3cret
+configr apply --v2 --host 192.168.1.100 --ssh-user deploy --ssh-password s3cret
 
 # Connect with SSH key
-configr apply --host server.example.com --ssh-key ~/.ssh/id_rsa
+configr apply --v2 --host server.example.com --ssh-key ~/.ssh/id_rsa
 
 # Custom port
-configr apply --host db.internal --ssh-port 2222 --ssh-user admin
+configr apply --v2 --host db.internal --ssh-port 2222 --ssh-user admin
 ```
 
 ## Inline Connection Block
@@ -58,14 +75,14 @@ connection {
     connect_timeout = 30
 }
 
-# These blocks run on the remote host
+# These blocks use the remote host's process and file-system backends
 execute {
     command = "hostname"
 }
 
-copy {
-    source = "local_file.conf"
-    destination = "/etc/app.conf"
+file {
+    file_path = "/tmp/configr_remote_test"
+    content = "written on the remote host"
 }
 ```
 
@@ -81,14 +98,26 @@ copy {
 | `private_key_passphrase` | string | `null` | Passphrase for private key |
 | `connect_timeout` | int | `30` | Connection timeout in seconds |
 
-## Execution Flow
+## How It Works
 
-1. CLI flags or a `connection { }` block select the SSH target.
-2. Configr authenticates with a password or private key.
-3. File operations use SFTP.
-4. Command and package operations execute on the remote host.
-5. Remote platform facts are detected from the target.
-6. Rollback records are written for the selected host.
+1. CLI flags or a `connection { }` block produce a `ConnectionConfig` map
+2. `_registerAllBlocks()` checks for a non-empty `host` key
+3. If present, it creates an `SSHExecutionService` and calls `connect()`
+4. The SSH service opens a TCP socket via `SSHSocket.connect()`
+5. Authentication uses password (`onPasswordRequest`) or key pair
+   (`SSHKeyPair.fromPem()` → `identities`)
+6. After `await client.authenticated`, an SFTP channel opens for file transfers
+7. Remote platform is detected via `uname -s`
+8. Block handlers receive the SSH-backed execution service and file system
+9. All `run()`, `putFile()`, `fetchFile()`, and runtime file-system calls go
+   over the SSH/SFTP session
+
+The remote machine does not need Configr installed. It only needs SSH access
+and any operating-system tools required by the blocks being applied.
+
+For multi-host inventory runs, Configr first resolves targets locally. It then
+opens one SSH runtime per target host and calls the same local apply pipeline
+with that host's remote file system and process backend.
 
 ### File Transfer
 
@@ -105,8 +134,32 @@ working directories are prepended as shell prefixes:
 cd /working/dir && KEY=value command arg1 arg2
 ```
 
-## Notes
+Lua plugins and Lua hooks should use Configr's `runCommand(command)` helper
+for command execution. File IO can use standard Lua IO or Configr's file
+helpers, but command execution is routed through Configr's active process
+backend via `runCommand(command)`, including SSH remotes.
 
-- Configr does not require the `ssh` CLI to be installed for remote execution.
-- The Configr binary is not copied to the remote host.
-- Use `--dry-run` with remote flags to preview the selected host workflow.
+## SSHExecutionService API
+
+```dart
+class SSHExecutionService implements ExecutionService {
+  Future<void> connect(Map<String, dynamic> config);
+  Future<void> disconnect();
+  bool get isConnected;
+  String get platform;       // "linux", "macos", "windows"
+  String get remoteHost;
+
+  Future<ProcessResult> run(
+    String command,
+    List<String> arguments, {
+    String? workingDirectory,
+    bool runInShell = false,
+    Map<String, String>? environment,
+    CommandOutputHandler? onOutput,
+    String? stdin,
+  });
+
+  Future<void> putFile(String sourcePath, String destinationPath);
+  Future<void> fetchFile(String sourcePath, String destinationPath);
+}
+```

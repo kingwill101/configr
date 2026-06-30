@@ -1,40 +1,51 @@
 # Privilege Lock
 
-Some blocks need elevated permissions, such as writing to `/etc`, managing
-services, changing users or groups, or installing packages. The privilege lock
-keeps that elevated session available for the duration of an apply so Configr
-does not repeatedly prompt for the same permission.
+## Overview
 
-## When It Applies
+The PrivilegeLock is a timeout-based session tracker that caches sudo
+authentication across multiple operations, reducing password prompts.
 
-Privilege escalation may be needed for blocks such as:
+## Implementation
 
-- `package`, `apt`, `dnf`, `yum`, `pacman`, `brew`
-- `service` and `systemd`
-- `user` and `group`
-- `hostname`, `timezone`, `sysctl`, `mount`
-- file operations that write protected paths
+Unlike the old singleton `PrivilegeLock.instance`, v2 uses an
+**instance-based** lock with configurable timeout:
 
-## Usage
-
-Preview first:
-
-```bash
-configr apply --dry-run
+```dart
+class PrivilegeLock {
+  final Duration timeout;     // Default: 15 minutes
+  bool _isActive = false;    // Tracks authentication state
+  DateTime? _lastUsed;       // For timeout calculation
+  Timer? _timeoutTimer;      // Auto-release timer
+}
 ```
 
-Apply normally:
+## How It Works
 
-```bash
-configr apply
+1. **Acquire**: On first successful `sudo`, the lock is acquired and a
+   timer starts for the configured timeout.
+2. **Reuse**: Subsequent privileged operations check the lock first. If
+   active, `sudo -n` is attempted (relies on system sudo session).
+3. **Timeout**: After the configured timeout, the lock auto-releases.
+4. **Refresh**: Each successful privileged operation resets the timer.
+
+## Configuration
+
+```dart
+// In ConfigrConfig:
+ConfigrConfig(
+  privilegeLock: PrivilegeLock(timeout: Duration(minutes: 30)),
+  keepPrivilegeLock: true,
+)
 ```
 
-If a block requires elevated access, Configr requests it through the configured
-privilege flow and keeps it available until the run finishes or times out.
+## Benefits
 
-## Safety Notes
+- Fewer password prompts during batch operations
+- Configurable timeout per session
+- No persistent shell process (uses system sudo cache)
+- Instance-based — testable, no global state
 
-- Use `--dry-run` before touching protected paths.
-- Keep privileged blocks narrow and explicit.
-- Prefer remote SSH users with the minimum permission needed.
-- Rollback may also require elevated permissions if the original change did.
+## CLI Usage
+
+The privilege lock is used automatically by the v2 pipeline when
+`ActionBlock.requirePrivilegeEscalation` is `true`.

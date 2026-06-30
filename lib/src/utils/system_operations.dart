@@ -63,9 +63,8 @@ class SystemOperations {
     if (lower.contains('darwin')) return 'macos';
     if (lower.contains('windows') ||
         lower.contains('mingw') ||
-        lower.contains('msys')) {
+        lower.contains('msys'))
       return 'windows';
-    }
     return lower.split(' ').first;
   }
 }

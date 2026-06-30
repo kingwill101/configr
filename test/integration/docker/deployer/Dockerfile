@@ -1,14 +1,3 @@
-FROM dart:stable AS builder
-
-WORKDIR /build
-
-COPY pubspec.yaml ./
-COPY lib ./lib
-COPY bin ./bin
-
-RUN dart pub get && \
-    dart compile exe bin/configr.dart -o /build/configr
-
 FROM ubuntu:22.04
 
 RUN apt-get update && \
@@ -18,8 +7,6 @@ RUN apt-get update && \
       netcat-openbsd \
       jq && \
     rm -rf /var/lib/apt/lists/*
-
-COPY --from=builder /build/configr /usr/local/bin/configr
 
 WORKDIR /configr
 

@@ -25,7 +25,7 @@ String _dynamicToString(dynamic value) {
   return '$value'.trim();
 }
 
-/// Writes [configText] to a temp file and runs `configr apply`.
+/// Writes [configText] to a temp file and runs `configr apply --v2`.
 Future<ConfigrResult> configrApply(
   String configText, {
   bool dryRun = false,
@@ -35,7 +35,7 @@ Future<ConfigrResult> configrApply(
   try {
     await File(configFile).writeAsString(configText);
 
-    final args = ['run', _configrBin, 'apply', '--config', configFile];
+    final args = ['run', _configrBin, 'apply', '--v2', '--config', configFile];
     if (dryRun) args.add('--dry-run');
 
     final result = await Process.run(

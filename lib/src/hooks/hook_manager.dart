@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:configr/src/utils/logging.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
+import 'package:lualike/lualike.dart' show ProcessBackend;
 import 'package:path/path.dart' as p;
 
 import 'lua_hook_runner.dart';
@@ -10,13 +11,19 @@ import 'lua_hook_runner.dart';
 class HookManager {
   final String hooksDir;
   final FileSystem _fileSystem;
+  final FileSystem _scriptFileSystem;
+  final ProcessBackend? _processBackend;
   final Map<String, String> _extraEnv;
 
   HookManager({
     required this.hooksDir,
     FileSystem? fileSystem,
+    FileSystem? scriptFileSystem,
+    this._processBackend,
     this._extraEnv = const {},
-  }) : _fileSystem = fileSystem ?? const LocalFileSystem();
+  }) : _fileSystem = fileSystem ?? const LocalFileSystem(),
+       _scriptFileSystem =
+           scriptFileSystem ?? fileSystem ?? const LocalFileSystem();
 
   static const knownEvents = [
     'pre-apply',
@@ -36,7 +43,11 @@ class HookManager {
     final hookFile = _findHookFile(event);
     if (hookFile == null) return false;
 
-    logger.info('Running $event hook: ${p.basename(hookFile)}');
+    final hookLogger = logger.withContext({
+      'hookEvent': event,
+      'hookFile': p.basename(hookFile),
+    });
+    hookLogger.info('Running hook.');
 
     try {
       if (hookFile.endsWith('.lua')) {
@@ -44,13 +55,13 @@ class HookManager {
       }
       return await _runShellHook(hookFile, event, extraVars);
     } catch (e) {
-      logger.warning('$event hook failed: $e');
+      hookLogger.withContext({'error': '$e'}).warning('Hook failed.');
       return false;
     }
   }
 
   String? _findHookFile(String event) {
-    final dir = _fileSystem.directory(hooksDir);
+    final dir = _scriptFileSystem.directory(hooksDir);
     if (!dir.existsSync()) return null;
 
     final entries = dir.listSync().whereType<File>();
@@ -72,7 +83,12 @@ class HookManager {
       ...extraVars,
     };
 
-    final runner = LuaHookRunner(globals: globals, fileSystem: _fileSystem);
+    final runner = LuaHookRunner(
+      globals: globals,
+      fileSystem: _fileSystem,
+      scriptFileSystem: _scriptFileSystem,
+      processBackend: _processBackend,
+    );
 
     return runner.run(scriptPath);
   }
@@ -96,9 +112,14 @@ class HookManager {
     );
 
     if (result.exitCode != 0) {
-      logger.warning(
-        '$event hook exited with code ${result.exitCode}: ${result.stderr}',
-      );
+      logger
+          .withContext({
+            'hookEvent': event,
+            'hookFile': p.basename(scriptPath),
+            'exitCode': result.exitCode,
+            'stderr': '${result.stderr}',
+          })
+          .warning('Hook exited with a non-zero status.');
       return false;
     }
 

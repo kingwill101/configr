@@ -1,34 +1,24 @@
-name: Build CLI
+name: Build and Release
 
 on:
   push:
-    branches: [main]
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+*"
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
-
-permissions:
-  contents: read
 
 jobs:
   build:
-    name: Build ${{ matrix.target }}
+    name: Build and Release
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
         include:
           - os: ubuntu-latest
-            target: linux-x64
-            executable: configr
-          - os: macos-latest
-            target: macos-x64
-            executable: configr
+            output-name: configr-linux
           - os: windows-latest
-            target: windows-x64
-            executable: configr.exe
+            output-name: configr.exe
+          - os: macos-latest
+            output-name: configr-macos
 
     steps:
       - uses: actions/checkout@v4
@@ -41,73 +31,29 @@ jobs:
         run: dart pub get
 
       - name: Build executable
-        shell: bash
-        run: |
-          set -euo pipefail
-          VERSION="$(awk '/^version:/ {print $2; exit}' pubspec.yaml)"
-          GIT_SHA="${GITHUB_SHA}"
-          GIT_SHORT_SHA="${GITHUB_SHA:0:12}"
-          BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          if [[ -n "$(git status --porcelain)" ]]; then
-            GIT_DIRTY=true
-          else
-            GIT_DIRTY=false
-          fi
+        run: dart compile exe bin/configr.dart -o ${{ matrix.output-name }}
 
-          STAGING="dist/configr-${{ matrix.target }}"
-          mkdir -p "$STAGING"
-
-          dart compile exe \
-            -DCONFIGR_VERSION="$VERSION" \
-            -DCONFIGR_GIT_SHA="$GIT_SHA" \
-            -DCONFIGR_GIT_SHORT_SHA="$GIT_SHORT_SHA" \
-            -DCONFIGR_GIT_DIRTY="$GIT_DIRTY" \
-            -DCONFIGR_BUILD_DATE="$BUILD_DATE" \
-            -DCONFIGR_BUILD_NUMBER="$GITHUB_RUN_NUMBER" \
-            -DCONFIGR_BUILD_REF="$GITHUB_REF_NAME" \
-            -DCONFIGR_BUILD_SOURCE="github-actions" \
-            -DCONFIGR_BUILD_TARGET="${{ matrix.target }}" \
-            bin/configr.dart \
-            -o "$STAGING/${{ matrix.executable }}"
-
-          "$STAGING/${{ matrix.executable }}" --version
-
-          cp README.md LICENSE "$STAGING/"
-          ARCHIVE="dist/configr-${{ matrix.target }}.tar.gz"
-          tar -czf "$ARCHIVE" -C dist "configr-${{ matrix.target }}"
-
-          if command -v sha256sum >/dev/null 2>&1; then
-            sha256sum "$ARCHIVE" > "$ARCHIVE.sha256"
-          else
-            shasum -a 256 "$ARCHIVE" > "$ARCHIVE.sha256"
-          fi
-
-      - name: Upload CLI artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
         with:
-          name: configr-${{ matrix.target }}
-          path: |
-            dist/configr-${{ matrix.target }}.tar.gz
-            dist/configr-${{ matrix.target }}.tar.gz.sha256
-          if-no-files-found: error
+          name: ${{ matrix.output-name }}
+          path: ${{ matrix.output-name }}
 
   release:
-    name: Publish GitHub release
-    if: startsWith(github.ref, 'refs/tags/')
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: release-artifacts
-          merge-multiple: true
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
 
-      - name: Publish release assets
-        uses: softprops/action-gh-release@v2
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
         with:
-          files: release-artifacts/*
+          files: |
+            configr-linux/*
+            configr.exe/*
+            configr-macos/*
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

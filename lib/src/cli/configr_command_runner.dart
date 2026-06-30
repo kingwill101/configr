@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 import 'package:artisanal/args.dart';
-import 'package:configr/src/build_info.dart';
 import 'package:configr/src/cli/ui/handlers/cli_handler.dart';
 import 'package:configr/src/cli/ui/handlers/interactive_handler.dart';
 import 'package:configr/src/cli/ui/handlers/base_handler.dart';
@@ -16,7 +15,6 @@ import 'package:configr/src/utils/file_event_handler.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
 import 'package:file/local.dart';
-import 'package:file/file.dart' show FileSystem;
 
 import 'package:configr/src/cli/cli_exit_exception.dart';
 import 'package:configr/src/cli/commands/add.dart';
@@ -29,7 +27,6 @@ import 'package:configr/src/cli/commands/format.dart';
 import 'package:configr/src/cli/commands/init.dart';
 import 'package:configr/src/cli/commands/package.dart';
 import 'package:configr/src/cli/commands/rollback.dart';
-import 'package:configr/src/cli/commands/run.dart';
 import 'package:configr/src/cli/commands/hosts.dart';
 import 'package:configr/src/cli/commands/status.dart';
 import 'package:configr/src/cli/commands/watch.dart';
@@ -60,6 +57,12 @@ class ConfigrCommandRunner extends CommandRunner<void> {
       abbr: 'c',
       help: 'Path to the configuration file (default: "config")',
       defaultsTo: 'config',
+    );
+
+    argParser.addFlag(
+      'v2',
+      help: 'Use the v2 i3config-based ActionBlock pipeline',
+      defaultsTo: false,
     );
 
     argParser.addMultiOption(
@@ -95,12 +98,6 @@ class ConfigrCommandRunner extends CommandRunner<void> {
       'generate-completion',
       help: 'Generate shell completion script for the current shell',
       defaultsTo: false,
-    );
-
-    argParser.addFlag(
-      'version',
-      help: 'Print version and build metadata',
-      negatable: false,
     );
 
     argParser.addOption(
@@ -149,7 +146,6 @@ class ConfigrCommandRunner extends CommandRunner<void> {
     addCommand(AddCommand());
     addCommand(EditCommand());
     addCommand(HostsCommand());
-    addCommand(RunCommand());
     addCommand(StatusCommand());
     addCommand(RollbackCommand());
     addCommand(WatchCommand());
@@ -170,16 +166,6 @@ class ConfigrCommandRunner extends CommandRunner<void> {
       return;
     }
 
-    final generateCompletion = parsed['generate-completion'] as bool? ?? false;
-    final showVersion = parsed['version'] as bool? ?? false;
-
-    if (showVersion) {
-      for (final line in ConfigrBuildInfo.lines) {
-        writeOut(line);
-      }
-      return;
-    }
-
     final configPath = parsed['config'] as String? ?? 'config';
     final configDir = path.dirname(path.absolute(configPath));
     final configrDirs = ConfigrDirectories(
@@ -187,8 +173,10 @@ class ConfigrCommandRunner extends CommandRunner<void> {
     );
     initLogging(logDirectory: configrDirs.logsDir);
 
+    final useV2 = parsed['v2'] as bool? ?? false;
     final debugMode = parsed['debug'] as bool? ?? false;
     final dryRunMode = parsed['dry-run'] as bool? ?? false;
+    final generateCompletion = parsed['generate-completion'] as bool? ?? false;
     final pluginDirs = (parsed['plugin-dir'] as List<String>?) ?? [];
     final pluginFiles = (parsed['plugin'] as List<String>?) ?? [];
 
@@ -240,9 +228,7 @@ class ConfigrCommandRunner extends CommandRunner<void> {
         (parsed['no-interaction'] as bool? ?? false) == false;
 
     final eventBus = di.isRegistered<EventBus>() ? di<EventBus>() : EventBus();
-    final fileSystem = di.isRegistered<FileSystem>()
-        ? di<FileSystem>()
-        : const LocalFileSystem();
+    final fileSystem = const LocalFileSystem();
 
     final fileEventHandler = FileEventHandler(
       eventBus: eventBus,
@@ -277,6 +263,7 @@ class ConfigrCommandRunner extends CommandRunner<void> {
       debugMode: debugMode || debugLevel,
       dryRunMode: dryRunMode,
       interactiveMode: interactiveMode,
+      useV2: useV2,
       pluginDirs: pluginDirs,
       pluginFiles: pluginFiles,
       privilegeEscalation: privilegeEscalation,
@@ -344,9 +331,9 @@ _configr_completion() {
     cur="\${COMP_WORDS[COMP_CWORD]}"
     prev="\${COMP_WORDS[COMP_CWORD-1]}"
 
-    local commands="init apply diff format add edit run status rollback"
+    local commands="init apply diff format add edit status rollback"
 
-    local global_opts="--config -c --debug -d --dry-run --generate-completion --version"
+    local global_opts="--config -c --v2 --debug -d --dry-run --generate-completion"
     local artisanal_opts="--verbose -v --quiet -q --no-interaction -n --ansi --no-ansi --help"
 
     case \${COMP_CWORD} in
@@ -393,6 +380,7 @@ _configr() {
         '*::arg:->args' \\
         '--config[Path to configuration file]:file:_files' \\
         '-c[Path to configuration file]:file:_files' \\
+        '--v2[Use the v2 i3config-based pipeline]' \\
         '--debug[Enable debug output]' \\
         '-d[Enable debug output]' \\
         '--dry-run[Show what would be done without making changes]' \\
@@ -405,7 +393,6 @@ _configr() {
         '--ansi[Force ANSI output]' \\
         '--no-ansi[Disable ANSI output]' \\
         '--generate-completion[Generate shell completion script]' \\
-        '--version[Print version and build metadata]' \\
         '--help[Show help]' \\
         && return 0
 
@@ -418,7 +405,6 @@ _configr() {
                 'format[Format configuration file]' \\
                 'add[Add new resource]' \\
                 'edit[Edit configuration]' \\
-                'run[Run a named command]' \\
                 'status[Show status]' \\
                 'rollback[Rollback changes]' \\
             ;;
@@ -444,15 +430,14 @@ complete -c configr -n "__fish_use_subcommand" -a "diff" -d "Show differences"
 complete -c configr -n "__fish_use_subcommand" -a "format" -d "Format configuration file"
 complete -c configr -n "__fish_use_subcommand" -a "add" -d "Add new resource"
 complete -c configr -n "__fish_use_subcommand" -a "edit" -d "Edit configuration"
-complete -c configr -n "__fish_use_subcommand" -a "run" -d "Run a named command"
 complete -c configr -n "__fish_use_subcommand" -a "status" -d "Show status"
 complete -c configr -n "__fish_use_subcommand" -a "rollback" -d "Rollback changes"
 
 complete -c configr -s c -l config -d "Path to configuration file" -r
+complete -c configr -l v2 -d "Use the v2 i3config-based pipeline"
 complete -c configr -s d -l debug -d "Enable debug output"
 complete -c configr -l dry-run -d "Show what would be done without making changes"
 complete -c configr -l generate-completion -d "Generate shell completion script"
-complete -c configr -l version -d "Print version and build metadata"
 complete -c configr -s v -l verbose -d "Increase verbosity (-v, -vv, -vvv)"
 complete -c configr -s q -l quiet -d "Suppress output"
 complete -c configr -s n -l no-interaction -d "Disable interactive prompts"

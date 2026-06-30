@@ -5,18 +5,14 @@ const config = {
   title: 'Configr',
   tagline: 'Declarative configuration management for local and remote systems',
 
-  url: 'https://kingwill101.github.io',
-  baseUrl: '/configr/',
+  url: 'https://configr.local',
+  baseUrl: '/',
 
   organizationName: 'kingwill101',
   projectName: 'configr',
 
   onBrokenLinks: 'throw',
-  markdown: {
-    hooks: {
-      onBrokenMarkdownLinks: 'warn',
-    },
-  },
+  onBrokenMarkdownLinks: 'warn',
 
   i18n: {
     defaultLocale: 'en',

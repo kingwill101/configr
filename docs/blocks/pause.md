@@ -42,9 +42,9 @@ pause {
 
 | Platform | Implementation |
 |----------|---------------|
-| Linux    | Full |
-| macOS    | Full |
-| FreeBSD  | Full |
+| Linux    | Full — Dart `Future.delayed` |
+| macOS    | Full — Dart `Future.delayed` |
+| FreeBSD  | Full — Dart `Future.delayed` |
 
 ## Interactive Prompt
 

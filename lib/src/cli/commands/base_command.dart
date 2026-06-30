@@ -4,12 +4,12 @@ import 'package:configr/src/configr_runtime.dart';
 
 /// Base command class for Configr CLI commands.
 ///
-/// Provides access to [ConfigrRuntime] and [ConfigrConfig].
+/// Provides access to [ConfigrRuntime] (v2 pipeline) and [ConfigrConfig].
 /// Set via [ConfigrCommandRunner.run] before command execution.
 abstract class BaseCommand extends Command<void> {
   ConfigrRuntime? _runtime;
 
-  /// The runtime for executing configuration operations.
+  /// The v2 runtime for executing configuration operations.
   ConfigrRuntime get runtime => _runtime!;
 
   set runtime(ConfigrRuntime value) {

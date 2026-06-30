@@ -56,13 +56,11 @@ class FetchBlock extends ActionBlock {
   @override
   String dryRunSummary() {
     if (src.isEmpty) return '$blockType: (empty)';
-    final target = flat ? dest : p.join(dest, _hostname, _relativeSrc);
+    final target = flat ? dest : p.join(dest, _hostname, src);
     return '$blockType: $src -> $target';
   }
 
   String get _hostname => Platform.localHostname;
-
-  String get _relativeSrc => src.startsWith('/') ? src.substring(1) : src;
 
   @override
   Future<void> execute() async {
@@ -91,11 +89,11 @@ class FetchBlock extends ActionBlock {
     emitEvent(StartedEvent(moduleId: id, message: 'Fetching $src to $dest'));
 
     try {
-    final targetPath = flat
-        ? (await fileService.pathExists(dest)).isDir
-              ? p.join(dest, p.basename(src))
-              : dest
-        : p.join(dest, _hostname, _relativeSrc);
+      final targetPath = flat
+          ? (await fileService.pathExists(dest)).isDir
+                ? p.join(dest, p.basename(src))
+                : dest
+          : p.join(dest, _hostname, src);
 
       final targetDir = p.dirname(targetPath);
       if (!await fileService.directoryExists(targetDir)) {

@@ -4,13 +4,29 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dartssh2/dartssh2.dart';
+import 'package:file/file.dart' show FileSystem;
+import 'package:file_sftp/file_sftp.dart' show SftpConfig, SftpFileSystem;
+import 'package:lualike/lualike.dart' show ProcessBackend;
+import 'package:process_lualike/process_lualike.dart' show SshProcessBackend;
 
 import 'execution_service.dart';
 
 class SSHExecutionService implements ExecutionService {
   SSHClient? _client;
   SftpClient? _sftp;
+  SftpFileSystem? _fileSystem;
   String _platform = 'linux';
+
+  FileSystem get fileSystem => _fileSystem ??= SftpFileSystem.fromClient(
+    _sftp!,
+    config: () => SftpConfig(host: '', username: '', root: '/'),
+  );
+
+  ProcessBackend? get processBackend {
+    final client = _client;
+    if (client == null) return null;
+    return SshProcessBackend(client);
+  }
 
   @override
   bool get isConnected => _client != null;

@@ -1,21 +1,22 @@
 import 'package:configr/src/multi_host/connection_pool.dart'
     show ConnectionPool;
+import 'package:configr/src/blocks/v2_apply.dart' show applyV2;
 import 'package:configr/src/multi_host/host.dart' show Host;
 import 'package:configr/src/multi_host/host_execution_context.dart'
     show HostExecutionContext;
+import 'package:configr/src/plugins/configr_plugin.dart'
+    show ConfigrPluginLoader;
 import 'package:configr/src/utils/event_bus.dart' show EventBus;
 import 'package:configr/src/utils/logging.dart' show logger;
 
-/// Apply configuration on a single host via SSH.
+/// Apply configuration on a single host via SSH from the local process.
 ///
 /// Flow:
 /// 1. Acquire an SSH connection from [pool] for [host]
-/// 2. Upload the local config file to [remoteConfigPath] on the host
-/// 3. Run `configr apply --remote` on the host with host vars as `--var` flags
-///    to populate the variable precedence middleware on the remote end
+/// 2. Run the local v2 pipeline with the host's SSH-backed filesystem and
+///    process backend
+/// 3. Pass host vars as CLI-precedence vars for this host
 /// 4. Return a [HostExecutionContext] with success/failure status
-///
-/// The remote configr binary must be available on the target host.
 Future<HostExecutionContext> applyOnHost({
   required Host host,
   required ConnectionPool pool,
@@ -24,7 +25,7 @@ Future<HostExecutionContext> applyOnHost({
   required EventBus eventBus,
   required bool dryRun,
   required bool failFast,
-  List<String>? extraApplyArgs,
+  ConfigrPluginLoader? pluginLoader,
 
   /// Additional variables to pass as `--var` flags, e.g. group vars merged
   /// from inventory. These are layered above host.variables.
@@ -41,53 +42,44 @@ Future<HostExecutionContext> applyOnHost({
   try {
     final ssh = await pool.acquire(host);
 
-    logger.info('[${host.name}] Uploading config to $remoteConfigPath');
-    await ssh.putFile(configPath, remoteConfigPath);
-
-    final applyArgs = <String>[
-      '--config',
-      remoteConfigPath,
-      '--no-interaction',
-      'apply',
-    ];
-    if (dryRun) applyArgs.add('--dry-run');
-    if (failFast) applyArgs.add('--fail-fast');
-    if (extraApplyArgs != null) applyArgs.addAll(extraApplyArgs);
-
-    // Pass host variables as --var flags so the remote configr picks them up
-    // in the CLI vars precedence layer (highest priority).
-    for (final entry in host.variables.entries) {
-      applyArgs.add('--var');
-      applyArgs.add('${entry.key}=${entry.value}');
-    }
-
-    // Also pass extra vars (e.g. group vars from inventory).
+    final hostVars = <String, String>{};
     if (extraVars != null) {
-      for (final entry in extraVars.entries) {
-        // Host vars take precedence over extra vars — skip if already set.
-        if (host.variables.containsKey(entry.key)) continue;
-        applyArgs.add('--var');
-        applyArgs.add('${entry.key}=${entry.value}');
-      }
+      hostVars.addAll(extraVars);
     }
+    // Host vars take precedence over group/extra vars.
+    hostVars.addAll(host.variables);
 
-    logger.info('[${host.name}] Running: configr ${applyArgs.join(' ')}');
-    final result = await ssh.run('configr', applyArgs);
+    final hostLogger = logger.withContext({'host': host.name});
+    hostLogger.info('Running local apply through SSH backends');
+    await applyV2(
+      configPath,
+      eventBus: eventBus,
+      dryRun: dryRun,
+      failFast: failFast,
+      runtimeFileSystem: ssh.fileSystem,
+      runtimeExecutionService: ssh,
+      runtimeProcessBackend: ssh.processBackend,
+      pluginLoader: pluginLoader,
+      extraVars: hostVars.isNotEmpty ? hostVars : null,
+      appliedBlocksCollector: context.appliedBlocks,
+      writeLockfile: false,
+      runMultiHost: false,
+    );
 
-    if (result.exitCode == 0) {
-      logger.info('[${host.name}] Apply completed successfully');
-      context.succeeded = true;
-    } else {
-      final stderr = (result.stderr as String?)?.trim() ?? '';
-      context.succeeded = false;
-      context.errorMessage =
-          'configr apply exited with code ${result.exitCode}: $stderr';
-      logger.error('[${host.name}] ${context.errorMessage}');
+    hostLogger.info('Apply completed successfully');
+    context.succeeded = true;
+    // Keep the pool-owned SSH connection alive until the caller releases it.
+    // The local apply opens its own short-lived SSH service for the DI-backed
+    // filesystem/process abstractions.
+    if (!ssh.isConnected) {
+      hostLogger.warning('SSH pool connection closed unexpectedly');
     }
   } catch (e) {
     context.succeeded = false;
     context.errorMessage = '$e';
-    logger.error('[${host.name}] Connection/execution failed: $e');
+    logger
+        .withContext({'host': host.name, 'error': '$e'})
+        .error('Connection/execution failed');
   }
 
   return context;

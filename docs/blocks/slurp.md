@@ -53,7 +53,7 @@ uri {
 | macOS | Full |
 | FreeBSD | Full |
 
-Cross-platform. Reads files through the active local or remote filesystem.
+Cross-platform — uses Dart `File` APIs with no external dependencies.
 
 ## Rollback
 

@@ -16,8 +16,8 @@ AGENTS.md
 .doc/
 build/
 node_modules/
-.docusaurus/
 site-build/
+.docusaurus/
 kingwill101/
 *.log
 third_party/

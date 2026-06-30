@@ -142,7 +142,7 @@ class ExecuteBlock extends ActionBlock {
     }
     env.addAll(environment);
 
-    final workingDir = workingDirectory ?? Directory.current.path;
+    final workingDir = workingDirectory ?? fileSystem.currentDirectory.path;
 
     return executionService.run(
       'sh',

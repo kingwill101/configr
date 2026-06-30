@@ -32,11 +32,11 @@ class RollbackCommand extends BaseCommand {
         ? int.tryParse(argResults!['count'])
         : null;
     final host = argResults?['host'] as String?;
-    await _executeRollback(count: count, host: host);
+    await _executeV2(count: count, host: host);
   }
 
-  Future<void> _executeRollback({int? count, String? host}) async {
-    io.title('Rollback Configuration');
+  Future<void> _executeV2({int? count, String? host}) async {
+    io.title('Rollback Configuration (v2)');
 
     // Per-host rollback
     if (host != null) {

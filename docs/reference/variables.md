@@ -1,4 +1,4 @@
-# Variables Reference
+# Built-in Variables
 
 Configr exposes system facts as variables in the config processor's context.
 Reference them with `$name` syntax. **Flat underscore names** work in all
@@ -8,9 +8,8 @@ positions (quoted strings, bare values, assignments):
 echo { message = "OS: $os_name, user: $user_username" }
 ```
 
-Dotted names, such as `$os.name`, are also set for most built-ins but only
-resolve in paths that call `expandVariables`. Prefer flat names for normal
-config files.
+Dotted names (e.g. `$os.name`) are also set but only resolve inside
+`expandVariables` paths — prefer flat names for guaranteed behaviour.
 
 ## Quick Reference
 
@@ -62,35 +61,21 @@ config files.
 | `$configr_cache_dir` | `/home/alice/.cache/configr` | Cache directory |
 | `$configr_backup_dir` | `/home/alice/.cache/configr/backups` | Backup directory |
 
-### Environment Variables
-
-Configr exposes a fixed set of common process environment variables as
-`$env_<NAME>` and `env.<NAME>`. It does **not** automatically materialize every
-environment variable into config syntax.
-
-For arbitrary environment lookups:
-
-- Lua plugins/hooks can call `getEnv("NAME")`.
-- Secrets can use the env provider.
-- Shell commands can read their inherited process environment directly.
+### Environment Variables (Common)
 
 | Variable | Example | Description |
 |----------|---------|-------------|
 | `$env_HOME` | `/home/alice` | Home directory |
 | `$env_USER` | `alice` | Current user |
-| `$env_USERNAME` | `alice` | Windows-style current user name |
 | `$env_SHELL` | `/bin/zsh` | Login shell |
 | `$env_PATH` | `/usr/bin:/bin` | System PATH |
-| `$env_PWD` | `/home/alice/project` | Current process directory |
 | `$env_EDITOR` | `vim` | Default editor |
-| `$env_VISUAL` | `code` | Visual editor |
 | `$env_TERM` | `xterm-256color` | Terminal type |
 | `$env_LANG` | `en_US.UTF-8` | Locale |
 | `$env_XDG_CONFIG_HOME` | `/home/alice/.config` | XDG config home |
 | `$env_XDG_DATA_HOME` | `/home/alice/.local/share` | XDG data home |
 | `$env_XDG_CACHE_HOME` | `/home/alice/.cache` | XDG cache home |
 | `$env_XDG_RUNTIME_DIR` | `/run/user/1000` | XDG runtime dir |
-| `$env_DBUS_SESSION_BUS_ADDRESS` | `unix:path=/run/user/1000/bus` | D-Bus session bus |
 | `$env_DISPLAY` | `:0` | X11 display |
 | `$env_WAYLAND_DISPLAY` | `wayland-0` | Wayland display |
 | `$env_XDG_CURRENT_DESKTOP` | `GNOME` | Desktop environment |
@@ -104,64 +89,6 @@ For arbitrary environment lookups:
 | `$configrBackupDir` | Shortcut for `$configr_backup_dir` |
 | `$name` | Auto-set inside `command { ... }` |
 | `$template_str` | Set inside template blocks |
-
-## Variable Sources and Precedence
-
-Configr uses an Ansible-style precedence middleware for variables that can be
-provided from outside the normal config context. Higher layers override lower
-layers:
-
-| Priority | Layer | Source |
-|----------|-------|--------|
-| 5 | CLI vars | `--var key=value` and host-specific vars passed by multi-host apply |
-| 4 | Host vars | Inventory host variables |
-| 3 | Group vars | Inventory group variables |
-| 2 | Secrets | Values resolved by `secrets { ... }` |
-| 1 | Facts | Values gathered by `gather_facts { ... }` |
-
-Variables assigned directly in the config, and variables set by `set_fact`,
-live in the normal i3config context. They are checked after the precedence
-middleware layers.
-
-## Dynamic Variables From Blocks
-
-Some blocks set variables as a side effect of execution:
-
-| Block | Variables |
-|-------|-----------|
-| `set_fact` | Whatever keys the block assigns |
-| `secrets` | Resolved secret names |
-| `gather_facts` | `os_family`, `distribution`, `distribution_version`, `architecture`, `system`, `hostname`, and best-effort values such as `kernel`, `kernel_version`, `processor_count`, `memtotal_mb`, `mounts`, `interfaces` |
-| `stat` | `stat_exists`, `stat_islnk`, `stat_isdir`, `stat_isreg`, `stat_type`, `stat_mode`, `stat_size`, and timestamp/checksum fields when available |
-| `slurp` | `slurp_content`, `slurp_encoding`, `slurp_size` |
-| `uri` | `uri_status`, `uri_content`, `uri_method`, `uri_url` |
-| `unarchive` | `unarchive_files` |
-| `template` | `_rendered_content` internally |
-
-## Multi-Host Variables
-
-Multi-host inventory can add variables from groups and hosts. During host
-execution, group variables are layered below host variables, and both are
-available to the local apply pipeline that targets the SSH remote.
-
-Host facts can also be loaded through `hostvars` from `.configr/facts/*.json`
-when gathered facts are persisted per host. The `hostvars` map is intended for
-cross-host lookups in multi-host templates and orchestration logic.
-
-## Lua Context and Environment APIs
-
-Lua plugins and hooks receive the Configr built-ins through the same context
-plus helper APIs:
-
-| Function | Purpose |
-|----------|---------|
-| `getEnv(name)` | Read an arbitrary process environment variable |
-| `getVariable(name)` | Read a Configr context variable |
-| `setVariable(name, value)` | Set a Configr context variable |
-| `expandVariables(str)` | Expand Configr variable references in a string |
-| `getContext(key)` | Read static Lua plugin context, such as `platform` or `hostname` |
-| `configrCacheDir()` | Return the active cache directory |
-| `configrBackupDir()` | Return the active backup directory |
 
 ## Variable Naming Caveat
 

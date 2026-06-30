@@ -5,7 +5,7 @@ import 'package:i3config/i3config_v2.dart' as i3;
 ///
 /// This is the v2 counterpart of [I3ConfigWriter]. It takes parsed and
 /// executed `ActionBlock` objects (from the v2 pipeline) and produces
-/// formatted i3 config text so that `configr format` can round-trip
+/// formatted i3 config text so that `configr format --v2` can round-trip
 /// a config file through parse → execute → serialize.
 ///
 /// ## Output format

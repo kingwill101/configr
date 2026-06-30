@@ -1,3 +1,4 @@
+import 'package:configr/src/blocks/v2_apply.dart' show rollbackV2;
 import 'package:configr/src/models/v2_lockfile_data.dart';
 import 'package:configr/src/utils/v2_lockfile_manager.dart';
 import 'package:configr/src/utils/logging.dart' show logger;
@@ -77,14 +78,15 @@ Future<int> rollbackHost({
     hostName,
     fileSystem: fs,
   );
+  final hostLogger = logger.withContext({'host': hostName});
   if (lockData == null) {
-    logger.info('[$hostName] No lockfile found — nothing to rollback.');
+    hostLogger.info('No lockfile found — nothing to rollback.');
     return 0;
   }
 
   final allRecords = lockData.appliedBlocks;
   if (allRecords.isEmpty) {
-    logger.info('[$hostName] Lockfile is empty — nothing to rollback.');
+    hostLogger.info('Lockfile is empty — nothing to rollback.');
     return 0;
   }
 
@@ -93,10 +95,13 @@ Future<int> rollbackHost({
       : allRecords.reversed.toList();
 
   if (dryRun) {
-    logger.info(
-      '[$hostName] [DRY-RUN] Would rollback ${targetRecords.length} '
-      'block(s) (${allRecords.length} total).',
-    );
+    hostLogger
+        .withContext({
+          'dryRun': true,
+          'targetBlockCount': targetRecords.length,
+          'totalBlockCount': allRecords.length,
+        })
+        .info('Would rollback blocks.');
     return 0;
   }
 
@@ -106,16 +111,16 @@ Future<int> rollbackHost({
       hostName: hostName,
       count: count,
       connectionConfig: connectionConfig,
-      fileSystem: fs,
-      lockData: lockData,
       targetRecords: targetRecords,
     );
   }
 
-  logger.info(
-    '[$hostName] Rolling back ${targetRecords.length} block(s) '
-    '(${allRecords.length} total).',
-  );
+  hostLogger
+      .withContext({
+        'targetBlockCount': targetRecords.length,
+        'totalBlockCount': allRecords.length,
+      })
+      .info('Rolling back blocks.');
 
   // TODO: wire actual block rollback — looks up each block by type,
   // sets properties from the record, calls block.rollback()
@@ -123,13 +128,22 @@ Future<int> rollbackHost({
   var rolledBack = 0;
   for (final record in targetRecords) {
     try {
-      logger.info(
-        '  [$hostName] Rolling back ${record.blockType}: '
-        '${record.id.isNotEmpty ? record.id : record.source}',
-      );
+      logger
+          .withContext({
+            'host': hostName,
+            'blockType': record.blockType,
+            'blockId': record.id.isNotEmpty ? record.id : record.source,
+          })
+          .info('Rolling back block.');
       rolledBack++;
     } catch (e) {
-      logger.error('  [$hostName] Rollback failed for ${record.blockType}: $e');
+      logger
+          .withContext({
+            'host': hostName,
+            'blockType': record.blockType,
+            'error': '$e',
+          })
+          .error('Rollback failed for block.');
     }
   }
 
@@ -169,7 +183,9 @@ Future<void> _updateHostLockfileAfterRollback({
 
   if (remainingRecords.isEmpty) {
     await HostLockfile.delete(configPath, hostName, fileSystem: fileSystem);
-    logger.info('[$hostName] Lockfile deleted — all blocks rolled back.');
+    logger
+        .withContext({'host': hostName})
+        .info('Lockfile deleted — all blocks rolled back.');
   } else {
     final remainingData = V2LockfileData(
       appliedBlocks: remainingRecords,
@@ -180,10 +196,13 @@ Future<void> _updateHostLockfileAfterRollback({
     final lockPath = HostLockfile.pathFor(configPath, hostName);
     final mgr = V2LockfileManager(lockPath, fileSystem: fileSystem);
     await mgr.write(remainingData);
-    logger.info(
-      '[$hostName] Lockfile updated — $rolledBack block(s) rolled back, '
-      '${remainingRecords.length} remaining.',
-    );
+    logger
+        .withContext({
+          'host': hostName,
+          'rolledBackCount': rolledBack,
+          'remainingBlockCount': remainingRecords.length,
+        })
+        .info('Lockfile updated after rollback.');
   }
 }
 
@@ -192,52 +211,30 @@ Future<int> _remoteRollback({
   required String hostName,
   int? count,
   required Map<String, dynamic> connectionConfig,
-  required FileSystem fileSystem,
-  required V2LockfileData lockData,
   required List<AppliedBlockRecord> targetRecords,
 }) async {
-  const remoteConfigPath = '/tmp/configr_config';
   final ssh = SSHExecutionService();
+  final hostLogger = logger.withContext({'host': hostName});
 
   try {
-    logger.info('[$hostName] Connecting via SSH for remote rollback');
+    hostLogger.info('Connecting via SSH for remote rollback');
     await ssh.connect(connectionConfig);
 
-    logger.info('[$hostName] Uploading config to $remoteConfigPath');
-    await ssh.putFile(configPath, remoteConfigPath);
+    hostLogger.info('Running local rollback through SSH backends');
+    await rollbackV2(
+      configPath,
+      count: count,
+      lockfilePath: HostLockfile.pathFor(configPath, hostName),
+      runtimeFileSystem: ssh.fileSystem,
+      runtimeExecutionService: ssh,
+    );
 
-    final rollbackArgs = <String>[
-      '--config',
-      remoteConfigPath,
-      '--no-interaction',
-      'rollback',
-    ];
-    if (count != null) rollbackArgs.addAll(['--count', '$count']);
-
-    logger.info('[$hostName] Running: configr ${rollbackArgs.join(' ')}');
-    final result = await ssh.run('configr', rollbackArgs);
-
-    if (result.exitCode == 0) {
-      logger.info('[$hostName] Remote rollback completed');
-      await _updateHostLockfileAfterRollback(
-        configPath: configPath,
-        hostName: hostName,
-        lockData: lockData,
-        targetRecords: targetRecords,
-        fileSystem: fileSystem,
-        rolledBack: targetRecords.length,
-      );
-      return targetRecords.length;
-    } else {
-      final stderr = (result.stderr as String?)?.trim() ?? '';
-      logger.error(
-        '[$hostName] Remote rollback failed with code ${result.exitCode}: '
-        '$stderr',
-      );
-      return 0;
-    }
+    hostLogger.info('Remote rollback completed');
+    return targetRecords.length;
   } catch (e) {
-    logger.error('[$hostName] Remote rollback connection/execution failed: $e');
+    hostLogger
+        .withContext({'error': '$e'})
+        .error('Remote rollback connection/execution failed');
     return 0;
   } finally {
     await ssh.disconnect();

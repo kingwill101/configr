@@ -62,8 +62,7 @@ wait_for {
 | macOS | Full |
 | FreeBSD | Full |
 
-Cross-platform. Port, host, and path checks use Configr's built-in runtime
-helpers.
+Cross-platform — uses Dart `Socket.connect` for port checks, `ping` for host checks, and file APIs for path checks.
 
 ## Rollback
 

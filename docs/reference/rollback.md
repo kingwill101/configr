@@ -5,21 +5,21 @@ using a lockfile-based approach.
 
 ## How It Works
 
-1. **During apply**: Each successful operation records its block type, source,
-   destination, and rollback data to the lockfile.
+1. **During apply**: Each `ActionBlock.execute()` records its operation
+   (block type, source, destination, rollback data) to the lockfile.
 2. **Lockfile** (`config.lock.json`): Contains SHA-256 checksum of the
    config and a list of applied block records.
-3. **During rollback**: Records are processed in reverse order so the newest
-   changes are restored first.
+3. **During rollback**: Blocks are processed in reverse order. Each block's
+   `rollback()` method reverses the operation.
 
 ## Usage
 
 ```bash
 # Rollback all changes
-configr rollback
+configr rollback --v2
 
 # Rollback specific number of operations
-configr rollback --count 3
+configr rollback --v2 --count 3
 ```
 
 ## Lockfile Structure

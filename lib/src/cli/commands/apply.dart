@@ -72,12 +72,12 @@ class ApplyCommand extends BaseCommand {
     if (watch) {
       await _executeWatch();
     } else {
-      await _executeApply(force: force);
+      await _executeV2(force: force);
     }
   }
 
-  Future<void> _executeApply({bool force = false}) async {
-    io.title('Apply Configuration');
+  Future<void> _executeV2({bool force = false}) async {
+    io.title('Apply Configuration (v2)');
 
     final dryRun = argResults?['dry-run'] as bool? ?? false;
     final failFast = argResults?['fail-fast'] as bool? ?? false;
@@ -134,7 +134,7 @@ class ApplyCommand extends BaseCommand {
   }
 
   Future<void> _executeWatch() async {
-    io.title('Apply with Watch');
+    io.title('Apply with Watch (v2)');
 
     final watcher = ConfigWatcher(
       runtime: runtime,

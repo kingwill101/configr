@@ -5,6 +5,7 @@ import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:file/file.dart' show FileSystem;
 import 'package:lualike/library_builder.dart';
+import 'package:lualike/lualike.dart' show BuiltinFunction, ProcessBackend;
 import 'package:i3config/i3config_v2.dart' as i3;
 
 import 'plugin_context.dart';
@@ -14,6 +15,7 @@ abstract class LuaPluginHost {
   i3.Context? get currentContext;
   EventBus? get eventBus;
   FileSystem get fileSystem;
+  ProcessBackend? get processBackend;
 
   void registerBlockInPlugin(String blockType, Value callbacks);
 }
@@ -23,6 +25,81 @@ String _stringArg(List<Object?> args, int index) {
   final val = Value.wrap(args[index]).unwrap();
   if (val == null) return '';
   return val.toString();
+}
+
+class _FileExistsFunction extends BuiltinFunction {
+  final LuaPluginHost _host;
+
+  _FileExistsFunction(this._host);
+
+  @override
+  Future<Object?> call(List<Object?> args) {
+    return _host.fileSystem.file(_stringArg(args, 0)).exists();
+  }
+}
+
+class _ReadFileFunction extends BuiltinFunction {
+  final LuaPluginHost _host;
+
+  _ReadFileFunction(this._host);
+
+  @override
+  Future<Object?> call(List<Object?> args) {
+    return _host.fileSystem.file(_stringArg(args, 0)).readAsString();
+  }
+}
+
+class _WriteFileFunction extends BuiltinFunction {
+  final LuaPluginHost _host;
+
+  _WriteFileFunction(this._host);
+
+  @override
+  Future<Object?> call(List<Object?> args) async {
+    if (args.length < 2) return null;
+    final file = _host.fileSystem.file(_stringArg(args, 0));
+    final parent = file.parent;
+    if (!await parent.exists()) {
+      await parent.create(recursive: true);
+    }
+    await file.writeAsString(_stringArg(args, 1));
+    return null;
+  }
+}
+
+class _AppendFileFunction extends BuiltinFunction {
+  final LuaPluginHost _host;
+
+  _AppendFileFunction(this._host);
+
+  @override
+  Future<Object?> call(List<Object?> args) async {
+    if (args.length < 2) return null;
+    final file = _host.fileSystem.file(_stringArg(args, 0));
+    final parent = file.parent;
+    if (!await parent.exists()) {
+      await parent.create(recursive: true);
+    }
+    await file.writeAsString(_stringArg(args, 1), mode: FileMode.append);
+    return null;
+  }
+}
+
+class _RunCommandFunction extends BuiltinFunction {
+  final LuaPluginHost _host;
+
+  _RunCommandFunction(this._host);
+
+  @override
+  Future<Object?> call(List<Object?> args) async {
+    final command = _stringArg(args, 0);
+    if (command.isEmpty) return 0;
+    final backend = _host.processBackend;
+    if (backend != null) {
+      return (await backend.run(command)).exitCode;
+    }
+    return Process.run('sh', ['-c', command]).then((result) => result.exitCode);
+  }
 }
 
 /// Library of built-in Configr API functions exposed to Lua plugins.
@@ -132,7 +209,7 @@ class ConfigrLibrary extends Library {
     context.define(
       'logInfo',
       builder.create((args) {
-        logger.info(_stringArg(args, 0));
+        logger.withContext({'source': 'lua'}).info(_stringArg(args, 0));
         return null;
       }),
     );
@@ -150,7 +227,7 @@ class ConfigrLibrary extends Library {
     context.define(
       'logWarning',
       builder.create((args) {
-        logger.warning(_stringArg(args, 0));
+        logger.withContext({'source': 'lua'}).warning(_stringArg(args, 0));
         return null;
       }),
     );
@@ -168,7 +245,7 @@ class ConfigrLibrary extends Library {
     context.define(
       'logError',
       builder.create((args) {
-        logger.error(_stringArg(args, 0));
+        logger.withContext({'source': 'lua'}).error(_stringArg(args, 0));
         return null;
       }),
     );
@@ -186,7 +263,7 @@ class ConfigrLibrary extends Library {
     context.define(
       'logDebug',
       builder.create((args) {
-        logger.debug(_stringArg(args, 0));
+        logger.withContext({'source': 'lua'}).debug(_stringArg(args, 0));
         return null;
       }),
     );
@@ -201,12 +278,7 @@ class ConfigrLibrary extends Library {
       ),
     );
 
-    context.define(
-      'fileExists',
-      builder.create((args) {
-        return _host.fileSystem.file(_stringArg(args, 0)).existsSync();
-      }),
-    );
+    context.define('fileExists', _FileExistsFunction(_host));
     context.describe(
       'fileExists',
       FunctionDoc(
@@ -218,12 +290,7 @@ class ConfigrLibrary extends Library {
       ),
     );
 
-    context.define(
-      'readFile',
-      builder.create((args) {
-        return _host.fileSystem.file(_stringArg(args, 0)).readAsStringSync();
-      }),
-    );
+    context.define('readFile', _ReadFileFunction(_host));
     context.describe(
       'readFile',
       FunctionDoc(
@@ -235,16 +302,7 @@ class ConfigrLibrary extends Library {
       ),
     );
 
-    context.define(
-      'writeFile',
-      builder.create((args) {
-        if (args.length < 2) return null;
-        _host.fileSystem
-            .file(_stringArg(args, 0))
-            .writeAsStringSync(_stringArg(args, 1));
-        return null;
-      }),
-    );
+    context.define('writeFile', _WriteFileFunction(_host));
     context.describe(
       'writeFile',
       FunctionDoc(
@@ -259,16 +317,7 @@ class ConfigrLibrary extends Library {
       ),
     );
 
-    context.define(
-      'appendFile',
-      builder.create((args) {
-        if (args.length < 2) return null;
-        _host.fileSystem
-            .file(_stringArg(args, 0))
-            .writeAsStringSync(_stringArg(args, 1), mode: FileMode.append);
-        return null;
-      }),
-    );
+    context.define('appendFile', _AppendFileFunction(_host));
     context.describe(
       'appendFile',
       FunctionDoc(
@@ -280,6 +329,19 @@ class ConfigrLibrary extends Library {
         returns: 'nil',
         category: 'filesystem',
         example: 'appendFile("/tmp/log.csv", "entry,data\\n")',
+      ),
+    );
+
+    context.define('runCommand', _RunCommandFunction(_host));
+    context.describe(
+      'runCommand',
+      FunctionDoc(
+        summary: 'Runs a shell command through Configr’s process backend.',
+        params: [DocParam('command', 'string', 'Command string to execute.')],
+        returns: 'integer',
+        returnType: 'number',
+        category: 'system',
+        example: 'local code = runCommand("touch /tmp/done")',
       ),
     );
 

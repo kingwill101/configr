@@ -1,61 +1,68 @@
-# Overview
+# Configr Documentation
 
-Configr is a command-line tool for applying repeatable configuration to local
-machines and SSH targets.
+> For a complete overview, see the [Documentation Index](../index.md).
 
-You write a `config` file with blocks such as `copy`, `file`, `template`,
-`package`, `service`, `commands`, `secrets`, and `inventory`. Configr reads the
-file, previews or applies the requested changes, and records successful work in
-a lockfile so it can be rolled back later.
+## Overview
 
-## What You Can Manage
+Configr is a configuration management tool for dotfiles and system
+configuration. It uses the i3config-format for declarative, block-based
+configuration files with full rollback support.
 
-- Dotfiles and application config files
-- Generated files and templates
-- Packages and package-manager-specific installs
-- Services, users, groups, cron jobs, firewalls, mounts, and sysctl settings
-- Remote hosts over SSH/SFTP
-- Multi-host inventories with roles and groups
-- Secrets, hooks, named commands, and Lua plugins
+### v2 Pipeline
 
-## Basic Workflow
+Configr v2 uses the i3config v2 state machine for parsing and processing.
+Action blocks are registered as `BlockHandler` subclasses and executed
+automatically during config processing. The `--v2` flag enables the new
+pipeline.
 
-```bash
-configr init
-configr apply --dry-run
-configr apply
-configr status
-configr rollback --count 1
-```
+### Action Blocks
 
-## Example Config
+Each action type has a corresponding block:
+
+- [Backup](../blocks/backup.md) — Create backup copies before modifications
+- [Copy](../blocks/copy.md) — Copy files/directories to new locations
+- [Compress](../blocks/compress.md) — Compress files/directories into archives
+- [Decompress](../blocks/decompress.md) — Extract files from archives
+- [Delete](../blocks/delete.md) — Safely delete files and directories
+- [Download](../blocks/download.md) — Download files from remote URLs
+- [Execute](../blocks/execute.md) — Execute shell commands
+- [Move](../blocks/move.md) — Move/rename files and directories
+- [Permissions](../blocks/permissions.md) — Set file permissions and ownership
+- [Rename](../blocks/rename.md) — Rename files and directories
+- [Symlink](../blocks/symlink.md) — Create/manage symbolic links
+- [Template](../blocks/template.md) — Render template files with Liquid
+- [Touch](../blocks/touch.md) — Update file timestamps
+- [Validate](../blocks/validate.md) — Validate file contents and formats
+
+### Example
 
 ```i3
-include "packages/*.config"
-
 copy {
   source = "dotfiles/bashrc"
   destination = "~/.bashrc"
-  backup_original = true
 }
 
-template {
-  source = "templates/app.conf.liquid"
-  destination = "~/.config/myapp/app.conf"
-}
-
-commands {
-  command "verify" {
-    command = "sh"
-    parameters "-c" "test -f ~/.bashrc && echo ok"
-  }
+permissions {
+  source = "dotfiles/bashrc"
+  destination = "~/.bashrc"
+  mode = "644"
 }
 ```
 
-## Where To Go Next
+### CLI Commands
 
-- [Tutorial](tutorial.md) - create and apply a first config
-- [CLI Usage](cli-usage.md) - command reference and examples
-- [Config Organization](../guides/config-organization.md) - split configs across files
-- [Remote Execution](../guides/remote-execution.md) - apply to SSH hosts
-- [Block Reference](../index.md#action-blocks) - all available blocks
+See the [CLI Usage Guide](cli-usage.md) for detailed command reference.
+
+- `configr init --v2` — Initialize a configuration
+- `configr apply --v2` — Apply configuration
+- `configr rollback --v2` — Rollback changes
+- `configr diff --v2` — Show diff
+- `configr status --v2` — Show status
+- `configr format --v2` — Format config file
+- `configr add --v2` — Add a block
+- `configr edit --v2` — Edit config file
+- `configr watch --v2` — Watch and auto-apply
+
+### Migration
+
+See the [Migration Guide](migration-guide.md) for upgrading from v1 to v2.

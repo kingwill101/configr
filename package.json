@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "docs": "docusaurus start",
-    "docs:build": "docusaurus build --out-dir=site-build",
-    "docs:serve": "docusaurus serve --dir=site-build",
+    "docs:build": "docusaurus build --out-dir site-build",
+    "docs:serve": "docusaurus serve --dir site-build",
     "docs:clear": "docusaurus clear"
   },
   "dependencies": {

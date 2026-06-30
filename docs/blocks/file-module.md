@@ -295,16 +295,16 @@ The module automatically saves all necessary state to the lockfile for rollback:
 #### Rolling Back Individual Operations
 ```bash
 # Rollback the last operation
-configr rollback --count 1
+dart run bin/main.dart rollback -n 1
 
 # Rollback the last 3 operations  
-configr rollback --count 3
+dart run bin/main.dart rollback -n 3
 ```
 
 #### Rolling Back All Operations
 ```bash
 # Rollback all operations
-configr rollback
+dart run bin/main.dart rollback
 ```
 
 ### Backup File Management

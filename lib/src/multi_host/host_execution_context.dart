@@ -1,4 +1,6 @@
 import 'package:configr/src/multi_host/host.dart' show Host;
+import 'package:configr/src/models/v2_lockfile_data.dart'
+    show AppliedBlockRecord;
 import 'package:configr/src/utils/event_bus.dart' show EventBus;
 
 /// Execution context for applying configuration on a single host.
@@ -27,6 +29,9 @@ class HostExecutionContext {
   /// Error message if the host execution failed.
   String? errorMessage;
 
+  /// Applied block records captured while executing this host.
+  final List<AppliedBlockRecord> appliedBlocks;
+
   HostExecutionContext({
     required this.host,
     required this.remoteConfigPath,
@@ -35,7 +40,8 @@ class HostExecutionContext {
     this.failFast = false,
     this.succeeded = true,
     this.errorMessage,
-  });
+    List<AppliedBlockRecord>? appliedBlocks,
+  }) : appliedBlocks = appliedBlocks ?? <AppliedBlockRecord>[];
 
   @override
   String toString() =>

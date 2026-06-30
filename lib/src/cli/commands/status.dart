@@ -30,7 +30,7 @@ class StatusCommand extends BaseCommand {
     if (host != null) {
       await _showHostStatus(host);
     } else {
-      await _executeStatus();
+      await _executeV2();
     }
   }
 
@@ -130,8 +130,8 @@ class StatusCommand extends BaseCommand {
     }
   }
 
-  Future<void> _executeStatus() async {
-    io.title('Configuration Status');
+  Future<void> _executeV2() async {
+    io.title('Configuration Status (v2)');
 
     try {
       final blocks = await runtime.parseAndCollect();

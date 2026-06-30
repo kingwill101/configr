@@ -1,8 +1,10 @@
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:file/file.dart' show FileSystem;
 import 'package:file/local.dart';
+import 'package:file_lualike/file_lualike.dart' show useFileSystem;
 import 'package:i3config/i3config_v2.dart' as i3;
-import 'package:lualike/lualike.dart' show LuaLike, Value;
+import 'package:lualike/lualike.dart'
+    show LuaLike, ProcessBackend, Value, setProcessBackend;
 import 'configr_plugin.dart';
 import 'package:configr/src/blocks/action_block.dart';
 import 'plugin_context.dart';
@@ -14,14 +16,23 @@ class LuaPlugin implements ConfigrPlugin, LuaPluginHost {
   final String? code;
   final String? scriptPath;
   final FileSystem _fileSystem;
+  final FileSystem _scriptFileSystem;
+  final ProcessBackend? _processBackend;
   final Map<String, Value> _registeredBlocks = {};
 
   i3.Context? _currentContext;
   EventBus? _eventBus;
   bool _initialized = false;
 
-  LuaPlugin({this.code, this.scriptPath, FileSystem? fileSystem})
-    : _fileSystem = fileSystem ?? const LocalFileSystem();
+  LuaPlugin({
+    this.code,
+    this.scriptPath,
+    FileSystem? fileSystem,
+    FileSystem? scriptFileSystem,
+    this._processBackend,
+  }) : _fileSystem = fileSystem ?? const LocalFileSystem(),
+       _scriptFileSystem =
+           scriptFileSystem ?? fileSystem ?? const LocalFileSystem();
 
   // --- LuaPluginHost implementation ---
 
@@ -33,6 +44,9 @@ class LuaPlugin implements ConfigrPlugin, LuaPluginHost {
 
   @override
   FileSystem get fileSystem => _fileSystem;
+
+  @override
+  ProcessBackend? get processBackend => _processBackend;
 
   @override
   void registerBlockInPlugin(String blockType, Value callbacks) {
@@ -75,6 +89,16 @@ class LuaPlugin implements ConfigrPlugin, LuaPluginHost {
     if (_initialized) return;
     _initialized = true;
 
+    // Wire the package:file FileSystem into lualike so io.open(),
+    // os.remove(), dofile(), etc. use our filesystem (local or SFTP).
+    await useFileSystem(_fileSystem);
+
+    // Wire the process backend into lualike so os.execute(), io.popen()
+    // use the SSH backend when running in remote mode.
+    if (_processBackend != null) {
+      setProcessBackend(_processBackend);
+    }
+
     // Register the ConfigrLibrary (all built-in API functions with docs)
     _luaLike.vm.libraryRegistry.register(ConfigrLibrary(this));
     _luaLike.vm.libraryRegistry.initializeAll();
@@ -91,7 +115,7 @@ class LuaPlugin implements ConfigrPlugin, LuaPluginHost {
     if (code != null) {
       await _luaLike.execute(code!, scriptPath: scriptPath);
     } else if (scriptPath != null) {
-      final file = _fileSystem.file(scriptPath!);
+      final file = _scriptFileSystem.file(scriptPath!);
       if (await file.exists()) {
         final fileContent = await file.readAsString();
         await _luaLike.execute(fileContent, scriptPath: scriptPath);

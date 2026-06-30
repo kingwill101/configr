@@ -4,8 +4,10 @@ import 'package:configr/src/plugins/configr_plugin.dart';
 import 'package:configr/src/plugins/lua_plugin.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/logging.dart';
+import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
+import 'package:lualike/lualike.dart' show ProcessBackend;
 
 /// Processes `plugin { ... }` blocks in config files.
 ///
@@ -33,13 +35,20 @@ class PluginBlockHandler extends i3.BaseBlockHandler {
   final ConfigrPluginLoader pluginLoader;
   final String configDir;
   final EventBus? eventBus;
+  final FileSystem _fileSystem;
+  final FileSystem _scriptFileSystem;
+  final ProcessBackend? _processBackend;
 
   PluginBlockHandler({
     required this.processor,
     required this.pluginLoader,
     required this.configDir,
     this.eventBus,
-  });
+    FileSystem? fileSystem,
+    FileSystem? scriptFileSystem,
+    this._processBackend,
+  }) : _fileSystem = fileSystem ?? const LocalFileSystem(),
+       _scriptFileSystem = scriptFileSystem ?? const LocalFileSystem();
 
   @override
   FutureOr<void> handle(i3.Block block, i3.Context context) {
@@ -55,10 +64,14 @@ class PluginBlockHandler extends i3.BaseBlockHandler {
     final luaPath = context.getVariable('lua') as String?;
     if (luaPath != null && luaPath.isNotEmpty) {
       final resolvedPath = _resolvePath(luaPath, configDir);
-      final fs = const LocalFileSystem();
-      final file = fs.file(resolvedPath);
+      final file = _scriptFileSystem.file(resolvedPath);
       if (await file.exists()) {
-        final plugin = LuaPlugin(scriptPath: resolvedPath);
+        final plugin = LuaPlugin(
+          scriptPath: resolvedPath,
+          fileSystem: _fileSystem,
+          scriptFileSystem: _scriptFileSystem,
+          processBackend: _processBackend,
+        );
         await plugin.initialize();
         plugin.registerBlocks(processor, eventBus: eventBus);
         pluginLoader.registerPlugin(plugin);
@@ -71,8 +84,7 @@ class PluginBlockHandler extends i3.BaseBlockHandler {
     final dir = context.getVariable('dir') as String?;
     if (dir != null && dir.isNotEmpty) {
       final resolvedDir = _resolvePath(dir, configDir);
-      final fs = const LocalFileSystem();
-      final directory = fs.directory(resolvedDir);
+      final directory = _scriptFileSystem.directory(resolvedDir);
       if (await directory.exists()) {
         pluginLoader.pluginDirectories.add(resolvedDir);
         logger.info('Added plugin directory from config: $resolvedDir');

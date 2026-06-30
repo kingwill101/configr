@@ -13,6 +13,7 @@ import 'package:configr/src/utils/ssh_execution_service.dart';
 import 'package:configr/src/utils/system_info.dart';
 import 'package:configr/src/utils/v2_lockfile_manager.dart';
 import 'package:crypto/crypto.dart' show sha256;
+import 'package:lualike/lualike.dart' show ProcessBackend;
 import 'package:path/path.dart' as p;
 import 'package_managers/package_manger.dart';
 import 'package:configr/src/blocks/action_block.dart';
@@ -143,6 +144,23 @@ Future<void> applyV2(
   /// Per-target host status from a consolidated multi-host run.
   /// When provided, the lockfile includes a `targets` section.
   Map<String, TargetLockEntry>? lockfileTargets,
+
+  /// Optional collector used by callers that execute one host at a time and
+  /// need the resulting records without writing the shared config lockfile.
+  List<AppliedBlockRecord>? appliedBlocksCollector,
+
+  /// Whether this invocation should resolve and execute multi-host targets.
+  bool runMultiHost = true,
+
+  /// Whether this invocation should write the config lockfile.
+  bool writeLockfile = true,
+
+  /// Runtime backends to use for action execution. These are primarily used
+  /// by multi-host apply to run the local pipeline against an already-open SSH
+  /// connection.
+  FileSystem? runtimeFileSystem,
+  ExecutionService? runtimeExecutionService,
+  ProcessBackend? runtimeProcessBackend,
 }) async {
   final fs = const LocalFileSystem();
   final configFile = fs.file(configPath);
@@ -164,6 +182,12 @@ Future<void> applyV2(
 
   final contents = await configFile.readAsString();
   final currentChecksum = _sha256Hex(contents);
+  final hasMultiHostFlags =
+      runMultiHost &&
+      ((hosts != null && hosts.isNotEmpty) ||
+          (roles != null && roles.isNotEmpty) ||
+          (groups != null && groups.isNotEmpty));
+  final processingDryRun = dryRun || hasMultiHostFlags;
 
   // Check lockfile for checksum comparison — skip if nothing changed.
   final lockMgr = V2LockfileManager(
@@ -172,7 +196,9 @@ Future<void> applyV2(
   );
   try {
     final existingLock = await lockMgr.read();
-    if (existingLock.configChecksum == currentChecksum && !force && !dryRun) {
+    if (existingLock.configChecksum == currentChecksum &&
+        !force &&
+        !processingDryRun) {
       logger.info(
         'Config unchanged since last apply — skipping. '
         'Use --force to re-apply.',
@@ -211,7 +237,7 @@ Future<void> applyV2(
   }
 
   // Execute pre-apply scripts before processing action blocks
-  if (!dryRun) {
+  if (!processingDryRun) {
     final preScripts = _collectScriptsFromConfig(config, 'pre_apply_scripts');
     for (final script in preScripts) {
       logger.info('Executing pre-apply script: $script');
@@ -267,7 +293,7 @@ Future<void> applyV2(
   processor.registerVariableMiddleware(sensitiveMiddleware);
   processor.context.options['_sensitiveMiddleware'] = sensitiveMiddleware;
 
-  final appliedBlocks = <AppliedBlockRecord>[];
+  final appliedBlocks = appliedBlocksCollector ?? <AppliedBlockRecord>[];
   processor.context.options['_appliedBlocks'] = appliedBlocks;
   if (failFast) {
     processor.context.options['_failFast'] = true;
@@ -291,20 +317,34 @@ Future<void> applyV2(
   // Ensure standard directories exist
   await configrDirs.ensureAll();
 
-  // Initialize hook manager for .configr/hooks/ directory
-  final hooksDir = p.join(dotConfigrPath, 'hooks');
-  final hookMgr = HookManager(hooksDir: hooksDir);
-  processor.context.options['_hookManager'] = hookMgr;
-
   await _registerAllBlocks(
     processor,
     eventBus: eventBus,
-    dryRun: dryRun,
+    dryRun: processingDryRun,
     privilegeEscalation: privilegeEscalation,
     pluginLoader: pluginLoader,
     configDir: configDir,
     connectionConfig: connectionConfig,
+    runtimeFileSystem: runtimeFileSystem,
+    runtimeExecutionService: runtimeExecutionService,
+    runtimeProcessBackend: runtimeProcessBackend,
   );
+
+  // Initialize hook manager for .configr/hooks/ directory. Hook source files
+  // are read from the local config project, while Lua file/process APIs use
+  // the runtime backend registered above (local or SSH).
+  final hooksDir = p.join(dotConfigrPath, 'hooks');
+  final hookRuntimeFileSystem =
+      processor.context.options['_runtimeFileSystem'] as FileSystem? ?? fs;
+  final processBackend =
+      processor.context.options['_processBackend'] as ProcessBackend?;
+  final hookMgr = HookManager(
+    hooksDir: hooksDir,
+    fileSystem: hookRuntimeFileSystem,
+    scriptFileSystem: fs,
+    processBackend: processBackend,
+  );
+  processor.context.options['_hookManager'] = hookMgr;
 
   // Invoke plugin onConfigLoad hooks
   if (pluginLoader != null) {
@@ -315,7 +355,9 @@ Future<void> applyV2(
   }
 
   // Run pre-apply hook before processing blocks
-  await hookMgr.runEvent('pre-apply', extraVars: {'config_path': configPath});
+  if (!processingDryRun) {
+    await hookMgr.runEvent('pre-apply', extraVars: {'config_path': configPath});
+  }
 
   // Process — each block executes as it is processed
   await processor.process(config);
@@ -323,10 +365,6 @@ Future<void> applyV2(
   // Resolve targets from inventory if multi-host flags were provided
   final inventory =
       processor.context.globalContext.options['_inventory'] as Inventory?;
-  final hasMultiHostFlags =
-      (hosts != null && hosts.isNotEmpty) ||
-      (roles != null && roles.isNotEmpty) ||
-      (groups != null && groups.isNotEmpty);
   Map<String, TargetLockEntry>? collectedTargets;
   if (inventory != null && hasMultiHostFlags) {
     final resolver = TargetResolver();
@@ -336,11 +374,13 @@ Future<void> applyV2(
       groups: groups,
       inventory: inventory,
     );
-    logger.info(
-      'Targeted ${resolved.length} host(s): '
-      '${resolved.map((h) => h.name).join(', ')} '
-      '(strategy: $strategy)',
-    );
+    logger
+        .withContext({
+          'targetCount': resolved.length,
+          'targets': resolved.map((h) => h.name).toList(),
+          'strategy': strategy,
+        })
+        .info('Resolved multi-host targets.');
 
     final strategyResolver = StrategyResolver();
     final executionStrategy = strategyResolver.strategyFor(strategy);
@@ -349,7 +389,9 @@ Future<void> applyV2(
     // Pre-flight: resolve dependency blocks from config and check them
     final depBlocks = _collectDependencyBlocks(config);
     if (depBlocks.isNotEmpty) {
-      logger.info('Checking ${depBlocks.length} inter-host dependenc(ies)...');
+      logger
+          .withContext({'dependencyCount': depBlocks.length})
+          .info('Checking inter-host dependencies.');
       final depChecker = DependencyChecker(inventory: inventory);
       for (final dep in depBlocks) {
         final result = await depChecker.check(
@@ -373,7 +415,8 @@ Future<void> applyV2(
     final errors = <String>[];
 
     Future<void> executeOnHost(Host host) async {
-      logger.info('[${host.name}] Starting remote apply');
+      final hostLogger = logger.withContext({'host': host.name});
+      hostLogger.info('Starting remote apply');
       final groupVars = inventory.groupVarsFor(host);
       try {
         final ctx = await applyOnHost(
@@ -383,6 +426,7 @@ Future<void> applyV2(
           eventBus: eventBusInstance,
           dryRun: dryRun,
           failFast: failFast,
+          pluginLoader: _freshPluginLoader(pluginLoader),
           extraVars: groupVars.isNotEmpty ? groupVars : null,
         );
         if (!ctx.succeeded) {
@@ -402,14 +446,14 @@ Future<void> applyV2(
           status: 'succeeded',
           appliedAt: DateTime.now().toUtc().toIso8601String(),
         );
-        logger.info('[${host.name}] Remote apply completed');
+        hostLogger.info('Remote apply completed');
 
         // Write per-host lockfile
         final hostLockPath = HostLockfile.pathFor(configPath, host.name);
         final hostLockMgr = V2LockfileManager(hostLockPath, fileSystem: fs);
         await hostLockMgr.write(
           V2LockfileData(
-            appliedBlocks: appliedBlocks,
+            appliedBlocks: ctx.appliedBlocks,
             configChecksum: currentChecksum,
           ),
         );
@@ -461,7 +505,7 @@ Future<void> applyV2(
   }
 
   // Execute post-apply scripts after processing
-  if (!dryRun) {
+  if (!processingDryRun) {
     final postScripts = _collectScriptsFromConfig(config, 'post_apply_scripts');
     for (final script in postScripts) {
       logger.info('Executing post-apply script: $script');
@@ -515,16 +559,18 @@ Future<void> applyV2(
   }
 
   // Run post-apply hook after successful processing
-  await hookMgr.runEvent(
-    'post-apply',
-    extraVars: {
-      'config_path': configPath,
-      'block_count': appliedBlocks.length.toString(),
-    },
-  );
+  if (!processingDryRun) {
+    await hookMgr.runEvent(
+      'post-apply',
+      extraVars: {
+        'config_path': configPath,
+        'block_count': appliedBlocks.length.toString(),
+      },
+    );
+  }
 
   // Write lockfile with records of what was applied
-  if (appliedBlocks.isNotEmpty) {
+  if (writeLockfile && appliedBlocks.isNotEmpty) {
     await lockMgr.write(
       V2LockfileData(
         appliedBlocks: appliedBlocks,
@@ -561,12 +607,18 @@ Future<void> rollbackV2(
   int? count,
   bool dryRun = false,
   ConfigrPluginLoader? pluginLoader,
+  String? lockfilePath,
+  FileSystem? runtimeFileSystem,
+  ExecutionService? runtimeExecutionService,
 }) async {
   final fs = const LocalFileSystem();
+  final executionFileSystem = runtimeFileSystem ?? fs;
+  final executionService =
+      runtimeExecutionService ?? const LocalExecutionService();
 
   // 1. Read the lockfile
   final lockMgr = V2LockfileManager(
-    V2LockfileManager.lockPathFor(configPath),
+    lockfilePath ?? V2LockfileManager.lockPathFor(configPath),
     fileSystem: fs,
   );
   final lockData = await lockMgr.read();
@@ -610,7 +662,12 @@ Future<void> rollbackV2(
 
   // 2. Register DI dependencies and build the same ActionBlock map used
   //    during apply so we can look up block instances by type.
-  registerCoreDiServices(dryRun: false, eventBus: eventBus, fileSystem: fs);
+  registerCoreDiServices(
+    dryRun: false,
+    eventBus: eventBus,
+    fileSystem: executionFileSystem,
+    executionService: executionService,
+  );
 
   final actionBlockMap = <String, ActionBlock>{
     'alternatives': AlternativesBlock(),
@@ -896,26 +953,39 @@ Future<void> _registerAllBlocks(
   ConfigrPluginLoader? pluginLoader,
   String configDir = '.',
   Map<String, dynamic>? connectionConfig,
+  FileSystem? runtimeFileSystem,
+  ExecutionService? runtimeExecutionService,
+  ProcessBackend? runtimeProcessBackend,
 }) async {
   // -----------------------------------------------------------------------
   // 1. Register DI dependencies before creating blocks
   // -----------------------------------------------------------------------
   ExecutionService executionService;
-  if (connectionConfig != null &&
+  FileSystem fileSystem;
+  ProcessBackend? processBackend;
+  if (runtimeExecutionService != null || runtimeFileSystem != null) {
+    executionService = runtimeExecutionService ?? const LocalExecutionService();
+    fileSystem = runtimeFileSystem ?? const LocalFileSystem();
+    processBackend = runtimeProcessBackend;
+  } else if (connectionConfig != null &&
       connectionConfig['host'] is String &&
       (connectionConfig['host'] as String).isNotEmpty) {
     final ssh = SSHExecutionService();
     await ssh.connect(connectionConfig);
     executionService = ssh;
+    fileSystem = ssh.fileSystem;
+    processBackend = ssh.processBackend;
   } else {
     executionService = const LocalExecutionService();
+    fileSystem = const LocalFileSystem();
+    processBackend = null;
   }
 
   registerCoreDiServices(
     dryRun: dryRun,
     eventBus: eventBus,
     privilegeEscalation: privilegeEscalation,
-    fileSystem: const LocalFileSystem(),
+    fileSystem: fileSystem,
     executionService: executionService,
   );
 
@@ -923,6 +993,8 @@ Future<void> _registerAllBlocks(
   // can access it to register additional blocks during config processing.
   processor.context.options['_processor'] = processor;
   processor.context.options['_dryRun'] = dryRun;
+  processor.context.options['_runtimeFileSystem'] = fileSystem;
+  processor.context.options['_processBackend'] = processBackend;
 
   final actionBlockMap = <String, ActionBlock>{
     'alternatives': AlternativesBlock(),
@@ -1055,6 +1127,9 @@ Future<void> _registerAllBlocks(
         pluginLoader: pluginLoader,
         configDir: configDir,
         eventBus: eventBus,
+        fileSystem: fileSystem,
+        scriptFileSystem: const LocalFileSystem(),
+        processBackend: processBackend,
       ),
     );
   }
@@ -1094,17 +1169,34 @@ Future<void> _registerAllBlocks(
     if (pluginLoader.pluginFiles.isNotEmpty) {
       for (final filePath in pluginLoader.pluginFiles) {
         if (filePath.endsWith('.lua')) {
-          final plugin = LuaPlugin(scriptPath: filePath);
+          final plugin = LuaPlugin(
+            scriptPath: filePath,
+            fileSystem: fileSystem,
+            scriptFileSystem: const LocalFileSystem(),
+            processBackend: processBackend,
+          );
           await plugin.initialize();
           plugin.registerBlocks(processor, eventBus: eventBus);
           pluginLoader.registerPlugin(plugin);
-          logger.info('Loaded plugin file: $filePath');
+          logger
+              .withContext({'pluginFile': filePath})
+              .info('Loaded plugin file.');
         } else {
-          logger.warning('Unsupported plugin file type: $filePath');
+          logger
+              .withContext({'pluginFile': filePath})
+              .warning('Unsupported plugin file type.');
         }
       }
     }
   }
+}
+
+ConfigrPluginLoader? _freshPluginLoader(ConfigrPluginLoader? pluginLoader) {
+  if (pluginLoader == null) return null;
+  return ConfigrPluginLoader(
+    pluginDirectories: [...pluginLoader.pluginDirectories],
+    pluginFiles: [...pluginLoader.pluginFiles],
+  );
 }
 
 // ---------------------------------------------------------------------------

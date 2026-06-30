@@ -23,17 +23,17 @@ class InitCommand extends BaseCommand {
       }
     }
 
-    final content = _template();
+    final content = _v2Template();
 
     final f = runtime.fileSystem.file(configFile);
     await f.writeAsString(content);
 
-    io.success('Initialized configuration at ${f.path}');
+    io.success('Initialized v2 configuration at ${f.path}');
   }
 
-  /// Generates an i3config-format template with example blocks.
-  String _template() => '''
-# Configr configuration
+  /// Generates a v2 i3config-format template with example blocks.
+  String _v2Template() => '''
+# Configr v2 configuration
 # Uses i3config-format blocks for declarative system configuration.
 
 config {
