@@ -5,8 +5,8 @@ const config = {
   title: 'Configr',
   tagline: 'Declarative configuration management for local and remote systems',
 
-  url: 'https://configr.local',
-  baseUrl: '/',
+  url: 'https://kingwill101.github.io',
+  baseUrl: '/configr/',
 
   organizationName: 'kingwill101',
   projectName: 'configr',
