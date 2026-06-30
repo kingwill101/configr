@@ -1,5 +1,6 @@
-import 'dart:io';
+import 'dart:io' as io;
 
+import 'package:configr/src/utils/execution_service.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
@@ -12,6 +13,7 @@ class HookManager {
   final String hooksDir;
   final FileSystem _fileSystem;
   final FileSystem _scriptFileSystem;
+  final ExecutionService? executionService;
   final ProcessBackend? _processBackend;
   final Map<String, String> _extraEnv;
 
@@ -19,6 +21,7 @@ class HookManager {
     required this.hooksDir,
     FileSystem? fileSystem,
     FileSystem? scriptFileSystem,
+    this.executionService,
     this._processBackend,
     this._extraEnv = const {},
   }) : _fileSystem = fileSystem ?? const LocalFileSystem(),
@@ -104,12 +107,7 @@ class HookManager {
       env['CONFIGR_${entry.key.toUpperCase()}'] = entry.value.toString();
     }
 
-    final result = await Process.run(
-      '/bin/sh',
-      [scriptPath],
-      runInShell: false,
-      environment: env,
-    );
+    final result = await _runBashHookScript(scriptPath, env);
 
     if (result.exitCode != 0) {
       logger
@@ -124,5 +122,46 @@ class HookManager {
     }
 
     return true;
+  }
+
+  Future<io.ProcessResult> _runBashHookScript(
+    String scriptPath,
+    Map<String, String> environment,
+  ) async {
+    final script = await _scriptFileSystem.file(scriptPath).readAsString();
+    final tempDir = await io.Directory.systemTemp.createTemp('configr-hook-');
+    final localScript = io.File(
+      '${tempDir.path}${io.Platform.pathSeparator}${p.basename(scriptPath)}',
+    );
+
+    try {
+      await localScript.writeAsString(script);
+
+      final runtimeExecutionService = executionService;
+      if (runtimeExecutionService == null ||
+          runtimeExecutionService is LocalExecutionService) {
+        if (runtimeExecutionService != null) {
+          return runtimeExecutionService.run('bash', [
+            localScript.path,
+          ], environment: environment);
+        }
+        return io.Process.run('bash', [
+          localScript.path,
+        ], environment: environment);
+      }
+
+      final remotePath =
+          '/tmp/configr_hook_${DateTime.now().microsecondsSinceEpoch}_${p.basename(scriptPath)}';
+      await runtimeExecutionService.putFile(localScript.path, remotePath);
+      try {
+        return await runtimeExecutionService.run('bash', [
+          remotePath,
+        ], environment: environment);
+      } finally {
+        await runtimeExecutionService.run('rm', ['-f', remotePath]);
+      }
+    } finally {
+      await tempDir.delete(recursive: true);
+    }
   }
 }

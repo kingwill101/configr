@@ -1,3 +1,5 @@
+import 'dart:io' show ProcessResult;
+
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/di.dart';
 import 'package:configr/src/hooks/hook_manager.dart';
@@ -155,6 +157,35 @@ void main() {
       expect(await markerFile.readAsString(), 'pre-block:echo:echo_0');
     });
 
+    test('uploads and runs Bash hooks through execution service', () async {
+      final hooksDir = '/.configr/hooks';
+      final hookFile = fs.file('$hooksDir/pre-apply.sh');
+      await hookFile.create(recursive: true);
+      await hookFile.writeAsString(
+        'echo "\$CONFIGR_EVENT:\$CONFIGR_CONFIG_PATH"',
+      );
+      final executionService = _FakeRemoteExecutionService();
+
+      final mgr = HookManager(
+        hooksDir: hooksDir,
+        fileSystem: fs,
+        executionService: executionService,
+      );
+
+      final result = await mgr.runEvent(
+        'pre-apply',
+        extraVars: {'config_path': '/workspace/config'},
+      );
+
+      expect(result, isTrue);
+      expect(executionService.putDestinations, hasLength(1));
+      expect(executionService.commands, contains(startsWith('bash /tmp/')));
+      expect(
+        executionService.environment?['CONFIGR_CONFIG_PATH'],
+        equals('/workspace/config'),
+      );
+    });
+
     test('known events list is comprehensive', () async {
       expect(HookManager.knownEvents, contains('pre-apply'));
       expect(HookManager.knownEvents, contains('post-apply'));
@@ -243,4 +274,45 @@ void _registerTestBlocks(i3.ConfigProcessor processor) {
   processor.registerBlockHandler(CommandEntryBlockHandler());
   processor.registerBlockHandler(PackageEntryBlockHandler());
   processor.registerBlockHandler(EchoBlock());
+}
+
+class _FakeRemoteExecutionService implements ExecutionService {
+  final putDestinations = <String>[];
+  final commands = <String>[];
+  Map<String, String>? environment;
+
+  @override
+  String get platform => 'linux';
+
+  @override
+  bool get isConnected => true;
+
+  @override
+  Future<void> connect(Map<String, dynamic> config) async {}
+
+  @override
+  Future<void> disconnect() async {}
+
+  @override
+  Future<void> fetchFile(String sourcePath, String destinationPath) async {}
+
+  @override
+  Future<void> putFile(String sourcePath, String destinationPath) async {
+    putDestinations.add(destinationPath);
+  }
+
+  @override
+  Future<ProcessResult> run(
+    String command,
+    List<String> arguments, {
+    String? workingDirectory,
+    bool runInShell = false,
+    Map<String, String>? environment,
+    CommandOutputHandler? onOutput,
+    String? stdin,
+  }) async {
+    this.environment = environment ?? this.environment;
+    commands.add([command, ...arguments].join(' '));
+    return ProcessResult(0, 0, '', '');
+  }
 }

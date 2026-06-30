@@ -336,12 +336,16 @@ Future<void> applyV2(
   final hooksDir = p.join(dotConfigrPath, 'hooks');
   final hookRuntimeFileSystem =
       processor.context.options['_runtimeFileSystem'] as FileSystem? ?? fs;
+  final hookExecutionService =
+      processor.context.options['_runtimeExecutionService']
+          as ExecutionService?;
   final processBackend =
       processor.context.options['_processBackend'] as ProcessBackend?;
   final hookMgr = HookManager(
     hooksDir: hooksDir,
     fileSystem: hookRuntimeFileSystem,
     scriptFileSystem: fs,
+    executionService: hookExecutionService,
     processBackend: processBackend,
   );
   processor.context.options['_hookManager'] = hookMgr;
@@ -994,6 +998,7 @@ Future<void> _registerAllBlocks(
   processor.context.options['_processor'] = processor;
   processor.context.options['_dryRun'] = dryRun;
   processor.context.options['_runtimeFileSystem'] = fileSystem;
+  processor.context.options['_runtimeExecutionService'] = executionService;
   processor.context.options['_processBackend'] = processBackend;
 
   final actionBlockMap = <String, ActionBlock>{
