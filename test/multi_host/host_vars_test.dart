@@ -11,78 +11,80 @@ void main() {
     hostVars = HostVars(factsDir: '.configr/facts', fs: fs);
   });
 
-  test('should return empty map for unknown host', () {
-    final facts = hostVars.factsFor('unknown');
+  test('should return empty map for unknown host', () async {
+    final facts = await hostVars.factsFor('unknown');
     expect(facts, isEmpty);
   });
 
-  test('should return facts for a known host', () {
-    fs.file('.configr/facts/web-01.json')
-      ..createSync(recursive: true)
-      ..writeAsStringSync('{"os_family": "debian", "hostname": "web-01"}');
+  test('should return facts for a known host', () async {
+    await fs.file('.configr/facts/web-01.json').create(recursive: true);
+    await fs
+        .file('.configr/facts/web-01.json')
+        .writeAsString('{"os_family": "debian", "hostname": "web-01"}');
 
-    final facts = hostVars.factsFor('web-01');
+    final facts = await hostVars.factsFor('web-01');
     expect(facts, containsPair('os_family', 'debian'));
     expect(facts, containsPair('hostname', 'web-01'));
   });
 
-  test('should return empty map for malformed fact file', () {
-    fs.file('.configr/facts/bad.json')
-      ..createSync(recursive: true)
-      ..writeAsStringSync('not json');
+  test('should return empty map for malformed fact file', () async {
+    await fs.file('.configr/facts/bad.json').create(recursive: true);
+    await fs.file('.configr/facts/bad.json').writeAsString('not json');
 
-    final facts = hostVars.factsFor('bad');
+    final facts = await hostVars.factsFor('bad');
     expect(facts, isEmpty);
   });
 
-  test('should return all facts for all hosts', () {
-    fs.file('.configr/facts/web-01.json')
-      ..createSync(recursive: true)
-      ..writeAsStringSync('{"os_family": "debian"}');
-    fs.file('.configr/facts/db-01.json')
-      ..createSync(recursive: true)
-      ..writeAsStringSync('{"os_family": "ubuntu"}');
+  test('should return all facts for all hosts', () async {
+    await fs.file('.configr/facts/web-01.json').create(recursive: true);
+    await fs
+        .file('.configr/facts/web-01.json')
+        .writeAsString('{"os_family": "debian"}');
+    await fs.file('.configr/facts/db-01.json').create(recursive: true);
+    await fs
+        .file('.configr/facts/db-01.json')
+        .writeAsString('{"os_family": "ubuntu"}');
 
-    final all = hostVars.allFacts();
+    final all = await hostVars.allFacts();
     expect(all, hasLength(2));
     expect(all['web-01'], containsPair('os_family', 'debian'));
     expect(all['db-01'], containsPair('os_family', 'ubuntu'));
   });
 
-  test('should return empty allFacts when facts dir missing', () {
-    final all = hostVars.allFacts();
+  test('should return empty allFacts when facts dir missing', () async {
+    final all = await hostVars.allFacts();
     expect(all, isEmpty);
   });
 
-  test('hasFacts should return true when fact file exists', () {
-    fs.file('.configr/facts/web-01.json')
-      ..createSync(recursive: true)
-      ..writeAsStringSync('{}');
+  test('hasFacts should return true when fact file exists', () async {
+    await fs.file('.configr/facts/web-01.json').create(recursive: true);
+    await fs.file('.configr/facts/web-01.json').writeAsString('{}');
 
-    expect(hostVars.hasFacts('web-01'), isTrue);
-    expect(hostVars.hasFacts('unknown'), isFalse);
+    expect(await hostVars.hasFacts('web-01'), isTrue);
+    expect(await hostVars.hasFacts('unknown'), isFalse);
   });
 
-  test('should return specific fact for a host', () {
-    fs.file('.configr/facts/web-01.json')
-      ..createSync(recursive: true)
-      ..writeAsStringSync('{"os_family": "debian", "processor_count": "4"}');
+  test('should return specific fact for a host', () async {
+    await fs.file('.configr/facts/web-01.json').create(recursive: true);
+    await fs
+        .file('.configr/facts/web-01.json')
+        .writeAsString('{"os_family": "debian", "processor_count": "4"}');
 
-    expect(hostVars.factFor('web-01', 'os_family'), equals('debian'));
-    expect(hostVars.factFor('web-01', 'processor_count'), equals('4'));
-    expect(hostVars.factFor('web-01', 'nonexistent'), isNull);
-    expect(hostVars.factFor('unknown', 'anything'), isNull);
+    expect(await hostVars.factFor('web-01', 'os_family'), equals('debian'));
+    expect(await hostVars.factFor('web-01', 'processor_count'), equals('4'));
+    expect(await hostVars.factFor('web-01', 'nonexistent'), isNull);
+    expect(await hostVars.factFor('unknown', 'anything'), isNull);
   });
 
-  test('should skip non-json files in allFacts', () {
-    fs.file('.configr/facts/readme.txt')
-      ..createSync(recursive: true)
-      ..writeAsStringSync('hello');
-    fs.file('.configr/facts/web-01.json')
-      ..createSync(recursive: true)
-      ..writeAsStringSync('{"os_family": "debian"}');
+  test('should skip non-json files in allFacts', () async {
+    await fs.file('.configr/facts/readme.txt').create(recursive: true);
+    await fs.file('.configr/facts/readme.txt').writeAsString('hello');
+    await fs.file('.configr/facts/web-01.json').create(recursive: true);
+    await fs
+        .file('.configr/facts/web-01.json')
+        .writeAsString('{"os_family": "debian"}');
 
-    final all = hostVars.allFacts();
+    final all = await hostVars.allFacts();
     expect(all, hasLength(1));
     expect(all, containsPair('web-01', {'os_family': 'debian'}));
   });
