@@ -618,6 +618,21 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
         : const LocalExecutionService();
   }
 
+  /// Best-effort target platform name for OS-specific behavior.
+  ///
+  /// Prefer the config context because remote applies seed this from
+  /// [TargetSystemProbe]. Fall back to the execution service when the block is
+  /// used outside the normal apply pipeline.
+  String get targetPlatform {
+    final globalPlatform = _context?.globalContext.options['_targetPlatform'];
+    if (globalPlatform is String && globalPlatform.isNotEmpty) {
+      return globalPlatform;
+    }
+    final osName = _context?.getVariable('os_name')?.toString();
+    if (osName != null && osName.isNotEmpty) return osName;
+    return executionService.platform;
+  }
+
   /// Connect to a delegate host via SSH.
   ///
   /// Looks up [hostName] in the inventory (stored in global context options).

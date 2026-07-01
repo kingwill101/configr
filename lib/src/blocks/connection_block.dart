@@ -21,7 +21,13 @@ class ConnectionBlock extends i3.BaseBlockHandler {
   ) async {
     final config = <String, dynamic>{};
     for (final entry in context.variables.entries) {
-      config[entry.key] = entry.value;
+      var value = entry.value;
+      if (value is String) {
+        if (entry.key == 'port' || entry.key == 'connect_timeout') {
+          value = int.tryParse(value) ?? value;
+        }
+      }
+      config[entry.key] = value;
     }
 
     final host = config['host'] as String?;
@@ -31,15 +37,19 @@ class ConnectionBlock extends i3.BaseBlockHandler {
       return;
     }
 
-    final ssh = SSHExecutionService();
-    await ssh.connect(config);
+    try {
+      final ssh = SSHExecutionService();
+      await ssh.connect(config);
 
-    di.allowReassignment = true;
-    di.registerSingleton<ExecutionService>(ssh);
-    di.registerSingleton<FileSystem>(ssh.fileSystem);
-    di.registerSingleton<NetworkService>(ExecutionNetworkService(ssh));
-    di.allowReassignment = false;
+      di.allowReassignment = true;
+      di.registerSingleton<ExecutionService>(ssh);
+      di.registerSingleton<FileSystem>(ssh.fileSystem);
+      di.registerSingleton<NetworkService>(ExecutionNetworkService(ssh));
+      di.allowReassignment = false;
 
-    context.globalContext.options['_connectionConfig'] = config;
+      context.globalContext.options['_connectionConfig'] = config;
+    } catch (e) {
+      context.globalContext.options['_connectionError'] = '[connection] $e';
+    }
   }
 }

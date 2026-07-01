@@ -607,7 +607,7 @@ class SystemdBlock extends ActionBlock {
 
   Future<void> _validateServiceFile(String content) async {
     // Write to temp file for validation
-    final tempDir = fileSystem.systemTempDirectory.createTempSync('systemd_');
+    final tempDir = await fileSystem.systemTempDirectory.createTemp('systemd_');
     final tempFile = fileSystem.file(
       '${tempDir.path}/$serviceName.$serviceType',
     );
@@ -626,7 +626,7 @@ class SystemdBlock extends ActionBlock {
         );
       }
     } finally {
-      tempDir.deleteSync(recursive: true);
+      await tempDir.delete(recursive: true);
     }
   }
 }

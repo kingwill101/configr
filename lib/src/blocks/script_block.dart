@@ -97,12 +97,20 @@ class ScriptBlock extends ActionBlock {
       final argList = args.isNotEmpty ? args.split(' ') : <String>[];
       final workingDir = chdir.isNotEmpty ? chdir : null;
 
-      await runCommand(
+      final result = await privilegeEscalation.runWithElevatedPrivileges(
         tempFile.path,
         argList,
-        requireElevation: true,
         workingDirectory: workingDir,
+        runInShell: false,
       );
+
+      if (result.exitCode != 0) {
+        throw ActionFailedException(
+          'Script exited with code ${result.exitCode}: '
+          '${result.stderr.toString().trim()}',
+          moduleId: id,
+        );
+      }
 
       await tempFile.delete();
 

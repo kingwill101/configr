@@ -2,6 +2,7 @@ import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/logging.dart';
+import 'package:configr/src/utils/shell_type.dart';
 import 'package:file/file.dart' show File;
 import 'package:glob/glob.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
@@ -184,7 +185,7 @@ class SymlinkBlock extends ActionBlock {
         if (await fileService.isSymlink(destination)) {
           await fileService.deleteFile(destination);
         }
-        await fileService.createSymlink(originalTarget!, destination);
+        await _createSymlink(originalTarget!, destination);
       }
 
       // Clean up created directories
@@ -263,7 +264,7 @@ class SymlinkBlock extends ActionBlock {
         case 'overwrite':
           logger.info('Overwriting existing symlink $destination');
           await fileService.deleteFile(destination);
-          await fileService.createSymlink(source, destination);
+          await _createSymlink(source, destination);
           overwrittenSymlinks++;
           createdPaths.add(destination);
           break;
@@ -280,11 +281,36 @@ class SymlinkBlock extends ActionBlock {
       }
     } else {
       logger.info('Creating symlink from $source to $destination');
-      await fileService.createSymlink(source, destination);
+      await _createSymlink(source, destination);
       createdSymlinks++;
       createdPaths.add(destination);
     }
   }
+
+  Future<void> _createSymlink(String target, String linkPath) async {
+    if (targetPlatform.toLowerCase().contains('windows')) {
+      final result = await executionService.run(
+        ShellType.powershell.defaultExecutable,
+        ShellType.powershell.scriptArgs(
+          "\$ProgressPreference = 'SilentlyContinue'; "
+          "New-Item -ItemType SymbolicLink "
+          "-Path ${_psQuote(linkPath)} "
+          "-Target ${_psQuote(target)} "
+          "-Force | Out-Null",
+        ),
+      );
+      if (result.exitCode != 0) {
+        throw ActionFailedException(
+          'PowerShell symlink failed: ${result.stderr.toString().trim()}',
+          moduleId: id,
+        );
+      }
+      return;
+    }
+    await fileService.createSymlink(target, linkPath);
+  }
+
+  String _psQuote(String value) => "'${value.replaceAll("'", "''")}'";
 
   Future<void> _executeBulkOperation() async {
     final filesToProcess = await _getFilesToProcess(source);
@@ -336,7 +362,7 @@ class SymlinkBlock extends ActionBlock {
       switch (conflictResolution) {
         case 'overwrite':
           await fileService.deleteFile(targetPath);
-          await fileService.createSymlink(filePath, targetPath);
+          await _createSymlink(filePath, targetPath);
           overwrittenSymlinks++;
           createdPaths.add(targetPath);
           break;
@@ -351,7 +377,7 @@ class SymlinkBlock extends ActionBlock {
           );
       }
     } else {
-      await fileService.createSymlink(filePath, targetPath);
+      await _createSymlink(filePath, targetPath);
       createdSymlinks++;
       createdPaths.add(targetPath);
     }

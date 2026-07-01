@@ -1,6 +1,8 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
+import 'package:configr/src/strategies/script_strategy.dart';
+import 'package:configr/src/utils/platform.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
 class CronBlock extends ActionBlock {
@@ -91,6 +93,8 @@ class CronBlock extends ActionBlock {
 
     emitEvent(StartedEvent(moduleId: id, message: 'Managing cron job: $name'));
 
+    OsFacts.detect().requireLinux('cron');
+
     try {
       final priv = privilegeEscalation;
       final cronLine = disabled
@@ -120,10 +124,11 @@ class CronBlock extends ActionBlock {
           await file.writeAsString('${lines.join('\n')}\n');
         }
       } else {
-        final currentCron = await priv.runWithElevatedPrivileges('sh', [
-          '-c',
+        final sh = ScriptStrategy.forPlatform('linux');
+        final (exe, args) = sh.runScript(
           'crontab -u $targetUser -l 2>/dev/null',
-        ]);
+        );
+        final currentCron = await priv.runWithElevatedPrivileges(exe, args);
         final lines = (currentCron.stdout as String)
             .split('\n')
             .where((l) => l.trim().isNotEmpty)
@@ -141,9 +146,12 @@ class CronBlock extends ActionBlock {
         }
 
         final newCron = lines.join('\n');
-        final result = await priv.runWithElevatedPrivileges('sh', [
-          r'-c',
+        final strategy = ScriptStrategy.forPlatform('linux');
+        final (runExe, shArgs) = strategy.runScript(
           r'echo "$1" | crontab -u "$2" -',
+        );
+        final result = await priv.runWithElevatedPrivileges(runExe, [
+          ...shArgs,
           '_',
           newCron,
           targetUser,

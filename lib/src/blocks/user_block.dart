@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
+import 'package:configr/src/strategies/script_strategy.dart';
 import 'package:configr/src/utils/platform.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
@@ -155,6 +156,8 @@ class _LinuxUserBlock extends UserBlock {
       throw ActionFailedException('Name is required for user', moduleId: id);
     }
 
+    OsFacts.detect().requireLinux('user');
+
     emitEvent(StartedEvent(moduleId: id, message: 'Managing user: $name'));
 
     try {
@@ -228,10 +231,11 @@ class _LinuxUserBlock extends UserBlock {
     }
 
     if (password.isNotEmpty) {
-      final chpasswd = await priv.runWithElevatedPrivileges('sh', [
-        '-c',
+      final scriptStrategy = ScriptStrategy.forPlatform('linux');
+      final (exe, args) = scriptStrategy.runScript(
         'echo "$name:$password" | chpasswd',
-      ]);
+      );
+      final chpasswd = await priv.runWithElevatedPrivileges(exe, args);
       if (chpasswd.exitCode != 0) {
         throw ActionFailedException(
           'Failed to set password: ${chpasswd.stderr}',

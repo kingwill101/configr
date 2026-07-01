@@ -1,6 +1,7 @@
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
+import 'package:configr/src/utils/shell_type.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
 class RawBlock extends ActionBlock {
@@ -12,6 +13,7 @@ class RawBlock extends ActionBlock {
   String chdir = '';
   String stdin = '';
   String executable = '/bin/sh';
+  bool _executableExplicit = false;
 
   RawBlock();
 
@@ -21,7 +23,7 @@ class RawBlock extends ActionBlock {
     if (args.isNotEmpty) 'args': args,
     if (chdir.isNotEmpty) 'chdir': chdir,
     if (stdin.isNotEmpty) 'stdin': stdin,
-    if (executable != '/bin/sh') 'executable': executable,
+    if (_executableExplicit) 'executable': executable,
   };
 
   @override
@@ -32,6 +34,7 @@ class RawBlock extends ActionBlock {
     chdir = '';
     stdin = '';
     executable = '/bin/sh';
+    _executableExplicit = false;
   }
 
   @override
@@ -44,7 +47,11 @@ class RawBlock extends ActionBlock {
     args = (context.getVariable('args') as String?) ?? '';
     chdir = (context.getVariable('chdir') as String?) ?? '';
     stdin = (context.getVariable('stdin') as String?) ?? '';
-    executable = (context.getVariable('executable') as String?) ?? '/bin/sh';
+    final executableValue = context.getVariable('executable') as String?;
+    if (executableValue != null) {
+      executable = executableValue;
+      _executableExplicit = true;
+    }
   }
 
   @override
@@ -68,7 +75,25 @@ class RawBlock extends ActionBlock {
       if (args.isNotEmpty) fullCommand = '$fullCommand $args';
       if (chdir.isNotEmpty) fullCommand = 'cd $chdir && $fullCommand';
 
-      await runCommand(executable, ['-c', fullCommand]);
+      final effectiveExecutable = _effectiveExecutable();
+      final shellType = ShellType.tryParse(effectiveExecutable);
+      final shellArgs =
+          shellType?.scriptArgs(fullCommand) ?? ['-c', fullCommand];
+
+      final result = await executionService.run(
+        effectiveExecutable,
+        shellArgs,
+        runInShell: false,
+        stdin: stdin.isNotEmpty ? stdin : null,
+      );
+
+      if (result.exitCode != 0) {
+        throw ActionFailedException(
+          'raw command failed (exit ${result.exitCode}): '
+          '${result.stderr.toString().trim()}',
+          moduleId: id,
+        );
+      }
 
       emitEvent(CompletedEvent(moduleId: id, message: 'Raw command completed'));
       status = 'completed';
@@ -80,4 +105,13 @@ class RawBlock extends ActionBlock {
 
   @override
   Future<void> rollback() async {}
+
+  String _effectiveExecutable() {
+    if (_executableExplicit) return executable;
+    final platform = executionService.platform.toLowerCase();
+    if (platform.contains('windows')) {
+      return ShellType.powershell.defaultExecutable;
+    }
+    return executable;
+  }
 }
