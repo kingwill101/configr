@@ -584,15 +584,20 @@ class AuditLogger {
       final directory = file.parent;
       final baseName = file.uri.pathSegments.last;
 
-      final files = directory
-          .listSync()
+      final entries = await directory.list().toList();
+      final files = entries
           .where((f) => f is File && f.path.contains(baseName))
           .cast<File>()
           .toList();
 
-      files.sort(
-        (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()),
-      );
+      final modifiedTimes = <String, DateTime>{};
+      for (final file in files) {
+        modifiedTimes[file.path] = await file.lastModified();
+      }
+
+      files.sort((a, b) {
+        return modifiedTimes[b.path]!.compareTo(modifiedTimes[a.path]!);
+      });
 
       // Keep only maxFiles
       for (int i = _config.maxFiles; i < files.length; i++) {

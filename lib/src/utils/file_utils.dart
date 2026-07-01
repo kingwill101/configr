@@ -173,8 +173,8 @@ class FileUtils {
             logger.info('Directory $path already exists');
           } else {
             logger.info('Directory $path does not exist');
-            directory.createSync(recursive: recursive);
-            if (!directory.existsSync()) {
+            await directory.create(recursive: recursive);
+            if (!await directory.exists()) {
               throw Exception("Directory $path does not exist");
             }
           }
@@ -246,7 +246,7 @@ class FileUtils {
     bool recursive = false,
   }) async {
     final fsToUse = fileSystem ?? fs;
-    final entity = fsToUse.statSync(path);
+    final entity = await fsToUse.stat(path);
 
     if (entity.type == FileSystemEntityType.file) {
       // For regular files, hash the contents and path
@@ -256,7 +256,7 @@ class FileUtils {
     } else if (entity.type == FileSystemEntityType.directory) {
       // For directories, combine hashes of children
       final dir = fsToUse.directory(path);
-      final childEntities = dir.listSync(recursive: recursive);
+      final childEntities = await dir.list(recursive: recursive).toList();
 
       // Sort to ensure consistent ordering
       childEntities.sort((a, b) => a.path.compareTo(b.path));
@@ -533,29 +533,29 @@ class FileUtils {
     final destinationDir = fsToUse.directory(destination);
 
     // Ensure the source directory exists
-    if (!sourceDir.existsSync()) {
+    if (!await sourceDir.exists()) {
       throw FileSystemException('Source directory does not exist', source);
     }
 
     // Ensure the destination directory exists
-    if (!destinationDir.existsSync()) {
+    if (!await destinationDir.exists()) {
       await destinationDir.create(recursive: true);
     }
 
     // List the contents of the source directory
-    for (var entity in sourceDir.listSync(recursive: recursive)) {
+    await for (final entity in sourceDir.list(recursive: recursive)) {
       final relativePath = posix.relative(entity.path, from: source);
       final targetPath = posix.join(destination, relativePath);
       if (entity is Directory) {
         // Copy subdirectories while preserving their relative path.
         final targetDir = fsToUse.directory(targetPath);
-        if (!targetDir.existsSync()) {
+        if (!await targetDir.exists()) {
           await targetDir.create(recursive: true);
         }
       } else if (entity is File) {
         // Copy files while preserving their relative path.
         final targetDir = fsToUse.directory(posix.dirname(targetPath));
-        if (!targetDir.existsSync()) {
+        if (!await targetDir.exists()) {
           await targetDir.create(recursive: true);
         }
         await entity.copy(targetPath);
@@ -651,12 +651,12 @@ class FileUtils {
       if (requireElevation && privilegeEscalation != null) {
         try {
           // Write to temp file first, then move with privilege escalation
-          final tempFile = (fileSystem ?? fs).systemTempDirectory
-              .createTempSync()
-              .childFile(
-                'configr_temp_${DateTime.now().millisecondsSinceEpoch}',
-              );
-          tempFile.writeAsStringSync(content);
+          final tempFile =
+              (await (fileSystem ?? fs).systemTempDirectory.createTemp())
+                  .childFile(
+                    'configr_temp_${DateTime.now().millisecondsSinceEpoch}',
+                  );
+          await tempFile.writeAsString(content);
 
           await privilegeEscalation.runWithElevatedPrivileges('cp', [
             tempFile.path,
@@ -667,7 +667,7 @@ class FileUtils {
             path,
           ]);
 
-          tempFile.deleteSync();
+          await tempFile.delete();
           logger.info(
             'File written successfully with privilege escalation: $path',
           );
@@ -832,7 +832,9 @@ class FileUtils {
       final directory = fsToUse.directory(path);
 
       // Check if path exists
-      final exists = file.existsSync() || directory.existsSync();
+      final fileExists = await file.exists();
+      final directoryExists = await directory.exists();
+      final exists = fileExists || directoryExists;
       if (!exists) {
         return PermissionCheckResult(
           path: path,
@@ -844,17 +846,17 @@ class FileUtils {
         );
       }
 
-      final isDir = directory.existsSync();
+      final isDir = directoryExists;
 
       // Check read permission
       bool canRead = false;
       if (requireRead) {
         try {
           if (isDir) {
-            directory.listSync().length; // Try to list contents
+            await directory.list().isEmpty;
             canRead = true;
           } else {
-            file.readAsStringSync();
+            await file.readAsString();
             canRead = true;
           }
         } catch (e) {
@@ -870,16 +872,16 @@ class FileUtils {
             final testFile = fsToUse.file(
               '$path/.permission_test_${DateTime.now().millisecondsSinceEpoch}',
             );
-            testFile.writeAsStringSync('test');
-            testFile.deleteSync();
+            await testFile.writeAsString('test');
+            await testFile.delete();
             canWrite = true;
           } else {
-            final backup = file.existsSync() ? file.readAsStringSync() : null;
-            file.writeAsStringSync('test');
+            final backup = fileExists ? await file.readAsString() : null;
+            await file.writeAsString('test');
             if (backup != null) {
-              file.writeAsStringSync(backup);
+              await file.writeAsString(backup);
             } else {
-              file.deleteSync();
+              await file.delete();
             }
             canWrite = true;
           }
@@ -1060,7 +1062,9 @@ class FileUtils {
       final directory = fsToUse.directory(path);
 
       // Check if path exists
-      final exists = file.existsSync() || directory.existsSync();
+      final fileExists = await file.exists();
+      final directoryExists = await directory.exists();
+      final exists = fileExists || directoryExists;
       if (!exists) {
         return PermissionCheckResult(
           path: path,
@@ -1072,17 +1076,17 @@ class FileUtils {
         );
       }
 
-      final isDir = directory.existsSync();
+      final isDir = directoryExists;
 
       // Check read permission (cross-platform)
       bool canRead = false;
       if (requireRead) {
         try {
           if (isDir) {
-            directory.listSync().length; // Try to list contents
+            await directory.list().isEmpty;
             canRead = true;
           } else {
-            file.readAsStringSync();
+            await file.readAsString();
             canRead = true;
           }
         } catch (e) {
@@ -1098,16 +1102,16 @@ class FileUtils {
             final testFile = fsToUse.file(
               '$path/.permission_test_${DateTime.now().millisecondsSinceEpoch}',
             );
-            testFile.writeAsStringSync('test');
-            testFile.deleteSync();
+            await testFile.writeAsString('test');
+            await testFile.delete();
             canWrite = true;
           } else {
-            final backup = file.existsSync() ? file.readAsStringSync() : null;
-            file.writeAsStringSync('test');
+            final backup = fileExists ? await file.readAsString() : null;
+            await file.writeAsString('test');
             if (backup != null) {
-              file.writeAsStringSync(backup);
+              await file.writeAsString(backup);
             } else {
-              file.deleteSync();
+              await file.delete();
             }
             canWrite = true;
           }
@@ -1226,12 +1230,12 @@ class FileUtils {
         try {
           if (isUnixLike) {
             // Unix-specific privilege escalation
-            final tempFile = (fileSystem ?? fs).systemTempDirectory
-                .createTempSync()
-                .childFile(
-                  'configr_temp_${DateTime.now().millisecondsSinceEpoch}',
-                );
-            tempFile.writeAsStringSync(content);
+            final tempFile =
+                (await (fileSystem ?? fs).systemTempDirectory.createTemp())
+                    .childFile(
+                      'configr_temp_${DateTime.now().millisecondsSinceEpoch}',
+                    );
+            await tempFile.writeAsString(content);
 
             await privilegeEscalation.runWithElevatedPrivileges('cp', [
               tempFile.path,
@@ -1242,22 +1246,22 @@ class FileUtils {
               path,
             ]);
 
-            tempFile.deleteSync();
+            await tempFile.delete();
           } else if (isWindows) {
             // Windows-specific privilege escalation
-            final tempFile = (fileSystem ?? fs).systemTempDirectory
-                .createTempSync()
-                .childFile(
-                  'configr_temp_${DateTime.now().millisecondsSinceEpoch}',
-                );
-            tempFile.writeAsStringSync(content);
+            final tempFile =
+                (await (fileSystem ?? fs).systemTempDirectory.createTemp())
+                    .childFile(
+                      'configr_temp_${DateTime.now().millisecondsSinceEpoch}',
+                    );
+            await tempFile.writeAsString(content);
 
             await privilegeEscalation.runWithElevatedPrivileges('copy', [
               tempFile.path,
               path,
             ]);
 
-            tempFile.deleteSync();
+            await tempFile.delete();
           } else {
             // Fallback: direct write
             await writeFile(

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:configr/src/utils/shell_type.dart';
 import 'package:configr/src/utils/target_system.dart' show TargetSystemFacts;
 import 'package:i3config/i3config_v2.dart' as i3;
 
@@ -58,7 +59,8 @@ class SystemInfo {
        osDistribution = targetFacts?.distribution ?? _detectDistribution(),
        osDistributionVersion =
            targetFacts?.distributionVersion ?? _detectDistributionVersion(),
-       osFamily = targetFacts?.family.name ??
+       osFamily =
+           targetFacts?.family.name ??
            _detectFamily(Platform.operatingSystem, _detectDistribution()),
        hostHostname = targetFacts?.hostname ?? Platform.localHostname,
        hostFqdn = (targetFacts?.fqdn.isNotEmpty == true)
@@ -215,10 +217,12 @@ class SystemInfo {
       return Platform.operatingSystem;
     }
     try {
-      final result = Process.runSync('sh', [
-        '-c',
-        '. /etc/os-release 2>/dev/null && echo "\${ID:-unknown}"',
-      ]);
+      final result = Process.runSync(
+        ShellType.sh.defaultExecutable,
+        ShellType.sh.scriptArgs(
+          '. /etc/os-release 2>/dev/null && echo "\${ID:-unknown}"',
+        ),
+      );
       if (result.exitCode == 0) {
         final id = (result.stdout as String).trim();
         if (id.isNotEmpty) return id;
@@ -232,10 +236,12 @@ class SystemInfo {
       return Platform.operatingSystemVersion;
     }
     try {
-      final result = Process.runSync('sh', [
-        '-c',
-        '. /etc/os-release 2>/dev/null && echo "\${VERSION_ID:-}"',
-      ]);
+      final result = Process.runSync(
+        ShellType.sh.defaultExecutable,
+        ShellType.sh.scriptArgs(
+          '. /etc/os-release 2>/dev/null && echo "\${VERSION_ID:-}"',
+        ),
+      );
       if (result.exitCode == 0) {
         final id = (result.stdout as String).trim();
         if (id.isNotEmpty) return id;
@@ -258,10 +264,12 @@ class SystemInfo {
       case 'linux':
         // Check ID_LIKE from /etc/os-release for family detection
         try {
-          final result = Process.runSync('sh', [
-            '-c',
-            '. /etc/os-release 2>/dev/null && echo "\${ID_LIKE:-}"',
-          ]);
+          final result = Process.runSync(
+            ShellType.sh.defaultExecutable,
+            ShellType.sh.scriptArgs(
+              '. /etc/os-release 2>/dev/null && echo "\${ID_LIKE:-}"',
+            ),
+          );
           if (result.exitCode == 0) {
             final like = (result.stdout as String).trim().toLowerCase();
             if (like.contains('debian')) return 'debian';

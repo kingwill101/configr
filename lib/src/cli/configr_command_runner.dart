@@ -205,7 +205,7 @@ class ConfigrCommandRunner extends CommandRunner<void> {
     if (sshHost != null && sshHost.isNotEmpty) {
       String? privateKey;
       if (sshKeyPath != null && sshKeyPath.isNotEmpty) {
-        privateKey = File(sshKeyPath).readAsStringSync();
+        privateKey = await File(sshKeyPath).readAsString();
       }
       connectionConfig = ConnectionConfig(
         host: sshHost,
@@ -252,7 +252,7 @@ class ConfigrCommandRunner extends CommandRunner<void> {
             'session-${DateTime.now().toIso8601String().replaceAll(':', '-')}.jsonl',
           ),
     );
-    fileEventHandler.start();
+    await fileEventHandler.start();
 
     final uiHandler = interactiveMode
         ? InteractiveHandler(
@@ -297,7 +297,7 @@ class ConfigrCommandRunner extends CommandRunner<void> {
     } on CliExitException {
       rethrow;
     } finally {
-      fileEventHandler.stop();
+      await fileEventHandler.stop();
       uiHandler.stop();
       // await logger.shutdown();
     }

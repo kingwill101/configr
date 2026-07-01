@@ -48,8 +48,11 @@ class InventoryBlock extends i3.BaseBlockHandler {
         final portStr = vars['port'] as String?;
         final username = vars['username'] as String?;
         var privateKey = vars['privateKey'] as String?;
-        if (privateKey != null && File(privateKey).existsSync()) {
-          privateKey = File(privateKey).readAsStringSync();
+        if (privateKey != null) {
+          final privateKeyFile = File(privateKey);
+          if (await privateKeyFile.exists()) {
+            privateKey = await privateKeyFile.readAsString();
+          }
         }
         final rolesRaw = vars['roles'];
         final groupsRaw = vars['groups'];

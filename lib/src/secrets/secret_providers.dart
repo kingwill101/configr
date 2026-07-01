@@ -40,8 +40,7 @@ class SecretProviders {
       // On Windows, dotenv://C:/path/file parses with host='c' and path='/path/file'.
       // Reconstruct the full path by prepending the drive letter.
       final host = uri.host;
-      project = (host.length == 1 &&
-              RegExp(r'^[a-zA-Z]$').hasMatch(host))
+      project = (host.length == 1 && RegExp(r'^[a-zA-Z]$').hasMatch(host))
           ? '$host:${uri.path}'
           : uri.path;
     } else {

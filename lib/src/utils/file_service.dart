@@ -188,7 +188,7 @@ class LocalFileService implements FileService {
     try {
       final link = _fs.link(path);
       if (await link.exists()) {
-        return link.targetSync();
+        return await link.target();
       }
     } catch (_) {}
     return null;
@@ -196,18 +196,22 @@ class LocalFileService implements FileService {
 
   @override
   Future<bool> isSymlink(String path) async {
-    return _fs.isLink(path);
+    try {
+      return await _fs.isLink(path);
+    } catch (_) {
+      return false;
+    }
   }
 
   @override
   Future<String> computeFileHash(String path, {bool recursive = false}) async {
-    final entity = _fs.statSync(path);
+    final entity = await _fs.stat(path);
     if (entity.type == FileSystemEntityType.file) {
       final contents = await _fs.file(path).readAsBytes();
       return sha256.convert([...utf8.encode(path), ...contents]).toString();
     } else if (entity.type == FileSystemEntityType.directory) {
       final dir = _fs.directory(path);
-      final childEntities = dir.listSync(recursive: recursive);
+      final childEntities = await dir.list(recursive: recursive).toList();
       childEntities.sort((a, b) => a.path.compareTo(b.path));
       var digest = sha256.convert(utf8.encode(path));
       for (final child in childEntities) {
@@ -359,7 +363,7 @@ class LocalFileService implements FileService {
     if (!await dst.exists()) {
       await dst.create(recursive: true);
     }
-    for (final entity in src.listSync(recursive: recursive)) {
+    await for (final entity in src.list(recursive: recursive)) {
       final relativePath = _fs.path.relative(entity.path, from: source);
       final targetPath = _fs.path.join(destination, relativePath);
       if (entity is Directory) {
@@ -434,15 +438,15 @@ class LocalFileService implements FileService {
         'Permission denied and no privilege escalation available for: $path',
       );
     }
-    final tempFile = _fs.systemTempDirectory.createTempSync().childFile(
+    final tempFile = (await _fs.systemTempDirectory.createTemp()).childFile(
       'configr_temp_${DateTime.now().millisecondsSinceEpoch}',
     );
-    tempFile.writeAsStringSync(content);
+    await tempFile.writeAsString(content);
     try {
       await escalation.runWithElevatedPrivileges('cp', [tempFile.path, path]);
       await escalation.runWithElevatedPrivileges('chmod', ['644', path]);
     } finally {
-      if (await tempFile.exists()) tempFile.deleteSync();
+      if (await tempFile.exists()) await tempFile.delete();
     }
   }
 

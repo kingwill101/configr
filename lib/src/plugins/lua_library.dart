@@ -513,38 +513,46 @@ local distro = getContext("os")["distribution"]''',
             description: 'System hostname.',
           ),
           FieldDoc(
-              key: 'os',
-              type: 'table',
-              description: 'Operating system details.',
-              fields: [
-                FieldDoc(key: 'name', type: 'string', description: 'OS name (linux, macos, windows).'),
-                FieldDoc(
-                  key: 'version',
-                  type: 'string',
-                  description: 'OS version string (e.g. Linux kernel, Darwin version).',
-                ),
-                FieldDoc(
-                  key: 'family',
-                  type: 'string',
-                  description: 'OS family (debian, redhat, arch, darwin, windows).',
-                ),
-                FieldDoc(
-                  key: 'distribution',
-                  type: 'string',
-                  description: 'Distribution ID (ubuntu, manjaro, rhel) or OS name on non-Linux.',
-                ),
-                FieldDoc(
-                  key: 'distributionVersion',
-                  type: 'string',
-                  description: 'Distribution version (VERSION_ID from os-release) or kernel version.',
-                ),
-                FieldDoc(
-                  key: 'kernel',
-                  type: 'string',
-                  description: 'Kernel version string from uname -r.',
-                ),
-              ],
-            ),
+            key: 'os',
+            type: 'table',
+            description: 'Operating system details.',
+            fields: [
+              FieldDoc(
+                key: 'name',
+                type: 'string',
+                description: 'OS name (linux, macos, windows).',
+              ),
+              FieldDoc(
+                key: 'version',
+                type: 'string',
+                description:
+                    'OS version string (e.g. Linux kernel, Darwin version).',
+              ),
+              FieldDoc(
+                key: 'family',
+                type: 'string',
+                description:
+                    'OS family (debian, redhat, arch, darwin, windows).',
+              ),
+              FieldDoc(
+                key: 'distribution',
+                type: 'string',
+                description:
+                    'Distribution ID (ubuntu, manjaro, rhel) or OS name on non-Linux.',
+              ),
+              FieldDoc(
+                key: 'distributionVersion',
+                type: 'string',
+                description:
+                    'Distribution version (VERSION_ID from os-release) or kernel version.',
+              ),
+              FieldDoc(
+                key: 'kernel',
+                type: 'string',
+                description: 'Kernel version string from uname -r.',
+              ),
+            ],
+          ),
           FieldDoc(
             key: 'user',
             type: 'table',

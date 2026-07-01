@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
+import 'package:configr/src/utils/shell_type.dart';
 
 /// Enhanced privilege lock that maintains a persistent shell session
 class PersistentPrivilegeLock {
@@ -164,7 +165,10 @@ class PersistentPrivilegeLock {
 
         // Test authentication
         final fullCommand = 'echo "$password" | sudo -S echo "AUTH_SUCCESS"';
-        result = await Process.run('sh', ['-c', fullCommand]);
+        result = await Process.run(
+          ShellType.sh.defaultExecutable,
+          ShellType.sh.scriptArgs(fullCommand),
+        );
 
         return result.exitCode == 0;
       } finally {
@@ -185,7 +189,10 @@ class PersistentPrivilegeLock {
         }
 
         final fullCommand = 'echo "$password" | sudo -S echo "AUTH_SUCCESS"';
-        result = await Process.run('sh', ['-c', fullCommand]);
+        result = await Process.run(
+          ShellType.sh.defaultExecutable,
+          ShellType.sh.scriptArgs(fullCommand),
+        );
 
         return result.exitCode == 0;
       } catch (e) {
@@ -387,7 +394,10 @@ class PersistentSudoEscalation implements PrivilegeEscalation {
 
         final fullCommand =
             'echo "$password" | sudo -S $command ${arguments.join(' ')}';
-        result = await Process.run('sh', ['-c', fullCommand]);
+        result = await Process.run(
+          ShellType.sh.defaultExecutable,
+          ShellType.sh.scriptArgs(fullCommand),
+        );
 
         if (result.exitCode != 0) {
           throw Exception('Failed to run command with sudo: ${result.stderr}');

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:configr/src/strategies/privilege_strategy.dart';
 import 'package:configr/src/utils/execution_service.dart';
 import 'package:configr/src/utils/logging.dart';
 
@@ -156,16 +157,20 @@ class InteractiveSudoEscalation implements PrivilegeEscalation {
         throw Exception('Password required but not provided');
       }
 
-      final fullCommand =
-          'echo "$password" | sudo -S $command ${arguments.join(' ')}';
-      result = await executionService.run('sh', [
-        '-c',
-        fullCommand,
-      ], workingDirectory: workingDirectory);
+      final strategy = PrivilegeStrategy.forPlatform(executionService.platform);
+      final pr = await strategy.runWithPrivileges(
+        executionService: executionService,
+        command: command,
+        arguments: arguments,
+        password: password,
+        workingDirectory: workingDirectory,
+      );
 
-      if (result.exitCode != 0) {
-        throw Exception('Failed to run command with sudo: ${result.stderr}');
+      if (pr.exitCode != 0) {
+        throw Exception('Failed to run command with sudo: ${pr.stderr}');
       }
+
+      result = ProcessResult(0, pr.exitCode, pr.stdout, pr.stderr);
 
       if (usePrivilegeLock && privilegeLock != null) {
         privilegeLock!.acquire();

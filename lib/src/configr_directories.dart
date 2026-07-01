@@ -86,6 +86,9 @@ class ConfigrDirectories {
     return p.join(appDirs.config, 'logs');
   }
 
+  /// Directory for command execution audit logs.
+  String get shellLogsDir => p.join(logsDir, 'shell');
+
   // ---------------------------------------------------------------------------
   // Backup directory
   // ---------------------------------------------------------------------------
@@ -109,8 +112,11 @@ class ConfigrDirectories {
       if (projectConfigrPath != null)
         fileSystem.directory(p.join(projectConfigrPath!, 'cache')),
       fileSystem.directory(p.join(appDirs.config, 'logs')),
+      fileSystem.directory(p.join(appDirs.config, 'logs', 'shell')),
       if (projectConfigrPath != null)
         fileSystem.directory(p.join(projectConfigrPath!, 'logs')),
+      if (projectConfigrPath != null)
+        fileSystem.directory(p.join(projectConfigrPath!, 'logs', 'shell')),
     ];
 
     for (final dir in dirs) {

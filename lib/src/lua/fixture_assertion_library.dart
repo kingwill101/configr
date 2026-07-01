@@ -28,10 +28,10 @@ class FixtureAssertionLibrary extends Library {
 
     context.define(
       'assertFileExists',
-      builder.create((args) {
+      builder.create((args) async {
         final path = _stringArg(args, 0);
         final f = _fileSystem.file(path);
-        if (!f.existsSync()) fail('file does not exist: $path');
+        if (!await f.exists()) fail('file does not exist: $path');
         return null;
       }),
     );
@@ -48,10 +48,10 @@ class FixtureAssertionLibrary extends Library {
 
     context.define(
       'assertFileNotExists',
-      builder.create((args) {
+      builder.create((args) async {
         final path = _stringArg(args, 0);
         final f = _fileSystem.file(path);
-        if (f.existsSync()) fail('file exists but should not: $path');
+        if (await f.exists()) fail('file exists but should not: $path');
         return null;
       }),
     );
@@ -68,12 +68,12 @@ class FixtureAssertionLibrary extends Library {
 
     context.define(
       'assertFileContains',
-      builder.create((args) {
+      builder.create((args) async {
         final path = _stringArg(args, 0);
         final pattern = _stringArg(args, 1);
         final f = _fileSystem.file(path);
-        if (!f.existsSync()) fail('file does not exist: $path');
-        final content = f.readAsStringSync();
+        if (!await f.exists()) fail('file does not exist: $path');
+        final content = await f.readAsString();
         if (!content.contains(pattern)) {
           fail('file does not contain pattern "$pattern": $path');
         }
@@ -96,12 +96,12 @@ class FixtureAssertionLibrary extends Library {
 
     context.define(
       'assertFileNotContains',
-      builder.create((args) {
+      builder.create((args) async {
         final path = _stringArg(args, 0);
         final pattern = _stringArg(args, 1);
         final f = _fileSystem.file(path);
-        if (!f.existsSync()) fail('file does not exist: $path');
-        final content = f.readAsStringSync();
+        if (!await f.exists()) fail('file does not exist: $path');
+        final content = await f.readAsString();
         if (content.contains(pattern)) {
           fail('file contains forbidden pattern "$pattern": $path');
         }
@@ -124,10 +124,10 @@ class FixtureAssertionLibrary extends Library {
 
     context.define(
       'assertDirExists',
-      builder.create((args) {
+      builder.create((args) async {
         final path = _stringArg(args, 0);
         final d = _fileSystem.directory(path);
-        if (!d.existsSync()) fail('directory does not exist: $path');
+        if (!await d.exists()) fail('directory does not exist: $path');
         return null;
       }),
     );
@@ -144,10 +144,10 @@ class FixtureAssertionLibrary extends Library {
 
     context.define(
       'assertDirNotExists',
-      builder.create((args) {
+      builder.create((args) async {
         final path = _stringArg(args, 0);
         final d = _fileSystem.directory(path);
-        if (d.existsSync()) fail('directory exists but should not: $path');
+        if (await d.exists()) fail('directory exists but should not: $path');
         return null;
       }),
     );
@@ -164,9 +164,9 @@ class FixtureAssertionLibrary extends Library {
 
     context.define(
       'makeDir',
-      builder.create((args) {
+      builder.create((args) async {
         final path = _stringArg(args, 0);
-        _fileSystem.directory(path).createSync(recursive: true);
+        await _fileSystem.directory(path).create(recursive: true);
         return null;
       }),
     );
@@ -183,10 +183,10 @@ class FixtureAssertionLibrary extends Library {
 
     context.define(
       'removeTree',
-      builder.create((args) {
+      builder.create((args) async {
         final path = _stringArg(args, 0);
         final d = _fileSystem.directory(path);
-        if (d.existsSync()) d.deleteSync(recursive: true);
+        if (await d.exists()) await d.delete(recursive: true);
         return null;
       }),
     );
