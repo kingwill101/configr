@@ -91,11 +91,7 @@ class _StubLuaPluginHost implements LuaPluginHost {
     },
     'user': {'username': 'stub', 'home': '/tmp', 'shell': '/bin/sh'},
     'env': <String, String>{},
-    'configr': {
-      'version': '0.0.0',
-      'cacheDir': '',
-      'backupDir': '',
-    },
+    'configr': {'version': '0.0.0', 'cacheDir': '', 'backupDir': ''},
   };
 
   @override
