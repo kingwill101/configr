@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:configr/src/utils/target_system.dart' show TargetSystemFacts;
 import 'package:i3config/i3config_v2.dart' as i3;
 
 /// Collects system information and exposes it as i3config context variables.
@@ -45,18 +46,24 @@ class SystemInfo {
     this.configrVersion = '1.0.0',
     this.configrCacheDir = '',
     this.configrBackupDir = '',
-  }) : osName = Platform.operatingSystem,
-       osVersion = Platform.operatingSystemVersion,
-       osArchitecture = _detectArchitecture(),
-       osKernel = _extractKernel(Platform.operatingSystemVersion),
-       osDistribution = _detectDistribution(),
-       osDistributionVersion = _detectDistributionVersion(),
-       osFamily = _detectFamily(
-         Platform.operatingSystem,
-         _detectDistribution(),
-       ),
-       hostHostname = Platform.localHostname,
-       hostFqdn = _detectFqdn(),
+    TargetSystemFacts? targetFacts,
+  }) : osName = targetFacts?.os.name ?? Platform.operatingSystem,
+       osVersion = targetFacts != null
+           ? _targetOsVersion(targetFacts)
+           : Platform.operatingSystemVersion,
+       osArchitecture = targetFacts?.architecture ?? _detectArchitecture(),
+       osKernel = (targetFacts?.kernel.isNotEmpty == true)
+           ? targetFacts!.kernel
+           : _extractKernel(Platform.operatingSystemVersion),
+       osDistribution = targetFacts?.distribution ?? _detectDistribution(),
+       osDistributionVersion =
+           targetFacts?.distributionVersion ?? _detectDistributionVersion(),
+       osFamily = targetFacts?.family.name ??
+           _detectFamily(Platform.operatingSystem, _detectDistribution()),
+       hostHostname = targetFacts?.hostname ?? Platform.localHostname,
+       hostFqdn = (targetFacts?.fqdn.isNotEmpty == true)
+           ? targetFacts!.fqdn
+           : _detectFqdn(),
        userName =
            Platform.environment['USER'] ??
            Platform.environment['USERNAME'] ??
@@ -172,6 +179,16 @@ class SystemInfo {
   // ---------------------------------------------------------------------------
   // Internal helpers
   // ---------------------------------------------------------------------------
+
+  static String _targetOsVersion(TargetSystemFacts targetFacts) {
+    if (targetFacts.isLinux) {
+      final kernel = targetFacts.kernel.isNotEmpty
+          ? targetFacts.kernel
+          : targetFacts.distributionVersion;
+      return 'Linux $kernel';
+    }
+    return targetFacts.distributionVersion;
+  }
 
   static String _detectArchitecture() {
     try {

@@ -11,6 +11,8 @@ class TargetSystemFacts {
   final String distributionVersion;
   final String architecture;
   final String hostname;
+  final String kernel;
+  final String fqdn;
 
   const TargetSystemFacts({
     required this.os,
@@ -19,6 +21,8 @@ class TargetSystemFacts {
     required this.distributionVersion,
     required this.architecture,
     required this.hostname,
+    this.kernel = '',
+    this.fqdn = '',
   });
 
   bool get isLinux => os == OperatingSystem.linux;
@@ -50,6 +54,12 @@ class TargetSystemProbe {
       distributionVersion: distributionVersion,
       architecture: await _stdout('uname', ['-m'], fallback: _hostArch()),
       hostname: await _stdout('hostname', [], fallback: Platform.localHostname),
+      kernel: await _stdout('uname', ['-r'], fallback: ''),
+      fqdn: await _stdout(
+        'hostname',
+        ['-f'],
+        fallback: Platform.localHostname,
+      ),
     );
   }
 

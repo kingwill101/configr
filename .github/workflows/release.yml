@@ -50,16 +50,20 @@ jobs:
             -DCONFIGR_BUILD_TARGET=${{ runner.os }} \
             bin/configr.dart -o ${{ matrix.output-name }}
 
+      - name: Generate API docs
+        run: mkdir -p doc/api && dart run tool/generate_metadata.dart --no-stdlib
+
       - name: Package artifact
         shell: bash
         run: |
           mkdir -p staging
+          cp -r doc/api staging/doc/api
           if [ "${{ runner.os }}" = "Windows" ]; then
             cp "${{ matrix.output-name }}.exe" staging/configr
-            powershell -Command "Compress-Archive -Path staging/configr -DestinationPath ${{ matrix.output-name }}.zip -Force"
+            powershell -Command "Compress-Archive -Path staging/configr, staging/doc/api -DestinationPath ${{ matrix.output-name }}.zip -Force"
           else
             cp "${{ matrix.output-name }}" staging/configr
-            cd staging && zip -r "../${{ matrix.output-name }}.zip" configr && cd ..
+            cd staging && zip -r "../${{ matrix.output-name }}.zip" configr doc/api && cd ..
           fi
 
       - name: Upload artifacts

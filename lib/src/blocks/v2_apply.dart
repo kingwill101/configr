@@ -12,6 +12,8 @@ import 'package:configr/src/reader/handlers/configr_handlers.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/ssh_execution_service.dart';
 import 'package:configr/src/utils/system_info.dart';
+import 'package:configr/src/utils/target_system.dart'
+    show TargetSystemFacts, TargetSystemProbe;
 import 'package:configr/src/utils/v2_lockfile_manager.dart';
 import 'package:crypto/crypto.dart' show sha256;
 import 'package:lualike/lualike.dart' show ProcessBackend;
@@ -269,13 +271,57 @@ Future<void> applyV2(
   final dotConfigrPath = p.join(configDir, '.configr');
   final configrDirs = ConfigrDirectories(projectConfigrPath: dotConfigrPath);
 
-  // Set all built-in variables on the processor context
+  // Determine execution service before seeding context so we can probe
+  // target facts instead of using controller-derived values.
+  ExecutionService executionService;
+  FileSystem fileSystem;
+  ProcessBackend? processBackend;
+  if (runtimeExecutionService != null || runtimeFileSystem != null) {
+    executionService =
+        runtimeExecutionService ?? const LocalExecutionService();
+    fileSystem = runtimeFileSystem ?? const LocalFileSystem();
+    processBackend = runtimeProcessBackend;
+  } else if (connectionConfig != null &&
+      connectionConfig['host'] is String &&
+      (connectionConfig['host'] as String).isNotEmpty) {
+    final ssh = SSHExecutionService();
+    await ssh.connect(connectionConfig);
+    executionService = ssh;
+    fileSystem = ssh.fileSystem;
+    processBackend = ssh.processBackend;
+  } else {
+    executionService = const LocalExecutionService();
+    fileSystem = const LocalFileSystem();
+    processBackend = null;
+  }
+
+  // Probe target facts for OS/host context variables. When the probe
+  // succeeds (local or remote), SystemInfo uses target-derived values;
+  // on failure it falls back to controller Platform probes.
+  TargetSystemFacts? targetFacts;
+  try {
+    targetFacts = await TargetSystemProbe(executionService).detect();
+  } catch (_) {
+    if (debug) {
+      logger.debug('Target fact probe failed — using controller SystemInfo');
+    }
+  }
+
+  // Set all built-in variables on the processor context, preferring target
+  // facts when available so plugins and blocks see the correct target OS.
   SystemInfo(
     configDir: configDir,
     configrVersion: '1.0.0',
     configrCacheDir: configrDirs.cacheDir,
     configrBackupDir: configrDirs.backupDir,
+    targetFacts: targetFacts,
   ).applyToContext(processor.context);
+
+  // Store runtime backends in context early so pre-apply scripts, hooks,
+  // and _registerAllBlocks all use the same execution service.
+  processor.context.options['_runtimeFileSystem'] = fileSystem;
+  processor.context.options['_runtimeExecutionService'] = executionService;
+  processor.context.options['_processBackend'] = processBackend;
 
   // Register variable precedence middleware for Ansible-style layering.
   // CLI vars (--var) take highest priority, then host vars, group vars,
@@ -325,10 +371,9 @@ Future<void> applyV2(
     privilegeEscalation: privilegeEscalation,
     pluginLoader: pluginLoader,
     configDir: configDir,
-    connectionConfig: connectionConfig,
-    runtimeFileSystem: runtimeFileSystem,
-    runtimeExecutionService: runtimeExecutionService,
-    runtimeProcessBackend: runtimeProcessBackend,
+    runtimeFileSystem: fileSystem,
+    runtimeExecutionService: executionService,
+    runtimeProcessBackend: processBackend,
   );
 
   // Initialize hook manager for .configr/hooks/ directory. Hook source files
@@ -340,14 +385,14 @@ Future<void> applyV2(
   final hookExecutionService =
       processor.context.options['_runtimeExecutionService']
           as ExecutionService?;
-  final processBackend =
+  final hookProcessBackend =
       processor.context.options['_processBackend'] as ProcessBackend?;
   final hookMgr = HookManager(
     hooksDir: hooksDir,
     fileSystem: hookRuntimeFileSystem,
     scriptFileSystem: fs,
     executionService: hookExecutionService,
-    processBackend: processBackend,
+    processBackend: hookProcessBackend,
   );
   processor.context.options['_hookManager'] = hookMgr;
 

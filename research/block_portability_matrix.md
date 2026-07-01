@@ -197,8 +197,8 @@ Goal: every process call goes through the target `ExecutionService`, and every L
 | `raw` | Command string may assume POSIX shell | Execute exactly through target backend; require target family or shell selector | `exec.process` | Fake backend test |
 | `script` | Local scripts must be copied before remote execution | Copy script to target temp dir, run with selected interpreter, cleanup | `fs.write`, `exec.process` | SSH integration script fixture |
 | Bash hooks | POSIX-only; remote staging now uses target temp allocation | Copy to target and require `exec.bash`; fail clearly on Windows | `fs.write`, `exec.bash` | SSH hook integration |
-| Lua hooks | Should already be target-aware if backend injection is complete | Ensure file/process APIs use target adapters | `fs.read`, `fs.write`; optional `exec.process` | Lua hook writes file on SSH target |
-| Lua plugins | File/process APIs are target-aware; context can be sourced from processor facts | Replace host-derived `SystemInfo` with target facts before plugin initialization | `fs.read`, `fs.write`; optional `exec.process` | Plugin target-facts test |
+| Lua hooks | Target facts available; backend injection is complete | Ensure file/process APIs use target adapters | `fs.read`, `fs.write`; optional `exec.process` | Lua hook writes file on SSH target |
+| Lua plugins | File/process APIs are target-aware; context uses target facts | SystemInfo now accepts TargetSystemFacts; applyV2 probes target before plugin init | `fs.read`, `fs.write`; optional `exec.process` | Plugin target-facts test |
 | `git` | Requires git and network from target | Use target `ExecutionService`; probe `git`; document controller fallback if added | `exec.process`, `net.http_client` | SSH target clone fixture |
 
 ### Tier 3: Network And Transfer Blocks
@@ -270,9 +270,9 @@ This queue is a concrete search list for the next implementation pass.
 | Area | Files To Inspect First | Why |
 |------|------------------------|-----|
 | Hook staging | `lib/src/hooks/hook_manager.dart` | Bash hooks are staged through `ExecutionService`; remaining work is capability probing for `exec.bash` |
-| Plugin facts | `lib/src/plugins/plugin_context.dart`, `lib/src/plugins/lua_library.dart` | Lua context now reads processor facts; remaining risk is that `SystemInfo` still populates those facts from the controller |
+| Plugin facts | `lib/src/plugins/plugin_context.dart`, `lib/src/plugins/lua_library.dart` | Lua context now reads processor facts from target-derived SystemInfo; `fromConfigContext` reads target-correct `os.family`, `os.distribution`, `os.distributionVersion`, `os.kernel` |
 | File utilities | `lib/src/utils/file_utils.dart`, `lib/src/utils/file_service.dart` | Still contains controller process calls for chmod/chown/stat/executable checks |
-| Target facts | `lib/src/utils/platform.dart`, `lib/src/utils/system_info.dart`, `lib/src/utils/target_system.dart` | Need a single target-facts source of truth |
+| Target facts | `lib/src/utils/platform.dart`, `lib/src/utils/system_info.dart`, `lib/src/utils/target_system.dart` | SystemInfo now accepts `TargetSystemFacts?` — `applyV2` probes target before plugin init and block processing; `TargetSystemFacts` extended with `kernel` and `fqdn` |
 | Network runtime | `lib/src/utils/network_service.dart` | Needs complete target/controller split and Windows PowerShell backend |
 | Multi-host dependency checks | `lib/src/multi_host/dependency_checker.dart` | Uses direct ping/socket from controller |
 | OS blocks | `service`, `user`, `group`, `hostname`, `timezone`, `systemd` | Need strategy registry and unsupported errors |

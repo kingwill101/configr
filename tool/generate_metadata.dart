@@ -77,7 +77,29 @@ class _StubLuaPluginHost implements LuaPluginHost {
       throw UnsupportedError('Not available during metadata generation');
 
   @override
-  void registerBlockInPlugin(String blockType, Object? callbacks) {
+  Map<String, dynamic> get pluginContext => {
+    'platform': 'linux',
+    'architecture': 'x86_64',
+    'hostname': 'stub',
+    'os': {
+      'name': 'linux',
+      'version': '0.0.0',
+      'family': 'linuxGeneric',
+      'distribution': 'unknown',
+      'distributionVersion': '',
+      'kernel': '',
+    },
+    'user': {'username': 'stub', 'home': '/tmp', 'shell': '/bin/sh'},
+    'env': <String, String>{},
+    'configr': {
+      'version': '0.0.0',
+      'cacheDir': '',
+      'backupDir': '',
+    },
+  };
+
+  @override
+  void registerBlockInPlugin(String blockType, Value callbacks) {
     // Not called during metadata generation.
   }
 
