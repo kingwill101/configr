@@ -8,14 +8,13 @@ import 'package:lualike/library_builder.dart';
 import 'package:lualike/lualike.dart' show BuiltinFunction, ProcessBackend;
 import 'package:i3config/i3config_v2.dart' as i3;
 
-import 'plugin_context.dart';
-
 /// Host interface that [ConfigrLibrary] uses to access plugin-specific state.
 abstract class LuaPluginHost {
   i3.Context? get currentContext;
   EventBus? get eventBus;
   FileSystem get fileSystem;
   ProcessBackend? get processBackend;
+  Map<String, dynamic> get pluginContext;
 
   void registerBlockInPlugin(String blockType, Value callbacks);
 }
@@ -98,7 +97,10 @@ class _RunCommandFunction extends BuiltinFunction {
     if (backend != null) {
       return (await backend.run(command)).exitCode;
     }
-    return Process.run('sh', ['-c', command]).then((result) => result.exitCode);
+    throw UnsupportedError(
+      'runCommand requires a configured process backend. '
+      'Use remote execution or inject a ProcessBackend for Lua process APIs.',
+    );
   }
 }
 
@@ -464,7 +466,7 @@ class ConfigrLibrary extends Library {
       'getContext',
       builder.create((args) {
         final key = _stringArg(args, 0);
-        return PluginContext.create().toMap()[key];
+        return _host.pluginContext[key];
       }),
     );
     context.describe(

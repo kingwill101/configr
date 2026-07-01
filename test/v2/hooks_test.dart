@@ -179,11 +179,43 @@ void main() {
 
       expect(result, isTrue);
       expect(executionService.putDestinations, hasLength(1));
-      expect(executionService.commands, contains(startsWith('bash /tmp/')));
+      expect(executionService.commands, contains(startsWith('sh -c tmpdir=')));
+      expect(
+        executionService.commands,
+        contains('bash /target/tmp/configr_hook_fake_pre-apply.sh'),
+      );
+      expect(
+        executionService.commands,
+        contains('rm -f /target/tmp/configr_hook_fake_pre-apply.sh'),
+      );
+      expect(
+        executionService.putDestinations.single,
+        equals('/target/tmp/configr_hook_fake_pre-apply.sh'),
+      );
       expect(
         executionService.environment?['CONFIGR_CONFIG_PATH'],
         equals('/workspace/config'),
       );
+    });
+
+    test('rejects Bash hooks on Windows targets', () async {
+      final hooksDir = '/.configr/hooks';
+      final hookFile = fs.file('$hooksDir/pre-apply.sh');
+      await hookFile.create(recursive: true);
+      await hookFile.writeAsString('echo unsupported');
+      final executionService = _FakeRemoteExecutionService(platform: 'windows');
+
+      final mgr = HookManager(
+        hooksDir: hooksDir,
+        fileSystem: fs,
+        executionService: executionService,
+      );
+
+      final result = await mgr.runEvent('pre-apply');
+
+      expect(result, isFalse);
+      expect(executionService.putDestinations, isEmpty);
+      expect(executionService.commands, isEmpty);
     });
 
     test('known events list is comprehensive', () async {
@@ -281,8 +313,10 @@ class _FakeRemoteExecutionService implements ExecutionService {
   final commands = <String>[];
   Map<String, String>? environment;
 
+  _FakeRemoteExecutionService({this.platform = 'linux'});
+
   @override
-  String get platform => 'linux';
+  final String platform;
 
   @override
   bool get isConnected => true;
@@ -313,6 +347,14 @@ class _FakeRemoteExecutionService implements ExecutionService {
   }) async {
     this.environment = environment ?? this.environment;
     commands.add([command, ...arguments].join(' '));
+    if (command == 'sh') {
+      return ProcessResult(
+        0,
+        0,
+        '/target/tmp/configr_hook_fake_pre-apply.sh\n',
+        '',
+      );
+    }
     return ProcessResult(0, 0, '', '');
   }
 }

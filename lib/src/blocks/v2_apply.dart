@@ -7,6 +7,7 @@ import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/hooks/hook_manager.dart';
 import 'package:configr/src/plugins/configr_plugin.dart';
 import 'package:configr/src/plugins/lua_plugin.dart';
+import 'package:configr/src/plugins/plugin_context.dart';
 import 'package:configr/src/reader/handlers/configr_handlers.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:configr/src/utils/ssh_execution_service.dart';
@@ -1179,6 +1180,9 @@ Future<void> _registerAllBlocks(
             fileSystem: fileSystem,
             scriptFileSystem: const LocalFileSystem(),
             processBackend: processBackend,
+            pluginContext: PluginContext.fromConfigContext(
+              processor.context,
+            ).toMap(),
           );
           await plugin.initialize();
           plugin.registerBlocks(processor, eventBus: eventBus);

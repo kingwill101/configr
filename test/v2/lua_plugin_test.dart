@@ -103,6 +103,44 @@ void main() {
       expect(await outputFile.readAsString(), equals('ROLLBACK'));
     });
 
+    test('plugin context uses processor facts', () async {
+      final script = '''
+        local platform = context.platform
+        local family = context.os.family
+        local via_get_context = getContext("platform")
+        registerBlock("context_probe", {
+          execute = function(block)
+            writeFile("/context.txt", platform .. ":" .. family .. ":" .. via_get_context)
+          end
+        })
+      ''';
+
+      final loader = ConfigrPluginLoader();
+      final plugin = LuaPlugin(code: script, fileSystem: fileSystem);
+      loader.registerPlugin(plugin);
+
+      final processor = i3.ConfigProcessor();
+      final actionBlocks = <ActionBlock>[];
+      processor.context.options['_actionBlocks'] = actionBlocks;
+      processor.context.setVariable('os_name', 'targetos');
+      processor.context.setVariable('os_family', 'targetfamily');
+      processor.context.setVariable('os_architecture', 'targetarch');
+      processor.context.setVariable('host_hostname', 'targethost');
+
+      await loader.registerAllPlugins(processor, eventBus: eventBus);
+
+      final config = i3.Config.parse('''
+        context_probe {}
+      ''');
+
+      await processor.process(config);
+
+      expect(
+        await fileSystem.file('/context.txt').readAsString(),
+        equals('targetos:targetfamily:targetos'),
+      );
+    });
+
     test('scoped command handlers within registered block', () async {
       final script = '''
         registerBlock("lua_cmd_block", {

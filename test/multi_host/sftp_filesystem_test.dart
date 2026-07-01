@@ -160,6 +160,25 @@ void main() {
       },
     );
 
+    test('LuaPlugin without process backend rejects runCommand', () async {
+      final fakeBackend = _FakeProcessBackend();
+      final pluginWithBackend = LuaPlugin(
+        code: 'runCommand("echo previous_backend")',
+        fileSystem: fs,
+        processBackend: fakeBackend,
+      );
+      await pluginWithBackend.initialize();
+      expect(fakeBackend.callCount, equals(1));
+
+      final plugin = LuaPlugin(
+        code: 'runCommand("echo should_not_use_controller")',
+        fileSystem: fs,
+      );
+
+      await expectLater(plugin.initialize(), throwsA(anything));
+      expect(fakeBackend.callCount, equals(1));
+    });
+
     test('LuaHookRunner wires process backend into lualike', () async {
       final fakeBackend = _FakeProcessBackend();
       final hookFile = fs.file('/test_hook_process.lua');

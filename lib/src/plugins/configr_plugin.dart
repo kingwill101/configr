@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:configr/src/plugins/lua_plugin.dart';
+import 'package:configr/src/plugins/plugin_context.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:file/local.dart';
@@ -209,6 +211,11 @@ class ConfigrPluginLoader {
   }) async {
     final plugins = await discoverPlugins();
     for (final plugin in plugins) {
+      if (plugin is LuaPlugin) {
+        plugin.setPluginContext(
+          PluginContext.fromConfigContext(processor.context).toMap(),
+        );
+      }
       await plugin.initialize();
       plugin.registerBlocks(processor, eventBus: eventBus);
     }

@@ -128,6 +128,15 @@ class HookManager {
     String scriptPath,
     Map<String, String> environment,
   ) async {
+    final runtimeExecutionService =
+        executionService ?? const LocalExecutionService();
+    if (runtimeExecutionService.platform == 'windows') {
+      throw UnsupportedError(
+        'Bash hooks require a POSIX target with bash. '
+        'Windows hook execution needs a PowerShell hook strategy.',
+      );
+    }
+
     final script = await _scriptFileSystem.file(scriptPath).readAsString();
     final tempDir = await io.Directory.systemTemp.createTemp('configr-hook-');
     final localScript = io.File(
@@ -137,21 +146,16 @@ class HookManager {
     try {
       await localScript.writeAsString(script);
 
-      final runtimeExecutionService = executionService;
-      if (runtimeExecutionService == null ||
-          runtimeExecutionService is LocalExecutionService) {
-        if (runtimeExecutionService != null) {
-          return runtimeExecutionService.run('bash', [
-            localScript.path,
-          ], environment: environment);
-        }
-        return io.Process.run('bash', [
+      if (runtimeExecutionService is LocalExecutionService) {
+        return runtimeExecutionService.run('bash', [
           localScript.path,
         ], environment: environment);
       }
 
-      final remotePath =
-          '/tmp/configr_hook_${DateTime.now().microsecondsSinceEpoch}_${p.basename(scriptPath)}';
+      final remotePath = await _createRemoteHookPath(
+        runtimeExecutionService,
+        p.basename(scriptPath),
+      );
       await runtimeExecutionService.putFile(localScript.path, remotePath);
       try {
         return await runtimeExecutionService.run('bash', [
@@ -163,5 +167,34 @@ class HookManager {
     } finally {
       await tempDir.delete(recursive: true);
     }
+  }
+
+  Future<String> _createRemoteHookPath(
+    ExecutionService executionService,
+    String scriptName,
+  ) async {
+    final result = await executionService.run('sh', [
+      '-c',
+      [
+        r'tmpdir="${TMPDIR:-/tmp}"',
+        r'mkdir -p "$tmpdir"',
+        'mktemp "\$tmpdir/configr_hook_XXXXXX_${_safeTempSuffix(scriptName)}"',
+      ].join('; '),
+    ]);
+    if (result.exitCode != 0) {
+      throw StateError(
+        'Could not allocate target hook temp file: ${result.stderr}',
+      );
+    }
+    final path = result.stdout.toString().trim();
+    if (path.isEmpty) {
+      throw StateError('Target hook temp file command returned an empty path.');
+    }
+    return path;
+  }
+
+  String _safeTempSuffix(String scriptName) {
+    final safe = scriptName.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
+    return safe.isEmpty ? 'hook' : safe;
   }
 }
