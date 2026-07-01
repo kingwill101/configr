@@ -328,7 +328,11 @@ class BackupBlock extends ActionBlock {
       if (await fileService.fileExists(fullPath)) {
         final content = await fileService.readFile(fullPath);
         archive.addFile(
-          ArchiveFile(relativePath, content.length, content.codeUnits),
+          ArchiveFile(
+            _archivePath(relativePath),
+            content.length,
+            content.codeUnits,
+          ),
         );
       }
     }

@@ -225,7 +225,9 @@ class V2TestHelper {
       ..registerSingleton<EventBus>(eventBus)
       ..registerSingleton<PrivilegeEscalation>(_DenyingPrivilegeEscalation())
       ..registerSingleton<FileSystem>(fileSystem)
-      ..registerSingleton<ExecutionService>(_DenyingExecutionService(fileSystem))
+      ..registerSingleton<ExecutionService>(
+        _DenyingExecutionService(fileSystem),
+      )
       ..registerSingleton<NetworkService>(
         LocalNetworkService(fileSystem: fileSystem),
       )
@@ -444,7 +446,9 @@ class _DenyingExecutionService implements ExecutionService {
       final scriptIndex = arguments.indexOf('-c');
       if (scriptIndex >= 0 && scriptIndex + 1 < arguments.length) {
         final script = arguments[scriptIndex + 1];
-        final lnMatch = RegExp(r"ln\s+-s\s+'([^']+)'\s+'([^']+)'").firstMatch(script);
+        final lnMatch = RegExp(
+          r"ln\s+-s\s+'([^']+)'\s+'([^']+)'",
+        ).firstMatch(script);
         if (lnMatch != null) {
           final targetPath = lnMatch.group(1)!;
           final linkPath = lnMatch.group(2)!;

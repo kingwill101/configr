@@ -212,9 +212,10 @@ class ConfigrPluginLoader {
     final plugins = await discoverPlugins();
     for (final plugin in plugins) {
       if (plugin is LuaPlugin) {
-        plugin.setPluginContext(
-          PluginContext.fromConfigContext(processor.context).toMap(),
-        );
+        final pluginContext = PluginContext.fromConfigContext(
+          processor.context,
+        ).toMap();
+        plugin.setPluginContext(pluginContext);
       }
       await plugin.initialize();
       plugin.registerBlocks(processor, eventBus: eventBus);

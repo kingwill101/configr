@@ -20,6 +20,7 @@ class LuaPlugin implements ConfigrPlugin, LuaPluginHost {
   final ProcessBackend? _processBackend;
   final Map<String, Value> _registeredBlocks = {};
   Map<String, dynamic>? _pluginContext;
+  Map<String, dynamic>? _defaultPluginContext;
 
   i3.Context? _currentContext;
   EventBus? _eventBus;
@@ -147,7 +148,8 @@ class LuaPlugin implements ConfigrPlugin, LuaPluginHost {
   }
 
   Map<String, dynamic> _buildContextMap() {
-    return _pluginContext ?? PluginContext.create().toMap();
+    return _pluginContext ??= _defaultPluginContext ??= PluginContext.create()
+        .toMap();
   }
 
   @override

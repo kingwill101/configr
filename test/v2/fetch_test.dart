@@ -87,8 +87,24 @@ void main() {
     final summary = block.dryRunSummary() as String;
     final target = summary.split(' -> ').last;
     expect(target, contains('C:/configr/fetch/'));
-    expect(target, contains('C:/Windows/System32/drivers/etc/hosts'));
+    expect(target, contains('C/Windows/System32/drivers/etc/hosts'));
     expect(target, isNot(contains(r'\')));
+  });
+
+  test('should keep Windows drive letters in dry-run target path', () async {
+    final blocks = await helper.processConfig(r'''
+      fetch {
+        src = "D:\\data\\config.json"
+        dest = "/tmp/fetch_test"
+      }
+    ''');
+
+    final block = blocks.first as dynamic;
+    final summary = block.dryRunSummary() as String;
+    final target = summary.split(' -> ').last;
+    expect(target, contains('/tmp/fetch_test/'));
+    expect(target, contains('D/data/config.json'));
+    expect(target, isNot(contains('D:/data/config.json')));
   });
 
   test(

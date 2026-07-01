@@ -128,7 +128,7 @@ Future<void> main() async {
       });
 
       tearDownAll(() async {
-        await Future<void>.sync(() => compose?.stop());
+        compose?.stop();
       });
 
       test('can apply a config file to vm1 via SSH', () async {

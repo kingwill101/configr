@@ -50,6 +50,8 @@ class LuaHookRunner {
 }
 
 class _LuaHookHost implements LuaPluginHost {
+  Map<String, dynamic>? _pluginContext;
+
   @override
   final FileSystem fileSystem;
 
@@ -59,7 +61,8 @@ class _LuaHookHost implements LuaPluginHost {
   _LuaHookHost(this.fileSystem, this.processBackend);
 
   @override
-  Map<String, dynamic> get pluginContext => PluginContext.create().toMap();
+  Map<String, dynamic> get pluginContext =>
+      _pluginContext ??= PluginContext.create().toMap();
 
   @override
   i3.Context? get currentContext => null;

@@ -6,7 +6,7 @@ import 'package:lualike/library_builder.dart';
 /// Library of assertion functions available to Lua fixture scripts.
 class FixtureAssertionLibrary extends Library {
   @override
-  String get name => '';
+  String get name => 'fixture_assertions';
 
   @override
   String get description =>

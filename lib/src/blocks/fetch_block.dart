@@ -67,9 +67,19 @@ class FetchBlock extends ActionBlock {
 
   String get _normalizedSrc => _posixPath(src);
 
-  String get _relativeSrc => _normalizedSrc.startsWith('/')
-      ? _normalizedSrc.substring(1)
-      : _normalizedSrc;
+  String get _relativeSrc {
+    final normalized = _normalizedSrc;
+    final driveMatch = RegExp(
+      r'^([A-Za-z]):[\\/]*(.*)$',
+    ).firstMatch(normalized);
+    if (driveMatch != null) {
+      final drive = driveMatch.group(1)!;
+      final remainder = driveMatch.group(2) ?? '';
+      return remainder.isEmpty ? drive : posix.join(drive, remainder);
+    }
+
+    return normalized.replaceFirst(RegExp(r'^/+'), '');
+  }
 
   String _posixPath(String value) => value.replaceAll('\\', '/');
 

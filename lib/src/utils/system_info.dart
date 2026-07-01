@@ -55,7 +55,8 @@ class SystemInfo {
        osArchitecture = targetFacts?.architecture ?? _detectArchitecture(),
        osKernel = (targetFacts?.kernel.isNotEmpty == true)
            ? targetFacts!.kernel
-           : _extractKernel(Platform.operatingSystemVersion),
+           : (targetFacts?.distributionVersion ??
+                 _extractKernel(Platform.operatingSystemVersion)),
        osDistribution = targetFacts?.distribution ?? _detectDistribution(),
        osDistributionVersion =
            targetFacts?.distributionVersion ?? _detectDistributionVersion(),
@@ -65,7 +66,7 @@ class SystemInfo {
        hostHostname = targetFacts?.hostname ?? Platform.localHostname,
        hostFqdn = (targetFacts?.fqdn.isNotEmpty == true)
            ? targetFacts!.fqdn
-           : _detectFqdn(),
+           : (targetFacts?.hostname ?? _detectFqdn()),
        userName =
            Platform.environment['USER'] ??
            Platform.environment['USERNAME'] ??
