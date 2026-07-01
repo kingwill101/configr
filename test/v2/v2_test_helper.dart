@@ -225,7 +225,7 @@ class V2TestHelper {
       ..registerSingleton<EventBus>(eventBus)
       ..registerSingleton<PrivilegeEscalation>(_DenyingPrivilegeEscalation())
       ..registerSingleton<FileSystem>(fileSystem)
-      ..registerSingleton<ExecutionService>(_DenyingExecutionService())
+      ..registerSingleton<ExecutionService>(_DenyingExecutionService(fileSystem))
       ..registerSingleton<NetworkService>(
         LocalNetworkService(fileSystem: fileSystem),
       )
@@ -390,6 +390,10 @@ class _DenyingPrivilegeEscalation implements PrivilegeEscalation {
 }
 
 class _DenyingExecutionService implements ExecutionService {
+  final FileSystem fileSystem;
+
+  _DenyingExecutionService(this.fileSystem);
+
   @override
   String get platform => 'test';
 
@@ -422,6 +426,38 @@ class _DenyingExecutionService implements ExecutionService {
     CommandOutputHandler? onOutput,
     String? stdin,
   }) async {
+    if (command == 'ln') {
+      final linkIndex = arguments.indexOf('-s');
+      if (linkIndex >= 0 && linkIndex + 2 < arguments.length) {
+        final targetPath = arguments[linkIndex + 1];
+        final linkPath = arguments[linkIndex + 2];
+        try {
+          await fileSystem.link(linkPath).create(targetPath);
+          return ProcessResult(0, 0, '', '');
+        } on Exception catch (e) {
+          return ProcessResult(0, 1, '', 'ln: $e');
+        }
+      }
+    }
+
+    if (command == '/bin/sh' || command == 'sh') {
+      final scriptIndex = arguments.indexOf('-c');
+      if (scriptIndex >= 0 && scriptIndex + 1 < arguments.length) {
+        final script = arguments[scriptIndex + 1];
+        final lnMatch = RegExp(r"ln\s+-s\s+'([^']+)'\s+'([^']+)'").firstMatch(script);
+        if (lnMatch != null) {
+          final targetPath = lnMatch.group(1)!;
+          final linkPath = lnMatch.group(2)!;
+          try {
+            await fileSystem.link(linkPath).create(targetPath);
+            return ProcessResult(0, 0, '', '');
+          } on Exception catch (e) {
+            return ProcessResult(0, 1, '', 'ln: $e');
+          }
+        }
+      }
+    }
+
     return ProcessResult(
       0,
       127,

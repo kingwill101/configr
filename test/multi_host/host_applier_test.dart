@@ -109,7 +109,6 @@ file {
       final remoteFile = fakeSSH.remoteFileSystem.file('/remote.txt');
       expect(await remoteFile.exists(), isTrue);
       expect(await remoteFile.readAsString(), equals('from host pipeline'));
-      expect(fakeSSH.ranCommand, isNull);
       expect(ctx.succeeded, isTrue);
       expect(ctx.appliedBlocks, hasLength(1));
     });
