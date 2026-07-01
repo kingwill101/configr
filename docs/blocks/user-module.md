@@ -101,6 +101,7 @@ resource {
 | Linux    | Full          | `useradd`, `usermod`, `userdel`, `chpasswd`, `id`, `getent` |
 | macOS    | Stub          | Not yet implemented (will use `dscl`) |
 | FreeBSD  | Stub          | Not yet implemented (will use `pw`) |
+| Windows  | Not supported | Planned |
 
 ## Rollback
 

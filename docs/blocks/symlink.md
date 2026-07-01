@@ -2,6 +2,21 @@
 
 Creates and manages symbolic links with support for bulk operations, validation, and conflict resolution.
 
+## Platform Support
+
+- **Linux/macOS**: Uses native symbolic link creation
+- **Windows**: Uses PowerShell for symbolic link creation
+
+## Properties
+
+- `link_path` (required) - Path where the symbolic link will be created
+- `include_patterns` (optional) - List of glob patterns to include files for bulk operations
+- `exclude_patterns` (optional) - List of glob patterns to exclude files from bulk operations
+- `conflict_resolution` (optional) - How to handle existing symlinks: `skip` (default), `overwrite`, or `error`
+- `show_progress` (optional) - Show progress for bulk operations (default: `true`)
+- `validate_targets` (optional) - Validate that source files exist before creating symlinks (default: `true`)
+- `create_directories` (optional) - Create destination directories if they don't exist (default: `true`)
+
 ## Usage
 
 ```
@@ -15,16 +30,6 @@ resource {
   }
 }
 ```
-
-## Properties
-
-- `link_path` (required) - Path where the symbolic link will be created
-- `include_patterns` (optional) - List of glob patterns to include files for bulk operations
-- `exclude_patterns` (optional) - List of glob patterns to exclude files from bulk operations
-- `conflict_resolution` (optional) - How to handle existing symlinks: `skip` (default), `overwrite`, or `error`
-- `show_progress` (optional) - Show progress for bulk operations (default: `true`)
-- `validate_targets` (optional) - Validate that source files exist before creating symlinks (default: `true`)
-- `create_directories` (optional) - Create destination directories if they don't exist (default: `true`)
 
 ## Examples
 

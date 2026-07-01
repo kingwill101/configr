@@ -13,6 +13,8 @@ configuration files.
 - [Secrets Management](guides/secrets.md) — Provider-agnostic secret resolution
 - [Remote Execution](guides/remote-execution.md) — SSH transport for remote machines
 - [Multi-Host Execution](guides/multi-host.md) — Inventory, strategies, per-host lockfiles, remote rollback
+- [Cross-Platform Execution](guides/cross-platform.md) — Shell types, strategies, and platform support
+- [Execution Service](guides/execution-service.md) — How commands run on local and remote targets
 - [SSH VM Integration Guide](guides/ssh-vm-guide.md) — Launch Docker VMs and apply configs over SSH
 
 ## Action Blocks
@@ -36,7 +38,7 @@ block-specific properties.
 | [Delete](blocks/delete.md) | Safely deletes files and directories |
 | [Download](blocks/download.md) | Downloads files from remote URLs |
 | [Echo](blocks/echo.md) | Prints messages to the console |
-| [Execute](blocks/execute.md) | Executes shell commands |
+| [Execute](blocks/execute.md) | Executes shell commands with cross-platform support |
 | [Fail](blocks/fail.md) | Fails execution with a custom error message |
 | [Fetch](blocks/fetch.md) | Fetches files from the target to the local machine |
 | [File](blocks/file.md) | Creates/edits files with content |
@@ -54,7 +56,7 @@ block-specific properties.
 | [Package](blocks/package.md) | Package management (apt, brew, dnf, docker, flatpak, npm, pacman, pamac, pip, snap, yum) |
 | [Pause](blocks/pause.md) | Pauses execution for a specified duration |
 | [Permissions](blocks/permissions.md) | Sets file permissions and ownership |
-| [Raw](blocks/raw.md) | Executes raw shell commands |
+| [Raw](blocks/raw.md) | Executes raw shell commands on the target |
 | [Rename](blocks/rename.md) | Renames files and directories |
 | [Replace](blocks/replace-module.md) | Replaces text using regular expressions |
 | [Script](blocks/script.md) | Copies and executes local scripts on the target |
@@ -75,7 +77,6 @@ block-specific properties.
 | [User](blocks/user-module.md) | Manages system user accounts |
 | [Validate](blocks/validate.md) | Validates file contents and formats |
 | [WaitFor](blocks/wait_for.md) | Waits for a condition before continuing |
-
 ## Features
 
 - **i3config v2 pipeline** — Full state-machine processing
@@ -102,6 +103,37 @@ flowchart LR
     Execute --> Lockfile[config.lock.json]
     Lockfile --> Rollback[ActionBlock.rollback]
 ```
+
+## Cross-Platform Execution Strategy
+
+Configr v2 provides comprehensive cross-platform support, enabling the same configuration to run on Linux, macOS, FreeBSD, and Windows. See the [Cross-Platform Guide](guides/cross-platform.md) for details.
+
+### Shell Types
+
+Configr supports multiple shell types and automatically selects the appropriate one for each platform:
+
+- **sh** — POSIX `sh` commands (Linux, macOS, FreeBSD)
+- **bash** — Bash commands (available on most Unix-like systems)
+- **powershell** — PowerShell commands (Windows)
+- **cmd** — Windows Command Prompt (legacy fallback)
+
+### Platform-Specific Execution
+
+Several blocks have been enhanced with cross-platform support:
+
+- **Execute** — Configurable shell selection via `shell` property
+- **Raw** — Platform-appropriate executable selection
+- **Script** — Direct script execution with platform-aware capabilities
+- **Symlink** — Native symlink creation on Unix, PowerShell-based on Windows
+- **Cron, User, Systemd** — Use platform strategies for system operations
+
+### Execution Strategies
+
+Configr uses platform-specific strategies to execute commands, hooks, and network operations consistently across operating systems.
+
+### Windows Support
+
+Windows targets use PowerShell as the default shell. Commands are encoded automatically to avoid quoting issues. See the [Windows Guide](guides/windows.md) and [Execution Service](guides/execution-service.md) for details.
 
 ## Quick Start
 
