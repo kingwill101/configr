@@ -56,13 +56,22 @@ class FetchBlock extends ActionBlock {
   @override
   String dryRunSummary() {
     if (src.isEmpty) return '$blockType: (empty)';
-    final target = flat ? dest : posix.join(dest, _hostname, _relativeSrc);
+    final normalizedDest = _posixPath(dest);
+    final target = flat
+        ? normalizedDest
+        : posix.join(normalizedDest, _hostname, _relativeSrc);
     return '$blockType: $src -> $target';
   }
 
   String get _hostname => Platform.localHostname;
 
-  String get _relativeSrc => src.startsWith('/') ? src.substring(1) : src;
+  String get _normalizedSrc => _posixPath(src);
+
+  String get _relativeSrc => _normalizedSrc.startsWith('/')
+      ? _normalizedSrc.substring(1)
+      : _normalizedSrc;
+
+  String _posixPath(String value) => value.replaceAll('\\', '/');
 
   @override
   Future<void> execute() async {
@@ -91,11 +100,13 @@ class FetchBlock extends ActionBlock {
     emitEvent(StartedEvent(moduleId: id, message: 'Fetching $src to $dest'));
 
     try {
+      final normalizedSrc = _normalizedSrc;
+      final normalizedDest = _posixPath(dest);
       final targetPath = flat
           ? (await fileService.pathExists(dest)).isDir
-                ? posix.join(dest, posix.basename(src))
-                : dest
-          : posix.join(dest, _hostname, _relativeSrc);
+                ? posix.join(normalizedDest, posix.basename(normalizedSrc))
+                : normalizedDest
+          : posix.join(normalizedDest, _hostname, _relativeSrc);
 
       final targetDir = posix.dirname(targetPath);
       if (!await fileService.directoryExists(targetDir)) {

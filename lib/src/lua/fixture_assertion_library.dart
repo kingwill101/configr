@@ -228,7 +228,9 @@ class FixtureAssertionLibrary extends Library {
   }
 
   static String _stringArg(List<Object?> args, [int index = 0]) {
-    if (index >= args.length) return '';
+    if (index >= args.length) {
+      throw ArgumentError('Missing required argument at index $index');
+    }
     final val = Value.wrap(args[index]).unwrap();
     return val?.toString() ?? '';
   }

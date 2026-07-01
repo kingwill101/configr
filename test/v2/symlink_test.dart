@@ -124,6 +124,22 @@ void main() {
     expect(await link.target(), equals('/source/other.txt'));
   });
 
+  test('should create bulk symlinks using target filesystem paths', () async {
+    await helper.createDir('/source/sub');
+    await helper.createFile('/source/sub/file.txt', 'test content');
+
+    await helper.runConfig('''
+      symlink {
+        source = "/source"
+        destination = "/dest"
+      }
+    ''');
+
+    final link = helper.fileSystem.link('/dest/sub/file.txt');
+    expect(await link.exists(), isTrue);
+    expect(await link.target(), equals('/source/sub/file.txt'));
+  });
+
   test('should handle rollback correctly', () async {
     const sourcePath = '/source/test.txt';
     const linkPath = '/dest/link.txt';

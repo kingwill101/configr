@@ -159,7 +159,7 @@ These are not block features, but they gate all Windows/macOS work.
 
 | Item | Status | Required Change | Validation |
 |------|--------|-----------------|------------|
-| Windows path separator leakage in MemoryFileSystem tests | In progress | Use `path.posix` or `fileSystem.path` for internal virtual paths | Run unit tests on Windows |
+| Windows path separator leakage in MemoryFileSystem tests | In progress | Use `path.posix` or `fileSystem.path` for internal virtual paths; `fetch`, `rename`, `sync`, and `symlink` have targeted fixes | Run unit tests on Windows |
 | Recursive directory copy preserves layout | In progress | Copy files by `relative(entity.path, from: source)` instead of basename-only recursion | `copy`, `backup`, and file-service tests |
 | `generate_keys.sh` CRLF sensitivity | Needs guard | Enforce LF in repo and/or generate keys from Dart test setup | Docker SSH integration on Windows checkout |
 | Lua plugin default process hang on Windows | In progress | Do not exercise `io.popen` without an explicit process backend in Configr unit tests | `sftp_filesystem_test.dart` on Windows |
@@ -176,7 +176,7 @@ Goal: run from local controller, SSH-to-Linux, macOS local, and Windows local wh
 | `copy` | Separator and recursive layout bugs on Windows | Use target `FileSystem`; preserve relative paths with POSIX virtual paths in MemoryFileSystem | `fs.read`, `fs.write` | Unit test nested recursive copy |
 | `delete` | Mostly portable | Use target `FileSystem`; confirm directory recursion on SFTP | `fs.write` | Lua sweep file and directory delete |
 | `move` | Mostly portable | Use target `FileSystem`; define overwrite semantics | `fs.read`, `fs.write` | Lua sweep move with rollback |
-| `rename` | Uses path joins that may be host-style | Use `fileSystem.path` or `path.posix` for virtual paths | `fs.read`, `fs.write` | Windows unit test for basename/dirname |
+| `rename` | POSIX-style target paths now normalize Windows separators | Keep using `path.posix` for virtual paths until target path typing exists | `fs.read`, `fs.write` | Windows unit test for basename/dirname |
 | `touch` | Mostly portable | Use target `FileSystem`; avoid chmod assumptions | `fs.write` | Lua sweep |
 | `backup` | Directory entries were copied as files; path separator risk | Filter files, preserve relative paths, gate metadata | `fs.read`, `fs.write` | Unit test nested directory backup |
 | `lineinfile` | Mostly portable | Confirm newline handling and encoding on Windows | `fs.read`, `fs.write` | Lua sweep with CRLF fixture |
@@ -185,7 +185,7 @@ Goal: run from local controller, SSH-to-Linux, macOS local, and Windows local wh
 | `template` | Portable if template source is controller-side by design | Clarify controller template read vs target destination write | `fs.write` | Lua sweep rendered output |
 | `stat` | POSIX mode/owner fields are platform-specific | Return nullable/unsupported metadata fields on Windows | `fs.read` | Windows unit test |
 | `slurp` | Portable | Use target `FileSystem` only | `fs.read` | Lua sweep |
-| `fetch` | Semantics need target->controller clarity | For SSH, read from target FS and write to controller; for local, normal copy | `fs.read` plus controller write | Integration fixture with remote SSH |
+| `fetch` | Semantics need target->controller clarity; path construction now normalizes raw Windows separators | For SSH, read from target FS and write to controller; for local, normal copy | `fs.read` plus controller write | Integration fixture with remote SSH |
 
 ### Tier 2: Execution, Hooks, And Plugins
 
@@ -276,4 +276,4 @@ This queue is a concrete search list for the next implementation pass.
 | Network runtime | `lib/src/utils/network_service.dart` | Needs complete target/controller split and Windows PowerShell backend |
 | Multi-host dependency checks | `lib/src/multi_host/dependency_checker.dart` | Uses direct ping/socket from controller |
 | OS blocks | `service`, `user`, `group`, `hostname`, `timezone`, `systemd` | Need strategy registry and unsupported errors |
-| Path joins | `rename`, `sync`, `symlink`, `fetch`, `v2_apply` | Need to classify controller path vs target virtual path |
+| Path joins | `v2_apply` plus remaining block-specific path math | `fetch`, `rename`, `sync`, and `symlink` now use normalized POSIX or target `FileSystem` paths; keep auditing controller paths vs target virtual paths |

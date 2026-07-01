@@ -5,7 +5,6 @@ import 'package:configr/src/utils/logging.dart';
 import 'package:file/file.dart' show File;
 import 'package:glob/glob.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
-import 'package:path/path.dart' as path;
 
 /// Block handler for the `symlink` config action.
 ///
@@ -190,7 +189,7 @@ class SymlinkBlock extends ActionBlock {
 
       // Clean up created directories
       if (hadToCreateDstDir) {
-        final symlinkDir = path.dirname(destination);
+        final symlinkDir = fileSystem.path.dirname(destination);
         if (await fileService.directoryExists(symlinkDir)) {
           await fileService.deleteDirectory(symlinkDir, recursive: true);
         }
@@ -199,7 +198,7 @@ class SymlinkBlock extends ActionBlock {
       // Clean up directories created for bulk operations
       final createdDirs = <String>{};
       for (final createdPath in createdPaths) {
-        final dir = path.dirname(createdPath);
+        final dir = fileSystem.path.dirname(createdPath);
         if (dir != destination) createdDirs.add(dir);
       }
       for (final dir in createdDirs) {
@@ -237,7 +236,7 @@ class SymlinkBlock extends ActionBlock {
   }
 
   Future<void> _executeSingleOperation() async {
-    final symlinkDir = path.dirname(destination);
+    final symlinkDir = fileSystem.path.dirname(destination);
 
     // Validate source exists
     if (validateTargets) {
@@ -323,9 +322,9 @@ class SymlinkBlock extends ActionBlock {
   }
 
   Future<void> _processSingleFile(String filePath, String sourceBase) async {
-    final relativePath = path.relative(filePath, from: sourceBase);
-    final targetPath = path.join(destination, relativePath);
-    final targetDir = path.dirname(targetPath);
+    final relativePath = fileSystem.path.relative(filePath, from: sourceBase);
+    final targetPath = fileSystem.path.join(destination, relativePath);
+    final targetDir = fileSystem.path.dirname(targetPath);
 
     // Create target directory if needed
     if (createDirectories && !await fileService.directoryExists(targetDir)) {

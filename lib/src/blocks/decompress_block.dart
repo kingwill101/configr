@@ -4,7 +4,7 @@ import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
 import 'package:glob/glob.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' show posix;
 
 /// Block handler for the `decompress` config action.
 ///
@@ -192,7 +192,7 @@ class DecompressBlock extends ActionBlock {
       if (_shouldExtractFile(file.name)) {
         final filePath = preserveStructure
             ? fileSystem.path.join(destination, file.name)
-            : fileSystem.path.join(destination, path.basename(file.name));
+            : fileSystem.path.join(destination, posix.basename(file.name));
 
         if (file.isFile) {
           final dir = fileSystem.path.dirname(filePath);
@@ -244,7 +244,7 @@ class DecompressBlock extends ActionBlock {
       case 'gz':
         final gzipData = GZipDecoder().decodeBytes(data);
         final archive = Archive();
-        final fileName = path.basename(source);
+        final fileName = fileSystem.path.basename(source);
         final outName = fileName.endsWith('.gz')
             ? fileName.substring(0, fileName.length - 3)
             : fileName;
@@ -256,7 +256,7 @@ class DecompressBlock extends ActionBlock {
       case 'xz':
         final xzData = XZDecoder().decodeBytes(data);
         final archive = Archive();
-        final fileName = path.basename(source);
+        final fileName = fileSystem.path.basename(source);
         final outName = fileName.endsWith('.xz')
             ? fileName.substring(0, fileName.length - 3)
             : fileName;
@@ -268,7 +268,7 @@ class DecompressBlock extends ActionBlock {
       case 'z':
         final zlibData = ZLibDecoder().decodeBytes(data);
         final archive = Archive();
-        final fileName = path.basename(source);
+        final fileName = fileSystem.path.basename(source);
         final outName = fileName.endsWith('.z')
             ? fileName.substring(0, fileName.length - 2)
             : fileName;

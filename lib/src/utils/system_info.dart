@@ -84,7 +84,13 @@ class SystemInfo {
     context.setVariable('configrBackupDir', configrBackupDir);
     final tempPath = Directory.systemTemp.path;
     context.setVariable('tempdir', tempPath);
-    context.setVariable('tempdir_uri', tempPath.replaceAll('\\', '/'));
+    context.setVariable(
+      'tempdir_uri',
+      Uri.file(
+        tempPath,
+        windows: Platform.isWindows,
+      ).toString().replaceFirst('file://', ''),
+    );
 
     // OS — flat (primary) + dotted (secondary)
     _setBoth(context, 'os_name', 'os.name', osName);

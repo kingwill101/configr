@@ -80,6 +80,40 @@ void main() {
     expect(await helper.readFile('$extractPath/file2.txt'), equals('content2'));
   });
 
+  test('should flatten archive paths using archive path separators', () async {
+    const sourceDir = '/source_flat';
+    const archivePath = '/dest/flat.zip';
+    const extractPath = '/flat';
+
+    await helper.createDir('$sourceDir/subdir');
+    await helper.createFile('$sourceDir/subdir/file.txt', 'flat content');
+
+    await helper.runConfig('''
+      compress {
+        source = "$sourceDir"
+        destination = "$archivePath"
+        format = "zip"
+        recursive = true
+      }
+    ''');
+
+    await helper.runConfig('''
+      decompress {
+        source = "$archivePath"
+        destination = "$extractPath"
+        format = "zip"
+        preserve_structure = false
+      }
+    ''');
+
+    expect(await helper.fileExists('$extractPath/file.txt'), isTrue);
+    expect(
+      await helper.readFile('$extractPath/file.txt'),
+      equals('flat content'),
+    );
+    expect(await helper.dirExists('$extractPath/subdir'), isFalse);
+  });
+
   test('should fail when archive does not exist', () async {
     await helper.runConfig('''
       decompress {

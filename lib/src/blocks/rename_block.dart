@@ -83,7 +83,7 @@ class RenameBlock extends ActionBlock {
       }
     }
 
-    originalName = posix.basename(source);
+    originalName = posix.basename(_posixPath(source));
     logger.info('Renaming $source → $destination');
     try {
       await fileService.moveFile(source, destination);
@@ -119,7 +119,10 @@ class RenameBlock extends ActionBlock {
     );
 
     try {
-      final originalPath = posix.join(posix.dirname(source), originalName!);
+      final originalPath = posix.join(
+        posix.dirname(_posixPath(source)),
+        originalName!,
+      );
       logger.info('Renaming back: $destination → $originalPath');
       await fileService.moveFile(destination, originalPath);
       emitEvent(
@@ -132,4 +135,6 @@ class RenameBlock extends ActionBlock {
       rethrow;
     }
   }
+
+  String _posixPath(String value) => value.replaceAll('\\', '/');
 }

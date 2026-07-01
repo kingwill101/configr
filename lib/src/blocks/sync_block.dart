@@ -4,7 +4,6 @@ import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:file/file.dart' show File;
 import 'package:i3config/i3config_v2.dart' as i3;
-import 'package:path/path.dart' as path;
 
 /// Block handler for the `sync` config action.
 ///
@@ -155,8 +154,8 @@ class SyncBlock extends ActionBlock {
       );
     }
 
-    final sourcePath = path.absolute(source);
-    final destPath = path.absolute(destination);
+    final sourcePath = fileSystem.path.absolute(source);
+    final destPath = fileSystem.path.absolute(destination);
 
     // Validate source exists
     if (!await fileService.directoryExists(sourcePath)) {
@@ -275,8 +274,13 @@ class SyncBlock extends ActionBlock {
     String toPath,
     String direction,
   ) async {
-    final relativePath = path.relative(sourceFile.path, from: fromPath);
-    final destFile = fileSystem.file(path.join(toPath, relativePath));
+    final relativePath = fileSystem.path.relative(
+      sourceFile.path,
+      from: fromPath,
+    );
+    final destFile = fileSystem.file(
+      fileSystem.path.join(toPath, relativePath),
+    );
 
     // Check exclude patterns
     for (final pattern in excludePatterns) {
@@ -358,8 +362,13 @@ class SyncBlock extends ActionBlock {
 
     await for (final entity in toDir.list(recursive: true)) {
       if (entity is File) {
-        final relativePath = path.relative(entity.path, from: toPath);
-        final sourceFile = fileSystem.file(path.join(fromPath, relativePath));
+        final relativePath = fileSystem.path.relative(
+          entity.path,
+          from: toPath,
+        );
+        final sourceFile = fileSystem.file(
+          fileSystem.path.join(fromPath, relativePath),
+        );
 
         if (!await sourceFile.exists()) {
           try {

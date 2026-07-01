@@ -75,6 +75,22 @@ void main() {
     expect(block.dryRunSummary(), startsWith('fetch: /var/log/syslog ->'));
   });
 
+  test('should normalize Windows separators in dry-run target path', () async {
+    final blocks = await helper.processConfig(r'''
+      fetch {
+        src = "C:\\Windows\\System32\\drivers\\etc\\hosts"
+        dest = "C:\\configr\\fetch"
+      }
+    ''');
+
+    final block = blocks.first as dynamic;
+    final summary = block.dryRunSummary() as String;
+    final target = summary.split(' -> ').last;
+    expect(target, contains('C:/configr/fetch/'));
+    expect(target, contains('C:/Windows/System32/drivers/etc/hosts'));
+    expect(target, isNot(contains(r'\')));
+  });
+
   test(
     'should keep absolute source paths under destination in non-flat mode',
     () async {

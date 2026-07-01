@@ -149,6 +149,14 @@ class WaitForBlock extends ActionBlock {
   }
 
   Future<bool> _checkPort() async {
+    if (activeConnection) {
+      throw ActionFailedException(
+        'wait_for active_connection is not supported by the target-aware '
+        'network probe backend',
+        moduleId: id,
+      );
+    }
+
     try {
       final address = host.isNotEmpty ? host : 'localhost';
       final result = await networkService.probeTcp(
