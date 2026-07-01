@@ -14,6 +14,9 @@ enum ShellType {
   /// Bash — common on Linux/macOS, available via Git Bash/WSL on Windows.
   bash(defaultExecutable: '/bin/bash'),
 
+  /// Zsh — popular on macOS and Linux.
+  zsh(defaultExecutable: '/bin/zsh'),
+
   /// PowerShell — native on Windows, cross-platform via `pwsh`.
   powershell(defaultExecutable: 'powershell'),
 
@@ -29,7 +32,7 @@ enum ShellType {
   /// equivalent.
   List<String> scriptArgs(String command) {
     return switch (this) {
-      ShellType.sh || ShellType.bash => ['-c', command],
+      ShellType.sh || ShellType.bash || ShellType.zsh => ['-c', command],
       ShellType.powershell => powershellEncodedCommand(command),
       ShellType.cmd => ['/c', command],
     };
@@ -43,6 +46,7 @@ enum ShellType {
     return switch (this) {
       ShellType.sh => os != OperatingSystem.windows,
       ShellType.bash => os != OperatingSystem.windows,
+      ShellType.zsh => os != OperatingSystem.windows,
       ShellType.powershell => true,
       ShellType.cmd => os == OperatingSystem.windows,
     };
@@ -54,7 +58,7 @@ enum ShellType {
   /// uses the short `powershell` name (resolved via PATH).
   String executableFor(OperatingSystem os) {
     return switch (this) {
-      ShellType.sh || ShellType.bash => defaultExecutable,
+      ShellType.sh || ShellType.bash || ShellType.zsh => defaultExecutable,
       ShellType.powershell =>
         os == OperatingSystem.windows ? 'powershell' : 'pwsh',
       ShellType.cmd => 'cmd',

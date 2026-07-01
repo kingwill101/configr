@@ -307,10 +307,24 @@ class SymlinkBlock extends ActionBlock {
       }
       return;
     }
-    await fileService.createSymlink(target, linkPath);
+
+    final result = await executionService.run(
+      ShellType.sh.defaultExecutable,
+      ShellType.sh.scriptArgs(
+        'ln -s ${_shQuote(target)} ${_shQuote(linkPath)}',
+      ),
+    );
+    if (result.exitCode != 0) {
+      throw ActionFailedException(
+        'Symlink creation failed: ${result.stderr.toString().trim()}',
+        moduleId: id,
+      );
+    }
   }
 
   String _psQuote(String value) => "'${value.replaceAll("'", "''")}'";
+
+  String _shQuote(String value) => "'${value.replaceAll("'", "'\\''")}'";
 
   Future<void> _executeBulkOperation() async {
     final filesToProcess = await _getFilesToProcess(source);
