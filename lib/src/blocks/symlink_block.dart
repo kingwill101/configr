@@ -2,10 +2,10 @@ import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/logging.dart';
+import 'package:configr/src/utils/shell_type.dart';
 import 'package:file/file.dart' show File;
 import 'package:glob/glob.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
-import 'package:path/path.dart' as path;
 
 /// Block handler for the `symlink` config action.
 ///
@@ -185,12 +185,12 @@ class SymlinkBlock extends ActionBlock {
         if (await fileService.isSymlink(destination)) {
           await fileService.deleteFile(destination);
         }
-        await fileService.createSymlink(originalTarget!, destination);
+        await _createSymlink(originalTarget!, destination);
       }
 
       // Clean up created directories
       if (hadToCreateDstDir) {
-        final symlinkDir = path.dirname(destination);
+        final symlinkDir = fileSystem.path.dirname(destination);
         if (await fileService.directoryExists(symlinkDir)) {
           await fileService.deleteDirectory(symlinkDir, recursive: true);
         }
@@ -199,7 +199,7 @@ class SymlinkBlock extends ActionBlock {
       // Clean up directories created for bulk operations
       final createdDirs = <String>{};
       for (final createdPath in createdPaths) {
-        final dir = path.dirname(createdPath);
+        final dir = fileSystem.path.dirname(createdPath);
         if (dir != destination) createdDirs.add(dir);
       }
       for (final dir in createdDirs) {
@@ -237,7 +237,7 @@ class SymlinkBlock extends ActionBlock {
   }
 
   Future<void> _executeSingleOperation() async {
-    final symlinkDir = path.dirname(destination);
+    final symlinkDir = fileSystem.path.dirname(destination);
 
     // Validate source exists
     if (validateTargets) {
@@ -264,7 +264,7 @@ class SymlinkBlock extends ActionBlock {
         case 'overwrite':
           logger.info('Overwriting existing symlink $destination');
           await fileService.deleteFile(destination);
-          await fileService.createSymlink(source, destination);
+          await _createSymlink(source, destination);
           overwrittenSymlinks++;
           createdPaths.add(destination);
           break;
@@ -281,11 +281,50 @@ class SymlinkBlock extends ActionBlock {
       }
     } else {
       logger.info('Creating symlink from $source to $destination');
-      await fileService.createSymlink(source, destination);
+      await _createSymlink(source, destination);
       createdSymlinks++;
       createdPaths.add(destination);
     }
   }
+
+  Future<void> _createSymlink(String target, String linkPath) async {
+    if (targetPlatform.toLowerCase().contains('windows')) {
+      final result = await executionService.run(
+        ShellType.powershell.defaultExecutable,
+        ShellType.powershell.scriptArgs(
+          "\$ProgressPreference = 'SilentlyContinue'; "
+          "New-Item -ItemType SymbolicLink "
+          "-Path ${_psQuote(linkPath)} "
+          "-Target ${_psQuote(target)} "
+          "-Force | Out-Null",
+        ),
+      );
+      if (result.exitCode != 0) {
+        throw ActionFailedException(
+          'PowerShell symlink failed: ${result.stderr.toString().trim()}',
+          moduleId: id,
+        );
+      }
+      return;
+    }
+
+    final result = await executionService.run(
+      ShellType.sh.defaultExecutable,
+      ShellType.sh.scriptArgs(
+        'ln -s ${_shQuote(target)} ${_shQuote(linkPath)}',
+      ),
+    );
+    if (result.exitCode != 0) {
+      throw ActionFailedException(
+        'Symlink creation failed: ${result.stderr.toString().trim()}',
+        moduleId: id,
+      );
+    }
+  }
+
+  String _psQuote(String value) => "'${value.replaceAll("'", "''")}'";
+
+  String _shQuote(String value) => "'${value.replaceAll("'", "'\\''")}'";
 
   Future<void> _executeBulkOperation() async {
     final filesToProcess = await _getFilesToProcess(source);
@@ -323,9 +362,9 @@ class SymlinkBlock extends ActionBlock {
   }
 
   Future<void> _processSingleFile(String filePath, String sourceBase) async {
-    final relativePath = path.relative(filePath, from: sourceBase);
-    final targetPath = path.join(destination, relativePath);
-    final targetDir = path.dirname(targetPath);
+    final relativePath = fileSystem.path.relative(filePath, from: sourceBase);
+    final targetPath = fileSystem.path.join(destination, relativePath);
+    final targetDir = fileSystem.path.dirname(targetPath);
 
     // Create target directory if needed
     if (createDirectories && !await fileService.directoryExists(targetDir)) {
@@ -337,7 +376,7 @@ class SymlinkBlock extends ActionBlock {
       switch (conflictResolution) {
         case 'overwrite':
           await fileService.deleteFile(targetPath);
-          await fileService.createSymlink(filePath, targetPath);
+          await _createSymlink(filePath, targetPath);
           overwrittenSymlinks++;
           createdPaths.add(targetPath);
           break;
@@ -352,7 +391,7 @@ class SymlinkBlock extends ActionBlock {
           );
       }
     } else {
-      await fileService.createSymlink(filePath, targetPath);
+      await _createSymlink(filePath, targetPath);
       createdSymlinks++;
       createdPaths.add(targetPath);
     }

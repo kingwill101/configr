@@ -1,4 +1,5 @@
 import 'package:configr/src/plugins/lua_library.dart';
+import 'package:configr/src/plugins/plugin_context.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
@@ -28,9 +29,7 @@ class LuaHookRunner {
     if (!await file.exists()) return false;
 
     await useFileSystem(_fileSystem);
-    if (_processBackend != null) {
-      setProcessBackend(_processBackend);
-    }
+    setProcessBackend(_processBackend);
     _luaLike.vm.libraryRegistry.register(
       ConfigrLibrary(_LuaHookHost(_fileSystem, _processBackend)),
     );
@@ -51,6 +50,8 @@ class LuaHookRunner {
 }
 
 class _LuaHookHost implements LuaPluginHost {
+  Map<String, dynamic>? _pluginContext;
+
   @override
   final FileSystem fileSystem;
 
@@ -58,6 +59,10 @@ class _LuaHookHost implements LuaPluginHost {
   final ProcessBackend? processBackend;
 
   _LuaHookHost(this.fileSystem, this.processBackend);
+
+  @override
+  Map<String, dynamic> get pluginContext =>
+      _pluginContext ??= PluginContext.create().toMap();
 
   @override
   i3.Context? get currentContext => null;

@@ -7,10 +7,14 @@ import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/hooks/hook_manager.dart';
 import 'package:configr/src/plugins/configr_plugin.dart';
 import 'package:configr/src/plugins/lua_plugin.dart';
+import 'package:configr/src/plugins/plugin_context.dart';
 import 'package:configr/src/reader/handlers/configr_handlers.dart';
 import 'package:configr/src/utils/logging.dart';
+import 'package:configr/src/strategies/script_strategy.dart';
 import 'package:configr/src/utils/ssh_execution_service.dart';
 import 'package:configr/src/utils/system_info.dart';
+import 'package:configr/src/utils/target_system.dart'
+    show TargetSystemFacts, TargetSystemProbe;
 import 'package:configr/src/utils/v2_lockfile_manager.dart';
 import 'package:crypto/crypto.dart' show sha256;
 import 'package:lualike/lualike.dart' show ProcessBackend;
@@ -90,12 +94,12 @@ import 'package:configr/src/blocks/uri_block.dart';
 import 'package:configr/src/blocks/user_block.dart';
 import 'package:configr/src/blocks/validate_block.dart';
 import 'package:configr/src/blocks/wait_for_block.dart';
-import 'package:configr/src/di.dart';
 import 'package:configr/src/blocks/di_setup.dart';
 import 'package:configr/src/models/v2_lockfile_data.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/execution_service.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
+import 'package:configr/src/utils/processing_halt.dart';
 import 'package:file/file.dart' show FileSystem;
 import 'package:file/local.dart' show LocalFileSystem;
 import 'package:i3config/i3config_v2.dart' as i3;
@@ -236,25 +240,6 @@ Future<void> applyV2(
     logger.debug('Config contents:\n$contents');
   }
 
-  // Execute pre-apply scripts before processing action blocks
-  if (!processingDryRun) {
-    final preScripts = _collectScriptsFromConfig(config, 'pre_apply_scripts');
-    for (final script in preScripts) {
-      logger.info('Executing pre-apply script: $script');
-      try {
-        final exec = di.isRegistered<ExecutionService>()
-            ? di<ExecutionService>()
-            : const LocalExecutionService();
-        await exec.run('/bin/sh', [
-          '-c',
-          script,
-        ], workingDirectory: fs.currentDirectory.path);
-      } catch (e) {
-        logger.warning('Pre-apply script failed: $script — $e');
-      }
-    }
-  }
-
   final configDir = p.dirname(p.absolute(configPath));
 
   // Create processor with a filesystem that resolves includes relative to the
@@ -268,13 +253,59 @@ Future<void> applyV2(
   final dotConfigrPath = p.join(configDir, '.configr');
   final configrDirs = ConfigrDirectories(projectConfigrPath: dotConfigrPath);
 
-  // Set all built-in variables on the processor context
+  // Determine execution service before seeding context so we can probe
+  // target facts instead of using controller-derived values.
+  ExecutionService executionService;
+  FileSystem fileSystem;
+  ProcessBackend? processBackend;
+  if (runtimeExecutionService != null || runtimeFileSystem != null) {
+    executionService = runtimeExecutionService ?? const LocalExecutionService();
+    fileSystem = runtimeFileSystem ?? const LocalFileSystem();
+    processBackend = runtimeProcessBackend;
+  } else if (connectionConfig != null &&
+      connectionConfig['host'] is String &&
+      (connectionConfig['host'] as String).isNotEmpty) {
+    final ssh = SSHExecutionService();
+    await ssh.connect(connectionConfig);
+    executionService = ssh;
+    fileSystem = ssh.fileSystem;
+    processBackend = ssh.processBackend;
+  } else {
+    executionService = const LocalExecutionService();
+    fileSystem = const LocalFileSystem();
+    processBackend = null;
+  }
+  executionService = _auditExecutionService(executionService, configrDirs);
+
+  // Probe target facts for OS/host context variables. When the probe
+  // succeeds (local or remote), SystemInfo uses target-derived values;
+  // on failure it falls back to controller Platform probes.
+  TargetSystemFacts? targetFacts;
+  try {
+    targetFacts = await TargetSystemProbe(executionService).detect();
+  } catch (_) {
+    if (debug) {
+      logger.debug('Target fact probe failed — using controller SystemInfo');
+    }
+  }
+
+  // Set all built-in variables on the processor context, preferring target
+  // facts when available so plugins and blocks see the correct target OS.
   SystemInfo(
     configDir: configDir,
     configrVersion: '1.0.0',
     configrCacheDir: configrDirs.cacheDir,
     configrBackupDir: configrDirs.backupDir,
+    targetFacts: targetFacts,
   ).applyToContext(processor.context);
+
+  // Store runtime backends in context early so pre-apply scripts, hooks,
+  // and _registerAllBlocks all use the same execution service.
+  processor.context.options['_runtimeFileSystem'] = fileSystem;
+  processor.context.options['_runtimeExecutionService'] = executionService;
+  processor.context.options['_processBackend'] = processBackend;
+  processor.context.options['_targetPlatform'] =
+      targetFacts?.os.name ?? executionService.platform;
 
   // Register variable precedence middleware for Ansible-style layering.
   // CLI vars (--var) take highest priority, then host vars, group vars,
@@ -282,6 +313,14 @@ Future<void> applyV2(
   final precedence = VariablePrecedence();
   if (extraVars != null && extraVars.isNotEmpty) {
     precedence.addSource(PrecedenceLayer.cliVars, extraVars);
+    // Seed CLI vars directly into the context so expandVariables() regex
+    // can match them (it only scans context.variables.keys, not middleware).
+    // getVariable() also only consults middleware for variables already in
+    // the context chain — brand-new vars must be in the context to be found.
+    // The middleware's onGet still enforces correct priority ordering.
+    for (final entry in extraVars.entries) {
+      processor.context.setVariable(entry.key, entry.value);
+    }
   }
   processor.context.registerVariableMiddleware(precedence);
   processor.context.options['_variablePrecedence'] = precedence;
@@ -295,6 +334,9 @@ Future<void> applyV2(
 
   final appliedBlocks = appliedBlocksCollector ?? <AppliedBlockRecord>[];
   processor.context.options['_appliedBlocks'] = appliedBlocks;
+  processor.setErrorHandler(
+    _ConfigrProcessorErrorHandler(haltOnError: failFast),
+  );
   if (failFast) {
     processor.context.options['_failFast'] = true;
   }
@@ -324,10 +366,9 @@ Future<void> applyV2(
     privilegeEscalation: privilegeEscalation,
     pluginLoader: pluginLoader,
     configDir: configDir,
-    connectionConfig: connectionConfig,
-    runtimeFileSystem: runtimeFileSystem,
-    runtimeExecutionService: runtimeExecutionService,
-    runtimeProcessBackend: runtimeProcessBackend,
+    runtimeFileSystem: fileSystem,
+    runtimeExecutionService: executionService,
+    runtimeProcessBackend: processBackend,
   );
 
   // Initialize hook manager for .configr/hooks/ directory. Hook source files
@@ -339,16 +380,34 @@ Future<void> applyV2(
   final hookExecutionService =
       processor.context.options['_runtimeExecutionService']
           as ExecutionService?;
-  final processBackend =
+  final hookProcessBackend =
       processor.context.options['_processBackend'] as ProcessBackend?;
+  final hookExtraEnv = <String, String>{
+    for (final entry
+        in extraVars?.entries ?? const <MapEntry<String, String>>[])
+      entry.key: entry.value,
+  };
   final hookMgr = HookManager(
     hooksDir: hooksDir,
     fileSystem: hookRuntimeFileSystem,
     scriptFileSystem: fs,
     executionService: hookExecutionService,
-    processBackend: processBackend,
+    processBackend: hookProcessBackend,
+    extraEnv: hookExtraEnv,
   );
   processor.context.options['_hookManager'] = hookMgr;
+
+  // Execute pre-apply scripts after the target execution service has been
+  // created so remote applies run scripts on the remote host.
+  if (!processingDryRun) {
+    await _runApplyScripts(
+      config,
+      'pre_apply_scripts',
+      processor.context,
+      executionService,
+      workingDirectory: fileSystem.currentDirectory.path,
+    );
+  }
 
   // Invoke plugin onConfigLoad hooks
   if (pluginLoader != null) {
@@ -363,8 +422,19 @@ Future<void> applyV2(
     await hookMgr.runEvent('pre-apply', extraVars: {'config_path': configPath});
   }
 
-  // Process — each block executes as it is processed
-  await processor.process(config);
+  // Process — each block executes as it is processed.
+  try {
+    await processor.process(config);
+  } on ConfigrProcessingHalted {
+    // The configured error handler has already recorded the failure.
+  }
+
+  await _throwIfProcessingErrors(
+    processor,
+    configPath: configPath,
+    hookMgr: hookMgr,
+    fileSystem: fs,
+  );
 
   // Resolve targets from inventory if multi-host flags were provided
   final inventory =
@@ -510,57 +580,22 @@ Future<void> applyV2(
 
   // Execute post-apply scripts after processing
   if (!processingDryRun) {
-    final postScripts = _collectScriptsFromConfig(config, 'post_apply_scripts');
-    for (final script in postScripts) {
-      logger.info('Executing post-apply script: $script');
-      try {
-        final exec = di.isRegistered<ExecutionService>()
-            ? di<ExecutionService>()
-            : const LocalExecutionService();
-        await exec.run(
-          '/bin/sh',
-          ['-c', script],
-          runInShell: true,
-          workingDirectory: fs.currentDirectory.path,
-        );
-      } catch (e) {
-        logger.warning('Post-apply script failed: $script — $e');
-      }
-    }
-  }
-
-  // Check for errors collected during processing.
-  final errors =
-      (processor.context.options['_errors'] as List<BlockErrorRecord>?) ??
-      <BlockErrorRecord>[];
-
-  if (errors.isNotEmpty) {
-    // Run on-error hook before reporting failure
-    await hookMgr.runEvent(
-      'on-error',
-      extraVars: {
-        'config_path': configPath,
-        'error_count': errors.length.toString(),
-      },
-    );
-
-    logger.error(
-      'Apply failed — ${errors.length} block(s) encountered errors:',
-    );
-    for (final err in errors) {
-      final location = err.source != null ? ' (${err.source})' : '';
-      logger.error('  - ${err.blockType}: ${err.message}$location');
-    }
-    // Delete any partial lockfile that may exist from a previous run.
-    final lockPath = V2LockfileManager.lockPathFor(configPath);
-    final lockFile = fs.file(lockPath);
-    if (await lockFile.exists()) {
-      await lockFile.delete();
-    }
-    throw ActionFailedException(
-      '${errors.length} block(s) failed during apply. Fix errors and re-run.',
+    await _runApplyScripts(
+      config,
+      'post_apply_scripts',
+      processor.context,
+      executionService,
+      workingDirectory: fileSystem.currentDirectory.path,
     );
   }
+
+  // Check for errors collected during post-processing hooks.
+  await _throwIfProcessingErrors(
+    processor,
+    configPath: configPath,
+    hookMgr: hookMgr,
+    fileSystem: fs,
+  );
 
   // Run post-apply hook after successful processing
   if (!processingDryRun) {
@@ -587,6 +622,79 @@ Future<void> applyV2(
       '${lockfileTargets != null ? ' across ${lockfileTargets.length} target(s)' : ''}.',
     );
   }
+}
+
+Future<void> _throwIfProcessingErrors(
+  i3.ConfigProcessor processor, {
+  required String configPath,
+  required HookManager hookMgr,
+  required FileSystem fileSystem,
+}) async {
+  final errors =
+      (processor.context.options['_errors'] as List<BlockErrorRecord>?) ??
+      <BlockErrorRecord>[];
+
+  if (errors.isEmpty) return;
+
+  // Run on-error hook before reporting failure.
+  await hookMgr.runEvent(
+    'on-error',
+    extraVars: {
+      'config_path': configPath,
+      'error_count': errors.length.toString(),
+    },
+  );
+
+  logger.error('Apply failed — ${errors.length} block(s) encountered errors:');
+  for (final err in errors) {
+    final location = err.source != null ? ' (${err.source})' : '';
+    logger.error('  - ${err.blockType}: ${err.message}$location');
+  }
+
+  // Delete any partial lockfile that may exist from a previous run.
+  final lockPath = V2LockfileManager.lockPathFor(configPath);
+  final lockFile = fileSystem.file(lockPath);
+  if (await lockFile.exists()) {
+    await lockFile.delete();
+  }
+
+  throw ActionFailedException(
+    '${errors.length} block(s) failed during apply. Fix errors and re-run.',
+  );
+}
+
+class _ConfigrProcessorErrorHandler implements i3.ErrorHandler {
+  final bool haltOnError;
+
+  const _ConfigrProcessorErrorHandler({required this.haltOnError});
+
+  @override
+  void handleError(String message, i3.Context context, {dynamic span}) {
+    final cleanMessage = ConfigrProcessingHalted.cleanMessage(message);
+    if (!ConfigrProcessingHalted.isRecordedMessage(message)) {
+      final errors =
+          (context.globalContext.options['_errors']
+              as List<BlockErrorRecord>?) ??
+          <BlockErrorRecord>[];
+      context.globalContext.options['_errors'] = errors;
+      errors.add(
+        BlockErrorRecord(
+          message: cleanMessage,
+          blockType: 'processor',
+          blockId: 'processor',
+          source: span != null ? _formatSpan(span) : null,
+        ),
+      );
+    }
+
+    if (haltOnError) {
+      throw ConfigrProcessingHalted(cleanMessage, alreadyRecorded: true);
+    }
+  }
+}
+
+String _formatSpan(dynamic span) {
+  return 'line ${span.start.line + 1}, column ${span.start.column + 1}';
 }
 
 /// Rolls back previously-applied blocks using the lockfile as the source
@@ -616,9 +724,15 @@ Future<void> rollbackV2(
   ExecutionService? runtimeExecutionService,
 }) async {
   final fs = const LocalFileSystem();
+  final configDir = p.dirname(p.absolute(configPath));
+  final configrDirs = ConfigrDirectories(
+    projectConfigrPath: p.join(configDir, '.configr'),
+  );
   final executionFileSystem = runtimeFileSystem ?? fs;
-  final executionService =
-      runtimeExecutionService ?? const LocalExecutionService();
+  final executionService = _auditExecutionService(
+    runtimeExecutionService ?? const LocalExecutionService(),
+    configrDirs,
+  );
 
   // 1. Read the lockfile
   final lockMgr = V2LockfileManager(
@@ -1179,6 +1293,9 @@ Future<void> _registerAllBlocks(
             fileSystem: fileSystem,
             scriptFileSystem: const LocalFileSystem(),
             processBackend: processBackend,
+            pluginContext: PluginContext.fromConfigContext(
+              processor.context,
+            ).toMap(),
           );
           await plugin.initialize();
           plugin.registerBlocks(processor, eventBus: eventBus);
@@ -1207,6 +1324,19 @@ ConfigrPluginLoader? _freshPluginLoader(ConfigrPluginLoader? pluginLoader) {
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
+
+ExecutionService _auditExecutionService(
+  ExecutionService executionService,
+  ConfigrDirectories configrDirs,
+) {
+  if (executionService is AuditedExecutionService) {
+    return executionService;
+  }
+  return AuditedExecutionService(
+    delegate: executionService,
+    logDirectory: configrDirs.shellLogsDir,
+  );
+}
 
 /// Parse a config file and return the collected [BlockSnapshot]s
 /// (dry-run mode — no execution).
@@ -1273,6 +1403,37 @@ List<Map<String, String>> _collectDependencyBlocks(i3.Config config) {
   return deps;
 }
 
+Future<void> _runApplyScripts(
+  i3.Config config,
+  String blockType,
+  i3.Context context,
+  ExecutionService executionService, {
+  String? workingDirectory,
+}) async {
+  final scripts = _collectScriptsFromConfig(config, blockType, context);
+  final label = blockType == 'pre_apply_scripts' ? 'pre-apply' : 'post-apply';
+  final strategy = ScriptStrategy.forPlatform(executionService.platform);
+  for (final script in scripts) {
+    logger.info('Executing $label script: $script');
+    try {
+      final (exe, args) = strategy.runScript(script);
+      final result = await executionService.run(
+        exe,
+        args,
+        workingDirectory: workingDirectory,
+      );
+      if (result.exitCode != 0) {
+        logger.warning(
+          '$label script failed: $script — '
+          '${result.stderr.toString().trim()}',
+        );
+      }
+    } catch (e) {
+      logger.warning('$label script failed: $script — $e');
+    }
+  }
+}
+
 /// Collects script paths from a `pre_apply_scripts` or `post_apply_scripts`
 /// block in the parsed config AST.
 ///
@@ -1284,21 +1445,28 @@ List<Map<String, String>> _collectDependencyBlocks(i3.Config config) {
 /// }
 /// ```
 /// Returns the list of script paths/commands to execute.
-List<String> _collectScriptsFromConfig(i3.Config config, String blockType) {
+List<String> _collectScriptsFromConfig(
+  i3.Config config,
+  String blockType, [
+  i3.Context? context,
+]) {
   final scripts = <String>[];
   for (final statement in config.statements) {
     if (statement is i3.Block && statement.blockType == blockType) {
       for (final element in statement.body) {
         switch (element) {
           case i3.Command cmd:
-            for (final arg in cmd.args) {
-              final raw = arg.toConfigString();
-              if (raw.isNotEmpty) scripts.add(_unquote(raw));
-            }
+            final parts = [
+              context?.expandVariables(cmd.head) ?? cmd.head,
+              for (final arg in cmd.args)
+                context?.expandValue(arg) ?? _unquote(arg.toConfigString()),
+            ].where((part) => part.isNotEmpty).toList();
+            if (parts.isNotEmpty) scripts.add(parts.join(' '));
           case i3.Assignment assign:
             for (final v in assign.values) {
-              final raw = v.toConfigString();
-              if (raw.isNotEmpty) scripts.add(_unquote(raw));
+              final raw =
+                  context?.expandValue(v) ?? _unquote(v.toConfigString());
+              if (raw.isNotEmpty) scripts.add(raw);
             }
           default:
             break;

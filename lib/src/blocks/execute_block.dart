@@ -3,22 +3,11 @@ import 'dart:io';
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
+import 'package:configr/src/utils/execution_service.dart';
 import 'package:configr/src/utils/logging.dart';
+import 'package:configr/src/utils/shell_type.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
 
-/// Block handler for the `execute` config action.
-///
-/// Runs a shell command with configurable environment, timeout, and working
-/// directory. Rollback is a no-op (commands cannot be un-executed).
-///
-/// ```i3
-/// execute {
-///   command = "echo hello"
-///   working_directory = "/tmp"
-///   timeout = 60
-///   inherit_environment = true
-/// }
-/// ```
 class ExecuteBlock extends ActionBlock {
   @override
   String get blockType => 'execute';
@@ -29,8 +18,9 @@ class ExecuteBlock extends ActionBlock {
   Map<String, String> environment = const {};
   String? input;
   bool inheritEnvironment = true;
+  ShellType shell = ShellType.sh;
+  bool _shellExplicit = false;
 
-  // Execution state
   String? stdout;
   String? stderr;
   int exitCode = -1;
@@ -43,6 +33,7 @@ class ExecuteBlock extends ActionBlock {
     'working_directory': ?workingDirectory,
     if (timeoutSeconds != 300) 'timeout': timeoutSeconds.toString(),
     'input': ?input,
+    if (_shellExplicit) 'shell': shell.name,
   };
 
   @override
@@ -73,6 +64,28 @@ class ExecuteBlock extends ActionBlock {
       false || 'false' => false,
       _ => true,
     };
+
+    final shellStr = context.getVariable('shell') as String?;
+    if (shellStr != null) {
+      shell = ShellType.tryParse(shellStr) ?? ShellType.sh;
+      _shellExplicit = true;
+    }
+  }
+
+  @override
+  void resetState() {
+    super.resetState();
+    command = '';
+    workingDirectory = null;
+    timeoutSeconds = 300;
+    environment = const {};
+    input = null;
+    inheritEnvironment = true;
+    shell = ShellType.sh;
+    _shellExplicit = false;
+    stdout = null;
+    stderr = null;
+    exitCode = -1;
   }
 
   @override
@@ -131,25 +144,38 @@ class ExecuteBlock extends ActionBlock {
 
   @override
   Future<void> rollback() async {
-    // Commands cannot be un-executed.
     logger.warning('Cannot rollback executed command: $command');
   }
 
   Future<ProcessResult> _executeWithTimeout() async {
     final env = <String, String>{};
-    if (inheritEnvironment) {
+    if (inheritEnvironment && executionService is LocalExecutionService) {
       env.addAll(Platform.environment);
     }
     env.addAll(environment);
 
-    final workingDir = workingDirectory ?? fileSystem.currentDirectory.path;
+    final workingDir =
+        workingDirectory ??
+        (executionService is LocalExecutionService
+            ? fileSystem.currentDirectory.path
+            : null);
+    final effectiveShell = _effectiveShell();
+    final executable = effectiveShell.defaultExecutable;
+    final args = effectiveShell.scriptArgs(command);
 
     return executionService.run(
-      'sh',
-      ['-c', command],
+      executable,
+      args,
       environment: env,
       workingDirectory: workingDir,
       stdin: input,
     );
+  }
+
+  ShellType _effectiveShell() {
+    if (_shellExplicit) return shell;
+    final platform = executionService.platform.toLowerCase();
+    if (platform.contains('windows')) return ShellType.powershell;
+    return ShellType.sh;
   }
 }

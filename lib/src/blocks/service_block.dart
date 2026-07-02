@@ -36,10 +36,7 @@ abstract class ServiceBlock extends ActionBlock {
       case OperatingSystem.freebsd:
         return _FreeBSDServiceBlock();
       default:
-        throw UnsupportedError(
-          'Service management not supported on ${Platform.operatingSystem}. '
-          'Currently supported: Linux, macOS, FreeBSD.',
-        );
+        return _UnsupportedServiceBlock();
     }
   }
 
@@ -480,4 +477,34 @@ class _FreeBSDServiceBlock extends ServiceBlock {
       );
     }
   }
+}
+
+class _UnsupportedServiceBlock extends ServiceBlock {
+  _UnsupportedServiceBlock() : super._();
+
+  @override
+  Future<void> execute() async {
+    throw UnsupportedError(
+      'Service management not supported on ${Platform.operatingSystem}. '
+      'Currently supported: Linux, macOS, FreeBSD.',
+    );
+  }
+
+  @override
+  Future<void> rollback() async {}
+
+  @override
+  Future<void> _start() async {}
+
+  @override
+  Future<void> _stop() async {}
+
+  @override
+  Future<void> _restart() async {}
+
+  @override
+  Future<void> _reload() async {}
+
+  @override
+  Future<void> _enable() async {}
 }

@@ -14,6 +14,7 @@ import 'package:lualike/docs.dart';
 import 'package:lualike/lualike.dart';
 import 'package:lualike/src/docs/metadata_generator.dart';
 
+import 'package:configr/src/lua/fixture_assertion_library.dart';
 import 'package:configr/src/plugins/lua_library.dart';
 
 void main(List<String> args) async {
@@ -25,6 +26,11 @@ void main(List<String> args) async {
   // Register the ConfigrLibrary with a minimal stub host so the library can
   // be initialized and its documentation metadata collected.
   lua.vm.libraryRegistry.register(ConfigrLibrary(_StubLuaPluginHost()));
+
+  // Register the fixture assertion library for test documentation.
+  lua.vm.libraryRegistry.register(
+    FixtureAssertionLibrary(_StubFileSystem(), StringBuffer()),
+  );
 
   print('Generating Lua API metadata → $outputDir');
   print('Include stdlib: $includeStdlib');
@@ -71,11 +77,35 @@ class _StubLuaPluginHost implements LuaPluginHost {
       throw UnsupportedError('Not available during metadata generation');
 
   @override
-  void registerBlockInPlugin(String blockType, Object? callbacks) {
+  Map<String, dynamic> get pluginContext => {
+    'platform': 'linux',
+    'architecture': 'x86_64',
+    'hostname': 'stub',
+    'os': {
+      'name': 'linux',
+      'version': '0.0.0',
+      'family': 'linuxGeneric',
+      'distribution': 'unknown',
+      'distributionVersion': '',
+      'kernel': '',
+    },
+    'user': {'username': 'stub', 'home': '/tmp', 'shell': '/bin/sh'},
+    'env': <String, String>{},
+    'configr': {'version': '0.0.0', 'cacheDir': '', 'backupDir': ''},
+  };
+
+  @override
+  void registerBlockInPlugin(String blockType, Value callbacks) {
     // Not called during metadata generation.
   }
 
   @override
-  // TODO: implement processBackend
   ProcessBackend? get processBackend => throw UnimplementedError();
+}
+
+/// Stub [FileSystem] used when generating metadata for [FixtureAssertionLibrary].
+class _StubFileSystem implements FileSystem {
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnsupportedError('Not available during metadata generation');
 }

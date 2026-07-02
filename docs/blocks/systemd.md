@@ -110,3 +110,12 @@ systemd {
 - Unit create → restore previous content or delete
 - Unit edit → restore previous content
 - Unit remove → restore deleted content
+
+## Platform Support
+
+| Platform | Implementation |
+|----------|---------------|
+| Linux | Full |
+| macOS | Not supported |
+| FreeBSD | Not supported |
+| Windows | Not supported |

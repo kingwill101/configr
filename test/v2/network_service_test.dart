@@ -61,6 +61,18 @@ void main() {
       expect(result.success, isTrue);
       expect(result.resolvedAddress, equals('192.0.2.10'));
     });
+
+    test('uses target shell when probing ping on Unix', () async {
+      final execution = _FakeExecutionService({'ping'});
+      final service = ExecutionNetworkService(execution);
+
+      final result = await service.probePing('example.com', timeoutSeconds: 5);
+
+      expect(result.success, isTrue);
+      expect(execution.lastCommand, endsWith('sh'));
+      expect(execution.lastArguments, contains('-c'));
+      expect(execution.lastArguments.join(' '), contains("'example.com'"));
+    });
   });
 }
 
@@ -69,6 +81,8 @@ class _FakeExecutionService implements ExecutionService {
   final Map<String, String> hosts;
   String? putSource;
   String? putDestination;
+  String? lastCommand;
+  List<String> lastArguments = const [];
 
   _FakeExecutionService(this.tools, {this.hosts = const {}});
 
@@ -103,6 +117,8 @@ class _FakeExecutionService implements ExecutionService {
     CommandOutputHandler? onOutput,
     String? stdin,
   }) async {
+    lastCommand = command;
+    lastArguments = List<String>.from(arguments);
     final script = arguments.join(' ');
     if (script.contains('command -v')) {
       return ProcessResult(0, 0, '${tools.join('\n')}\n', '');
@@ -113,6 +129,10 @@ class _FakeExecutionService implements ExecutionService {
       final address = hosts[host];
       if (address == null) return ProcessResult(0, 2, '', '');
       return ProcessResult(0, 0, '$address\n', '');
+    }
+
+    if (command.endsWith('sh') && script.contains('ping ')) {
+      return ProcessResult(0, 0, '', '');
     }
 
     return ProcessResult(0, 127, '', 'unexpected command: $command $script');

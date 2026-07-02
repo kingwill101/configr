@@ -28,11 +28,11 @@ class HostVars {
   /// Load facts for a single host.
   ///
   /// Returns an empty map if the fact file doesn't exist or can't be parsed.
-  Map<String, dynamic> factsFor(String hostName) {
+  Future<Map<String, dynamic>> factsFor(String hostName) async {
     final file = fs.file('$factsDir/$hostName.json');
-    if (!file.existsSync()) return {};
+    if (!await file.exists()) return {};
     try {
-      final content = file.readAsStringSync();
+      final content = await file.readAsString();
       return jsonDecode(content) as Map<String, dynamic>;
     } catch (_) {
       return {};
@@ -42,15 +42,15 @@ class HostVars {
   /// Load facts for all discovered hosts.
   ///
   /// Returns a map of host name → fact map.
-  Map<String, Map<String, dynamic>> allFacts() {
+  Future<Map<String, Map<String, dynamic>>> allFacts() async {
     final dir = fs.directory(factsDir);
-    if (!dir.existsSync()) return {};
+    if (!await dir.exists()) return {};
     final result = <String, Map<String, dynamic>>{};
-    for (final entry in dir.listSync()) {
+    await for (final entry in dir.list()) {
       if (entry is File && entry.path.endsWith('.json')) {
         final name = entry.basename.replaceAll('.json', '');
         try {
-          final content = entry.readAsStringSync();
+          final content = await entry.readAsString();
           result[name] = jsonDecode(content) as Map<String, dynamic>;
         } catch (_) {
           // skip unreadable files
@@ -61,15 +61,15 @@ class HostVars {
   }
 
   /// Check if facts exist for a host.
-  bool hasFacts(String hostName) {
-    return fs.file('$factsDir/$hostName.json').existsSync();
+  Future<bool> hasFacts(String hostName) {
+    return fs.file('$factsDir/$hostName.json').exists();
   }
 
   /// Get a specific fact value for a host.
   ///
   /// Returns `null` if the host or fact doesn't exist.
-  dynamic factFor(String hostName, String factName) {
-    return factsFor(hostName)[factName];
+  Future<dynamic> factFor(String hostName, String factName) async {
+    return (await factsFor(hostName))[factName];
   }
 
   /// Register this HostVars instance in the processor context

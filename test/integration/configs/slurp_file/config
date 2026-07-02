@@ -1,3 +1,3 @@
 slurp {
-  src = "/etc/hostname"
+  src = "$tempdir/configr_slurp_test.txt"
 }

@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:configr/src/utils/shell_type.dart';
+
 /// Operating system as detected by [Platform.operatingSystem].
 ///
 /// Matches the strings returned by Dart's [Platform.operatingSystem]:
@@ -117,10 +119,12 @@ class OsFacts {
       return Platform.operatingSystem;
     }
     try {
-      final result = Process.runSync('sh', [
-        '-c',
-        '. /etc/os-release 2>/dev/null && echo "\${ID:-unknown}"',
-      ]);
+      final result = Process.runSync(
+        ShellType.sh.defaultExecutable,
+        ShellType.sh.scriptArgs(
+          '. /etc/os-release 2>/dev/null && echo "\${ID:-unknown}"',
+        ),
+      );
       if (result.exitCode == 0) {
         final id = (result.stdout as String).trim();
         if (id.isNotEmpty) return id;
@@ -134,10 +138,12 @@ class OsFacts {
       return Platform.operatingSystemVersion;
     }
     try {
-      final result = Process.runSync('sh', [
-        '-c',
-        '. /etc/os-release 2>/dev/null && echo "\${VERSION_ID:-}"',
-      ]);
+      final result = Process.runSync(
+        ShellType.sh.defaultExecutable,
+        ShellType.sh.scriptArgs(
+          '. /etc/os-release 2>/dev/null && echo "\${VERSION_ID:-}"',
+        ),
+      );
       if (result.exitCode == 0) {
         final id = (result.stdout as String).trim();
         if (id.isNotEmpty) return id;
@@ -157,10 +163,12 @@ class OsFacts {
     switch (os) {
       case OperatingSystem.linux:
         try {
-          final result = Process.runSync('sh', [
-            '-c',
-            '. /etc/os-release 2>/dev/null && echo "\${ID_LIKE:-}"',
-          ]);
+          final result = Process.runSync(
+            ShellType.sh.defaultExecutable,
+            ShellType.sh.scriptArgs(
+              '. /etc/os-release 2>/dev/null && echo "\${ID_LIKE:-}"',
+            ),
+          );
           if (result.exitCode == 0) {
             final like = (result.stdout as String).trim().toLowerCase();
             if (like.contains('debian')) return OsFamily.debian;

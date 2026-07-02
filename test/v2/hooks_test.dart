@@ -109,8 +109,8 @@ void main() {
       await hookFile.writeAsString('');
 
       final mgr = HookManager(hooksDir: hooksDir, fileSystem: fs);
-      expect(mgr.hasEvent('pre-apply'), isTrue);
-      expect(mgr.hasEvent('post-apply'), isFalse);
+      expect(await mgr.hasEvent('pre-apply'), isTrue);
+      expect(await mgr.hasEvent('post-apply'), isFalse);
     });
 
     test('runs a Lua hook script successfully', () async {
@@ -157,7 +157,7 @@ void main() {
       expect(await markerFile.readAsString(), 'pre-block:echo:echo_0');
     });
 
-    test('uploads and runs Bash hooks through execution service', () async {
+    test('uploads and runs hooks through execution service', () async {
       final hooksDir = '/.configr/hooks';
       final hookFile = fs.file('$hooksDir/pre-apply.sh');
       await hookFile.create(recursive: true);
@@ -179,11 +179,36 @@ void main() {
 
       expect(result, isTrue);
       expect(executionService.putDestinations, hasLength(1));
-      expect(executionService.commands, contains(startsWith('bash /tmp/')));
+      expect(executionService.commands.first, contains('mktemp'));
+      expect(
+        executionService.commands,
+        contains('/bin/bash /target/tmp/hook_fake_pre-apply.sh'),
+      );
+      expect(executionService.commands.last, contains('rm -f'));
       expect(
         executionService.environment?['CONFIGR_CONFIG_PATH'],
         equals('/workspace/config'),
       );
+    });
+
+    test('runs PowerShell hooks on Windows targets', () async {
+      final hooksDir = '/.configr/hooks';
+      final hookFile = fs.file('$hooksDir/pre-apply.ps1');
+      await hookFile.create(recursive: true);
+      await hookFile.writeAsString('Write-Output "hello from windows"');
+      final executionService = _FakeRemoteExecutionService(platform: 'windows');
+
+      final mgr = HookManager(
+        hooksDir: hooksDir,
+        fileSystem: fs,
+        executionService: executionService,
+      );
+
+      final result = await mgr.runEvent('pre-apply');
+
+      expect(result, isTrue);
+      expect(executionService.putDestinations, isNotEmpty);
+      expect(executionService.commands.first, contains('-EncodedCommand'));
     });
 
     test('known events list is comprehensive', () async {
@@ -281,8 +306,10 @@ class _FakeRemoteExecutionService implements ExecutionService {
   final commands = <String>[];
   Map<String, String>? environment;
 
+  _FakeRemoteExecutionService({this.platform = 'linux'});
+
   @override
-  String get platform => 'linux';
+  final String platform;
 
   @override
   bool get isConnected => true;
@@ -313,6 +340,15 @@ class _FakeRemoteExecutionService implements ExecutionService {
   }) async {
     this.environment = environment ?? this.environment;
     commands.add([command, ...arguments].join(' '));
+    if (command == '/bin/sh' || command == 'sh') {
+      return ProcessResult(0, 0, '/target/tmp/hook_fake_pre-apply.sh\n', '');
+    }
+    if (command == 'powershell') {
+      return ProcessResult(0, 0, 'C:\\Temp\\configr_hook_fake.ps1\n', '');
+    }
+    if (command == 'bash') {
+      return ProcessResult(0, 0, '', '');
+    }
     return ProcessResult(0, 0, '', '');
   }
 }

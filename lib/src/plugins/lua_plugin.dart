@@ -19,6 +19,8 @@ class LuaPlugin implements ConfigrPlugin, LuaPluginHost {
   final FileSystem _scriptFileSystem;
   final ProcessBackend? _processBackend;
   final Map<String, Value> _registeredBlocks = {};
+  Map<String, dynamic>? _pluginContext;
+  Map<String, dynamic>? _defaultPluginContext;
 
   i3.Context? _currentContext;
   EventBus? _eventBus;
@@ -30,9 +32,13 @@ class LuaPlugin implements ConfigrPlugin, LuaPluginHost {
     FileSystem? fileSystem,
     FileSystem? scriptFileSystem,
     this._processBackend,
+    Map<String, dynamic>? pluginContext,
   }) : _fileSystem = fileSystem ?? const LocalFileSystem(),
        _scriptFileSystem =
-           scriptFileSystem ?? fileSystem ?? const LocalFileSystem();
+           scriptFileSystem ?? fileSystem ?? const LocalFileSystem(),
+       _pluginContext = pluginContext == null
+           ? null
+           : Map<String, dynamic>.from(pluginContext);
 
   // --- LuaPluginHost implementation ---
 
@@ -49,8 +55,18 @@ class LuaPlugin implements ConfigrPlugin, LuaPluginHost {
   ProcessBackend? get processBackend => _processBackend;
 
   @override
+  Map<String, dynamic> get pluginContext => _buildContextMap();
+
+  @override
   void registerBlockInPlugin(String blockType, Value callbacks) {
     _registeredBlocks[blockType] = callbacks;
+  }
+
+  void setPluginContext(Map<String, dynamic> context) {
+    _pluginContext = context;
+    if (_initialized) {
+      _luaLike.setGlobal('context', _pluginContext);
+    }
   }
 
   // --- Plugin metadata ---
@@ -95,9 +111,7 @@ class LuaPlugin implements ConfigrPlugin, LuaPluginHost {
 
     // Wire the process backend into lualike so os.execute(), io.popen()
     // use the SSH backend when running in remote mode.
-    if (_processBackend != null) {
-      setProcessBackend(_processBackend);
-    }
+    setProcessBackend(_processBackend);
 
     // Register the ConfigrLibrary (all built-in API functions with docs)
     _luaLike.vm.libraryRegistry.register(ConfigrLibrary(this));
@@ -134,7 +148,8 @@ class LuaPlugin implements ConfigrPlugin, LuaPluginHost {
   }
 
   Map<String, dynamic> _buildContextMap() {
-    return PluginContext.create().toMap();
+    return _pluginContext ??= _defaultPluginContext ??= PluginContext.create()
+        .toMap();
   }
 
   @override

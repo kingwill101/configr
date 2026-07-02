@@ -35,9 +35,17 @@ class SecretProviders {
     final provider = _providerFor(resolvedScheme, uri);
     if (provider == null) return null;
 
-    final project = scheme == 'dotenv'
-        ? uri.path
-        : (uri.host.isNotEmpty ? uri.host : uri.path);
+    final String project;
+    if (scheme == 'dotenv') {
+      // On Windows, dotenv://C:/path/file parses with host='c' and path='/path/file'.
+      // Reconstruct the full path by prepending the drive letter.
+      final host = uri.host;
+      project = (host.length == 1 && RegExp(r'^[a-zA-Z]$').hasMatch(host))
+          ? '$host:${uri.path}'
+          : uri.path;
+    } else {
+      project = uri.host.isNotEmpty ? uri.host : uri.path;
+    }
     final key = uri.queryParameters['name'] ?? _extractKey(uriString);
     final profile = uri.queryParameters['profile'];
     return provider.get(project, key, profile);

@@ -26,7 +26,7 @@ class ApplyCommand extends BaseCommand {
     );
     argParser.addFlag(
       'fail-fast',
-      help: 'Stop at the first block error instead of continuing',
+      help: 'Stop at the first processor or block error instead of continuing',
       defaultsTo: false,
     );
     argParser.addMultiOption(
@@ -97,7 +97,7 @@ class ApplyCommand extends BaseCommand {
       io.info('  [DRY-RUN] Preview mode — no changes will be made.');
     }
     if (failFast) {
-      io.info('  [FAIL-FAST] Will stop at the first block error.');
+      io.info('  [FAIL-FAST] Will stop at the first processor or block error.');
     }
 
     try {

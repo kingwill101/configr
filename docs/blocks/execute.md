@@ -1,6 +1,6 @@
 # Execute Module
 
-Enhanced command execution with environment management, timeouts, and process monitoring.
+Enhanced command execution with environment management, timeouts, and process monitoring. Cross-platform execution with PowerShell support on Windows.
 
 ## Features
 
@@ -11,6 +11,25 @@ Enhanced command execution with environment management, timeouts, and process mo
 - **Working Directory**: Execute commands in custom working directories
 - **Event System**: Comprehensive event emission for monitoring and logging
 - **Execution Validation**: Result validation and error handling
+
+## Cross-Platform Execution
+
+Configr automatically selects the appropriate shell for the target platform:
+
+- **Linux/macOS/FreeBSD**: Uses `sh` by default, configurable to `bash`
+- **Windows**: Uses PowerShell by default
+
+PowerShell commands are encoded to avoid quoting issues. Commands execute through Configr's Execution Service, which handles platform-specific process invocation, output capture, and audit logging.
+
+## Platform Support
+
+| Feature | Linux | macOS | FreeBSD | Windows |
+|---------|-------|-------|---------|---------|
+| sh commands | Yes | Yes | Yes | No |
+| PowerShell | No | No | No | Yes |
+| Environment variables | Yes | Yes | Yes | Yes |
+| Timeouts | Yes | Yes | Yes | Yes |
+| Stdio redirection | Yes | Yes | Yes | Yes |
 
 ## Basic Usage
 
@@ -45,7 +64,50 @@ resource {
 }
 ```
 
+### PowerShell on Windows
+
+```
+resource {
+  source "/path/to/script"
+  destination "/path/to/output"
+  actions {
+    execute {
+      command "Get-ChildItem C:\\Windows"
+      shell "powershell"
+      environment {
+        COMPUTER_NAME "$env:COMPUTERNAME"
+      }
+    }
+  }
+}
+```
+
 ## Advanced Features
+
+### Shell Configuration
+
+#### Change Shell Type
+
+```
+resource {
+  source "/path/to/script"
+  destination "/path/to/output"
+  actions {
+    execute {
+      command "echo 'Hello'"
+      shell "bash"  # Use bash instead of default sh
+    }
+  }
+}
+```
+
+#### Platform-Dependent Shells
+
+The block automatically detects platform and uses the optimal shell:
+
+- On Windows, PowerShell is the default
+- On Unix-like systems, `sh` is the default
+- Shell can be overridden to match target capabilities if needed
 
 ### Environment Management
 
@@ -86,156 +148,47 @@ resource {
 }
 ```
 
-### Timeout Configuration
+### Cross-Platform Path Handling
 
-#### Basic Timeout
+The execution strategy ensures proper path handling across platforms:
 
-```
-resource {
-  source "/path/to/script"
-  destination "/path/to/output"
-  actions {
-    execute {
-      command "long_running_script.sh"
-      timeout 300
-    }
-  }
-}
-```
-
-#### Short Timeout for Quick Commands
-
-```
-resource {
-  source "/path/to/script"
-  destination "/path/to/output"
-  actions {
-    execute {
-      command "quick_check.sh"
-      timeout 10
-    }
-  }
-}
-```
-
-### Working Directory Management
-
-```
-resource {
-  source "/path/to/script"
-  destination "/path/to/output"
-  actions {
-    execute {
-      command "ls -la"
-      working_directory "/tmp"
-    }
-  }
-}
-```
-
-### Input to Commands
-
-```
-resource {
-  source "/path/to/script"
-  destination "/path/to/output"
-  actions {
-    execute {
-      command "cat"
-      input "This is input data for the command"
-    }
-  }
-}
-```
-
-### Output Size Limits
-
-```
-resource {
-  source "/path/to/script"
-  destination "/path/to/output"
-  actions {
-    execute {
-      command "generate_large_output.sh"
-      max_output_size 1024
-    }
-  }
-}
-```
-
-### Conditional Execution
-
-```
-resource {
-  source "/path/to/script"
-  destination "/path/to/output"
-  actions {
-    execute {
-      command "cleanup.sh"
-      on_success true
-    }
-  }
-}
-```
-
-### Complex Configuration
-
-```
-resource {
-  source "/path/to/script"
-  destination "/path/to/output"
-  actions {
-    execute {
-      command "deploy.sh"
-      environment {
-        NODE_ENV "production"
-        API_URL "https://api.example.com"
-        DEBUG "false"
-      }
-      working_directory "/app"
-      timeout 600
-      input "deploy_config.json"
-      inherit_environment true
-      max_output_size 2048
-    }
-  }
-}
-```
+- Windows paths use backslashes and PowerShell quoting
+- Unix paths use forward slashes and standard shell quoting
+- Path normalization occurs automatically
 
 ## Configuration Properties
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `command` | string | **required** | Command to execute |
-| `environment` | map | `{}` | Environment variables to set |
-| `working_directory` | string | current directory | Working directory for command execution |
-| `timeout` | int | `300` | Timeout in seconds |
-| `input` | string | `null` | Input data to send to command |
-| `inherit_environment` | boolean | `true` | Whether to inherit system environment |
-| `max_output_size` | int | `1048576` | Maximum output size in bytes (1MB) |
-| `on_success` | boolean | `false` | Only execute if previous action succeeded |
+| `command` | `string` | **required** | Command to execute |
+| `shell` | `string` | platform-dependent | Shell type: `sh`, `bash`, `powershell` |
+| `environment` | `map` | `{}` | Environment variables to set |
+| `working_directory` | `string` | current directory | Working directory for command execution |
+| `timeout` | `int` | `300` | Timeout in seconds |
+| `input` | `string` | `null` | Input data to send to command |
+| `inherit_environment` | `boolean` | `true` | Whether to inherit system environment |
+| `max_output_size` | `int` | `1048576` | Maximum output size in bytes (1MB) |
+| `on_success` | `boolean` | `false` | Only execute if previous action succeeded |
 
 ## State Tracking
 
-The execute module tracks detailed state information:
-
-### State Properties
+The execute module tracks detailed state information after each run:
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `command` | string | Command that was executed |
-| `exitCode` | int | Exit code of the command |
-| `stdout` | string | Standard output from command |
-| `stderr` | string | Standard error from command |
-| `executionDuration` | Duration | Time taken to execute command |
-| `processId` | int | Process ID of the executed command |
-| `wasKilled` | boolean | Whether process was killed due to timeout |
-| `environment` | map | Environment variables used |
-| `workingDirectory` | string | Working directory used |
-| `timeout` | int | Timeout setting in seconds |
-| `input` | string | Input data sent to command |
-| `inheritEnvironment` | boolean | Whether system environment was inherited |
-| `maxOutputSize` | int | Maximum output size limit |
+| `command` | `string` | Command that was executed |
+| `exitCode` | `int` | Exit code of the command |
+| `stdout` | `string` | Standard output from command |
+| `stderr` | `string` | Standard error from command |
+| `executionDuration` | `Duration` | Time taken to execute command |
+| `processId` | `int` | Process ID of the executed command |
+| `wasKilled` | `boolean` | Whether process was killed due to timeout |
+| `environment` | `map` | Environment variables used |
+| `workingDirectory` | `string` | Working directory used |
+| `timeout` | `int` | Timeout setting in seconds |
+| `input` | `string` | Input data sent to command |
+| `inheritEnvironment` | `boolean` | Whether system environment was inherited |
+| `maxOutputSize` | `int` | Maximum output size limit |
 
 ## Examples
 
@@ -349,3 +302,15 @@ resource {
   }
 }
 ```
+
+## Event System
+
+The execute module emits comprehensive events:
+
+- **StartedEvent**: Execution begins with command and metadata
+- **ProgressEvent**: Progress updates for long-running commands
+- **CompletedEvent**: Successful execution with exit code and output
+- **FailedEvent**: Failed execution with error code and stderr
+- **StatusUpdateEvent**: State changes and platform-specific information
+
+All events are automatically redacted for sensitive content.

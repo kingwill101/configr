@@ -1,5 +1,6 @@
 import 'dart:io' as io;
 
+import 'package:configr/src/strategies/hook_strategy.dart';
 import 'package:configr/src/utils/execution_service.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:file/file.dart';
@@ -15,7 +16,8 @@ class HookManager {
   final FileSystem _scriptFileSystem;
   final ExecutionService? executionService;
   final ProcessBackend? _processBackend;
-  final Map<String, String> _extraEnv;
+  final Map<String, String> extraEnv;
+  final String _hookRunId;
 
   HookManager({
     required this.hooksDir,
@@ -23,10 +25,11 @@ class HookManager {
     FileSystem? scriptFileSystem,
     this.executionService,
     this._processBackend,
-    this._extraEnv = const {},
+    this.extraEnv = const {},
   }) : _fileSystem = fileSystem ?? const LocalFileSystem(),
        _scriptFileSystem =
-           scriptFileSystem ?? fileSystem ?? const LocalFileSystem();
+           scriptFileSystem ?? fileSystem ?? const LocalFileSystem(),
+       _hookRunId = DateTime.now().toUtc().toIso8601String();
 
   static const knownEvents = [
     'pre-apply',
@@ -37,13 +40,14 @@ class HookManager {
     'on-error',
   ];
 
-  bool hasEvent(String event) => _findHookFile(event) != null;
+  Future<bool> hasEvent(String event) async =>
+      await _findHookFile(event) != null;
 
   Future<bool> runEvent(
     String event, {
     Map<String, dynamic> extraVars = const {},
   }) async {
-    final hookFile = _findHookFile(event);
+    final hookFile = await _findHookFile(event);
     if (hookFile == null) return false;
 
     final hookLogger = logger.withContext({
@@ -63,12 +67,12 @@ class HookManager {
     }
   }
 
-  String? _findHookFile(String event) {
+  Future<String?> _findHookFile(String event) async {
     final dir = _scriptFileSystem.directory(hooksDir);
-    if (!dir.existsSync()) return null;
+    if (!await dir.exists()) return null;
 
-    final entries = dir.listSync().whereType<File>();
-    for (final entry in entries) {
+    await for (final entry in dir.list()) {
+      if (entry is! File) continue;
       final stem = p.basenameWithoutExtension(entry.path);
       if (stem == event) return entry.path;
     }
@@ -82,7 +86,8 @@ class HookManager {
   ) async {
     final globals = <String, dynamic>{
       'event_name': event,
-      ..._extraEnv,
+      'hook_run_id': _hookRunId,
+      ...extraEnv,
       ...extraVars,
     };
 
@@ -101,8 +106,12 @@ class HookManager {
     String event,
     Map<String, dynamic> extraVars,
   ) async {
-    final env = Map<String, String>.from(_extraEnv);
+    final env = Map<String, String>.from(extraEnv);
     env['CONFIGR_EVENT'] = event;
+    env['CONFIGR_HOOK_RUN_ID'] = _hookRunId;
+    for (final entry in extraEnv.entries) {
+      env['CONFIGR_${entry.key.toUpperCase()}'] = entry.value;
+    }
     for (final entry in extraVars.entries) {
       env['CONFIGR_${entry.key.toUpperCase()}'] = entry.value.toString();
     }
@@ -128,6 +137,9 @@ class HookManager {
     String scriptPath,
     Map<String, String> environment,
   ) async {
+    final runtimeExecutionService =
+        executionService ?? const LocalExecutionService();
+
     final script = await _scriptFileSystem.file(scriptPath).readAsString();
     final tempDir = await io.Directory.systemTemp.createTemp('configr-hook-');
     final localScript = io.File(
@@ -136,32 +148,58 @@ class HookManager {
 
     try {
       await localScript.writeAsString(script);
+      final hookStrategy = HookStrategy.forPlatform(
+        runtimeExecutionService.platform,
+      );
 
-      final runtimeExecutionService = executionService;
-      if (runtimeExecutionService == null ||
-          runtimeExecutionService is LocalExecutionService) {
-        if (runtimeExecutionService != null) {
-          return runtimeExecutionService.run('bash', [
-            localScript.path,
-          ], environment: environment);
-        }
-        return io.Process.run('bash', [
-          localScript.path,
-        ], environment: environment);
+      if (runtimeExecutionService is LocalExecutionService) {
+        final (exe, args) = hookStrategy.runScript(localScript.path);
+        return runtimeExecutionService.run(exe, args, environment: environment);
       }
 
-      final remotePath =
-          '/tmp/configr_hook_${DateTime.now().microsecondsSinceEpoch}_${p.basename(scriptPath)}';
+      final remotePath = await _createRemoteHookPath(
+        runtimeExecutionService,
+        hookStrategy,
+        p.basename(scriptPath),
+      );
       await runtimeExecutionService.putFile(localScript.path, remotePath);
       try {
-        return await runtimeExecutionService.run('bash', [
-          remotePath,
-        ], environment: environment);
+        final (exe, args) = hookStrategy.runScript(remotePath);
+        return await runtimeExecutionService.run(
+          exe,
+          args,
+          environment: environment,
+        );
       } finally {
-        await runtimeExecutionService.run('rm', ['-f', remotePath]);
+        final (rmExe, rmArgs) = hookStrategy.removeFile(remotePath);
+        await runtimeExecutionService.run(rmExe, rmArgs);
       }
     } finally {
       await tempDir.delete(recursive: true);
     }
+  }
+
+  Future<String> _createRemoteHookPath(
+    ExecutionService executionService,
+    HookStrategy hookStrategy,
+    String scriptName,
+  ) async {
+    final (exe, args) = hookStrategy.tempFilePath(_safeTempSuffix(scriptName));
+    final result = await executionService.run(exe, args);
+    if (result.exitCode != 0) {
+      throw StateError(
+        'Could not allocate target hook temp file: ${result.stderr}',
+      );
+    }
+    final path = result.stdout.toString().trim();
+    if (path.isEmpty) {
+      throw StateError('Target hook temp file command returned an empty path.');
+    }
+    return path;
+  }
+
+  String _safeTempSuffix(String scriptName) {
+    final safe = scriptName.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
+    return safe.isEmpty ? 'hook' : safe;
   }
 }

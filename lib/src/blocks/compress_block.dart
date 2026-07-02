@@ -5,7 +5,6 @@ import 'package:configr/src/exceptions.dart';
 import 'package:file/file.dart' show File;
 import 'package:glob/glob.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
-import 'package:path/path.dart' as path;
 
 /// Block handler for the `compress` config action.
 ///
@@ -153,7 +152,7 @@ class CompressBlock extends ActionBlock {
       }
 
       // Ensure destination parent dir exists
-      final destDir = path.dirname(destination);
+      final destDir = fileSystem.path.dirname(destination);
       if (!await fileService.directoryExists(destDir)) {
         await fileService.createDirectory(destDir);
       }
@@ -210,7 +209,7 @@ class CompressBlock extends ActionBlock {
 
     final content = await fileService.readFile(filePath);
     final archive = Archive();
-    final fileName = path.basename(filePath);
+    final fileName = _archivePath(fileSystem.path.basename(filePath));
 
     final archiveFile = ArchiveFile(
       fileName,
@@ -287,12 +286,13 @@ class CompressBlock extends ActionBlock {
     await for (final entity in dir.list(recursive: recursive)) {
       if (entity is File && _shouldIncludeFile(entity.path)) {
         final relativePath = preserveStructure
-            ? path.relative(entity.path, from: dirPath)
-            : path.basename(entity.path);
+            ? fileSystem.path.relative(entity.path, from: dirPath)
+            : fileSystem.path.basename(entity.path);
+        final archivePath = _archivePath(relativePath);
         final content = await fileService.readFile(entity.path);
 
         final archiveFile = ArchiveFile(
-          relativePath,
+          archivePath,
           content.length,
           content.codeUnits,
         );
@@ -306,7 +306,7 @@ class CompressBlock extends ActionBlock {
             moduleId: id,
             current: 0,
             total: 1,
-            message: 'Added: $relativePath',
+            message: 'Added: $archivePath',
           ),
         );
       }
@@ -336,6 +336,10 @@ class CompressBlock extends ActionBlock {
     } catch (_) {
       return text.contains(pattern);
     }
+  }
+
+  String _archivePath(String path) {
+    return path.replaceAll(fileSystem.path.separator, '/');
   }
 
   bool _isSupportedFormat(String fmt) {

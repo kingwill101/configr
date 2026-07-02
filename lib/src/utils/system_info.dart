@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:configr/src/utils/shell_type.dart';
+import 'package:configr/src/utils/target_system.dart' show TargetSystemFacts;
 import 'package:i3config/i3config_v2.dart' as i3;
 
 /// Collects system information and exposes it as i3config context variables.
@@ -45,18 +47,26 @@ class SystemInfo {
     this.configrVersion = '1.0.0',
     this.configrCacheDir = '',
     this.configrBackupDir = '',
-  }) : osName = Platform.operatingSystem,
-       osVersion = Platform.operatingSystemVersion,
-       osArchitecture = _detectArchitecture(),
-       osKernel = _extractKernel(Platform.operatingSystemVersion),
-       osDistribution = _detectDistribution(),
-       osDistributionVersion = _detectDistributionVersion(),
-       osFamily = _detectFamily(
-         Platform.operatingSystem,
-         _detectDistribution(),
-       ),
-       hostHostname = Platform.localHostname,
-       hostFqdn = _detectFqdn(),
+    TargetSystemFacts? targetFacts,
+  }) : osName = targetFacts?.os.name ?? Platform.operatingSystem,
+       osVersion = targetFacts != null
+           ? _targetOsVersion(targetFacts)
+           : Platform.operatingSystemVersion,
+       osArchitecture = targetFacts?.architecture ?? _detectArchitecture(),
+       osKernel = (targetFacts?.kernel.isNotEmpty == true)
+           ? targetFacts!.kernel
+           : (targetFacts?.distributionVersion ??
+                 _extractKernel(Platform.operatingSystemVersion)),
+       osDistribution = targetFacts?.distribution ?? _detectDistribution(),
+       osDistributionVersion =
+           targetFacts?.distributionVersion ?? _detectDistributionVersion(),
+       osFamily =
+           targetFacts?.family.name ??
+           _detectFamily(Platform.operatingSystem, _detectDistribution()),
+       hostHostname = targetFacts?.hostname ?? Platform.localHostname,
+       hostFqdn = (targetFacts?.fqdn.isNotEmpty == true)
+           ? targetFacts!.fqdn
+           : (targetFacts?.hostname ?? _detectFqdn()),
        userName =
            Platform.environment['USER'] ??
            Platform.environment['USERNAME'] ??
@@ -82,6 +92,15 @@ class SystemInfo {
     context.setVariable('cwd', configDir);
     context.setVariable('configrCacheDir', configrCacheDir);
     context.setVariable('configrBackupDir', configrBackupDir);
+    final tempPath = Directory.systemTemp.path;
+    context.setVariable('tempdir', tempPath);
+    context.setVariable(
+      'tempdir_uri',
+      Uri.file(
+        tempPath,
+        windows: Platform.isWindows,
+      ).toString().replaceFirst('file://', ''),
+    );
 
     // OS — flat (primary) + dotted (secondary)
     _setBoth(context, 'os_name', 'os.name', osName);
@@ -164,6 +183,16 @@ class SystemInfo {
   // Internal helpers
   // ---------------------------------------------------------------------------
 
+  static String _targetOsVersion(TargetSystemFacts targetFacts) {
+    if (targetFacts.isLinux) {
+      final kernel = targetFacts.kernel.isNotEmpty
+          ? targetFacts.kernel
+          : targetFacts.distributionVersion;
+      return 'Linux $kernel';
+    }
+    return targetFacts.distributionVersion;
+  }
+
   static String _detectArchitecture() {
     try {
       final result = Process.runSync('uname', ['-m']);
@@ -189,10 +218,12 @@ class SystemInfo {
       return Platform.operatingSystem;
     }
     try {
-      final result = Process.runSync('sh', [
-        '-c',
-        '. /etc/os-release 2>/dev/null && echo "\${ID:-unknown}"',
-      ]);
+      final result = Process.runSync(
+        ShellType.sh.defaultExecutable,
+        ShellType.sh.scriptArgs(
+          '. /etc/os-release 2>/dev/null && echo "\${ID:-unknown}"',
+        ),
+      );
       if (result.exitCode == 0) {
         final id = (result.stdout as String).trim();
         if (id.isNotEmpty) return id;
@@ -206,10 +237,12 @@ class SystemInfo {
       return Platform.operatingSystemVersion;
     }
     try {
-      final result = Process.runSync('sh', [
-        '-c',
-        '. /etc/os-release 2>/dev/null && echo "\${VERSION_ID:-}"',
-      ]);
+      final result = Process.runSync(
+        ShellType.sh.defaultExecutable,
+        ShellType.sh.scriptArgs(
+          '. /etc/os-release 2>/dev/null && echo "\${VERSION_ID:-}"',
+        ),
+      );
       if (result.exitCode == 0) {
         final id = (result.stdout as String).trim();
         if (id.isNotEmpty) return id;
@@ -232,10 +265,12 @@ class SystemInfo {
       case 'linux':
         // Check ID_LIKE from /etc/os-release for family detection
         try {
-          final result = Process.runSync('sh', [
-            '-c',
-            '. /etc/os-release 2>/dev/null && echo "\${ID_LIKE:-}"',
-          ]);
+          final result = Process.runSync(
+            ShellType.sh.defaultExecutable,
+            ShellType.sh.scriptArgs(
+              '. /etc/os-release 2>/dev/null && echo "\${ID_LIKE:-}"',
+            ),
+          );
           if (result.exitCode == 0) {
             final like = (result.stdout as String).trim().toLowerCase();
             if (like.contains('debian')) return 'debian';

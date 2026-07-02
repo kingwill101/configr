@@ -2,5 +2,5 @@ sysctl {
   name = "net.ipv4.ip_forward"
   status = "absent"
   reload = false
-  sysctl_file = "/tmp/configr_sysctl_test_rm.conf"
+  sysctl_file = "$tempdir/configr_sysctl_test_rm.conf"
 }

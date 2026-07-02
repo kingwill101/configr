@@ -127,6 +127,21 @@ void main() {
     expect(helper.eventOfType<FailedEvent>(), isNotNull);
   });
 
+  test('should fail fast when active_connection is requested', () async {
+    await helper.runConfig('''
+      wait_for {
+        host = "localhost"
+        port = 1
+        active_connection = true
+        timeout = 1
+      }
+    ''');
+
+    final failed = helper.eventOfType<FailedEvent>();
+    expect(failed, isNotNull);
+    expect(failed!.message, contains('active_connection is not supported'));
+  });
+
   test('should return correct dry-run summary with port', () async {
     final blocks = await helper.processConfig('''
       wait_for {

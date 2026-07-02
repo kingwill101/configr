@@ -30,7 +30,7 @@ void main() {
 
     test('returns value for existing key', () async {
       final provider = EnvProvider();
-      final result = await provider.get('', 'USER', null);
+      final result = await provider.get('', 'PATH', null);
       expect(result, isNotNull);
       expect(result, isNotEmpty);
     });
@@ -40,7 +40,7 @@ void main() {
     test('resolves env:// URI', () async {
       final registry = SecretProviders();
       registry.register('env', (_) => const EnvProvider());
-      final result = await registry.resolve('env://USER');
+      final result = await registry.resolve('env://PATH');
       expect(result, isNotNull);
       expect(result, isNotEmpty);
     });
@@ -55,7 +55,7 @@ void main() {
       final registry = SecretProviders();
       registry.register('env', (_) => const EnvProvider());
       final result = await registry.resolve(
-        'prod://USER',
+        'prod://PATH',
         aliases: {'prod': 'env://'},
       );
       expect(result, isNotNull);
@@ -70,7 +70,7 @@ void main() {
       final resolver = SecretResolver(registry);
 
       final result = await resolver.resolveWithSensitivity(
-        'env://USER',
+        'env://PATH',
         markSensitive: true,
       );
       expect(result, isA<SensitiveValue>());
@@ -84,7 +84,7 @@ void main() {
       final blocks = await helper.processConfig('''
         secrets {
           provider "prod" = "env://"
-          test_secret = "prod://USER"
+          test_secret = "prod://PATH"
         }
         echo {
           message = "hello"
@@ -101,7 +101,7 @@ void main() {
         final helper = V2TestHelper();
         final blocks = await helper.processConfig('''
         secrets {
-          test_secret = "env://USER"
+          test_secret = "env://PATH"
         }
         echo {
           message = "prefix-\${secrets.test_secret}-suffix"

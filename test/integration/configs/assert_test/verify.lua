@@ -1,0 +1,1 @@
+-- Assert block always passes if it executed

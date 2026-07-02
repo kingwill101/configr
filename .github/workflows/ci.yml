@@ -16,7 +16,6 @@ jobs:
       - run: dart analyze
 
   analyze-windows:
-    if: ${{ false }} # Temporarily disabled while platform portability is assessed.
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,7 +24,6 @@ jobs:
       - run: dart analyze
 
   analyze-macos:
-    if: ${{ false }} # Temporarily disabled while platform portability is assessed.
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +40,6 @@ jobs:
       - run: dart test --exclude-tags container --exclude-tags integration
 
   unit-tests-windows:
-    if: ${{ false }} # Temporarily disabled while platform portability is assessed.
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -51,7 +48,6 @@ jobs:
       - run: dart test --exclude-tags container --exclude-tags integration
 
   unit-tests-macos:
-    if: ${{ false }} # Temporarily disabled while platform portability is assessed.
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -60,7 +56,6 @@ jobs:
       - run: dart test --exclude-tags container --exclude-tags integration
 
   sweep-tests:
-    if: ${{ false }} # Temporarily disabled while platform portability is assessed.
     name: sweep-tests (${{ matrix.test-env }})
     runs-on: ${{ matrix.os }}
     strategy:

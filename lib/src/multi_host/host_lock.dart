@@ -1,6 +1,6 @@
 import 'package:file/file.dart';
 import 'package:file/local.dart';
-import 'package:path/path.dart' as p;
+import 'package:path/path.dart' show posix;
 
 /// mkdir-based host locking for multi-host deployment safety.
 ///
@@ -23,17 +23,7 @@ class HostLock {
   /// Acquire a lock for [hostName].
   ///
   /// Returns `true` if the lock was acquired, `false` if already held.
-  bool acquire(String hostName) {
-    final lockDir = _lockPath(hostName);
-    if (fs.directory(lockDir).existsSync()) {
-      return false;
-    }
-    fs.directory(lockDir).createSync(recursive: true);
-    return true;
-  }
-
-  /// Acquire a lock for [hostName] asynchronously.
-  Future<bool> acquireAsync(String hostName) async {
+  Future<bool> acquire(String hostName) async {
     final lockDir = _lockPath(hostName);
     if (await fs.directory(lockDir).exists()) {
       return false;
@@ -42,17 +32,13 @@ class HostLock {
     return true;
   }
 
-  /// Release the lock for [hostName].
-  void release(String hostName) {
-    final lockDir = _lockPath(hostName);
-    final dir = fs.directory(lockDir);
-    if (dir.existsSync()) {
-      dir.deleteSync(recursive: true);
-    }
+  /// Acquire a lock for [hostName] asynchronously.
+  Future<bool> acquireAsync(String hostName) async {
+    return acquire(hostName);
   }
 
-  /// Release the lock for [hostName] asynchronously.
-  Future<void> releaseAsync(String hostName) async {
+  /// Release the lock for [hostName].
+  Future<void> release(String hostName) async {
     final lockDir = _lockPath(hostName);
     final dir = fs.directory(lockDir);
     if (await dir.exists()) {
@@ -60,36 +46,41 @@ class HostLock {
     }
   }
 
+  /// Release the lock for [hostName] asynchronously.
+  Future<void> releaseAsync(String hostName) async {
+    await release(hostName);
+  }
+
   /// Check if a lock is held for [hostName].
-  bool isLocked(String hostName) {
-    return fs.directory(_lockPath(hostName)).existsSync();
+  Future<bool> isLocked(String hostName) {
+    return fs.directory(_lockPath(hostName)).exists();
   }
 
   /// Check if a lock is held for [hostName] asynchronously.
   Future<bool> isLockedAsync(String hostName) async {
-    return fs.directory(_lockPath(hostName)).exists();
+    return isLocked(hostName);
   }
 
   /// Release all locks.
-  void releaseAll() {
+  Future<void> releaseAll() async {
     final locksDir = fs.directory(_locksDir());
-    if (locksDir.existsSync()) {
-      locksDir.deleteSync(recursive: true);
+    if (await locksDir.exists()) {
+      await locksDir.delete(recursive: true);
     }
   }
 
   /// List all currently locked host names.
-  List<String> lockedHosts() {
+  Future<List<String>> lockedHosts() async {
     final locksDir = fs.directory(_locksDir());
-    if (!locksDir.existsSync()) return [];
-    return locksDir
-        .listSync()
+    if (!await locksDir.exists()) return [];
+    final entries = await locksDir.list().toList();
+    return entries
         .whereType<Directory>()
-        .map((d) => p.basename(d.path))
+        .map((d) => posix.basename(d.path))
         .toList();
   }
 
-  String _locksDir() => p.join(baseDir, 'locks');
+  String _locksDir() => posix.join(baseDir, 'locks');
 
-  String _lockPath(String hostName) => p.join(_locksDir(), hostName);
+  String _lockPath(String hostName) => posix.join(_locksDir(), hostName);
 }

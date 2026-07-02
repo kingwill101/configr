@@ -3,7 +3,7 @@ import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
 import 'package:configr/src/utils/logging.dart';
 import 'package:i3config/i3config_v2.dart' as i3;
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' show posix;
 
 /// Block handler for the `rename` config action.
 ///
@@ -83,7 +83,7 @@ class RenameBlock extends ActionBlock {
       }
     }
 
-    originalName = path.basename(source);
+    originalName = posix.basename(_posixPath(source));
     logger.info('Renaming $source → $destination');
     try {
       await fileService.moveFile(source, destination);
@@ -119,7 +119,10 @@ class RenameBlock extends ActionBlock {
     );
 
     try {
-      final originalPath = path.join(path.dirname(source), originalName!);
+      final originalPath = posix.join(
+        posix.dirname(_posixPath(source)),
+        originalName!,
+      );
       logger.info('Renaming back: $destination → $originalPath');
       await fileService.moveFile(destination, originalPath);
       emitEvent(
@@ -132,4 +135,6 @@ class RenameBlock extends ActionBlock {
       rethrow;
     }
   }
+
+  String _posixPath(String value) => value.replaceAll('\\', '/');
 }

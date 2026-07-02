@@ -1,4 +1,4 @@
 template {
-  source = "/tmp/test_src"
-  destination = "/tmp/test_dst"
+  source = "$tempdir/test_src"
+  destination = "$tempdir/test_dst"
 }

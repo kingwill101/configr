@@ -1,3 +1,5 @@
+import 'dart:io' as io;
+
 import 'package:configr/src/plugins/lua_plugin.dart';
 import 'package:configr/src/hooks/lua_hook_runner.dart';
 import 'package:configr/src/di.dart';
@@ -142,19 +144,43 @@ void main() {
       expect(fakeBackend.callCount, greaterThan(0));
     });
 
-    test('LuaPlugin without process backend uses default execution', () async {
-      final plugin = LuaPlugin(
-        code: '''
-          local f = io.popen("echo default_plugin")
-          local result = f:read("*a")
-          f:close()
+    test(
+      'LuaPlugin without process backend can still use file helpers',
+      () async {
+        final plugin = LuaPlugin(
+          code: '''
+          writeFile("/default_plugin.txt", "default_plugin")
         ''',
+          fileSystem: fs,
+        );
+
+        await plugin.initialize();
+        expect(
+          await fs.file('/default_plugin.txt').readAsString(),
+          equals('default_plugin'),
+        );
+      },
+    );
+
+    test('LuaPlugin without process backend runs commands locally', () async {
+      final fakeBackend = _FakeProcessBackend();
+      final pluginWithBackend = LuaPlugin(
+        code: 'runCommand("echo previous_backend")',
+        fileSystem: fs,
+        processBackend: fakeBackend,
+      );
+      await pluginWithBackend.initialize();
+      expect(fakeBackend.callCount, equals(1));
+
+      final command = io.Platform.isWindows ? 'ver > nul' : 'true';
+      final plugin = LuaPlugin(
+        code: 'command_exit = runCommand(${_luaString(command)})',
         fileSystem: fs,
       );
 
       await plugin.initialize();
-      // Should not throw and should use default process backend
-      expect(true, isTrue);
+      expect(plugin.luaLike.getGlobal('command_exit').raw, equals(0));
+      expect(fakeBackend.callCount, equals(1));
     });
 
     test('LuaHookRunner wires process backend into lualike', () async {
@@ -175,4 +201,13 @@ void main() {
       expect(fakeBackend.callCount, greaterThan(0));
     });
   });
+}
+
+String _luaString(String value) {
+  final escaped = value
+      .replaceAll(r'\', r'\\')
+      .replaceAll('"', r'\"')
+      .replaceAll('\n', r'\n')
+      .replaceAll('\r', r'\r');
+  return '"$escaped"';
 }

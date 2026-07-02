@@ -4,7 +4,7 @@ import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
 
-import 'package:path/path.dart' as p;
+import 'package:path/path.dart' show posix;
 import 'package:i3config/i3config_v2.dart' as i3;
 
 class FetchBlock extends ActionBlock {
@@ -56,13 +56,32 @@ class FetchBlock extends ActionBlock {
   @override
   String dryRunSummary() {
     if (src.isEmpty) return '$blockType: (empty)';
-    final target = flat ? dest : p.join(dest, _hostname, _relativeSrc);
+    final normalizedDest = _posixPath(dest);
+    final target = flat
+        ? normalizedDest
+        : posix.join(normalizedDest, _hostname, _relativeSrc);
     return '$blockType: $src -> $target';
   }
 
   String get _hostname => Platform.localHostname;
 
-  String get _relativeSrc => src.startsWith('/') ? src.substring(1) : src;
+  String get _normalizedSrc => _posixPath(src);
+
+  String get _relativeSrc {
+    final normalized = _normalizedSrc;
+    final driveMatch = RegExp(
+      r'^([A-Za-z]):[\\/]*(.*)$',
+    ).firstMatch(normalized);
+    if (driveMatch != null) {
+      final drive = driveMatch.group(1)!;
+      final remainder = driveMatch.group(2) ?? '';
+      return remainder.isEmpty ? drive : posix.join(drive, remainder);
+    }
+
+    return normalized.replaceFirst(RegExp(r'^/+'), '');
+  }
+
+  String _posixPath(String value) => value.replaceAll('\\', '/');
 
   @override
   Future<void> execute() async {
@@ -91,13 +110,15 @@ class FetchBlock extends ActionBlock {
     emitEvent(StartedEvent(moduleId: id, message: 'Fetching $src to $dest'));
 
     try {
+      final normalizedSrc = _normalizedSrc;
+      final normalizedDest = _posixPath(dest);
       final targetPath = flat
           ? (await fileService.pathExists(dest)).isDir
-                ? p.join(dest, p.basename(src))
-                : dest
-          : p.join(dest, _hostname, _relativeSrc);
+                ? posix.join(normalizedDest, posix.basename(normalizedSrc))
+                : normalizedDest
+          : posix.join(normalizedDest, _hostname, _relativeSrc);
 
-      final targetDir = p.dirname(targetPath);
+      final targetDir = posix.dirname(targetPath);
       if (!await fileService.directoryExists(targetDir)) {
         await fileService.createDirectoryWithPermissions(
           targetDir,

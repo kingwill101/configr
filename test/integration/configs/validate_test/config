@@ -1,4 +1,4 @@
 validate {
-  path = "/tmp/test_validate"
+  path = "$tempdir/test_validate"
   mode = "0644"
 }

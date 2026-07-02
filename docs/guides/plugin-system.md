@@ -8,44 +8,13 @@ into the configuration lifecycle.
 
 ### Dart Plugins
 
-Implement the `ConfigrPlugin` interface to register custom block handlers:
+Implement the plugin interface to register custom block handlers:
 
-```dart
-class GreetPlugin extends ConfigrPlugin {
-  @override
-  String get name => 'greet';
+- Provide a name and description
+- Register block handlers with the configuration processor
+- Hook into lifecycle events before and after config execution
 
-  @override
-  String get description => 'Adds a "greet" action block';
-
-  @override
-  void registerBlocks(i3.ConfigProcessor processor, {EventBus? eventBus}) {
-    processor.registerBlockHandler(GreetBlock(eventBus: eventBus));
-  }
-
-  @override
-  Future<void> onConfigLoad(i3.Config config) async {
-    // Called after config is parsed, before execution
-  }
-
-  @override
-  Future<void> onConfigApplied(i3.Config config) async {
-    // Called after all blocks have been processed
-  }
-}
-```
-
-Register plugins programmatically when building `ConfigrConfig`:
-
-```dart
-final pluginLoader = ConfigrPluginLoader()
-  ..registerPlugin(GreetPlugin());
-
-final config = ConfigrConfig(
-  pluginLoader: pluginLoader,
-  // ...
-);
-```
+Register plugins when building your Configr configuration. The plugin loader discovers and initializes them before config execution starts.
 
 ### Lua Plugins
 

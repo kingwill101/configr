@@ -25,9 +25,9 @@ class FileEventHandler {
   FileEventHandler({required this._eventBus, required this._logFile});
 
   /// Start listening for events and writing them to the file.
-  void start() {
-    _logFile.parent.createSync(recursive: true);
-    _writeLine(<String, dynamic>{
+  Future<void> start() async {
+    await _logFile.parent.create(recursive: true);
+    await _writeLine(<String, dynamic>{
       'session': 'start',
       'timestamp': DateTime.now().toIso8601String(),
     });
@@ -35,17 +35,20 @@ class FileEventHandler {
   }
 
   void _onEvent(ModuleEvent event) {
-    _writeLine(event.toStructuredData());
+    _writeLine(event.toStructuredData()).ignore();
   }
 
-  void _writeLine(Map<String, dynamic> data) {
-    _logFile.writeAsStringSync('${jsonEncode(data)}\n', mode: FileMode.append);
+  Future<void> _writeLine(Map<String, dynamic> data) {
+    return _logFile.writeAsString(
+      '${jsonEncode(data)}\n',
+      mode: FileMode.append,
+    );
   }
 
   /// Stop listening and write a session-end marker.
-  void stop() {
+  Future<void> stop() async {
     _subscription?.cancel();
-    _writeLine(<String, dynamic>{
+    await _writeLine(<String, dynamic>{
       'session': 'end',
       'timestamp': DateTime.now().toIso8601String(),
     });

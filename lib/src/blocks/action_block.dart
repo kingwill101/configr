@@ -17,6 +17,7 @@ import 'package:configr/src/utils/logging.dart' show logger;
 import 'package:configr/src/utils/network_service.dart';
 import 'package:configr/src/utils/privilege_escalation.dart'
     show NoPrivilegeEscalation, PrivilegeEscalation;
+import 'package:configr/src/utils/processing_halt.dart';
 import 'package:configr/src/utils/ssh_execution_service.dart'
     show SSHExecutionService;
 import 'package:file/file.dart' show FileSystem;
@@ -272,6 +273,12 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
               source: block.span != null ? _formatSpan(block.span!) : null,
             ),
           );
+          if (failFast) {
+            throw ConfigrProcessingHalted(
+              errors.last.message,
+              alreadyRecorded: true,
+            );
+          }
           return;
         }
       }
@@ -324,6 +331,12 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
             source: block.span != null ? _formatSpan(block.span!) : null,
           ),
         );
+        if (failFast) {
+          throw ConfigrProcessingHalted(
+            errors.last.message,
+            alreadyRecorded: true,
+          );
+        }
       } finally {
         await _disconnectDelegate();
       }
@@ -616,6 +629,21 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
     return di.isRegistered<ExecutionService>()
         ? di<ExecutionService>()
         : const LocalExecutionService();
+  }
+
+  /// Best-effort target platform name for OS-specific behavior.
+  ///
+  /// Prefer the config context because remote applies seed this from
+  /// [TargetSystemProbe]. Fall back to the execution service when the block is
+  /// used outside the normal apply pipeline.
+  String get targetPlatform {
+    final globalPlatform = _context?.globalContext.options['_targetPlatform'];
+    if (globalPlatform is String && globalPlatform.isNotEmpty) {
+      return globalPlatform;
+    }
+    final osName = _context?.getVariable('os_name')?.toString();
+    if (osName != null && osName.isNotEmpty) return osName;
+    return executionService.platform;
   }
 
   /// Connect to a delegate host via SSH.

@@ -1,8 +1,30 @@
+@Tags(['integration'])
+library;
+
 import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:configr/src/cli/configr_command_runner.dart';
 import 'package:configr/src/cli/cli_exit_exception.dart';
+import 'lua_fixture_runner.dart';
+
+/// Resolves a script path by preferring Lua (.lua) over shell (.sh).
+String? _resolveScript(Directory dir, String name) {
+  final lua = File('${dir.path}/$name.lua');
+  final sh = File('${dir.path}/$name.sh');
+  if (lua.existsSync()) return lua.path;
+  if (sh.existsSync()) return sh.path;
+  return null;
+}
+
+/// Runs a Lua or shell script and returns the result.
+Future<ProcessResult> _runScript(String scriptPath) async {
+  if (scriptPath.endsWith('.lua')) {
+    final runner = LuaFixtureRunner();
+    return runner.run(scriptPath);
+  }
+  return Process.run('bash', [scriptPath]);
+}
 
 void main() {
   final testEnv = Platform.environment['CONFIGR_TEST_ENV'] ?? '';
@@ -30,10 +52,10 @@ void main() {
 
     final dir = Directory(entry.path);
     final configFile = File('${dir.path}/config');
-    final setupScript = File('${dir.path}/setup.sh');
-    final verifyScript = File('${dir.path}/verify.sh');
-    final verifyRollbackScript = File('${dir.path}/verify_rollback.sh');
-    final cleanupScript = File('${dir.path}/cleanup.sh');
+    final setupScript = _resolveScript(dir, 'setup');
+    final verifyScript = _resolveScript(dir, 'verify');
+    final verifyRollbackScript = _resolveScript(dir, 'verify_rollback');
+    final cleanupScript = _resolveScript(dir, 'cleanup');
     final tagsFile = File('${dir.path}/tags');
     final argsFile = File('${dir.path}/args');
     final outContainsFile = File('${dir.path}/out_contains');
@@ -76,29 +98,24 @@ void main() {
     }
 
     group(dirName, () {
-      if (cleanupScript.existsSync()) {
-        tearDown(() async {
-          await Process.run('bash', [cleanupScript.path]);
-          final lockFile = File('${configFile.path}.lock.json');
-          if (lockFile.existsSync()) lockFile.deleteSync();
-        });
-      } else {
-        tearDown(() async {
-          final lockFile = File('${configFile.path}.lock.json');
-          if (lockFile.existsSync()) lockFile.deleteSync();
-        });
-      }
+      tearDown(() async {
+        if (cleanupScript != null) {
+          await _runScript(cleanupScript);
+        }
+        final lockFile = File('${configFile.path}.lock.json');
+        if (lockFile.existsSync()) lockFile.deleteSync();
+      });
 
       test(
         'applies, verifies, and is idempotent',
         () async {
-          if (setupScript.existsSync()) {
-            final setupResult = await Process.run('bash', [setupScript.path]);
+          if (setupScript != null) {
+            final setupResult = await _runScript(setupScript);
             expect(
               setupResult.exitCode,
               0,
               reason:
-                  'setup.sh failed: ${setupResult.stdout}\n${setupResult.stderr}',
+                  'setup failed: ${setupResult.stdout}\n${setupResult.stderr}',
             );
           }
 
@@ -131,13 +148,13 @@ void main() {
             expect(combinedOut, isNot(contains(forbidden)));
           }
 
-          if (verifyScript.existsSync()) {
-            final verifyResult = await Process.run('bash', [verifyScript.path]);
+          if (verifyScript != null) {
+            final verifyResult = await _runScript(verifyScript);
             expect(
               verifyResult.exitCode,
               0,
               reason:
-                  'verify.sh failed:\n${verifyResult.stdout}\n${verifyResult.stderr}',
+                  'verify failed:\n${verifyResult.stdout}\n${verifyResult.stderr}',
             );
           }
 
@@ -164,7 +181,7 @@ void main() {
             );
           }
 
-          if (testRollback || verifyRollbackScript.existsSync()) {
+          if (testRollback || verifyRollbackScript != null) {
             final rollbackOut = StringBuffer();
             final rollbackErr = StringBuffer();
             final rollbackRunner = ConfigrCommandRunner(
@@ -187,15 +204,15 @@ void main() {
               );
             }
 
-            if (verifyRollbackScript.existsSync()) {
-              final verifyRollbackResult = await Process.run('bash', [
-                verifyRollbackScript.path,
-              ]);
+            if (verifyRollbackScript != null) {
+              final verifyRollbackResult = await _runScript(
+                verifyRollbackScript,
+              );
               expect(
                 verifyRollbackResult.exitCode,
                 0,
                 reason:
-                    'verify_rollback.sh failed:\n'
+                    'verify_rollback failed:\n'
                     '${verifyRollbackResult.stdout}\n'
                     '${verifyRollbackResult.stderr}',
               );

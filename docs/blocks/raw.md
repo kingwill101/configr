@@ -2,6 +2,21 @@
 
 Executes a raw command on the target via the shell — runs commands directly without a module infrastructure.
 
+## Platform Support
+
+- **Linux/macOS/FreeBSD**: Uses native `sh`
+- **Windows**: Uses PowerShell automatically
+
+## Cross-Platform Execution
+
+Configr selects the correct shell automatically:
+
+- On Linux, macOS, and FreeBSD, commands run through `sh` by default
+- On Windows, commands run through PowerShell by default
+- Some environments support `bash` as an alternative on Unix-like systems
+
+PowerShell commands are encoded to avoid quoting issues. All commands run through Configr's Execution Service, which handles platform-specific process invocation and output capture.
+
 ## Properties
 
 | Property | Type | Default | Description |
@@ -10,9 +25,7 @@ Executes a raw command on the target via the shell — runs commands directly wi
 | `args` | `string` | `""` | Additional arguments appended to the command |
 | `chdir` | `string` | `""` | Working directory to change into before execution |
 | `stdin` | `string` | `""` | Standard input to pass to the command |
-| `executable` | `string` | `"/bin/sh"` | Shell to use for command execution |
-
-The command is executed as: `executable -c "cd chdir && command args"`.
+| `executable` | `string` | `"/bin/sh"` | Shell to use for command execution (auto-detected on Windows) |
 
 ## Examples
 
@@ -42,7 +55,7 @@ raw {
 }
 ```
 
-### Use a Different Shell
+### Override Platform Detection
 
 ```
 raw {
@@ -50,14 +63,6 @@ raw {
   executable = "/bin/bash"
 }
 ```
-
-## Platform Support
-
-| Platform | Implementation |
-|----------|---------------|
-| Linux    | Full — shell-based |
-| macOS    | Full — shell-based |
-| FreeBSD  | Full — shell-based |
 
 ## Rollback
 

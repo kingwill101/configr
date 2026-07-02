@@ -1,5 +1,5 @@
 compress {
-  source = "/tmp/configr_compress_src.txt"
-  destination = "/tmp/configr_compressed.zip"
+  source = "$tempdir/configr_compress_src.txt"
+  destination = "$tempdir/configr_compressed.zip"
   format = "zip"
 }

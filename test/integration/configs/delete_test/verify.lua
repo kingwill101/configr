@@ -1,0 +1,1 @@
+-- File was deleted (it may not exist) — just verify the module executed without error

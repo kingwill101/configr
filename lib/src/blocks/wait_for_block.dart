@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:configr/src/blocks/action_block.dart';
 import 'package:configr/src/events/module_events.dart';
 import 'package:configr/src/exceptions.dart';
@@ -151,19 +149,22 @@ class WaitForBlock extends ActionBlock {
   }
 
   Future<bool> _checkPort() async {
+    if (activeConnection) {
+      throw ActionFailedException(
+        'wait_for active_connection is not supported by the target-aware '
+        'network probe backend',
+        moduleId: id,
+      );
+    }
+
     try {
       final address = host.isNotEmpty ? host : 'localhost';
-      final socket = await Socket.connect(
+      final result = await networkService.probeTcp(
         address,
         port,
-        timeout: const Duration(seconds: 2),
+        timeoutSeconds: 2,
       );
-      if (activeConnection) {
-        await socket.close();
-        return true;
-      }
-      await socket.close();
-      return true;
+      return result.success;
     } catch (_) {
       return false;
     }
@@ -179,15 +180,19 @@ class WaitForBlock extends ActionBlock {
     return await fileSystem.file(path).exists();
   }
 
+  List<String> _pingArgs(int timeoutSeconds) {
+    if (executionService.platform == 'windows') {
+      return ['-n', '1', '-w', '${timeoutSeconds * 1000}', host];
+    }
+    if (executionService.platform == 'macos') {
+      return ['-c', '1', '-W', '${timeoutSeconds * 1000}', host];
+    }
+    return ['-c', '1', '-W', '$timeoutSeconds', host];
+  }
+
   Future<bool> _checkHost() async {
     try {
-      final result = await executionService.run('ping', [
-        '-c',
-        '1',
-        '-W',
-        '2',
-        host,
-      ]);
+      final result = await executionService.run('ping', _pingArgs(2));
       return result.exitCode == 0;
     } catch (_) {
       return false;

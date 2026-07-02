@@ -8,14 +8,13 @@ import 'package:lualike/library_builder.dart';
 import 'package:lualike/lualike.dart' show BuiltinFunction, ProcessBackend;
 import 'package:i3config/i3config_v2.dart' as i3;
 
-import 'plugin_context.dart';
-
 /// Host interface that [ConfigrLibrary] uses to access plugin-specific state.
 abstract class LuaPluginHost {
   i3.Context? get currentContext;
   EventBus? get eventBus;
   FileSystem get fileSystem;
   ProcessBackend? get processBackend;
+  Map<String, dynamic> get pluginContext;
 
   void registerBlockInPlugin(String blockType, Value callbacks);
 }
@@ -98,7 +97,11 @@ class _RunCommandFunction extends BuiltinFunction {
     if (backend != null) {
       return (await backend.run(command)).exitCode;
     }
-    return Process.run('sh', ['-c', command]).then((result) => result.exitCode);
+    final result = await Process.run(
+      Platform.isWindows ? 'cmd' : 'sh',
+      Platform.isWindows ? ['/c', command] : ['-c', command],
+    );
+    return result.exitCode;
   }
 }
 
@@ -464,7 +467,7 @@ class ConfigrLibrary extends Library {
       'getContext',
       builder.create((args) {
         final key = _stringArg(args, 0);
-        return PluginContext.create().toMap()[key];
+        return _host.pluginContext[key];
       }),
     );
     context.describe(
@@ -476,13 +479,14 @@ class ConfigrLibrary extends Library {
           DocParam(
             'key',
             'string',
-            'Context key ("platform", "architecture", "hostname", "os", "user", "env", "configr").',
+            'Context key ("platform", "architecture", "hostname", "os" (table), "user" (table), "env" (table), "configr" (table)).',
           ),
         ],
         returns: 'any',
         returnType: 'any',
         category: 'context',
-        example: 'local platform = getContext("platform")',
+        example: '''local platform = getContext("platform")
+local distro = getContext("os")["distribution"]''',
       ),
     );
 
@@ -514,11 +518,39 @@ class ConfigrLibrary extends Library {
             type: 'table',
             description: 'Operating system details.',
             fields: [
-              FieldDoc(key: 'name', type: 'string', description: 'OS name.'),
+              FieldDoc(
+                key: 'name',
+                type: 'string',
+                description: 'OS name (linux, macos, windows).',
+              ),
               FieldDoc(
                 key: 'version',
                 type: 'string',
-                description: 'OS version string.',
+                description:
+                    'OS version string (e.g. Linux kernel, Darwin version).',
+              ),
+              FieldDoc(
+                key: 'family',
+                type: 'string',
+                description:
+                    'OS family (debian, redhat, arch, darwin, windows).',
+              ),
+              FieldDoc(
+                key: 'distribution',
+                type: 'string',
+                description:
+                    'Distribution ID (ubuntu, manjaro, rhel) or OS name on non-Linux.',
+              ),
+              FieldDoc(
+                key: 'distributionVersion',
+                type: 'string',
+                description:
+                    'Distribution version (VERSION_ID from os-release) or kernel version.',
+              ),
+              FieldDoc(
+                key: 'kernel',
+                type: 'string',
+                description: 'Kernel version string from uname -r.',
               ),
             ],
           ),

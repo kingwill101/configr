@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:configr/src/utils/execution_service.dart';
 import 'package:configr/src/utils/platform.dart'
     show OperatingSystem, OsFacts, OsFamily;
+import 'package:configr/src/utils/shell_type.dart';
 
 class TargetSystemFacts {
   final OperatingSystem os;
@@ -11,6 +12,10 @@ class TargetSystemFacts {
   final String distributionVersion;
   final String architecture;
   final String hostname;
+  final String kernel;
+  final String fqdn;
+  final bool hasBash;
+  final bool hasPowerShell;
 
   const TargetSystemFacts({
     required this.os,
@@ -19,6 +24,10 @@ class TargetSystemFacts {
     required this.distributionVersion,
     required this.architecture,
     required this.hostname,
+    this.kernel = '',
+    this.fqdn = '',
+    this.hasBash = false,
+    this.hasPowerShell = false,
   });
 
   bool get isLinux => os == OperatingSystem.linux;
@@ -31,36 +40,94 @@ class TargetSystemProbe {
   const TargetSystemProbe(this.executionService);
 
   Future<TargetSystemFacts> detect() async {
-    final system = await _stdout('uname', ['-s']);
-    final os = _parseOperatingSystem(system);
-    final distribution = os == OperatingSystem.linux
+    final os = await _detectOperatingSystem();
+    final isLinux = os == OperatingSystem.linux;
+    final isWindows = os == OperatingSystem.windows;
+
+    final distribution = isLinux
         ? await _osReleaseValue('ID', fallback: 'linux')
         : os.name;
-    final distributionVersion = os == OperatingSystem.linux
+    final distributionVersion = isLinux
         ? await _osReleaseValue('VERSION_ID', fallback: '')
-        : await _stdout('uname', ['-r']);
-    final idLike = os == OperatingSystem.linux
+        : isWindows
+        ? await _stdout('cmd', ['/c', 'ver'], fallback: '')
+        : await _stdout('uname', ['-r'], fallback: '');
+    final idLike = isLinux
         ? await _osReleaseValue('ID_LIKE', fallback: '')
         : '';
+
+    final hasBash = isWindows
+        ? false
+        : await _checkCommand(ShellType.bash.defaultExecutable, '--version');
+    final hasPowerShell = await _checkCommand(
+      isWindows ? 'powershell' : 'pwsh',
+      '--version',
+    );
 
     return TargetSystemFacts(
       os: os,
       family: _detectFamily(os, distribution, idLike),
       distribution: distribution,
       distributionVersion: distributionVersion,
-      architecture: await _stdout('uname', ['-m'], fallback: _hostArch()),
+      architecture: isWindows
+          ? await _stdout('powershell', [
+              '-NoProfile',
+              '-Command',
+              r'(Get-CimInstance Win32_ComputerSystem).SystemType',
+            ], fallback: _hostArch())
+          : await _stdout('uname', ['-m'], fallback: _hostArch()),
       hostname: await _stdout('hostname', [], fallback: Platform.localHostname),
+      kernel: isWindows
+          ? distributionVersion
+          : await _stdout('uname', ['-r'], fallback: ''),
+      fqdn: isWindows
+          ? await _stdout('powershell', [
+              '-NoProfile',
+              '-Command',
+              r'[System.Net.Dns]::GetHostEntry("").HostName',
+            ], fallback: Platform.localHostname)
+          : await _stdout('hostname', ['-f'], fallback: Platform.localHostname),
+      hasBash: hasBash,
+      hasPowerShell: hasPowerShell,
     );
+  }
+
+  /// Detect the target operating system using multiple probes.
+  ///
+  /// First tries `uname -s` (available on Git Bash / MSYS2 / Cygwin / WSL).
+  /// Then tries `cmd /c ver` (always available on native Windows OpenSSH).
+  /// Finally tries PowerShell (reliable indicator of Windows).
+  Future<OperatingSystem> _detectOperatingSystem() async {
+    final uname = await _stdout('uname', ['-s']);
+    if (uname.isNotEmpty) {
+      final parsed = _parseOperatingSystem(uname);
+      if (parsed != OperatingSystem.unknown) return parsed;
+    }
+
+    final ver = await _stdout('cmd', ['/c', 'ver']);
+    if (ver.toLowerCase().contains('windows')) return OperatingSystem.windows;
+
+    final psVer = await _stdout('powershell', [
+      '-NoProfile',
+      '-Command',
+      r'$PSVersionTable.PSVersion',
+    ]);
+    if (psVer.isNotEmpty) return OperatingSystem.windows;
+
+    return OperatingSystem.unknown;
   }
 
   Future<String> _osReleaseValue(
     String name, {
     required String fallback,
   }) async {
-    return _stdout('sh', [
-      '-c',
-      '. /etc/os-release 2>/dev/null && printf "%s" "\${$name:-}"',
-    ], fallback: fallback);
+    return _stdout(
+      ShellType.sh.defaultExecutable,
+      ShellType.sh.scriptArgs(
+        '. /etc/os-release 2>/dev/null && printf "%s" "\${$name:-}"',
+      ),
+      fallback: fallback,
+    );
   }
 
   Future<String> _stdout(
@@ -143,6 +210,19 @@ class TargetSystemProbe {
         return OsFamily.solaris;
       default:
         return OsFamily.unknown;
+    }
+  }
+
+  /// Check whether [command] is available on the target by running it with
+  /// [versionArg] and checking for a zero exit code.
+  Future<bool> _checkCommand(String command, String versionArg) async {
+    try {
+      final result = await executionService.run(command, [
+        versionArg,
+      ], runInShell: false);
+      return result.exitCode == 0;
+    } catch (_) {
+      return false;
     }
   }
 

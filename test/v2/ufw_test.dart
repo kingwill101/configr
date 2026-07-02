@@ -1,3 +1,6 @@
+@TestOn('linux')
+library;
+
 import 'package:test/test.dart';
 import 'v2_test_helper.dart';
 

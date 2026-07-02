@@ -27,10 +27,7 @@ abstract class GroupBlock extends ActionBlock {
       case OperatingSystem.freebsd:
         return _FreeBSDGroupBlock();
       default:
-        throw UnsupportedError(
-          'Group management not supported on ${Platform.operatingSystem}. '
-          'Currently supported: Linux.',
-        );
+        return _UnsupportedGroupBlock();
     }
   }
 
@@ -208,6 +205,21 @@ class _MacOSGroupBlock extends GroupBlock {
 // ---------------------------------------------------------------------------
 // FreeBSD stub
 // ---------------------------------------------------------------------------
+
+class _UnsupportedGroupBlock extends GroupBlock {
+  _UnsupportedGroupBlock() : super._();
+
+  @override
+  Future<void> execute() async {
+    throw UnsupportedError(
+      'Group management not supported on ${Platform.operatingSystem}. '
+      'Currently supported: Linux.',
+    );
+  }
+
+  @override
+  Future<void> rollback() async {}
+}
 
 class _FreeBSDGroupBlock extends GroupBlock {
   _FreeBSDGroupBlock() : super._();

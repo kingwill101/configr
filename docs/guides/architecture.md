@@ -2,73 +2,48 @@
 
 ## Core Abstraction: ExecutionService
 
-The central architectural decision in Configr v2 is the **`ExecutionService`**
-interface — a transport-layer abstraction that replaces all direct
-`Process.run` / `Process.start` calls. Every block handler, package manager,
-and file service goes through this single interface.
+The central architectural decision in Configr v2 is the **ExecutionService** interface — a transport-layer abstraction that replaces all direct process execution calls. Every block handler, package manager, and file service goes through this single interface.
 
-```dart
-abstract class ExecutionService {
-  String get platform;
-  bool get isConnected;
+### Interface
 
-  Future<ProcessResult> run(
-    String command,
-    List<String> arguments, {
-    String? workingDirectory,
-    bool runInShell = false,
-    Map<String, String>? environment,
-    CommandOutputHandler? onOutput,
-    String? stdin,
-  });
+The Execution Service provides:
 
-  Future<void> connect(Map<String, dynamic> config);
-  Future<void> disconnect();
-  Future<void> putFile(String source, String destination);
-  Future<void> fetchFile(String source, String destination);
-}
-```
+- `run` — Execute commands with optional environment, working directory, and streaming output
+- `connect` / `disconnect` — Manage the transport session
+- `putFile` / `fetchFile` — Transfer files between controller and target
+- `isConnected` — Check transport readiness
+- `platform` — Identify the target operating system
 
 ### Implementations
 
 | Implementation | Scope | Backend |
 |----------------|-------|---------|
-| `LocalExecutionService` | Local machine | `dart:io` `Process.run` / `Process.start` |
-| `SSHExecutionService` | Remote host | `dartssh2` SSH/SFTP |
+| LocalExecutionService | Local machine | Native process execution |
+| SSHExecutionService | Remote host | SSH/SFTP |
+
+Local targets run commands directly through the operating system. Remote targets run commands over an SSH channel, with file transfers handled via SFTP.
+
+### Audited Execution
+
+An audit layer wraps any Execution Service implementation to produce structured logs. Every command invocation is recorded with command, arguments, working directory, timestamps, duration, exit code, and output. PowerShell encoded commands are decoded for readability. Environment variables with sensitive names are redacted automatically.
 
 ## Dependency Injection
 
-Configr uses a lightweight DI container (`package:configr/src/di.dart`).
-Services are registered in `_registerAllBlocks()` (in `v2_apply.dart`):
+Configr uses a lightweight DI container. Services are registered at startup:
 
-```dart
-di
-  ..registerSingleton<ExecutionService>(executionService)
-  ..registerSingleton<FileSystem>(const LocalFileSystem())
-  ..registerSingleton<FileService>(LocalFileService())
-  ..registerSingleton<CommandRunner>(const LocalCommandRunner())
-  ..registerSingleton<PrivilegeEscalation>(escalation)
-  ..registerSingleton<EventBus>(eventBus)
-  ..registerSingleton<DryRunFlag>(DryRunFlag(dryRun));
-```
+- ExecutionService is bound to either LocalExecutionService or SSHExecutionService
+- FileSystem and FileService handle local file operations
+- CommandRunner handles local command execution
+- PrivilegeEscalation handles sudo/pkexec integration
+- EventBus handles application events
 
-The `ExecutionService` selection happens at registration time:
-- If `connectionConfig` has a non-empty `host` → `SSHExecutionService`
-- Otherwise → `LocalExecutionService`
+The Execution Service selection is automatic:
+- If a connection host is configured → SSHExecutionService
+- Otherwise → LocalExecutionService
 
 ### Overriding at Runtime
 
-Block handlers can override DI singletons during processing. For example,
-the `ConnectionBlock` replaces `LocalExecutionService` with
-`SSHExecutionService` when an inline `connection { }` block is processed:
-
-```dart
-final ssh = SSHExecutionService();
-await ssh.connect(config);
-di.allowReassignment = true;
-di.registerSingleton<ExecutionService>(ssh);
-di.allowReassignment = false;
-```
+Block handlers can override services during processing. For example, when an inline connection block is processed, the local execution service is replaced with an SSH execution service for the remainder of the run.
 
 ## Secrets Pipeline
 
@@ -85,13 +60,12 @@ flowchart LR
     Context --> Redact[Redaction via middleware.redact()]
 ```
 
-1. `SecretsBlock.afterChildrenProcessed()` iterates context variables
-2. Each value is resolved via `SecretResolver.resolveWithSensitivity()`
-3. Resolved values are stored via `context.globalContext.registerBlock()`
-4. Sensitive key names are registered with the `SensitiveVariableMiddleware`
-5. Other blocks reference secrets via native `secrets.key` dot-notation
-6. `emitEvent()` and dry-run `print()` call `middleware.redact()` to replace
-   actual sensitive values with `<SENSITIVE>`
+1. The secrets block iterates context variables after children are processed
+2. Each value is resolved through the secret resolver with sensitivity metadata
+3. Resolved values are stored in the global context
+4. Sensitive key names are registered with the middleware
+5. Other blocks reference secrets via native dot-notation
+6. Events and dry-run output are redacted automatically
 
 ## Block Processing Pipeline
 
@@ -109,30 +83,13 @@ flowchart TB
 
 ## Event System
 
-All operations emit events through `EventBus`. Events carry the block name,
-status, message, and metadata. The `FileEventHandler` persists events to a
-JSONL log file for audit trails.
+All operations emit events through an event bus. Events carry the block name, status, message, and metadata. A file event handler persists events to a JSONL log file for audit trails.
 
-Events are automatically redacted before emission — any sensitive values
-present in the event message are replaced with `<SENSITIVE>`.
+Events are automatically redacted before emission — any sensitive values present in the event message are replaced with a placeholder.
 
 ## Key Design Decisions
 
-1. **Single transport interface** — Every OS interaction goes through
-   `ExecutionService`, making it trivial to add new transports (e.g.,
-   Docker exec, Kubernetes exec, WinRM)
-
-2. **Native BlockReference for secrets** — Secret values use i3config's
-   native `secrets.key` dot-notation, not template syntax like `{{ secret }}`.
-   No changes needed to existing block subclasses.
-
-3. **Centralised redaction** — Sensitive values are tracked by the
-   `SensitiveVariableMiddleware`, which knows the set of sensitive key names and
-   their actual values. Redaction happens in two choke points (`emitEvent`
-   and dry-run `print`), so no individual block needs to worry about leaking
-   secrets. The middleware is registered at the processor level so it
-   propagates to all contexts automatically.
-
-4. **DI over globals** — Services are registered in a DI container rather
-   than accessed via static globals, making unit testing easier and allowing
-   runtime substitution (e.g., swapping `LocalExecutionService` for SSH).
+1. **Single transport interface** — Every OS interaction goes through the Execution Service, making it straightforward to add new transports.
+2. **Native secret references** — Secret values use native dot-notation, not template syntax. No changes needed to existing block subclasses.
+3. **Centralised redaction** — Sensitive values are tracked by a middleware component registered at the processor level so it propagates to all contexts automatically.
+4. **DI over globals** — Services are registered in a DI container rather than accessed via static globals, making unit testing easier and allowing runtime substitution.

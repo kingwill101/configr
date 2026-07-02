@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:configr/src/plugins/configr_plugin.dart';
+import 'package:configr/src/plugins/plugin_context.dart';
 import 'package:configr/src/plugins/lua_plugin.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/logging.dart';
@@ -71,6 +72,9 @@ class PluginBlockHandler extends i3.BaseBlockHandler {
           fileSystem: _fileSystem,
           scriptFileSystem: _scriptFileSystem,
           processBackend: _processBackend,
+          pluginContext: PluginContext.fromConfigContext(
+            processor.context,
+          ).toMap(),
         );
         await plugin.initialize();
         plugin.registerBlocks(processor, eventBus: eventBus);

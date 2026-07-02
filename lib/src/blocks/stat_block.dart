@@ -75,13 +75,9 @@ class StatBlock extends ActionBlock {
     }
 
     try {
-      // Use fileSystem (package:file) which delegates to whatever FS is registered
-      // in DI — local, memory, or remote (e.g. SFTP).
-      // Detect symlinks via link().existsSync() (package:file has no isLinkSync)
-      final linkExists = fileSystem.link(path).existsSync();
-      final rawStat = fileSystem.statSync(path);
-      final exists =
-          linkExists || rawStat.type != FileSystemEntityType.notFound;
+      final pathState = await fileService.pathExists(path);
+      final linkExists = await _linkExists(path);
+      final exists = linkExists || pathState.exists;
 
       context.setVariable('stat_exists', exists.toString());
 
@@ -92,6 +88,8 @@ class StatBlock extends ActionBlock {
         status = 'completed';
         return;
       }
+
+      final rawStat = await fileSystem.stat(path);
 
       final isDir = linkExists
           ? false
@@ -119,8 +117,8 @@ class StatBlock extends ActionBlock {
       }
       context.setVariable('stat_type', typeStr);
 
-      // Re-stat following symlinks for the detailed attributes
-      final targetStat = fileSystem.statSync(path);
+      // Re-stat following symlinks for the detailed attributes.
+      final targetStat = await fileSystem.stat(path);
 
       context.setVariable('stat_mode', targetStat.mode.toRadixString(8));
       context.setVariable('stat_size', targetStat.size.toString());
@@ -195,4 +193,12 @@ class StatBlock extends ActionBlock {
 
   @override
   Future<void> rollback() async {}
+
+  Future<bool> _linkExists(String path) async {
+    try {
+      return await fileSystem.link(path).exists();
+    } catch (_) {
+      return false;
+    }
+  }
 }

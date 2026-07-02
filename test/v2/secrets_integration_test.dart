@@ -7,6 +7,9 @@ import 'package:configr/src/secrets/secret_resolver.dart';
 import 'package:configr/src/secrets/providers/providers.dart';
 import 'package:test/test.dart';
 
+String _tmpPath(String name) =>
+    Directory.systemTemp.uri.resolve(name).toFilePath();
+
 void main() {
   setUp(() {
     di.allowReassignment = true;
@@ -68,14 +71,14 @@ void main() {
     });
 
     test('resolve returns value for existing env var', () async {
-      final result = await resolver.resolve('env://USER');
+      final result = await resolver.resolve('env://PATH');
       expect(result, isNotNull);
       expect(result, isNotEmpty);
     });
 
     test('resolveWithSensitivity wraps in SensitiveValue', () async {
       final result = await resolver.resolveWithSensitivity(
-        'env://USER',
+        'env://PATH',
         markSensitive: true,
       );
       expect(result, isA<SensitiveValue>());
@@ -86,7 +89,7 @@ void main() {
       'resolveWithSensitivity returns raw string when markSensitive=false',
       () async {
         final result = await resolver.resolveWithSensitivity(
-          'env://USER',
+          'env://PATH',
           markSensitive: false,
         );
         expect(result, isA<String>());
@@ -99,7 +102,7 @@ void main() {
       final registry = SecretProviders();
       registry.register('env', (_) => const EnvProvider());
       final result = await registry.resolve(
-        'prod://USER',
+        'prod://PATH',
         aliases: {'prod': 'env://'},
       );
       expect(result, isNotNull);
@@ -110,7 +113,7 @@ void main() {
       final registry = SecretProviders();
       registry.register('env', (_) => const EnvProvider());
       final result = await registry.resolve(
-        'staging://USER',
+        'staging://PATH',
         aliases: {'staging': 'env://'},
       );
       expect(result, isNotNull);
@@ -130,7 +133,7 @@ void main() {
   group('EnvProvider', () {
     test('returns value for existing env var', () async {
       final provider = const EnvProvider();
-      final result = await provider.get('', 'USER', null);
+      final result = await provider.get('', 'PATH', null);
       expect(result, isNotNull);
       expect(result, isNotEmpty);
     });
@@ -144,8 +147,9 @@ void main() {
 
   group('FileProvider', () {
     test('returns content of existing file', () async {
-      final tmpFile =
-          '/tmp/_configr_test_file_${DateTime.now().millisecondsSinceEpoch}';
+      final tmpFile = _tmpPath(
+        '_configr_test_file_${DateTime.now().millisecondsSinceEpoch}',
+      );
       try {
         await File(tmpFile).writeAsString('file_secret_value\n');
         final provider = const FileProvider();
@@ -165,8 +169,9 @@ void main() {
 
   group('DotenvProvider', () {
     test('returns value from dotenv file', () async {
-      final tmpFile =
-          '/tmp/_configr_dotenv_test_${DateTime.now().millisecondsSinceEpoch}';
+      final tmpFile = _tmpPath(
+        '_configr_dotenv_test_${DateTime.now().millisecondsSinceEpoch}',
+      );
       try {
         await File(
           tmpFile,
@@ -181,8 +186,9 @@ void main() {
     });
 
     test('returns value for second key in dotenv', () async {
-      final tmpFile =
-          '/tmp/_configr_dotenv_test2_${DateTime.now().millisecondsSinceEpoch}';
+      final tmpFile = _tmpPath(
+        '_configr_dotenv_test2_${DateTime.now().millisecondsSinceEpoch}',
+      );
       try {
         await File(tmpFile).writeAsString('KEY1=val1\nKEY2=val2\n');
         final provider = const DotenvProvider();
@@ -200,8 +206,9 @@ void main() {
     });
 
     test('resolve resolves dotenv URI with ?name= query param', () async {
-      final tmpFile =
-          '/tmp/_configr_dotenv_resolve_${DateTime.now().millisecondsSinceEpoch}';
+      final tmpFile = _tmpPath(
+        '_configr_dotenv_resolve_${DateTime.now().millisecondsSinceEpoch}',
+      );
       try {
         await File(tmpFile).writeAsString('DB_PASS=s3cret\n');
         final registry = SecretProviders();
@@ -214,8 +221,9 @@ void main() {
     });
 
     test('resolve returns null for dotenv with missing name key', () async {
-      final tmpFile =
-          '/tmp/_configr_dotenv_missing_${DateTime.now().millisecondsSinceEpoch}';
+      final tmpFile = _tmpPath(
+        '_configr_dotenv_missing_${DateTime.now().millisecondsSinceEpoch}',
+      );
       try {
         await File(tmpFile).writeAsString('DB_PASS=s3cret\n');
         final registry = SecretProviders();
@@ -252,7 +260,7 @@ void main() {
       final resolver = SecretResolver(registry);
 
       final result = await resolver.resolveWithSensitivity(
-        'env://USER',
+        'env://PATH',
         markSensitive: true,
       );
       expect(result, isA<SensitiveValue>());

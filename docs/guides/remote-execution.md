@@ -160,27 +160,6 @@ for command execution. File IO can use standard Lua IO or Configr's file
 helpers, but command execution is routed through Configr's active process
 backend via `runCommand(command)`, including SSH remotes.
 
-## SSHExecutionService API
+## SSHExecutionService
 
-```dart
-class SSHExecutionService implements ExecutionService {
-  Future<void> connect(Map<String, dynamic> config);
-  Future<void> disconnect();
-  bool get isConnected;
-  String get platform;       // "linux", "macos", "windows"
-  String get remoteHost;
-
-  Future<ProcessResult> run(
-    String command,
-    List<String> arguments, {
-    String? workingDirectory,
-    bool runInShell = false,
-    Map<String, String>? environment,
-    CommandOutputHandler? onOutput,
-    String? stdin,
-  });
-
-  Future<void> putFile(String sourcePath, String destinationPath);
-  Future<void> fetchFile(String sourcePath, String destinationPath);
-}
-```
+The SSH execution service implements the same interface as the local execution service, adding SSH connection management, remote command serialization, and SFTP-based file transfers. It detects the remote platform automatically after connection. All blocks receive the SSH-backed execution service transparently, so the same configuration can run locally or remotely.

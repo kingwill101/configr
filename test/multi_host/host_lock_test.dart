@@ -13,65 +13,65 @@ void main() {
       lock = HostLock(baseDir: '/test/.configr', fs: fs);
     });
 
-    test('acquire creates lock directory', () {
-      final acquired = lock.acquire('web-01');
+    test('acquire creates lock directory', () async {
+      final acquired = await lock.acquire('web-01');
       expect(acquired, isTrue);
 
       final lockDir = fs.directory('/test/.configr/locks/web-01');
-      expect(lockDir.existsSync(), isTrue);
+      expect(await lockDir.exists(), isTrue);
     });
 
-    test('acquire returns true for new lock', () {
-      expect(lock.acquire('web-01'), isTrue);
+    test('acquire returns true for new lock', () async {
+      expect(await lock.acquire('web-01'), isTrue);
     });
 
-    test('acquire returns false when lock already held', () {
-      lock.acquire('web-01');
-      expect(lock.acquire('web-01'), isFalse);
+    test('acquire returns false when lock already held', () async {
+      await lock.acquire('web-01');
+      expect(await lock.acquire('web-01'), isFalse);
     });
 
-    test('isLocked returns true when lock is held', () {
-      lock.acquire('web-01');
-      expect(lock.isLocked('web-01'), isTrue);
+    test('isLocked returns true when lock is held', () async {
+      await lock.acquire('web-01');
+      expect(await lock.isLocked('web-01'), isTrue);
     });
 
-    test('isLocked returns false when lock is not held', () {
-      expect(lock.isLocked('web-01'), isFalse);
+    test('isLocked returns false when lock is not held', () async {
+      expect(await lock.isLocked('web-01'), isFalse);
     });
 
-    test('release removes lock directory', () {
-      lock.acquire('web-01');
-      lock.release('web-01');
+    test('release removes lock directory', () async {
+      await lock.acquire('web-01');
+      await lock.release('web-01');
 
       final lockDir = fs.directory('/test/.configr/locks/web-01');
       expect(lockDir.existsSync(), isFalse);
     });
 
-    test('release is safe when no lock exists', () {
-      lock.release('web-01');
+    test('release is safe when no lock exists', () async {
+      await lock.release('web-01');
       // no exception should be thrown
     });
 
     test('releaseAll removes all locks', () async {
-      lock.acquire('web-01');
-      lock.acquire('db-01');
+      await lock.acquire('web-01');
+      await lock.acquire('db-01');
 
-      lock.releaseAll();
+      await lock.releaseAll();
 
-      expect(lock.isLocked('web-01'), isFalse);
-      expect(lock.isLocked('db-01'), isFalse);
+      expect(await lock.isLocked('web-01'), isFalse);
+      expect(await lock.isLocked('db-01'), isFalse);
     });
 
-    test('lockedHosts returns list of locked host names', () {
-      lock.acquire('web-01');
-      lock.acquire('db-01');
+    test('lockedHosts returns list of locked host names', () async {
+      await lock.acquire('web-01');
+      await lock.acquire('db-01');
 
-      final hosts = lock.lockedHosts();
+      final hosts = await lock.lockedHosts();
       expect(hosts, containsAll(['web-01', 'db-01']));
     });
 
-    test('lockedHosts returns empty list when no locks', () {
-      expect(lock.lockedHosts(), isEmpty);
+    test('lockedHosts returns empty list when no locks', () async {
+      expect(await lock.lockedHosts(), isEmpty);
     });
 
     test('acquireAsync creates lock asynchronously', () async {

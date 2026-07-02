@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:configr/src/strategies/network_strategy.dart';
 import 'package:configr/src/utils/execution_service.dart';
 import 'package:crypto/crypto.dart' show md5, sha1, sha256;
 import 'package:file/file.dart' show FileSystem;
@@ -317,51 +318,32 @@ class LocalNetworkService implements NetworkService {
 
 class ExecutionNetworkService implements NetworkService {
   final ExecutionService executionService;
+  final NetworkStrategy _strategy;
   final NetworkService controllerNetworkService;
   Future<_RemoteNetworkCapabilities>? _capabilities;
 
   ExecutionNetworkService(
     this.executionService, {
     NetworkService? controllerNetworkService,
-  }) : controllerNetworkService =
+  }) : _strategy = NetworkStrategy.forPlatform(executionService.platform),
+       controllerNetworkService =
            controllerNetworkService ?? const LocalNetworkService();
 
   Future<_RemoteNetworkCapabilities> get _remoteCapabilities {
     return _capabilities ??= _RemoteNetworkCapabilities.detect(
       executionService,
+      _strategy,
     );
   }
 
   @override
   Future<NetworkResponse> request(NetworkRequest request) async {
-    _throwIfWindowsRemote('HTTP requests');
-
-    final caps = await _remoteCapabilities;
-    if (!caps.hasCurl) {
-      throw StateError(
-        'Remote HTTP requests require curl on the target host. '
-        'Install curl or run this block locally.',
-      );
-    }
-
-    final bodyPath =
-        '/tmp/configr_uri_${DateTime.now().microsecondsSinceEpoch}';
-    final headers = _curlHeaderArgs(request.headers);
-    final command = StringBuffer()
-      ..write('status=\$(curl -sS -m ${request.timeoutSeconds} ')
-      ..write(request.validateCertificates ? '' : '-k ')
-      ..write('-X ${_sh(request.method)} ')
-      ..write(headers)
-      ..write(request.body.isEmpty ? '' : '--data-binary ${_sh(request.body)} ')
-      ..write('-o ${_sh(bodyPath)} -w "%{http_code}" ')
-      ..write(_sh(request.uri.toString()))
-      ..write(
-        '); code=\$?; body=\$(cat ${_sh(bodyPath)} 2>/dev/null || true); ',
-      )
-      ..write('rm -f ${_sh(bodyPath)}; ')
-      ..write('printf "%s\\n%s" "\$status" "\$body"; exit "\$code"');
-
-    final result = await executionService.run('sh', ['-c', command.toString()]);
+    final cmd = _strategy.httpRequestScript(request);
+    final result = await executionService.run(
+      cmd.executable,
+      cmd.args,
+      stdin: cmd.stdin,
+    );
     if (result.exitCode != 0) {
       throw StateError('Remote request failed: ${result.stderr}');
     }
@@ -387,11 +369,12 @@ class ExecutionNetworkService implements NetworkService {
     DownloadTransferMode transferMode = DownloadTransferMode.auto,
     DownloadProgressHandler? onProgress,
   }) async {
-    final caps = await _remoteCapabilities;
-
+    final canDownload = await _canDownloadRemotely;
+    if (transferMode == DownloadTransferMode.remote && !canDownload) {
+      throw StateError('Remote downloads require curl on the target host.');
+    }
     if (transferMode == DownloadTransferMode.controller ||
-        transferMode == DownloadTransferMode.auto &&
-            !_canDownloadRemotely(caps, checksumAlgorithm)) {
+        (transferMode == DownloadTransferMode.auto && !canDownload)) {
       return _downloadViaController(
         url: url,
         destinationPath: destinationPath,
@@ -402,57 +385,20 @@ class ExecutionNetworkService implements NetworkService {
       );
     }
 
-    if (!caps.hasCurl) {
-      throw StateError(
-        'Remote downloads require curl on the target host. '
-        'Install curl to download directly on the remote host, or set '
-        'transfer_mode = "controller" to download on the controller and copy.',
-      );
-    }
-
-    final hashCommand = caps.hashCommand(checksumAlgorithm);
-    if (hashCommand == null) {
-      throw StateError(
-        'Remote checksum verification requires ${checksumAlgorithm.toLowerCase()}sum '
-        'or openssl on the target host, or set transfer_mode = "controller".',
-      );
-    }
-    final tempPath =
-        '$destinationPath.configr-download-${DateTime.now().microsecondsSinceEpoch}.tmp';
-    final headerArgs = _curlHeaderArgs(headers);
-    final continueArg = resume ? '-C - ' : '';
-    final resumeFlag = resume ? '1' : '0';
-    final script =
-        '''
-set -eu
-url=${_sh(url)}
-dest=${_sh(destinationPath)}
-tmp=${_sh(tempPath)}
-mkdir -p "\$(dirname "\$dest")"
-if [ $resumeFlag -eq 1 ] && [ -f "\$dest" ]; then
-  cp "\$dest" "\$tmp"
-fi
-total=\$(curl -fsIL ${requestTimeoutFlag(30)} $headerArgs "\$url" 2>/dev/null | awk 'tolower(\$1)=="content-length:" {gsub("\\r","",\$2); print \$2}' | tail -n 1 || true)
-(curl -fL ${requestTimeoutFlag(0)} $continueArg $headerArgs --output "\$tmp" "\$url") &
-pid=\$!
-while kill -0 "\$pid" 2>/dev/null; do
-  size=\$(wc -c < "\$tmp" 2>/dev/null || echo 0)
-  printf '{"bytes":%s,"total":%s}\\n' "\$size" "\${total:-0}"
-  sleep 1
-done
-wait "\$pid"
-mv "\$tmp" "\$dest"
-size=\$(wc -c < "\$dest" 2>/dev/null || echo 0)
-checksum=\$($hashCommand "\$dest" | awk '{print \$1}')
-printf '{"complete":true,"bytes":%s,"checksum":"%s"}\\n' "\$size" "\$checksum"
-''';
+    final cmd = _strategy.downloadScript(
+      url: url,
+      destinationPath: destinationPath,
+      checksumAlgorithm: checksumAlgorithm,
+      headers: headers,
+      resume: resume,
+    );
 
     var checksum = '';
     var receivedBytes = 0;
     final result = await executionService.run(
-      'sh',
-      ['-s'],
-      stdin: script,
+      cmd.executable,
+      cmd.args,
+      stdin: cmd.stdin,
       onOutput: (line, isStderr) {
         if (isStderr) return;
         final parsed = _tryJson(line);
@@ -524,23 +470,13 @@ printf '{"complete":true,"bytes":%s,"checksum":"%s"}\\n' "\$size" "\$checksum"
     String host, {
     required int timeoutSeconds,
   }) async {
-    _throwIfWindowsRemote('DNS probes');
-
-    final caps = await _remoteCapabilities;
     final start = DateTime.now();
-    final command = caps.hasGetent
-        ? 'getent hosts ${_sh(host)} | awk \'{print \$1; exit}\''
-        : caps.hasNslookup
-        ? 'nslookup ${_sh(host)} | awk \'/^Address: / {print \$2; exit}\''
-        : caps.hasHost
-        ? 'host ${_sh(host)} | awk \'/has address/ {print \$4; exit}\''
-        : null;
-    if (command == null) {
-      throw StateError(
-        'Remote DNS probes require one of: getent, nslookup, host.',
-      );
-    }
-    final result = await executionService.run('sh', ['-c', command]);
+    final cmd = _strategy.dnsResolveScript(host);
+    final result = await executionService.run(
+      cmd.executable,
+      cmd.args,
+      stdin: cmd.stdin,
+    );
     final address = result.stdout.toString().trim();
     return NetworkProbeResult(
       success: result.exitCode == 0 && address.isNotEmpty,
@@ -567,21 +503,13 @@ printf '{"complete":true,"bytes":%s,"checksum":"%s"}\\n' "\$size" "\$checksum"
     String host, {
     required int timeoutSeconds,
   }) async {
-    _throwIfWindowsRemote('ping probes');
-
-    final caps = await _remoteCapabilities;
-    if (!caps.hasPing) {
-      throw StateError('Remote ping probes require ping on the target host.');
-    }
-
     final start = DateTime.now();
-    final result = await executionService.run('ping', [
-      '-c',
-      '1',
-      '-W',
-      timeoutSeconds.toString(),
-      host,
-    ]);
+    final cmd = _strategy.pingProbeScript(host, timeoutSeconds);
+    final result = await executionService.run(
+      cmd.executable,
+      cmd.args,
+      stdin: cmd.stdin,
+    );
     return NetworkProbeResult(
       success: result.exitCode == 0,
       elapsedMs: _elapsed(start),
@@ -594,45 +522,25 @@ printf '{"complete":true,"bytes":%s,"checksum":"%s"}\\n' "\$size" "\$checksum"
     int port, {
     required int timeoutSeconds,
   }) async {
-    _throwIfWindowsRemote('TCP probes');
-
-    final caps = await _remoteCapabilities;
     final start = DateTime.now();
-    final command = caps.hasNc
-        ? 'nc -z -w ${_sh(timeoutSeconds.toString())} ${_sh(host)} ${_sh(port.toString())}'
-        : caps.hasTimeout
-        ? 'timeout ${_sh(timeoutSeconds.toString())} sh -c ${_sh('echo >/dev/tcp/$host/$port')}'
-        : null;
-    if (command == null) {
-      throw StateError(
-        'Remote TCP probes require nc, or timeout plus /dev/tcp shell support.',
-      );
-    }
-    final result = await executionService.run('sh', ['-c', command]);
+    final cmd = _strategy.tcpProbeScript(host, port, timeoutSeconds);
+    final result = await executionService.run(
+      cmd.executable,
+      cmd.args,
+      stdin: cmd.stdin,
+    );
     return NetworkProbeResult(
       success: result.exitCode == 0,
       elapsedMs: _elapsed(start),
     );
   }
 
-  bool _canDownloadRemotely(
-    _RemoteNetworkCapabilities caps,
-    String checksumAlgorithm,
-  ) {
-    return !_isWindowsRemote &&
-        caps.hasCurl &&
-        caps.hashCommand(checksumAlgorithm) != null;
-  }
-
-  bool get _isWindowsRemote =>
-      executionService.platform.toLowerCase().contains('windows');
-
-  void _throwIfWindowsRemote(String operation) {
-    if (!_isWindowsRemote) return;
-    throw StateError(
-      'Remote $operation on Windows targets requires a PowerShell/.NET network '
-      'backend. Use download transfer_mode = "controller" for file downloads.',
-    );
+  Future<bool> get _canDownloadRemotely async {
+    if (executionService.platform.toLowerCase().contains('windows')) {
+      return true;
+    }
+    final caps = await _remoteCapabilities;
+    return caps.hasCurl;
   }
 }
 
@@ -648,12 +556,6 @@ String _calculateChecksum(List<int> bytes, String algorithm) {
   }
 }
 
-String _curlHeaderArgs(Map<String, String> headers) {
-  return headers.entries
-      .map((entry) => '-H ${_sh('${entry.key}: ${entry.value}')} ')
-      .join();
-}
-
 Map<String, dynamic>? _tryJson(String line) {
   try {
     final decoded = jsonDecode(line);
@@ -662,13 +564,6 @@ Map<String, dynamic>? _tryJson(String line) {
     return null;
   }
 }
-
-String _sh(String value) {
-  if (value.isEmpty) return "''";
-  return "'${value.replaceAll("'", "'\\''")}'";
-}
-
-String requestTimeoutFlag(int seconds) => seconds <= 0 ? '' : '-m $seconds';
 
 int _elapsed(DateTime start) => DateTime.now().difference(start).inMilliseconds;
 
@@ -713,31 +608,27 @@ class _RemoteNetworkCapabilities {
 
   static Future<_RemoteNetworkCapabilities> detect(
     ExecutionService executionService,
+    NetworkStrategy strategy,
   ) async {
-    final result = await executionService.run('sh', [
-      '-c',
-      [
-            'curl',
-            'getent',
-            'host',
-            'md5sum',
-            'nc',
-            'nslookup',
-            'openssl',
-            'ping',
-            'sha1sum',
-            'sha256sum',
-            'timeout',
-          ]
-          .map((tool) => 'command -v $tool >/dev/null 2>&1 && echo $tool')
-          .join('; '),
-    ]);
-    final tools = result.stdout
+    final cmd = strategy.capabilityDetectionScript();
+    final result = await executionService.run(
+      cmd.executable,
+      cmd.args,
+      stdin: cmd.stdin,
+    );
+    final lines = result.stdout
         .toString()
         .split('\n')
-        .map((line) => line.trim())
-        .where((line) => line.isNotEmpty)
-        .toSet();
+        .map((l) => l.trim())
+        .where((l) => l.isNotEmpty);
+
+    final tools = <String>{};
+    for (final line in lines) {
+      final parts = line.split(':');
+      if (parts.length == 2 && parts[1].trim() == 'yes') {
+        tools.add(parts[0].trim());
+      }
+    }
 
     return _RemoteNetworkCapabilities(
       hasCurl: tools.contains('curl'),

@@ -52,4 +52,24 @@ void main() {
     expect((block as dynamic).preserveTimestamps, isFalse);
     expect((block as dynamic).deleteOrphans, isTrue);
   });
+
+  test('should sync nested files using target filesystem paths', () async {
+    await helper.createDir('/source/sub');
+    await helper.createFile('/source/sub/file.txt', 'nested content');
+
+    await helper.runConfig('''
+      sync {
+        source = "/source"
+        destination = "/dest"
+        mode = "source_to_dest"
+        preserve_timestamps = false
+      }
+    ''');
+
+    expect(await helper.fileExists('/dest/sub/file.txt'), isTrue);
+    expect(
+      await helper.readFile('/dest/sub/file.txt'),
+      equals('nested content'),
+    );
+  });
 }

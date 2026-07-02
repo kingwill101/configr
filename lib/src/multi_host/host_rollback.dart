@@ -5,7 +5,7 @@ import 'package:configr/src/utils/logging.dart' show logger;
 import 'package:configr/src/utils/ssh_execution_service.dart';
 import 'package:file/file.dart' show FileSystem;
 import 'package:file/local.dart' show LocalFileSystem;
-import 'package:path/path.dart' as p;
+import 'package:path/path.dart' show posix;
 
 /// Per-host lockfile path helpers for multi-host rollback.
 ///
@@ -15,9 +15,9 @@ import 'package:path/path.dart' as p;
 class HostLockfile {
   /// Resolve the per-host lockfile path for [configPath] and [hostName].
   static String pathFor(String configPath, String hostName) {
-    final dir = p.dirname(configPath);
-    final basename = p.basename(configPath);
-    return p.join(dir, '$basename.$hostName.lock.json');
+    final dir = posix.dirname(configPath);
+    final basename = posix.basename(configPath);
+    return posix.join(dir, '$basename.$hostName.lock.json');
   }
 
   /// Read the per-host lockfile for [configPath] and [hostName].

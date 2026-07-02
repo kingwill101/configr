@@ -1,3 +1,3 @@
 stat {
-  path = "/tmp/configr_stat_dir"
+  path = "$tempdir/configr_stat_dir"
 }
