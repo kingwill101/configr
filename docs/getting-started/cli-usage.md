@@ -80,6 +80,10 @@ configr apply --host server.example.com --ssh-user deploy
 configr apply --host db.internal --ssh-key ~/.ssh/id_rsa
 ```
 
+`--fail-fast` stops the processor at the first processor or block error. This is
+the safest mode for ordered configs where later operations depend on earlier
+ones.
+
 ### `rollback`
 
 Rollback applied changes using the lockfile.

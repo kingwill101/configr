@@ -17,6 +17,7 @@ import 'package:configr/src/utils/logging.dart' show logger;
 import 'package:configr/src/utils/network_service.dart';
 import 'package:configr/src/utils/privilege_escalation.dart'
     show NoPrivilegeEscalation, PrivilegeEscalation;
+import 'package:configr/src/utils/processing_halt.dart';
 import 'package:configr/src/utils/ssh_execution_service.dart'
     show SSHExecutionService;
 import 'package:file/file.dart' show FileSystem;
@@ -272,6 +273,12 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
               source: block.span != null ? _formatSpan(block.span!) : null,
             ),
           );
+          if (failFast) {
+            throw ConfigrProcessingHalted(
+              errors.last.message,
+              alreadyRecorded: true,
+            );
+          }
           return;
         }
       }
@@ -324,6 +331,12 @@ abstract class ActionBlock extends i3.BaseBlockHandler {
             source: block.span != null ? _formatSpan(block.span!) : null,
           ),
         );
+        if (failFast) {
+          throw ConfigrProcessingHalted(
+            errors.last.message,
+            alreadyRecorded: true,
+          );
+        }
       } finally {
         await _disconnectDelegate();
       }

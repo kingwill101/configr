@@ -73,6 +73,7 @@ import 'package:configr/src/utils/command_runner.dart';
 import 'package:configr/src/utils/file_service.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
+import 'package:configr/src/utils/processing_halt.dart';
 import 'package:file/memory.dart';
 import 'package:file/file.dart' show FileSystem;
 import 'package:i3config/i3config_v2.dart' as i3;
@@ -181,6 +182,10 @@ class V2TestHelper {
     return _process(configText, dryRun: false);
   }
 
+  Future<List<ActionBlock>> runConfigFailFast(String configText) async {
+    return _process(configText, dryRun: false, failFast: true);
+  }
+
   /// Like [runConfig] but also calls [ActionBlock.rollback] on each block
   /// (in reverse order) after processing completes.
   Future<List<ActionBlock>> runConfigWithRollback(String configText) async {
@@ -198,15 +203,26 @@ class V2TestHelper {
   Future<List<ActionBlock>> _process(
     String configText, {
     required bool dryRun,
+    bool failFast = false,
   }) async {
     final parsed = i3.Config.parse(configText);
     final processor = i3.ConfigProcessor();
     final actionBlocks = <ActionBlock>[];
     processor.context.options['_actionBlocks'] = actionBlocks;
+    processor.setErrorHandler(
+      _TestProcessorErrorHandler(haltOnError: failFast),
+    );
+    if (failFast) {
+      processor.context.options['_failFast'] = true;
+    }
 
     _registerAllBlocks(processor, dryRun: dryRun);
 
-    await processor.process(parsed);
+    try {
+      await processor.process(parsed);
+    } on ConfigrProcessingHalted {
+      // Expected for fail-fast tests.
+    }
 
     // Flush stream events (StreamController.broadcast() delivers events
     // asynchronously unless sync: true is used).
@@ -370,6 +386,22 @@ class V2TestHelper {
   /// Asserts that an event of type [T] was emitted.
   void expectEvent<T extends ModuleEvent>() {
     expect(eventOfType<T>(), isNotNull, reason: 'Expected $T to be emitted');
+  }
+}
+
+class _TestProcessorErrorHandler implements i3.ErrorHandler {
+  final bool haltOnError;
+
+  const _TestProcessorErrorHandler({required this.haltOnError});
+
+  @override
+  void handleError(String message, i3.Context context, {dynamic span}) {
+    if (haltOnError) {
+      throw ConfigrProcessingHalted(
+        ConfigrProcessingHalted.cleanMessage(message),
+        alreadyRecorded: true,
+      );
+    }
   }
 }
 

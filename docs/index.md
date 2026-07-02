@@ -23,6 +23,21 @@ Configr v2 uses **action blocks** — i3config-format blocks that each perform
 a specific operation. All blocks support `source`, `destination`, and
 block-specific properties.
 
+Prefer direct action blocks for new configs:
+
+```i3
+copy {
+  source = "dotfiles/bashrc"
+  destination = "~/.bashrc"
+}
+```
+
+The older `resource { actions { ... } }` form is still supported for existing
+configs, but direct blocks are recommended because each operation has its own
+source location, failure event, lockfile record, and rollback boundary. With
+`configr apply --fail-fast`, direct blocks halt cleanly at the first processor
+or block error instead of letting later actions continue to propagate.
+
 | Block | Description |
 |-------|-------------|
 | [Alternatives](blocks/alternatives-module.md) | Manages command alternatives (`update-alternatives`) |

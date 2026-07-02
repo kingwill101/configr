@@ -1,208 +1,143 @@
 # configr
 
-A flexible configuration management tool that helps you manage dotfiles, system configurations, and file operations with rollback support.
+Configr is a block-based configuration management tool for dotfiles, system
+configuration, local automation, and remote host applies. It uses i3config
+syntax, executes each v2 block through a common runtime, writes lockfiles for
+rollback, and records shell execution audit logs under the project `.configr`
+directory.
 
-## Features
+## Highlights
 
-- File Operations
-  - Copy files and directories
-  - Create backups before modifications
-  - Set permissions and ownership
-  - Create symbolic links
-  - Compress/decompress archives
-
-- Templates
-  - Generate files from templates
-  - Variable substitution
-  - Support for multiple template formats
-
-- Validation
-  - Format validation (JSON, YAML, etc.)
-  - Checksum verification
-
-- Safety Features
-  - Automatic backups
-  - Rollback on failure
-  - Dry run mode
-  - File integrity checks
+- **Action blocks** for files, packages, services, users, networking, templates,
+  archives, scripts, and assertions.
+- **Rollback support** through v2 lockfiles that record applied blocks.
+- **Dry runs and fail-fast applies** for safer changes.
+- **Remote execution** over SSH with SFTP-backed file operations.
+- **Multi-host applies** with inventory targeting, strategies, and per-host
+  lockfiles.
+- **Cross-platform shell strategies** for POSIX shells, PowerShell, and cmd.
+- **Lua plugins and hooks** with local or remote file/process backends.
+- **Audit logs** for shell calls and responses in `.configr/logs/shell`.
 
 ## Installation
 
-Download the latest pre-built binary for your platform from the [Releases page](https://github.com/kingwill101/configr/releases).
+Download a pre-built binary from the
+[Releases page](https://github.com/kingwill101/configr/releases), then make it
+executable and place it on your `PATH`.
 
 ```bash
-# Download and make executable
 chmod +x configr
-
-# (Optional) Move to a directory on your PATH
 sudo mv configr /usr/local/bin/
 ```
 
-> Alternatively, build from source: clone the repo, run `dart compile exe bin/configr.dart -o configr`, and place the resulting binary on your PATH.
+To build from source:
+
+```bash
+dart pub get
+dart compile exe bin/configr.dart -o configr
+```
 
 ## Quick Start
 
-### 1. Initialize Configuration
+Use v2 action blocks directly for new configs:
+
+```i3
+backup {
+  source = "~/.bashrc"
+  destination = "~/.bashrc.bak"
+}
+
+copy {
+  source = "dotfiles/bashrc"
+  destination = "~/.bashrc"
+  overwrite = true
+}
+
+permissions {
+  source = "~/.bashrc"
+  mode = "644"
+}
+```
+
+Then run:
 
 ```bash
-# Initialize a new configuration repository
-configr init
+configr apply --dry-run
+configr apply --fail-fast
+configr rollback
 ```
 
-### 2. Create a config file:
+`--fail-fast` now halts processor execution at the first processor or block
+error instead of walking the rest of the config.
 
-```
-resources {
-  resource {
-    source "bashrc"
-    destination "~/.bashrc"
+## Recommended Config Style
 
-    actions {
-      backup {
-        backup_path "~/.bashrc.bak"
-      }
-      copy {}
-      permissions {
-        mode "644"
-      }
+Prefer direct action blocks (`copy {}`, `template {}`, `package {}`, etc.) over
+legacy `resource { actions { ... } }` wrappers. Direct blocks are the current v2
+execution model and stop propagation cleanly after failures when fail-fast is
+enabled.
+
+The legacy resource form is still supported for compatibility:
+
+```i3
+resource {
+  source = "dotfiles/bashrc"
+  destination = "~/.bashrc"
+
+  actions {
+    copy {}
+    permissions {
+      mode = "644"
     }
   }
 }
 ```
 
-3. Add files to your configuration:
+Keep this style for existing configs only. For new configs, use explicit blocks
+so each operation has its own parsed source location, failure event, lockfile
+record, and rollback boundary.
+
+## Common Commands
 
 ```bash
-# Add a single file
-configr add --file ~/.bashrc
-
-# Add multiple files
-configr add --file ~/.vimrc --file ~/.gitconfig
-```
-
-4. Apply your configuration:
-
-```bash
-# Apply with default settings
-configr apply
-
-# Force apply all resources
-configr apply --force
-```
-
-5. Check status and manage your configuration:
-
-```bash
-# View current status
-configr status
-
-# See what would change
-configr diff
-
-# Rollback changes if needed
-configr rollback
-
-# Rollback specific number of operations
-configr rollback --count 3
-```
-
-## CLI Usage
-
-### Available Commands
-
-```bash
-# Show all available commands
 configr --help
-
-# Get help for a specific command
-configr <command> --help
-```
-
-### Global Options
-
-- `-c, --config <path>`: Path to configuration file (defaults to "config")
-- `-h, --help`: Print usage information
-
-### Command Examples
-
-```bash
-# Initialize configuration
 configr init
-
-# Add files to configuration
-configr add --file ~/.bashrc --file ~/.vimrc
-
-# Apply configuration
-configr apply --force
-
-# Check status
-configr status
-
-# View differences
+configr apply
+configr apply --dry-run
+configr apply --fail-fast
+configr apply --host server.example.com --ssh-user deploy
 configr diff
-
-# Edit configuration
-configr edit
-
-# Format configuration
+configr status
+configr rollback --count 3
 configr format
-
-# Rollback changes
-configr rollback --count 2
-
-# Rollback all changes
-configr rollback
-```
-
-### Output Format
-
-The CLI provides clean, text-focused output:
-
-```
-[module-id] Starting: Operation description
-[module-id] Progress: 50% - Processing...
-[module-id] Completed: Operation completed successfully
 ```
 
 ## Documentation
 
-- [CLI Usage Guide](docs/cli-usage.md)
-- [Terminal UI System](docs/terminal-ui.md)
-- [Developer Guide](docs/developer/command-creation.md)
-- [Migration Guide](docs/migration-guide.md)
-- [Module Documentation](docs/modules/README.md)
-- [Getting Started Tutorial](docs/modules/tutorial.md)
-- [Configuration Format](docs/basics.md)
-
-## Examples
-
-Check out the [examples](examples) directory for common configuration scenarios:
-
-- Basic file operations
-- Template usage
-- Archive management
-- System configuration
-- Dotfiles management
+- [Documentation index](docs/index.md)
+- [CLI usage](docs/getting-started/cli-usage.md)
+- [Getting started tutorial](docs/getting-started/tutorial.md)
+- [Migration guide](docs/getting-started/migration-guide.md)
+- [Architecture](docs/guides/architecture.md)
+- [Execution service](docs/guides/execution-service.md)
+- [Remote execution](docs/guides/remote-execution.md)
+- [Multi-host execution](docs/guides/multi-host.md)
+- [Plugin system](docs/guides/plugin-system.md)
+- [Windows support](docs/guides/windows.md)
 
 ## Development
 
 ```bash
-# Run tests
+dart analyze
 dart test
+```
 
-# Run specific test file
-dart test test/config_management_test.dart
+Run focused tests while working on a block:
+
+```bash
+dart test test/v2/file_test.dart
 ```
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-For more information, see [CONTRIBUTING.md](CONTRIBUTING.md)
+MIT License. See [LICENSE](LICENSE).

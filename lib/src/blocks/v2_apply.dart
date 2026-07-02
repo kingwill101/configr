@@ -99,6 +99,7 @@ import 'package:configr/src/models/v2_lockfile_data.dart';
 import 'package:configr/src/utils/event_bus.dart';
 import 'package:configr/src/utils/execution_service.dart';
 import 'package:configr/src/utils/privilege_escalation.dart';
+import 'package:configr/src/utils/processing_halt.dart';
 import 'package:file/file.dart' show FileSystem;
 import 'package:file/local.dart' show LocalFileSystem;
 import 'package:i3config/i3config_v2.dart' as i3;
@@ -333,6 +334,9 @@ Future<void> applyV2(
 
   final appliedBlocks = appliedBlocksCollector ?? <AppliedBlockRecord>[];
   processor.context.options['_appliedBlocks'] = appliedBlocks;
+  processor.setErrorHandler(
+    _ConfigrProcessorErrorHandler(haltOnError: failFast),
+  );
   if (failFast) {
     processor.context.options['_failFast'] = true;
   }
@@ -418,8 +422,19 @@ Future<void> applyV2(
     await hookMgr.runEvent('pre-apply', extraVars: {'config_path': configPath});
   }
 
-  // Process — each block executes as it is processed
-  await processor.process(config);
+  // Process — each block executes as it is processed.
+  try {
+    await processor.process(config);
+  } on ConfigrProcessingHalted {
+    // The configured error handler has already recorded the failure.
+  }
+
+  await _throwIfProcessingErrors(
+    processor,
+    configPath: configPath,
+    hookMgr: hookMgr,
+    fileSystem: fs,
+  );
 
   // Resolve targets from inventory if multi-host flags were provided
   final inventory =
@@ -574,38 +589,13 @@ Future<void> applyV2(
     );
   }
 
-  // Check for errors collected during processing.
-  final errors =
-      (processor.context.options['_errors'] as List<BlockErrorRecord>?) ??
-      <BlockErrorRecord>[];
-
-  if (errors.isNotEmpty) {
-    // Run on-error hook before reporting failure
-    await hookMgr.runEvent(
-      'on-error',
-      extraVars: {
-        'config_path': configPath,
-        'error_count': errors.length.toString(),
-      },
-    );
-
-    logger.error(
-      'Apply failed — ${errors.length} block(s) encountered errors:',
-    );
-    for (final err in errors) {
-      final location = err.source != null ? ' (${err.source})' : '';
-      logger.error('  - ${err.blockType}: ${err.message}$location');
-    }
-    // Delete any partial lockfile that may exist from a previous run.
-    final lockPath = V2LockfileManager.lockPathFor(configPath);
-    final lockFile = fs.file(lockPath);
-    if (await lockFile.exists()) {
-      await lockFile.delete();
-    }
-    throw ActionFailedException(
-      '${errors.length} block(s) failed during apply. Fix errors and re-run.',
-    );
-  }
+  // Check for errors collected during post-processing hooks.
+  await _throwIfProcessingErrors(
+    processor,
+    configPath: configPath,
+    hookMgr: hookMgr,
+    fileSystem: fs,
+  );
 
   // Run post-apply hook after successful processing
   if (!processingDryRun) {
@@ -632,6 +622,79 @@ Future<void> applyV2(
       '${lockfileTargets != null ? ' across ${lockfileTargets.length} target(s)' : ''}.',
     );
   }
+}
+
+Future<void> _throwIfProcessingErrors(
+  i3.ConfigProcessor processor, {
+  required String configPath,
+  required HookManager hookMgr,
+  required FileSystem fileSystem,
+}) async {
+  final errors =
+      (processor.context.options['_errors'] as List<BlockErrorRecord>?) ??
+      <BlockErrorRecord>[];
+
+  if (errors.isEmpty) return;
+
+  // Run on-error hook before reporting failure.
+  await hookMgr.runEvent(
+    'on-error',
+    extraVars: {
+      'config_path': configPath,
+      'error_count': errors.length.toString(),
+    },
+  );
+
+  logger.error('Apply failed — ${errors.length} block(s) encountered errors:');
+  for (final err in errors) {
+    final location = err.source != null ? ' (${err.source})' : '';
+    logger.error('  - ${err.blockType}: ${err.message}$location');
+  }
+
+  // Delete any partial lockfile that may exist from a previous run.
+  final lockPath = V2LockfileManager.lockPathFor(configPath);
+  final lockFile = fileSystem.file(lockPath);
+  if (await lockFile.exists()) {
+    await lockFile.delete();
+  }
+
+  throw ActionFailedException(
+    '${errors.length} block(s) failed during apply. Fix errors and re-run.',
+  );
+}
+
+class _ConfigrProcessorErrorHandler implements i3.ErrorHandler {
+  final bool haltOnError;
+
+  const _ConfigrProcessorErrorHandler({required this.haltOnError});
+
+  @override
+  void handleError(String message, i3.Context context, {dynamic span}) {
+    final cleanMessage = ConfigrProcessingHalted.cleanMessage(message);
+    if (!ConfigrProcessingHalted.isRecordedMessage(message)) {
+      final errors =
+          (context.globalContext.options['_errors']
+              as List<BlockErrorRecord>?) ??
+          <BlockErrorRecord>[];
+      context.globalContext.options['_errors'] = errors;
+      errors.add(
+        BlockErrorRecord(
+          message: cleanMessage,
+          blockType: 'processor',
+          blockId: 'processor',
+          source: span != null ? _formatSpan(span) : null,
+        ),
+      );
+    }
+
+    if (haltOnError) {
+      throw ConfigrProcessingHalted(cleanMessage, alreadyRecorded: true);
+    }
+  }
+}
+
+String _formatSpan(dynamic span) {
+  return 'line ${span.start.line + 1}, column ${span.start.column + 1}';
 }
 
 /// Rolls back previously-applied blocks using the lockfile as the source
