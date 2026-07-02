@@ -172,14 +172,21 @@ void main() {
       await pluginWithBackend.initialize();
       expect(fakeBackend.callCount, equals(1));
 
+      final markerName =
+          'configr_lua_local_run_command_'
+          '${DateTime.now().microsecondsSinceEpoch}';
       final marker = io.File(
-        '${io.Directory.systemTemp.path}/configr_lua_local_run_command_${DateTime.now().microsecondsSinceEpoch}',
+        '${io.Directory.systemTemp.path}${io.Platform.pathSeparator}'
+        '$markerName',
       );
       addTearDown(() {
         if (marker.existsSync()) marker.deleteSync();
       });
       final command = io.Platform.isWindows
-          ? 'echo local_run> ${_quoteWindowsCmd(marker.path)}'
+          ? 'powershell -NoProfile -Command '
+                '"Set-Content -LiteralPath '
+                '${_quotePowerShellString(marker.path)} '
+                '-Value local_run -NoNewline"'
           : 'printf local_run > ${_quotePosixShell(marker.path)}';
       final plugin = LuaPlugin(
         code: 'runCommand(${_luaString(command)})',
@@ -223,4 +230,5 @@ String _luaString(String value) {
 String _quotePosixShell(String value) =>
     "'${value.replaceAll("'", "'\"'\"'")}'";
 
-String _quoteWindowsCmd(String value) => '"${value.replaceAll('"', '""')}"';
+String _quotePowerShellString(String value) =>
+    "'${value.replaceAll("'", "''")}'";
