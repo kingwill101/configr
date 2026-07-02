@@ -178,13 +178,16 @@ void main() {
       addTearDown(() {
         if (marker.existsSync()) marker.deleteSync();
       });
+      final command = io.Platform.isWindows
+          ? 'echo local_run> ${_quoteWindowsCmd(marker.path)}'
+          : 'printf local_run > ${_quotePosixShell(marker.path)}';
       final plugin = LuaPlugin(
-        code: 'runCommand("printf local_run > ${marker.path}")',
+        code: 'runCommand(${_luaString(command)})',
         fileSystem: fs,
       );
 
       await plugin.initialize();
-      expect(marker.readAsStringSync(), equals('local_run'));
+      expect(marker.readAsStringSync().trim(), equals('local_run'));
       expect(fakeBackend.callCount, equals(1));
     });
 
@@ -207,3 +210,17 @@ void main() {
     });
   });
 }
+
+String _luaString(String value) {
+  final escaped = value
+      .replaceAll(r'\', r'\\')
+      .replaceAll('"', r'\"')
+      .replaceAll('\n', r'\n')
+      .replaceAll('\r', r'\r');
+  return '"$escaped"';
+}
+
+String _quotePosixShell(String value) =>
+    "'${value.replaceAll("'", "'\"'\"'")}'";
+
+String _quoteWindowsCmd(String value) => '"${value.replaceAll('"', '""')}"';
