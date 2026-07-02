@@ -1,3 +1,6 @@
+@TestOn('linux')
+library;
+
 import 'package:configr/src/events/module_events.dart';
 import 'package:test/test.dart';
 import 'v2_test_helper.dart';
