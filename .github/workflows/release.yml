@@ -45,10 +45,10 @@ jobs:
             -DCONFIGR_GIT_SHORT_SHA=$GIT_SHORT_SHA \
             -DCONFIGR_BUILD_DATE=$BUILD_DATE \
             -DCONFIGR_BUILD_NUMBER=${{ github.run_number }} \
-          -DCONFIGR_BUILD_REF=${{ github.ref }} \
-          -DCONFIGR_BUILD_SOURCE=${{ github.server_url }}/${{ github.repository }} \
-          -DCONFIGR_BUILD_TARGET=${{ runner.os }} \
-          bin/configr.dart -o ${{ matrix.output_name }}
+            -DCONFIGR_BUILD_REF=${{ github.ref }} \
+            -DCONFIGR_BUILD_SOURCE=${{ github.server_url }}/${{ github.repository }} \
+            -DCONFIGR_BUILD_TARGET=${{ runner.os }} \
+            bin/configr.dart -o ${{ matrix.output_name }}
 
       - name: Generate API docs
         run: mkdir -p doc/api && dart run tool/generate_metadata.dart --no-stdlib

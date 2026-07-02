@@ -97,10 +97,11 @@ class _RunCommandFunction extends BuiltinFunction {
     if (backend != null) {
       return (await backend.run(command)).exitCode;
     }
-    throw UnsupportedError(
-      'runCommand requires a configured process backend. '
-      'Use remote execution or inject a ProcessBackend for Lua process APIs.',
+    final result = await Process.run(
+      Platform.isWindows ? 'cmd' : 'sh',
+      Platform.isWindows ? ['/c', command] : ['-c', command],
     );
+    return result.exitCode;
   }
 }
 

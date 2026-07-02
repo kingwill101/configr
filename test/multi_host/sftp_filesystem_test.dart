@@ -1,3 +1,5 @@
+import 'dart:io' as io;
+
 import 'package:configr/src/plugins/lua_plugin.dart';
 import 'package:configr/src/hooks/lua_hook_runner.dart';
 import 'package:configr/src/di.dart';
@@ -160,7 +162,7 @@ void main() {
       },
     );
 
-    test('LuaPlugin without process backend rejects runCommand', () async {
+    test('LuaPlugin without process backend runs commands locally', () async {
       final fakeBackend = _FakeProcessBackend();
       final pluginWithBackend = LuaPlugin(
         code: 'runCommand("echo previous_backend")',
@@ -170,12 +172,19 @@ void main() {
       await pluginWithBackend.initialize();
       expect(fakeBackend.callCount, equals(1));
 
+      final marker = io.File(
+        '${io.Directory.systemTemp.path}/configr_lua_local_run_command_${DateTime.now().microsecondsSinceEpoch}',
+      );
+      addTearDown(() {
+        if (marker.existsSync()) marker.deleteSync();
+      });
       final plugin = LuaPlugin(
-        code: 'runCommand("echo should_not_use_controller")',
+        code: 'runCommand("printf local_run > ${marker.path}")',
         fileSystem: fs,
       );
 
-      await expectLater(plugin.initialize(), throwsA(anything));
+      await plugin.initialize();
+      expect(marker.readAsStringSync(), equals('local_run'));
       expect(fakeBackend.callCount, equals(1));
     });
 

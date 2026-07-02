@@ -162,13 +162,12 @@ printf '{"complete":true,"bytes":%s,"checksum":"%s"}\\n' "\$size" "\$checksum"
 
   @override
   CommandScript pingProbeScript(String host, int timeoutSeconds) {
-    return CommandScript('ping', [
-      '-c',
-      '1',
-      '-W',
-      timeoutSeconds.toString(),
-      _sh(host),
-    ]);
+    return CommandScript(
+      ShellType.sh.defaultExecutable,
+      ShellType.sh.scriptArgs(
+        'ping -c 1 -W ${_sh(timeoutSeconds.toString())} ${_sh(host)}',
+      ),
+    );
   }
 
   @override

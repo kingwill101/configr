@@ -45,6 +45,9 @@ typedef _CloseNative = Int32 Function(Int32 socket);
 typedef _CloseDart = int Function(int socket);
 
 DynamicLibrary _loadLibc() {
+  if (Platform.isWindows) {
+    throw UnsupportedError('POSIX socket FFI is not available on Windows.');
+  }
   if (Platform.isMacOS || Platform.isIOS) {
     return DynamicLibrary.open('/usr/lib/libSystem.B.dylib');
   }
@@ -54,18 +57,18 @@ DynamicLibrary _loadLibc() {
   return DynamicLibrary.open('libc.so.6');
 }
 
-final DynamicLibrary _libc = _loadLibc();
+final DynamicLibrary? _libc = Platform.isWindows ? null : _loadLibc();
 
-final _SocketDart _socket = _libc.lookupFunction<_SocketNative, _SocketDart>(
+final _SocketDart? _socket = _libc?.lookupFunction<_SocketNative, _SocketDart>(
   'socket',
 );
-final _ConnectDart _connect = _libc
-    .lookupFunction<_ConnectNative, _ConnectDart>('connect');
-final _ReadDart _read = _libc.lookupFunction<_ReadNative, _ReadDart>('read');
-final _WriteDart _write = _libc.lookupFunction<_WriteNative, _WriteDart>(
+final _ConnectDart? _connect = _libc
+    ?.lookupFunction<_ConnectNative, _ConnectDart>('connect');
+final _ReadDart? _read = _libc?.lookupFunction<_ReadNative, _ReadDart>('read');
+final _WriteDart? _write = _libc?.lookupFunction<_WriteNative, _WriteDart>(
   'write',
 );
-final _CloseDart _close = _libc.lookupFunction<_CloseNative, _CloseDart>(
+final _CloseDart? _close = _libc?.lookupFunction<_CloseNative, _CloseDart>(
   'close',
 );
 
@@ -479,7 +482,16 @@ Uint8List _sendUnixSocketRequestSync({
     throw ArgumentError.value(agentPath, 'agentPath', 'must not be empty');
   }
 
-  final socketHandle = _socket(_afUnix, _sockStream, 0);
+  final socket = _socket;
+  final connect = _connect;
+  final close = _close;
+  if (socket == null || connect == null || close == null) {
+    throw UnsupportedError(
+      'POSIX socket FFI is not available on this platform.',
+    );
+  }
+
+  final socketHandle = socket(_afUnix, _sockStream, 0);
   if (socketHandle < 0) {
     throw SocketException('Failed to open SSH agent Unix socket.');
   }
@@ -500,7 +512,7 @@ Uint8List _sendUnixSocketRequestSync({
           .setRange(2, 2 + pathBytes.length, pathBytes);
     }
 
-    final connectResult = _connect(
+    final connectResult = connect(
       socketHandle,
       addressBuffer.cast<Void>(),
       addressLength,
@@ -518,17 +530,24 @@ Uint8List _sendUnixSocketRequestSync({
     return _readExactSync(socketHandle, responseLength);
   } finally {
     calloc.free(addressBuffer);
-    _close(socketHandle);
+    close(socketHandle);
   }
 }
 
 void _writeAllSync(int socketHandle, Uint8List bytes) {
+  final write = _write;
+  if (write == null) {
+    throw UnsupportedError(
+      'POSIX socket FFI is not available on this platform.',
+    );
+  }
+
   final pointer = calloc<Uint8>(bytes.length);
   try {
     pointer.asTypedList(bytes.length).setAll(0, bytes);
     var offset = 0;
     while (offset < bytes.length) {
-      final written = _write(
+      final written = write(
         socketHandle,
         (pointer + offset).cast<Void>(),
         bytes.length - offset,
@@ -544,12 +563,19 @@ void _writeAllSync(int socketHandle, Uint8List bytes) {
 }
 
 Uint8List _readExactSync(int socketHandle, int length) {
+  final read = _read;
+  if (read == null) {
+    throw UnsupportedError(
+      'POSIX socket FFI is not available on this platform.',
+    );
+  }
+
   final buffer = Uint8List(length);
   final pointer = calloc<Uint8>(length);
   try {
     var offset = 0;
     while (offset < length) {
-      final readCount = _read(
+      final readCount = read(
         socketHandle,
         (pointer + offset).cast<Void>(),
         length - offset,

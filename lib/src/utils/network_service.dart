@@ -505,9 +505,11 @@ class ExecutionNetworkService implements NetworkService {
   }) async {
     final start = DateTime.now();
     final cmd = _strategy.pingProbeScript(host, timeoutSeconds);
-    // Ping is executed directly (not through a shell wrapper) so the
-    // platform-specific flags are used as-is.
-    final result = await executionService.run(cmd.executable, cmd.args);
+    final result = await executionService.run(
+      cmd.executable,
+      cmd.args,
+      stdin: cmd.stdin,
+    );
     return NetworkProbeResult(
       success: result.exitCode == 0,
       elapsedMs: _elapsed(start),
