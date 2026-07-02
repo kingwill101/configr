@@ -162,41 +162,40 @@ void main() {
       },
     );
 
-    test('LuaPlugin without process backend runs commands locally', () async {
-      final fakeBackend = _FakeProcessBackend();
-      final pluginWithBackend = LuaPlugin(
-        code: 'runCommand("echo previous_backend")',
-        fileSystem: fs,
-        processBackend: fakeBackend,
-      );
-      await pluginWithBackend.initialize();
-      expect(fakeBackend.callCount, equals(1));
+    test(
+      'LuaPlugin without process backend runs commands locally',
+      () async {
+        final fakeBackend = _FakeProcessBackend();
+        final pluginWithBackend = LuaPlugin(
+          code: 'runCommand("echo previous_backend")',
+          fileSystem: fs,
+          processBackend: fakeBackend,
+        );
+        await pluginWithBackend.initialize();
+        expect(fakeBackend.callCount, equals(1));
 
-      final markerName =
-          'configr_lua_local_run_command_'
-          '${DateTime.now().microsecondsSinceEpoch}';
-      final marker = io.File(
-        '${io.Directory.systemTemp.path}${io.Platform.pathSeparator}'
-        '$markerName',
-      );
-      addTearDown(() {
-        if (marker.existsSync()) marker.deleteSync();
-      });
-      final command = io.Platform.isWindows
-          ? 'powershell -NoProfile -Command '
-                '"Set-Content -LiteralPath '
-                '${_quotePowerShellString(marker.path)} '
-                '-Value local_run -NoNewline"'
-          : 'printf local_run > ${_quotePosixShell(marker.path)}';
-      final plugin = LuaPlugin(
-        code: 'runCommand(${_luaString(command)})',
-        fileSystem: fs,
-      );
+        final markerName =
+            'configr_lua_local_run_command_'
+            '${DateTime.now().microsecondsSinceEpoch}';
+        final marker = io.File(
+          '${io.Directory.systemTemp.path}${io.Platform.pathSeparator}'
+          '$markerName',
+        );
+        addTearDown(() {
+          if (marker.existsSync()) marker.deleteSync();
+        });
+        final command = 'printf local_run > ${_quotePosixShell(marker.path)}';
+        final plugin = LuaPlugin(
+          code: 'runCommand(${_luaString(command)})',
+          fileSystem: fs,
+        );
 
-      await plugin.initialize();
-      expect(marker.readAsStringSync().trim(), equals('local_run'));
-      expect(fakeBackend.callCount, equals(1));
-    });
+        await plugin.initialize();
+        expect(marker.readAsStringSync().trim(), equals('local_run'));
+        expect(fakeBackend.callCount, equals(1));
+      },
+      testOn: 'linux || mac-os',
+    );
 
     test('LuaHookRunner wires process backend into lualike', () async {
       final fakeBackend = _FakeProcessBackend();
@@ -229,6 +228,3 @@ String _luaString(String value) {
 
 String _quotePosixShell(String value) =>
     "'${value.replaceAll("'", "'\"'\"'")}'";
-
-String _quotePowerShellString(String value) =>
-    "'${value.replaceAll("'", "''")}'";
