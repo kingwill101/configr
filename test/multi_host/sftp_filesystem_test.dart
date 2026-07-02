@@ -162,40 +162,53 @@ void main() {
       },
     );
 
-    test(
-      'LuaPlugin without process backend runs commands locally',
-      () async {
-        final fakeBackend = _FakeProcessBackend();
-        final pluginWithBackend = LuaPlugin(
-          code: 'runCommand("echo previous_backend")',
-          fileSystem: fs,
-          processBackend: fakeBackend,
-        );
-        await pluginWithBackend.initialize();
-        expect(fakeBackend.callCount, equals(1));
+    test('LuaPlugin without process backend runs commands locally', () async {
+      final fakeBackend = _FakeProcessBackend();
+      final pluginWithBackend = LuaPlugin(
+        code: 'runCommand("echo previous_backend")',
+        fileSystem: fs,
+        processBackend: fakeBackend,
+      );
+      await pluginWithBackend.initialize();
+      expect(fakeBackend.callCount, equals(1));
 
-        final markerName =
-            'configr_lua_local_run_command_'
-            '${DateTime.now().microsecondsSinceEpoch}';
-        final marker = io.File(
-          '${io.Directory.systemTemp.path}${io.Platform.pathSeparator}'
-          '$markerName',
-        );
-        addTearDown(() {
-          if (marker.existsSync()) marker.deleteSync();
-        });
-        final command = 'printf local_run > ${_quotePosixShell(marker.path)}';
-        final plugin = LuaPlugin(
-          code: 'runCommand(${_luaString(command)})',
-          fileSystem: fs,
-        );
+      final markerName =
+          'configr_lua_local_run_command_'
+          '${DateTime.now().microsecondsSinceEpoch}';
+      final marker = io.File(
+        '${io.Directory.systemTemp.path}${io.Platform.pathSeparator}'
+        '$markerName',
+      );
+      final script = io.File(
+        '${io.Directory.systemTemp.path}${io.Platform.pathSeparator}'
+        '$markerName.dart',
+      );
+      addTearDown(() {
+        if (marker.existsSync()) marker.deleteSync();
+        if (script.existsSync()) script.deleteSync();
+      });
+      script.writeAsStringSync('''
+import 'dart:io';
 
-        await plugin.initialize();
-        expect(marker.readAsStringSync().trim(), equals('local_run'));
-        expect(fakeBackend.callCount, equals(1));
-      },
-      testOn: 'linux || mac-os',
-    );
+void main(List<String> args) {
+  File(args.single).writeAsStringSync('local_run');
+}
+''');
+      final command = [
+        if (io.Platform.isWindows) 'call',
+        _quoteShellArg(io.Platform.resolvedExecutable),
+        _quoteShellArg(script.path),
+        _quoteShellArg(marker.path),
+      ].join(' ');
+      final plugin = LuaPlugin(
+        code: 'runCommand(${_luaString(command)})',
+        fileSystem: fs,
+      );
+
+      await plugin.initialize();
+      expect(marker.readAsStringSync().trim(), equals('local_run'));
+      expect(fakeBackend.callCount, equals(1));
+    });
 
     test('LuaHookRunner wires process backend into lualike', () async {
       final fakeBackend = _FakeProcessBackend();
@@ -228,3 +241,9 @@ String _luaString(String value) {
 
 String _quotePosixShell(String value) =>
     "'${value.replaceAll("'", "'\"'\"'")}'";
+
+String _quoteShellArg(String value) => io.Platform.isWindows
+    ? _quoteWindowsCmdArg(value)
+    : _quotePosixShell(value);
+
+String _quoteWindowsCmdArg(String value) => '"${value.replaceAll('"', r'\"')}"';
