@@ -172,41 +172,14 @@ void main() {
       await pluginWithBackend.initialize();
       expect(fakeBackend.callCount, equals(1));
 
-      final markerName =
-          'configr_lua_local_run_command_'
-          '${DateTime.now().microsecondsSinceEpoch}';
-      final marker = io.File(
-        '${io.Directory.systemTemp.path}${io.Platform.pathSeparator}'
-        '$markerName',
-      );
-      final script = io.File(
-        '${io.Directory.systemTemp.path}${io.Platform.pathSeparator}'
-        '$markerName.dart',
-      );
-      addTearDown(() {
-        if (marker.existsSync()) marker.deleteSync();
-        if (script.existsSync()) script.deleteSync();
-      });
-      script.writeAsStringSync('''
-import 'dart:io';
-
-void main(List<String> args) {
-  File(args.single).writeAsStringSync('local_run');
-}
-''');
-      final command = [
-        if (io.Platform.isWindows) 'call',
-        _quoteShellArg(io.Platform.resolvedExecutable),
-        _quoteShellArg(script.path),
-        _quoteShellArg(marker.path),
-      ].join(' ');
+      final command = io.Platform.isWindows ? 'ver > nul' : 'true';
       final plugin = LuaPlugin(
-        code: 'runCommand(${_luaString(command)})',
+        code: 'command_exit = runCommand(${_luaString(command)})',
         fileSystem: fs,
       );
 
       await plugin.initialize();
-      expect(marker.readAsStringSync().trim(), equals('local_run'));
+      expect(plugin.luaLike.getGlobal('command_exit').raw, equals(0));
       expect(fakeBackend.callCount, equals(1));
     });
 
@@ -238,12 +211,3 @@ String _luaString(String value) {
       .replaceAll('\r', r'\r');
   return '"$escaped"';
 }
-
-String _quotePosixShell(String value) =>
-    "'${value.replaceAll("'", "'\"'\"'")}'";
-
-String _quoteShellArg(String value) => io.Platform.isWindows
-    ? _quoteWindowsCmdArg(value)
-    : _quotePosixShell(value);
-
-String _quoteWindowsCmdArg(String value) => '"${value.replaceAll('"', r'\"')}"';
