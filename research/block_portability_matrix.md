@@ -1,7 +1,21 @@
 # Block Portability Matrix
 
-**Date:** 2026-06-30  
+**Date:** 2026-07-02
 **Legend:** ✅ yes | 🔶 partial | ❌ no | ➖ n/a | ❓ unknown
+
+## Supported Platform Scope
+
+Configr's portability target is:
+
+- **Linux**: primary local and SSH target. Linux-only blocks are allowed, but must declare clear unsupported-target behavior.
+- **macOS**: supported local target for portable file/process/network blocks; Darwin system-management strategies are still incomplete.
+- **FreeBSD**: supported target family for POSIX-style file/process/network work where tools exist; many OS-management strategies are still placeholders.
+- **Windows**: supported target family through PowerShell-oriented execution strategies. Windows is not POSIX with backslashes; ACLs, services, packages, scheduled tasks, symlinks, paths, and shell quoting require native strategies.
+
+The matrix below still groups macOS and FreeBSD together in many rows because
+the current implementation usually treats both as POSIX-like unless a block has
+a dedicated Darwin/FreeBSD strategy. Future updates should add an explicit
+FreeBSD column once CI has a reliable FreeBSD runner or VM fixture.
 
 ## Category A: File System Blocks (should be portable via FileSystem)
 
@@ -26,16 +40,16 @@
 
 | Block | Linux | macOS | Windows | Remote-safe | Rollback | ExecutionService? | Notes |
 |-------|-------|-------|---------|-------------|----------|-------------------|-------|
-| download | ✅ | ✅ | ❓ | ✅ | ✅ | via NetworkService | Windows: needs PowerShell/curl strategy |
-| uri | ✅ | ✅ | ❓ | ✅ | ✅ | via NetworkService | Windows: needs PowerShell/curl strategy |
-| network | ✅ | ✅ | ❓ | ✅ | ❌ | via NetworkService | Windows: needs PowerShell strategy |
+| download | ✅ | ✅ | 🔶 | ✅ | ✅ | via NetworkService | Windows PowerShell strategy exists; needs CI fixture coverage |
+| uri | ✅ | ✅ | 🔶 | ✅ | ✅ | via NetworkService | Windows PowerShell strategy exists; needs CI fixture coverage |
+| network | ✅ | ✅ | 🔶 | ✅ | ❌ | via NetworkService | Windows DNS/TCP/ping strategies exist; needs CI fixture coverage |
 | wait_for | ✅ | ✅ | ✅ | ✅ | ❌ | `networkService.probeTcp` / `ExecutionService.run` | macOS/Linux ping fixed, Windows ping via `-n -w` |
 | unarchive | ✅ | ✅ | ❓ | ✅ | ❌ | via ExecutionService | |
 | compress | ✅ | ✅ | ❓ | ❌ | ❌ | via ExecutionService | |
 | decompress | ✅ | ✅ | ❓ | ❌ | ❌ | via ExecutionService | |
-| script | ✅ | ✅ | ❓ | ✅ | ❌ | ✅ | Windows: needs PowerShell strategy |
-| execute | ✅ | ✅ | ❓ | ✅ | ❌ | ✅ | |
-| raw | ✅ | ✅ | ❓ | ✅ | ❌ | via ExecutionService | |
+| script | ✅ | ✅ | 🔶 | ✅ | ❌ | ✅ | Windows strategy exists; `.ps1` hooks/scripts need explicit fixtures |
+| execute | ✅ | ✅ | 🔶 | ✅ | ❌ | ✅ | PowerShell default on Windows; needs CI fixture coverage |
+| raw | ✅ | ✅ | 🔶 | ✅ | ❌ | via ExecutionService | Direct executable dispatch; Windows semantics need tests |
 | git | ✅ | ✅ | ❓ | ✅ | ❌ | via ExecutionService | |
 | dependency | ✅ | ✅ | ✅ | ✅ | ❌ | `networkService.probeTcp` / `ExecutionService.run` | macOS/Linux ping fixed, Windows ping via `-n -w` |
 | sync | ✅ | ✅ | ❓ | ✅ | ❌ | via ExecutionService | |
@@ -103,6 +117,94 @@
 | E: Control/Meta | 14 | 14 | 14 | 13 | 12 | 0 |
 | **Total** | **63** | **62** | **46** | **26** | **59** | **34** |
 
+## Further Portability Work Required
+
+This is the current work queue after the remote execution, audit logging,
+Windows import hardening, Lua plugin process fallback, Unix ping shell wrapping,
+and fail-fast processor changes.
+
+### P0: Make Platform Support Explicit
+
+| Work Item | Why It Matters | Target Outcome |
+|-----------|----------------|----------------|
+| Add block-level capability metadata | The tables are still mostly documentation. The runtime should know which capabilities each block requires. | Each block declares required capabilities such as `fs.write`, `exec.powershell`, `os.systemd`, `pkg.apt`, `fw.ufw`. |
+| Add early unsupported-target checks | Many unsupported blocks fail only after command execution starts. | Dry-run and apply can fail before mutation with block type, target OS, missing capability, and suggestion. |
+| Normalize local vs target facts | Some factories still use controller `Platform`/`OsFacts.detect()` instead of target facts. | Blocks use target facts from the processor context; constructors stay platform-neutral. |
+| Add FreeBSD as a first-class matrix dimension | The docs mention FreeBSD, but this matrix mostly folds it into POSIX/macOS assumptions. | Matrix tables and tests distinguish Linux, macOS, FreeBSD, and Windows. |
+| Keep fail-fast at processor boundary | `--fail-fast` now halts on processor/block errors; nested manual processing paths need continued audit. | Dynamic/manual processing code cannot continue after a recorded fatal error. |
+
+### P1: Test Harness And CI
+
+| Work Item | Why It Matters | Target Outcome |
+|-----------|----------------|----------------|
+| Portable Lua sweep fixtures | Shell `verify.sh`/`cleanup.sh` fixtures are not portable to Windows and are weak on macOS/FreeBSD. | Portable fixtures use `verify.lua`, `cleanup.lua`, and optional `verify_rollback.lua`. |
+| Platform tags and capability tags | OS tags alone are too coarse for tools like `tar`, `curl`, `bash`, `systemctl`, Docker, and package managers. | Fixture tags include `portable`, `linux`, `macos`, `freebsd`, `windows`, `requires-bash`, `requires-docker`, `requires-systemd`, etc. |
+| Re-enable analyze/unit jobs by platform | Linux-only tests and host-mutating tests must not block macOS/Windows/FreeBSD confidence. | CI has separate Linux, macOS, Windows, and FreeBSD or VM-backed jobs with correct skips. |
+| Container-backed Linux distro matrix | Package/firewall blocks need real tools but should not mutate the host. | apt/dnf/yum/pacman/apk/firewalld/ufw tests run only in containers or privileged opt-in jobs. |
+| Windows SSH target fixture | Local Windows behavior and remote Windows behavior are different. | CI or manual fixture covers OpenSSH + PowerShell target execution and SFTP file operations. |
+
+### P1: Windows Runtime And Blocks
+
+| Work Item | Why It Matters | Target Outcome |
+|-----------|----------------|----------------|
+| Windows ACL strategy for `permissions` | POSIX chmod/chown semantics do not map to Windows. | `permissions` either supports Windows ACLs or fails early with required capability metadata. |
+| Windows service strategy | Generic `service` currently has no Windows implementation. | `service` uses PowerShell service cmdlets on Windows. |
+| Windows scheduled task strategy | `cron` is Linux-only today, but scheduled jobs are a portable concept. | Either add a Windows-specific task block or make a scheduler abstraction. |
+| Windows package manager policy | `package` has no Windows manager story. | Decide and implement `winget`, `choco`, and/or `scoop` capability strategy. |
+| Windows firewall strategy | `ufw`/`firewalld` are Linux-only. | Add separate Windows firewall strategy using PowerShell NetSecurity or document unsupported. |
+| Windows archive strategy | Archive blocks rely heavily on POSIX tools. | Use PowerShell `Compress-Archive`/`Expand-Archive` where possible, with explicit unsupported errors for tar/gzip gaps. |
+| PowerShell hooks and scripts | Bash hooks are POSIX-only. | Hook manager supports `.ps1` on Windows and fails clearly when `.sh` requires missing Bash. |
+| Windows path and home lookup policy | `$HOME`, OpenSSH paths, symlink behavior, temp paths, and drive roots differ from POSIX. | Shared path helpers and target facts provide Windows-safe home/temp/SSH locations. |
+
+### P1: macOS And FreeBSD Strategies
+
+| Work Item | Why It Matters | Target Outcome |
+|-----------|----------------|----------------|
+| macOS service strategy | `service` lists launchctl as partial but strategy is incomplete. | `service` can manage launchd services or explicitly rejects unsupported states. |
+| macOS user/group strategy | Docs mention `dscl`/`dseditgroup`; code still has stubs. | `user` and `group` use Darwin tools or fail early with capability metadata. |
+| macOS hostname/timezone strategy validation | Docs claim support in places, but code has stubs for hostname and partial timezone semantics. | `hostname` and `timezone` have real Darwin tests. |
+| FreeBSD user/group/hostname strategies | FreeBSD is listed as supported in docs for some blocks, but implementation is mostly stubs. | `pw`, rc/service, hostname, mount, and package expectations are explicit. |
+| macOS/FreeBSD package policy | Homebrew covers macOS and Linuxbrew, but FreeBSD package support is not declared. | Decide whether to add `pkg` block/capability for FreeBSD. |
+| cron vs launchd vs rc semantics | Scheduling/service concepts differ across POSIX families. | Avoid pretending Linux cron/systemd semantics are portable. |
+
+### P2: Filesystem Semantics
+
+| Work Item | Why It Matters | Target Outcome |
+|-----------|----------------|----------------|
+| POSIX metadata gates | File/copy/backup/stat may expose mode/owner/group values that do not exist on Windows. | Metadata fields are nullable or capability-gated. |
+| Symlink policy by target | Windows symlinks may require privileges/developer mode and PowerShell semantics. | `symlink` reports clear unsupported/permission errors and has Windows fixtures. |
+| Controller vs target path typing | Some paths are controller paths, some are target paths, and some are virtual MemoryFileSystem paths. | APIs and docs distinguish controller paths from target paths. |
+| CRLF/newline fixtures | Text editing blocks need predictable behavior on Windows checkouts. | `lineinfile`, `blockinfile`, `replace`, `template`, and `file` have CRLF tests. |
+| Fetch semantics | `fetch` crosses target-to-controller boundaries and can blur FileSystem ownership. | Explicit tests for local, SSH-to-Linux, and Windows target fetch. |
+
+### P2: Network, Transfer, And Audit
+
+| Work Item | Why It Matters | Target Outcome |
+|-----------|----------------|----------------|
+| Target/controller transfer mode docs | `download` supports target and controller paths, but users need clear behavior. | Document `auto`, `remote`, and `controller` modes and when fallback is allowed. |
+| Windows network fixtures | PowerShell strategies exist but need proof. | Windows tests for URI, download, DNS, TCP, and ping. |
+| FreeBSD network tool probes | Tool flags differ across BSD utilities. | Capability detection covers BSD `ping`, `nc`, DNS, and checksum tools. |
+| Audit every execution path | Shell audit logging covers `ExecutionService`; direct local `Process.run` gaps may remain. | No block bypasses `ExecutionService` unless intentionally controller-side and documented. |
+| PowerShell audit readability | Encoded commands should be decoded in logs. | Audit records always include readable command text plus redacted env/stdout/stderr. |
+
+### P3: OS, Package, Firewall, And Container Blocks
+
+| Work Item | Why It Matters | Target Outcome |
+|-----------|----------------|----------------|
+| Linux-only blocks declare Linux-only | Blocks like `systemd`, `ufw`, `firewalld`, `alternatives`, and distro package managers should not imply portability. | Metadata and docs say exactly which Linux families/tools are supported. |
+| Generic `package` dispatcher | The generic block should choose an available manager from target facts, not controller assumptions. | Dispatcher uses target capability probes and fails with manager suggestions. |
+| Container block remote policy | Docker context may be local controller or target host; current remote-safety is unclear. | `container*` blocks document and test target Docker context behavior. |
+| Rollback semantics for system blocks | Some OS blocks claim rollback but external state may be complex. | Rollback is either tested per platform or downgraded in the matrix. |
+
+### P4: Documentation Debt
+
+| Work Item | Why It Matters | Target Outcome |
+|-----------|----------------|----------------|
+| Align docs with code reality | Some block docs claim platform support that is currently stubbed or untested. | Every block doc has a verified support table and unsupported notes. |
+| Add "new configs should use direct blocks" guidance everywhere resource/actions examples appear | `resource { actions { ... } }` remains common in old docs. | Resource/actions examples are marked legacy or converted to direct blocks. |
+| Add unsupported-target examples | Users need to know what failure looks like. | Docs show example errors for Linux-only block on Windows/macOS/FreeBSD. |
+| Document supported platform tiers | "Supported" should distinguish implemented, tested, and planned. | Docs use the same legend as this matrix. |
+
 ## Known Target Bugs (from API audit)
 
 | File | Line | Issue | Fix |
@@ -111,6 +213,11 @@
 | `dependency_block.dart` | 228 | `Socket.connect(...)` → use `networkService.probeTcp()` | Fixed |
 | `wait_for_block.dart` | 156 | `Socket.connect(...)` → use `networkService.probeTcp()` | Fixed |
 | `wait_for_block.dart` | 175–180 | `_pingArgs` macOS `-W` was in seconds (must be ms) | Fixed — `'macos'` branch uses `timeoutSeconds * 1000` |
+| `ssh_execution_service.dart` | 57 | POSIX FFI bindings loaded `libc.so.6` during Windows import | Fixed — Windows import does not initialize POSIX bindings |
+| `lua_library.dart` | 100–102 | Local Lua `runCommand()` failed without a remote process backend | Fixed — local fallback uses the platform shell |
+| `network_strategy.dart` | 164–170 | Unix ping host was shell-quoted but passed as a direct process arg | Fixed — Unix ping probe now goes through `sh -c` |
+| `v2_apply.dart` / `action_block.dart` | processor errors | `--fail-fast` recorded errors but the processor could continue walking later elements | Fixed — processor error handler can halt at first processor/block error |
+| `.github/workflows/release.yml` | build command | Release compile command lost a line continuation before build metadata flags | Fixed |
 | `systemd_block.dart` | 610-611 | `Directory.systemTemp` + `File()` → use `fileSystem` | Replace with file system abstraction |
 | `system_info.dart` | 85 | `tempdir` uses `Directory.systemTemp.path` — backslash on Windows | Fixed — added `tempdir_uri` with forward slashes |
 | `lua_fixture_runner.dart` | 167–193 | `os.execute('mkdir -p')` / `os.execute('rm -rf')` in Lua scripts | Fixed — added `makeDir()`/`removeTree()` helpers |
@@ -162,7 +269,7 @@ These are not block features, but they gate all Windows/macOS work.
 | Windows path separator leakage in MemoryFileSystem tests | In progress | Use `path.posix` or `fileSystem.path` for internal virtual paths; `fetch`, `rename`, `sync`, and `symlink` have targeted fixes | Run unit tests on Windows |
 | Recursive directory copy preserves layout | In progress | Copy files by `relative(entity.path, from: source)` instead of basename-only recursion | `copy`, `backup`, and file-service tests |
 | `generate_keys.sh` CRLF sensitivity | Needs guard | Enforce LF in repo and/or generate keys from Dart test setup | Docker SSH integration on Windows checkout |
-| Lua plugin default process hang on Windows | Fixed for Configr API | `runCommand()` now requires an injected process backend; file-only plugins still run without one | `sftp_filesystem_test.dart` on Windows |
+| Lua plugin default process behavior | Fixed for Configr API | `runCommand()` uses the injected backend for remote applies and local shell fallback for local applies | `sftp_filesystem_test.dart` on Windows |
 | Sweep fixture shell dependence | Not started | Add Lua fixture runner and migrate portable fixtures | Portable sweep on Linux/macOS/Windows |
 | Unit/integration test partitioning | Partial | Directory-specific CI commands plus test tags | CI unit jobs do not run container/sweep tests |
 
@@ -273,7 +380,7 @@ This queue is a concrete search list for the next implementation pass.
 | Plugin facts | `lib/src/plugins/plugin_context.dart`, `lib/src/plugins/lua_library.dart` | Lua context now reads processor facts from target-derived SystemInfo; `fromConfigContext` reads target-correct `os.family`, `os.distribution`, `os.distributionVersion`, `os.kernel` |
 | File utilities | `lib/src/utils/file_utils.dart`, `lib/src/utils/file_service.dart` | Still contains controller process calls for chmod/chown/stat/executable checks |
 | Target facts | `lib/src/utils/platform.dart`, `lib/src/utils/system_info.dart`, `lib/src/utils/target_system.dart` | SystemInfo now accepts `TargetSystemFacts?` — `applyV2` probes target before plugin init and block processing; `TargetSystemFacts` extended with `kernel` and `fqdn` |
-| Network runtime | `lib/src/utils/network_service.dart` | Needs complete target/controller split and Windows PowerShell backend |
+| Network runtime | `lib/src/utils/network_service.dart`, `lib/src/strategies/network_strategy.dart` | Windows PowerShell strategy exists; needs fixture coverage and clearer target/controller transfer docs |
 | Multi-host dependency checks | `lib/src/multi_host/dependency_checker.dart` | Uses direct ping/socket from controller |
 | OS blocks | `service`, `user`, `group`, `hostname`, `timezone`, `systemd` | Need strategy registry and unsupported errors |
 | Path joins | `v2_apply` plus remaining block-specific path math | `fetch`, `rename`, `sync`, and `symlink` now use normalized POSIX or target `FileSystem` paths; keep auditing controller paths vs target virtual paths |
